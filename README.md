@@ -1,15 +1,14 @@
 # Porting `library(actors)` to Trealla Prolog
 
-Status report on porting the minimal Erlang-style actors library
-(`actors.pl` + `parallel.pl`) from SWI-Prolog to
+Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
 (v2.92.38).
 
-The port lives alongside this report as `actors_trealla.pl`, with
-a manual test suite in `tests_trealla.pl`. `parallel.pl` is pure
+The port lives alongside this report as `actors.pl`, with
+a manual test suite in `tests.pl`. `parallel.pl` is pure
 client code over the actors API and runs unchanged on Trealla, so
 no separate Trealla variant is needed. This document records what
-changed versus the canonical `actors.pl` and why.
+changed versus the canonical `simple-node/actors.pl` and why.
 
 ## Test results
 
@@ -29,15 +28,15 @@ All ten manual tests pass on Trealla:
 |10 | `first_solution/2` picks fastest         | ok     |
 
 All four demos from `parallel.pl` also run unchanged on Trealla
-against `actors_trealla.pl`.
+against `actors.pl`.
 
 ## What is supported
 
-- `spawn/1,2,3` with `monitor(Bool)` and `link(Bool)` options
+- `spawn/1-3` with `monitor(Bool)` and `link(Bool)` options
 - `self/1`, `send/2`, `(!)/2`
-- `receive/1,2` with patterns, guards (`Pattern if Guard -> Body`),
+- `receive/1-2` with patterns, guards (`Pattern if Guard -> Body`),
   and `timeout(0)` polling
-- `monitor/2`, `demonitor/1,2`
+- `monitor/2`, `demonitor/1-2`
 - `register/2`, `unregister/1`, `whereis/2`
 - `exit/1`, `exit/2`
 - Links (bidirectional lifecycle coupling)
@@ -59,7 +58,7 @@ be used verbatim and why.
 
 ### 1. `library(option)` absent
 
-SWI-Prolog's `option/2,3` is not shipped with Trealla. Polyfilled
+SWI-Prolog's `option/2-3` is not shipped with Trealla. Polyfilled
 in-module:
 
 ```prolog
@@ -82,23 +81,7 @@ is_thread(Id) :-
     catch(thread_property(Id, status(_)), _, fail).
 ```
 
-### 3. `:- meta_predicate` comma-form not accepted
-
-Trealla rejects `:- meta_predicate foo(0), bar(0, -).`; each
-declaration must be its own directive and parenthesized:
-
-```prolog
-:- meta_predicate(spawn(0)).
-:- meta_predicate(spawn(0, -)).
-:- meta_predicate(spawn(0, -, +)).
-:- meta_predicate(receive(:, +)).
-```
-
-### 4. `:- dynamic` must be parenthesized
-
-`:- dynamic foo/2.` is not accepted; use `:- dynamic(foo/2).`.
-
-### 5. No `thread_local/1`
+### 3. No `thread_local/1`
 
 The deferred-message list, previously stored in a `thread_local`
 dynamic predicate, is kept on Trealla's per-thread blackboard:
@@ -111,19 +94,19 @@ deferred_put(L) :-
     bb_put('$actor_deferred', L).
 ```
 
-### 6. `abort/0` crashes a thread
+### 4. `abort/0` crashes a thread
 
 Calling `abort/0` inside a spawned thread segfaults Trealla.
 Replaced with `throw(actor_exit)`, which is caught by a wrapper
 in `start/4`.
 
-### 7. `thread_detach/1` inside `at_exit` hangs
+### 5. `thread_detach/1` inside `at_exit` hangs
 
 The at-exit hook never returns if it calls `thread_detach/1`.
 Threads are created with `detached(true)` up front instead, and
 `thread_detach` is not called from `stop/2`.
 
-### 8. `thread_property(Pid, status(...))` reports `running` inside `at_exit`
+### 6. `thread_property(Pid, status(...))` reports `running` inside `at_exit`
 
 In SWI, the at-exit hook can read the thread's final status out of
 `thread_property/2`. In Trealla the status is still `running` when
@@ -146,7 +129,7 @@ catch(
 
 `stop/2` then `retract`s `exit_reason/2` to build the `down` message.
 
-### 9. `thread_signal` on a dead detached thread raises an uncatchable error
+### 7. `thread_signal` on a dead detached thread raises an uncatchable error
 
 Once a detached thread has finished, `thread_signal/2` on its PID
 throws a domain error that bypasses `catch/3`. The workaround is a
@@ -164,7 +147,7 @@ liveness table:
 `thread_signal`/`thread_send_message`, and `stop/2` retracts the
 entry as its first action.
 
-### 10. `thread_self/1` inside a `thread_signal`-delivered goal raises `uninstantiation_error`
+### 8. `thread_self/1` inside a `thread_signal`-delivered goal raises `uninstantiation_error`
 
 This is the subtlest difference. When a goal injected via
 `thread_signal/2` calls `thread_self/1`, Trealla raises
