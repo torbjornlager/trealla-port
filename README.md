@@ -4,15 +4,16 @@ Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
 (v2.92.38).
 
-The port lives alongside this report as `actors.pl`, with
-a manual test suite in `tests.pl`. `parallel.pl` is pure
-client code over the actors API and runs unchanged on Trealla, so
-no separate Trealla variant is needed. This document records what
-changed versus the canonical `simple-node/actors.pl` and why.
+The port lives alongside this report as `actors.pl` and
+`toplevel_actors.pl`, with a manual test suite in `tests.pl`.
+`parallel.pl` is pure client code over the actors API and runs
+unchanged on Trealla, so no separate Trealla variant is needed.
+This document records what changed versus the canonical
+`simple-node/` sources and why.
 
 ## Test results
 
-All ten manual tests pass on Trealla:
+All 18 manual tests pass on Trealla:
 
 | # | Test                                     | Status |
 |---|------------------------------------------|--------|
@@ -26,11 +27,21 @@ All ten manual tests pass on Trealla:
 | 8 | `parallel/1` success case                | ok     |
 | 9 | `parallel/1` failure propagates          | ok     |
 |10 | `first_solution/2` picks fastest         | ok     |
+|11 | `findnsols/4` non-deterministic batches  | ok     |
+|12 | `offset/2` skips N solutions             | ok     |
+|13 | `toplevel_spawn` + `toplevel_call`       | ok     |
+|14 | `toplevel_next` delivers second batch    | ok     |
+|15 | goal failure propagates as `failure/1`   | ok     |
+|16 | goal exception propagates as `error/2`   | ok     |
+|17 | `toplevel_stop` + session reuse          | ok     |
+|18 | `session(true)` loop handles two calls   | ok     |
 
 All four demos from `parallel.pl` also run unchanged on Trealla
 against `actors.pl`.
 
 ## What is supported
+
+### actors.pl
 
 - `spawn/1-3` with `monitor(Bool)` and `link(Bool)` options
 - `self/1`, `send/2`, `(!)/2`
@@ -39,17 +50,42 @@ against `actors.pl`.
 - `monitor/2`, `demonitor/1-2`
 - `register/2`, `unregister/1`, `whereis/2`
 - `exit/1`, `exit/2`
+- `output/1-2`, `input/2-3`, `respond/2`
 - Links (bidirectional lifecycle coupling)
 - Deferred-message semantics (non-matching messages stay in the
   mailbox in arrival order)
 
+### toplevel_actors.pl
+
+- `toplevel_spawn/1-2` — create a PTCP (Prolog Toplevel Control Process)
+- `toplevel_call/2-3` — run a goal inside the PTCP; answer arrives as
+  `success(Pid,Slice,More)`, `failure(Pid)`, or `error(Pid,Error)`
+- `toplevel_next/1-2` — request the next batch of solutions
+- `toplevel_stop/1` — discard remaining solutions; return PTCP to idle
+- `toplevel_abort/1` — abort a running goal; restart PTCP in idle state
+- `findnsols/4` — collect at most N solutions; non-deterministic (each
+  backtrack delivers the next batch)
+- `offset/2` — skip the first N solutions of a goal
+
 ## What is not supported
+
+### actors.pl
 
 `receive/2` with `timeout(T)` where `T \== 0` and `T \== infinite`.
 Trealla has no `thread_get_message/3` accepting a timeout option,
 so the port throws
 `error(unsupported_option(timeout(T)), 'Trealla port: only timeout(0) is supported')`.
 `timeout(0)` (poll) works by way of `thread_peek_message/2`.
+
+### toplevel_actors.pl
+
+- **Infinite generators**: `findnsols/4` materialises all solutions via
+  `findall/3` on the first call; goals with infinitely many solutions
+  will not terminate.
+- **Mid-enumeration limit/target change**: the `limit(N)` and
+  `target(P)` sub-options of `toplevel_next/2` are accepted for
+  protocol compatibility but silently ignored, because the underlying
+  mechanism (`nb_setarg/3`) is absent in Trealla.
 
 ## Portability deltas
 
@@ -170,10 +206,130 @@ exit(Pid, Reason) :-
     throw(actor_exit).
 ```
 
+### 9. `output/1-2`, `input/2-3`, `respond/2` absent from Trealla port
+
+The original `simple-node/actors.pl` provides these predicates;
+they were missing from the initial Trealla port. Added alongside
+per-thread parent tracking via the blackboard (key includes the
+thread ID to avoid cross-thread collisions, since Trealla's
+`bb_put`/`bb_get` are globally shared rather than thread-local):
+
+```prolog
+set_parent(Parent) :-
+    thread_self(Me),
+    format(atom(Key), '$actor_parent_~w', [Me]),
+    bb_put(Key, Parent).
+```
+
+
+## Portability deltas for `toplevel_actors.pl`
+
+### 1. `findnsols/4` absent
+
+SWI's `findnsols/4` materialises at most N solutions and, crucially,
+is **non-deterministic**: on backtracking it resumes from where it
+left off and delivers the next N solutions.  The original
+`toplevel_actors.pl` relies on this to drive the PTCP state machine
+(state s3 fails deliberately to backtrack into `findnsols` for the
+next slice).
+
+Trealla port: collect all solutions up front with `findall/3`, then
+deliver them in batches via `between/3`.  A cut on the last batch
+makes it deterministic, so `call_cleanup/2` can set `Det = true`
+immediately — which is how `answer/5` detects that no further
+solutions remain.
+
+```prolog
+findnsols(N0, Template, Goal, List) :-
+    (compound(N0) -> arg(1, N0, N) ; N = N0),
+    findall(Template, Goal, All),
+    length(All, Total),
+    (   Total =:= 0
+    ->  !, List = []
+    ;   NumBatches is (Total + N - 1) // N,
+        between(1, NumBatches, Batch),
+        Start is (Batch - 1) * N,
+        skip_n(Start, All, Rest),
+        take_n(N, Rest, List, _),
+        (Batch =:= NumBatches -> ! ; true)
+    ).
+```
+
+`N0` may be an integer or a `count(N)` compound (the original code
+wraps the limit in `count/1` as a mutable cell for `nb_setarg`).
+
+### 2. `offset/2` absent
+
+`offset(N, Goal)` skips the first N solutions of Goal.  It must work
+inside `findall/3`, which requires the skip counter to survive
+backtracking.  Implemented with `assertz`/`retract` keyed by thread
+ID:
+
+```prolog
+offset(0, Goal) :- !, call(Goal).
+offset(N, Goal) :-
+    N > 0,
+    thread_self(Me),
+    (retract(offset_counter(Me, _)) -> true ; true),
+    assertz(offset_counter(Me, N)),
+    call(Goal),
+    retract(offset_counter(Me, C)),
+    (   C > 0
+    ->  C1 is C - 1,
+        assertz(offset_counter(Me, C1)),
+        fail
+    ;   true
+    ).
+```
+
+### 3. `nb_setarg/3` absent
+
+State s3 uses `nb_setarg` to mutate the `count(N)` and `target(T)`
+cells in place before failing back into `findnsols`.  Without it, the
+limit and target cannot change between batches.  The `limit(N)` and
+`target(P)` sub-options of `'$next'(Options)` are therefore accepted
+but ignored.
+
+### 4. `strip_module/3` absent
+
+Two-clause polyfill:
+
+```prolog
+strip_module(_M:Goal, _M, Goal) :- !.
+strip_module(Goal, _, Goal).
+```
+
+### 5. No implicit re-export in Trealla's module system
+
+SWI-Prolog re-exports a predicate when it appears in the module
+declaration but is defined in an imported module.  Trealla does not:
+only predicates actually defined in the module are exported.
+
+Consequence: `toplevel_actors` cannot transparently re-export
+`spawn/1-3`, `receive/1-2`, etc.  Users must load both modules:
+
+```prolog
+:- use_module(actors).
+:- use_module(toplevel_actors).
+```
+
+### 6. `select_body` — unqualified `{...}` patterns
+
+Because `meta_predicate` semantics are not propagated through
+Trealla's module boundaries, `receive({...})` called from outside
+the `actors` module may arrive without a module qualifier.  Added a
+second clause to handle the unqualified form:
+
+```prolog
+select_body({Clauses}, Message, Body) :-
+    select_body_aux(Clauses, Message, Body).
+```
+
+
 ## Overall assessment
 
-The port is essentially complete: a single feature (non-zero
-`receive` timeout) is genuinely missing because the underlying
-primitive is absent. Every other delta is a small, localized
-workaround for a Trealla-specific quirk, and the test suite
-exercises them end-to-end.
+Both modules are ported and fully tested.  The actors port has one
+missing feature (non-zero `receive` timeout).  The toplevel_actors
+port adds one further limitation (no mid-enumeration limit/target
+change), and does not support infinite generators.  Every other
+delta is a small, localised workaround for a Trealla-specific quirk.

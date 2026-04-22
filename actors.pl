@@ -1,4 +1,4 @@
-:- module(actors,  
+:- module(actors,
        [ spawn/1,                % :Goal
          spawn/2,                % :Goal, -Pid
          spawn/3,                % :Goal, -Pid, +Options
@@ -13,10 +13,17 @@
          exit/2,                 % +Pid, +Reason
          (!)/2,                  % +Pid, +Message
          send/2,                 % +Pid, +Message
+         input/2,                % +Prompt, -Answer
+         input/3,                % +Prompt, -Answer, +Options
+         respond/2,              % +Pid, +Answer
+         output/1,               % +Term
+         output/2,               % +Term, +Options
          receive/1,              % +ReceiveClauses
          receive/2,              % +ReceiveClauses, +Options
          make_ref/1,             % -Ref
          flush/0,
+         option/2,               % +Opt, +Options
+         option/3,               % +Opt, +Options, +Default
 
          op(800,  xfx, !),       %
          op(200,  xfx, @),       %
@@ -100,7 +107,7 @@ Reply = hello.
 
 % --- Trealla compatibility shims -------------------------------------
 % library(debug) dropped (unused here).
-% library(option) absent on Trealla; minimal option/2,3 provided below.
+% library(option) absent on Trealla; minimal option/2-3 provided below.
 
 option(Opt, Options, _Default) :-
     memberchk(Opt, Options), !.
@@ -168,6 +175,7 @@ spawn(Goal, Pid, Options) :-
 
 start(Parent, Pid, Goal, Options) :-
     assertz(actor_alive(Pid)),
+    set_parent(Parent),
     option(link(Link), Options, true),
     (   Link == true
     ->  assertz(link(Parent, Pid))
@@ -499,7 +507,12 @@ deferred_put(L) :-
     bb_put('$actor_deferred', L).
 
     
+% Accept both module-qualified M:{...} (from meta_predicate) and plain
+% {Clauses} (when called through a re-exporting module that does not
+% copy meta_predicate semantics, as in Trealla's module system).
 select_body(_M:{Clauses}, Message, Body) :-
+    select_body_aux(Clauses, Message, Body).
+select_body({Clauses}, Message, Body) :-
     select_body_aux(Clauses, Message, Body).
 
 select_body_aux((Clause ; Clauses), Message, Body) :-
@@ -546,5 +559,66 @@ flush :-
 make_ref(Ref) :-
     random_between(10000000, 99999999, Num),
     atom_number(Ref, Num).
-   
-   
+
+
+                /*******************************
+                *     OUTPUT / INPUT / RESPOND *
+                *******************************/
+
+% Parent is tracked per-thread via the bb blackboard.
+% Key includes the thread ID so threads don't stomp each other.
+
+set_parent(Parent) :-
+    thread_self(Me),
+    format(atom(Key), '$actor_parent_~w', [Me]),
+    bb_put(Key, Parent).
+
+get_parent(Parent) :-
+    thread_self(Me),
+    format(atom(Key), '$actor_parent_~w', [Me]),
+    (bb_get(Key, Parent) -> true ; Parent = Me).
+
+
+%!  output(+Term) is det.
+%!  output(+Term, +Options) is det.
+%
+%   Send Term as an output(Self, Term) message to the target process.
+%   The default target is the actor's parent.
+
+output(Term) :-
+    output(Term, []).
+
+output(Term, Options) :-
+    self(Self),
+    get_parent(Parent),
+    option(target(Target), Options, Parent),
+    Target ! output(Self, Term).
+
+
+%!  input(+Prompt, -Answer) is det.
+%!  input(+Prompt, -Answer, +Options) is det.
+%
+%   Send a prompt(Self, Prompt) message to the target and block until
+%   the target sends back '$input'(Target, Answer).
+
+input(Prompt, Answer) :-
+    input(Prompt, Answer, []).
+
+input(Prompt, Answer, Options) :-
+    self(Self),
+    get_parent(Parent),
+    option(target(Target), Options, Parent),
+    Target ! prompt(Self, Prompt),
+    receive({
+        '$input'(Target, Answer) -> true
+    }).
+
+
+%!  respond(+Pid, +Answer) is det.
+%
+%   Reply to an actor Pid that is waiting for input/2-3.
+
+respond(Pid, Answer) :-
+    self(Self),
+    Pid ! '$input'(Self, Answer).
+
