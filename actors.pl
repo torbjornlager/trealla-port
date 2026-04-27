@@ -33,11 +33,11 @@
 /** <module> Actors --- Erlang-style concurrent processes for ISO Prolog
 
 This library provides a minimal Erlang-style concurrency model layered
-on top of the ISO Prolog `thread_*` primitives. Processes (*actors*)
+on top of the ISO Prolog `thread_*` primitives.  Processes (*actors*)
 are lightweight, share no mutable state, and communicate exclusively
 by asynchronous message passing.
 
-The library is deliberately small. Compared with a more complete
+The library is deliberately small.  Compared with a more complete
 Erlang-on-Prolog implementation, it omits:
 
   - *Goal isolation*: there is no `load_*` option to sandbox a spawned
@@ -59,8 +59,8 @@ What it does provide:
 
 ## Mailboxes {#actors-mailboxes}
 
-Every actor has an ordered mailbox. `Pid ! Message` enqueues `Message`
-and returns immediately. receive/1,2 consumes messages in arrival
+Every actor has an ordered mailbox.  `Pid ! Message` enqueues `Message`
+and returns immediately.  receive/1,2 consumes messages in arrival
 order, with pattern matching and guards selecting which message is
 extracted; non-matching messages are left in the mailbox and remain
 available to later receive/1,2 calls.
@@ -68,15 +68,25 @@ available to later receive/1,2 calls.
 ## Links versus monitors {#actors-links-monitors}
 
 A *link* is bidirectional and eager: when a linked actor exits, its
-peer is sent an exit signal. Links are set up with the `link(true)`
+peer is sent an exit signal.  Links are set up with the `link(true)`
 option on spawn/3 (currently the default) and are primarily a
 supervision tool.
 
 A *monitor* is unidirectional and passive: when the monitored actor
 exits, the monitoring actor receives a `down(Pid, Ref, Reason)`
-message in its mailbox. Monitors are set up with the `monitor(true)`
+message in its mailbox.  Monitors are set up with the `monitor(true)`
 option on spawn/3, or by calling monitor/2 explicitly, and are
 primarily an observation tool.
+
+## Deferred messages {#actors-deferred}
+
+When receive/1,2 scans the mailbox and finds messages that do not
+match any clause, those messages are moved to a per-thread *deferred
+list* stored on the thread-local blackboard under the key
+`'$actor_deferred'`.  Deferred messages are re-offered to the next
+receive call before the live mailbox is consulted.  Trealla's
+`bb_put/2` and `bb_get/2` are thread-local, so the deferred list is
+private to each actor.
 
 ## Example {#actors-example}
 
@@ -97,8 +107,32 @@ echo_server :-
 Reply = hello.
 ==
 
+## Trealla port notes {#actors-trealla}
+
+  - `library(option)` is absent in Trealla; a minimal option/2,3 is
+    provided locally (see below).
+  - `library(debug)` is absent and has been dropped (it was unused).
+  - `is_thread/1` is absent; emulated via `thread_property/2` wrapped
+    in `catch/3`.
+  - `thread_get_message/3` (with a timeout) is absent.  Non-zero
+    timeouts in receive/2 are emulated by spawning a short-lived
+    *timer actor* that sleeps for the requested duration and then
+    sends a unique `'$timeout'(TimerPid)` sentinel to the receiver.
+    The receive loop blocks in `thread_get_message/2` and treats the
+    sentinel as a timeout.
+  - `thread_local/1` is absent.  Per-thread state (deferred message
+    list, parent PID) is stored on the thread-local blackboard via
+    `bb_put/2` and `bb_get/2`.
+  - `thread_signal/2` on a completed detached thread raises a
+    domain_error in Trealla.  Both exit/2 and send/2 guard against
+    this with the `actor_alive/1` table.
+  - make_ref/1 uses `random_between/3` rather than a true monotone
+    counter.  In a busy system, 8-digit random refs could (rarely)
+    collide; use with care in protocols that rely on ref uniqueness.
+
 @author Torbjörn Lager
 */
+
 
                 /*******************************
                 *             ACTOR            *
@@ -109,6 +143,14 @@ Reply = hello.
 % library(debug) dropped (unused here).
 % library(option) absent on Trealla; minimal option/2-3 provided below.
 
+%!  option(+Opt, +Options, +Default) is det.
+%!  option(+Opt, +Options) is semidet.
+%
+%   Minimal replacement for library(option) which is absent in Trealla.
+%   option/3 unifies the argument of Opt with the value found in Options,
+%   or with Default if the option is absent.  option/2 simply checks that
+%   Opt (or a term with the same functor/arity) is present in Options.
+
 option(Opt, Options, _Default) :-
     memberchk(Opt, Options), !.
 option(Opt, _, Default) :-
@@ -118,7 +160,12 @@ option(Opt, _, Default) :-
 option(Opt, Options) :-
     memberchk(Opt, Options).
 
-% is_thread/1 absent on Trealla; emulate via thread_property/2.
+%!  is_thread(+Id) is semidet.
+%
+%   True if Id identifies a currently known thread.  Trealla does not
+%   export is_thread/1, so we emulate it via thread_property/2 wrapped
+%   in catch/3.
+
 is_thread(Id) :-
     catch(thread_property(Id, status(_)), _, fail).
 % ---------------------------------------------------------------------
@@ -133,8 +180,13 @@ is_thread(Id) :-
 %!  spawn(:Goal, -Pid) is det.
 %!  spawn(:Goal, -Pid, +Options) is det.
 %
-%   Spawn a new actor that calls Goal. The new actor's PID is unified
-%   with Pid. Options:
+%   Spawn a new actor that calls Goal.  The new actor's PID is unified
+%   with Pid.  spawn/1 is a convenience form that discards the PID.
+%   The calling thread *blocks* until the new actor has initialised
+%   (i.e. until `initialized(Pid)` has been sent back), so Pid is
+%   always ground by the time spawn/3 returns.
+%
+%   Options:
 %
 %     - monitor(+Bool)
 %       If `true`, the spawning actor monitors the new actor and
@@ -142,7 +194,7 @@ is_thread(Id) :-
 %       As a convenience, the monitor's Ref is the spawned Pid
 %       itself, so the `down` message arrives as
 %       `down(Pid, Pid, Reason)` and the monitor can be cancelled
-%       with `demonitor(Pid)`. Default: `false`.
+%       with `demonitor(Pid)`.  Default: `false`.
 %     - link(+Bool)
 %       If `true`, the spawning actor and the new actor are linked:
 %       either exiting will propagate an exit signal to the other.
@@ -164,14 +216,24 @@ spawn(Goal, Pid, Options) :-
     ]),
     thread_get_message(initialized(Pid)).
 
-      
-   
+
+
 :- dynamic(actor_alive/1).
 
 % Every actor we can safely signal or send to must be in actor_alive/1.
 % Register the top-level thread at load time so messages from within
 % the library can reach it.
 :- initialization((thread_self(Me), assertz(actor_alive(Me)))).
+
+%!  start(+Parent, +Pid, :Goal, +Options) is det.
+%
+%   Internal entry point for a newly created actor thread.  Registers
+%   the actor as alive, sets up any link/monitor, signals the parent
+%   that initialisation is complete, then calls Goal.  The exit reason
+%   is recorded explicitly in exit_reason/2 because Trealla's
+%   at_exit hook runs while `thread_property/2` still reports
+%   `status(running)`, making the usual SWI approach of reading the
+%   status in stop/2 unreliable.
 
 start(Parent, Pid, Goal, Options) :-
     assertz(actor_alive(Pid)),
@@ -201,7 +263,14 @@ start(Parent, Pid, Goal, Options) :-
         ;   assertz(exit_reason(Pid, exception(E)))
         )
     ).
-                                          
+
+
+%!  stop(+Pid, +Parent) is det.
+%
+%   at_exit hook called when actor Pid terminates.  Tears down all
+%   bookkeeping: removes the actor from actor_alive/1, retracts the
+%   link, kills any actors linked to Pid, and delivers down/3 messages
+%   to any monitors.
 
 stop(Pid, Parent) :-
     % Retract actor_alive first, so concurrent exit/2 and send/2 on
@@ -212,25 +281,30 @@ stop(Pid, Parent) :-
     % hook on Trealla.
     retractall(link(Parent, Pid)),
     retractall(registered(_Name, Pid)),
-    forall(retract(link(Pid, ChildPid)), 
+    forall(retract(link(Pid, ChildPid)),
            exit(ChildPid, linked)),
     down_reason(Pid, Reason),
     forall(retract(monitor(Other, Pid, Ref)),
            Other ! down(Pid, Ref, Reason)).
 
 
+%!  down_reason(+Pid, -Reason) is det.
+%
+%   Retrieve and retract the recorded exit reason for Pid.  Falls back
+%   to `noproc` if no reason was recorded (e.g. the thread was
+%   terminated externally before it could call assertz).
+
 down_reason(Pid, Reason) :-
     retract(exit_reason(Pid, Reason)),
     !.
 down_reason(_, noproc).
 
-           
-   
+
 
 
 %!  self(-Pid) is det.
 %
-%   Find who we are.
+%   Unify Pid with the calling actor's own identifier (its thread ID).
 
 self(Self) :-
     thread_self(Self).
@@ -238,19 +312,19 @@ self(Self) :-
 
 %!  monitor(+PidOrName, -Ref) is det.
 %
-%   Start monitoring the actor identified by PidOrName. Ref is unified
-%   with a fresh reference that identifies this monitor. When the
+%   Start monitoring the actor identified by PidOrName.  Ref is unified
+%   with a fresh reference that identifies this monitor.  When the
 %   monitored actor exits, a `down(Pid, Ref, Reason)` message is
 %   delivered to the calling actor's mailbox.
 %
 %   Note: when a monitor is set up via the `monitor(true)` option of
 %   spawn/3 instead of by calling monitor/2, the monitored Pid is
-%   reused as the Ref. See spawn/3.
+%   reused as the Ref.  See spawn/3.
 
 %!  demonitor(+Ref) is det.
 %!  demonitor(+Ref, +Options) is det.
 %
-%   Remove the monitor identified by Ref. For monitors installed via
+%   Remove the monitor identified by Ref.  For monitors installed via
 %   spawn/3's `monitor(true)` option, pass the spawned Pid as Ref.
 %   Options:
 %
@@ -286,7 +360,10 @@ demonitor(Ref, Options) :-
 
 %!  register(+Name, +Pid) is det.
 %
-%   Register the given Pid under the name Name.
+%   Register the given Pid under the atom Name.  Throws
+%   `process_already_has_a_name(Pid)` if Pid is already registered
+%   under any name, or `name_is_in_use(Name)` if Name is already
+%   taken by another Pid.
 
 :- dynamic(registered/2).
 
@@ -298,20 +375,20 @@ register(Name, Pid) :-
     ->  throw(name_is_in_use(Name))
     ;   asserta(registered(Name, Pid))
     ).
-    
+
 %!  unregister(+Name) is det.
 %
-%   Remove any registration under Name. Succeeds even if Name was not
+%   Remove any registration under Name.  Succeeds even if Name was not
 %   registered.
 
 unregister(Name) :-
     retractall(registered(Name, _)).
-    
+
 %!  whereis(+Name, -Pid) is det.
 %
-%   Look up the PID registered under Name. If no such registration
+%   Look up the PID registered under Name.  If no such registration
 %   exists, Pid is unified with the atom `undefined` (rather than
-%   failing).
+%   failing), consistent with Erlang's whereis/1 semantics.
 
 whereis(Name, Pid) :-
     must_be(atom, Name),
@@ -320,9 +397,12 @@ whereis(Name, Pid) :-
 whereis(_Name, undefined).
 
 
-%!  exit(+Reason)
+%!  exit(+Reason) is det.
 %
-%   Exit the calling process.
+%   Terminate the calling actor with exit reason Reason.  Records the
+%   reason in exit_reason/2, then throws the internal `actor_exit`
+%   exception, which is caught by start/4's top-level catch and causes
+%   clean actor teardown.
 
 :- dynamic(exit_reason/2).
 
@@ -338,18 +418,17 @@ exit(Reason) :-
 %!  exit(+Pid, +Reason) is det.
 %
 %   Send an exit signal with Reason to the actor identified by Pid.
-%   If Pid does not exist, succeeds silently.
+%   If Pid does not exist (or has already exited), succeeds silently.
+%
+%   Implementation note: Trealla's thread_signal/2 raises an
+%   uncatchable domain_error when called on a completed detached thread.
+%   We guard with actor_alive/1 to avoid signalling dead threads.
+%   The goal injected is `actors:'$do_exit'(Pid, Reason)` rather than
+%   `exit(Reason)` because calling thread_self/1 inside a
+%   thread_signal goal raises uninstantiation_error on Trealla; passing
+%   Pid in directly avoids that.
 
 exit(Pid, Reason) :-
-    % Trealla's thread_signal on a detached, completed thread raises
-    % an uncatchable domain_error. So we guard with our own liveness
-    % table (actor_alive/1): we only try to signal if the actor has
-    % not yet run its at_exit hook.
-    %
-    % We inject '$do_exit'(Pid, Reason) as a ground term rather than
-    % exit(Reason), because calling thread_self/1 inside a goal
-    % delivered by thread_signal raises uninstantiation_error on
-    % Trealla. Passing Pid in directly side-steps that.
     (   actor_alive(Pid)
     ->  catch(thread_signal(Pid, actors:'$do_exit'(Pid, Reason)), _, true)
     ;   true
@@ -364,10 +443,10 @@ exit(Pid, Reason) :-
 %!  send(+PidOrName, +Message) is det.
 %
 %   Asynchronously send Message to the actor identified by PidOrName.
-%   PidOrName may be either a raw PID or an atom previously bound with
-%   register/2. Returns immediately; delivery is reliable within a
-%   single Prolog process. If the target actor does not exist, the
-%   message is silently dropped.
+%   PidOrName may be either a raw PID (thread ID) or an atom previously
+%   bound with register/2.  Returns immediately; delivery is reliable
+%   within a single Prolog process.  If the target actor does not exist
+%   (not in actor_alive/1), the message is silently dropped.
 
 Pid ! Message :-
     send(Pid, Message).
@@ -377,7 +456,7 @@ send(Name, Message) :-
     !,
     send(Pid, Message).
 send(Pid, Message) :-
-    % Same issue as exit/2: guard with actor_alive/1.
+    % Same liveness guard as exit/2.
     (   actor_alive(Pid)
     ->  catch(thread_send_message(Pid, Message), _, true)
     ;   true
@@ -387,11 +466,11 @@ send(Pid, Message) :-
 %!  receive(+ReceiveClauses) is semidet.
 %!  receive(+ReceiveClauses, +Options) is semidet.
 %
-%   Erlang-style mailbox read. Blocks until a message in the mailbox
+%   Erlang-style mailbox read.  Blocks until a message in the mailbox
 %   matches one of the clauses in ReceiveClauses, then executes the
-%   corresponding body. Messages that do not match any clause are
-%   left in the mailbox in their original order and remain available
-%   to subsequent calls.
+%   corresponding body.  Messages that do not match any clause are
+%   moved to the per-thread deferred list and remain available to
+%   subsequent receive calls.
 %
 %   ReceiveClauses is a brace-wrapped disjunction of clauses:
 %
@@ -406,26 +485,27 @@ send(Pid, Message) :-
 %   Each clause has one of two forms:
 %
 %     - `Pattern -> Body`
-%       Matches any message subsumed by Pattern. On match, Pattern is
+%       Matches any message subsumed by Pattern.  On match, Pattern is
 %       unified with the message and Body is called.
 %     - `Pattern if Guard -> Body`
 %       Matches only if the message is subsumed by Pattern *and*
-%       Guard succeeds. Guard is a Prolog goal that may refer to
-%       variables in Pattern; it is called deterministically (via
-%       once/1) and any error causes the clause not to match.
+%       Guard succeeds.  Guard is called deterministically via once/1;
+%       any error causes the clause not to match.
 %
-%   Clauses are tried top-to-bottom against each mailbox message, and
-%   the mailbox is scanned in arrival order.
+%   Clauses are tried top-to-bottom against each mailbox message, with
+%   the mailbox scanned in arrival order.
 %
 %   Options (receive/2 only):
 %
 %     - timeout(+Seconds)
 %       Maximum time in seconds to wait for a matching message.
-%       A timeout of `0` makes the call non-blocking (poll). When
-%       the timeout expires with no match, the goal given by
-%       on_timeout/1 is called. Default: wait indefinitely.
+%       `timeout(0)` makes the call a non-blocking poll.  Positive
+%       numeric values are emulated via a short-lived timer actor
+%       (see Trealla port notes above).  When the timeout expires
+%       with no match, the goal given by on_timeout/1 is called.
+%       Default: wait indefinitely.
 %     - on_timeout(:Goal)
-%       Goal called on timeout. Default: `true`.
+%       Goal called when the timeout expires.  Default: `true`.
 %
 %   Examples:
 %
@@ -441,21 +521,15 @@ send(Pid, Message) :-
 %       priority(P, Msg) if P > 10 -> urgent(Msg)
 %   })
 %
-%   % Wait up to five seconds, then retry.
-%   receive({
-%       reply(R) -> use(R)
-%   }, [ timeout(5), on_timeout(retry) ])
-%
-%   % Non-blocking poll: fail immediately if nothing is waiting.
-%   receive({ Msg -> use(Msg) },
-%           [ timeout(0), on_timeout(fail) ])
+%   % Non-blocking poll; do nothing if nothing is waiting.
+%   receive({ Msg -> use(Msg) }, [timeout(0), on_timeout(true)])
 %   ==
-
-% Trealla port note: deferred messages live on the per-thread
-% blackboard as a list under key '$actor_deferred', because Trealla has
-% no thread_local/1. Trealla also has no thread_get_message/3, so
-% non-zero timeouts are not supported here — timeout(0) (poll) works
-% via thread_peek_message/2.
+%
+%   Trealla port note: deferred messages live on the per-thread
+%   blackboard as a list under the key `'$actor_deferred'`.  Trealla's
+%   `bb_put/2` and `bb_get/2` are thread-local, so the deferred list
+%   is private to each actor.  Positive timeouts are emulated with a
+%   helper timer actor (see the module-level Trealla port notes).
 
 receive(Clauses) :-
     receive(Clauses, []).
@@ -469,23 +543,136 @@ receive(Clauses, Options) :-
     ;   receive_loop(Mailbox, Clauses, Options, Deferred)
     ).
 
+%!  receive_loop(+Mailbox, +Clauses, +Options, +Deferred) is semidet.
+%
+%   Dispatcher for the three timeout regimes:
+%
+%     - `timeout(0)`     -- non-blocking poll (receive_loop_poll/4).
+%     - `timeout(T)`, T>0 -- blocking with deadline, emulated via a
+%       timer actor (receive_loop_timed/5).
+%     - no timeout / `infinite` -- block forever (receive_loop_blocking/4).
+
 receive_loop(Mailbox, Clauses, Options, Deferred) :-
-    (   option(timeout(T), Options, infinite),
-        T == 0
-    ->  (   thread_peek_message(Mailbox, _)
-        ->  thread_get_message(Mailbox, Msg),
-            handle_incoming(Mailbox, Clauses, Options, Deferred, Msg)
-        ;   deferred_put(Deferred),
-            option(on_timeout(Goal), Options, true),
-            call(Goal)
-        )
-    ;   option(timeout(T), Options, infinite),
-        T \== infinite
-    ->  throw(error(unsupported_option(timeout(T)),
-                    'Trealla port: only timeout(0) is supported'))
-    ;   thread_get_message(Mailbox, Msg),
-        handle_incoming(Mailbox, Clauses, Options, Deferred, Msg)
+    option(timeout(T), Options, infinite),
+    (   T == 0
+    ->  receive_loop_poll(Mailbox, Clauses, Options, Deferred)
+    ;   T == infinite
+    ->  receive_loop_blocking(Mailbox, Clauses, Options, Deferred)
+    ;   number(T), T > 0
+    ->  receive_loop_timed(Mailbox, Clauses, Options, Deferred, T)
+    ;   throw(error(domain_error(timeout, T), receive/2))
     ).
+
+%!  receive_loop_poll(+Mailbox, +Clauses, +Options, +Deferred) is semidet.
+%
+%   timeout(0): peek the mailbox; if non-empty, get one message and
+%   try to match it.  If empty, run on_timeout immediately.
+
+receive_loop_poll(Mailbox, Clauses, Options, Deferred) :-
+    (   thread_peek_message(Mailbox, _)
+    ->  thread_get_message(Mailbox, Msg),
+        handle_incoming(Mailbox, Clauses, Options, Deferred, Msg)
+    ;   deferred_put(Deferred),
+        option(on_timeout(Goal), Options, true),
+        call(Goal)
+    ).
+
+%!  receive_loop_blocking(+Mailbox, +Clauses, +Options, +Deferred) is semidet.
+%
+%   No timeout: block on thread_get_message/2 until a message arrives.
+
+receive_loop_blocking(Mailbox, Clauses, Options, Deferred) :-
+    thread_get_message(Mailbox, Msg),
+    handle_incoming(Mailbox, Clauses, Options, Deferred, Msg).
+
+%!  receive_loop_timed(+Mailbox, +Clauses, +Options, +Deferred, +T) is semidet.
+%
+%   Positive timeout, emulated because Trealla has no
+%   thread_get_message/3.  Spawn a timer actor that sleeps T seconds
+%   then sends `'$timeout'(TimerPid)` to us; block in
+%   thread_get_message/2 and treat the sentinel as a timeout.
+%
+%   The TimerPid is unique per call, so the sentinel cannot collide
+%   with any user message.  After the loop exits (whether by match or
+%   timeout) cancel_timer/2 attempts to kill the timer and drain any
+%   pending sentinel from the front of the mailbox.  Stale sentinels
+%   that arrived behind other messages are filtered out by
+%   prune_stale/2 the next time the deferred list is read.
+
+receive_loop_timed(Mailbox, Clauses, Options, Deferred, T) :-
+    self(Self),
+    make_ref(Ref),
+    spawn(timer_actor(Self, T, Ref), TimerPid, [link(false)]),
+    catch(
+        % Cancel only on the match path -- on the timeout path the
+        % timer is already exiting and signalling it would race with
+        % its own at_exit hook.
+        ( timed_loop(Mailbox, Clauses, Options, Deferred, Ref),
+          cancel_timer(TimerPid, Self, Ref) ),
+        '$receive_timeout'(Ref),
+        ( deferred_put(Deferred),
+          option(on_timeout(Goal), Options, true),
+          call(Goal) )
+    ).
+
+%!  timer_actor(+Target, +T, +Ref) is det.
+%
+%   Helper actor body: sleep T seconds then send
+%   `'$actor_timeout'(Ref)` to Target.  Ref is a fresh atom generated
+%   by make_ref/1; it discriminates this timer's sentinel from any
+%   other message and (crucially) is an atom so it survives Trealla's
+%   throw/catch round-trip cleanly.  (Compound terms containing
+%   `$thread'(N)' opaque cells lose identity through throw/catch in
+%   Trealla, which is why we cannot use TimerPid directly here.)
+
+timer_actor(Target, T, Ref) :-
+    sleep(T),
+    Target ! '$actor_timeout'(Ref).
+
+%!  timed_loop(+Mailbox, +Clauses, +Options, +Deferred, +Ref) is semidet.
+%
+%   Inner loop for receive_loop_timed/5.  Each retrieved message is
+%   first checked against the timeout sentinel; if it matches, throw
+%   `'$receive_timeout'(Ref)` to exit the catch in the caller.
+
+timed_loop(Mailbox, Clauses, Options, Deferred, Ref) :-
+    thread_get_message(Mailbox, Msg),
+    (   Msg == '$actor_timeout'(Ref)
+    ->  throw('$receive_timeout'(Ref))
+    ;   select_body(Clauses, Msg, Body)
+    ->  deferred_put(Deferred),
+        call(Body)
+    ;   append(Deferred, [Msg], Deferred1),
+        timed_loop(Mailbox, Clauses, Options, Deferred1, Ref)
+    ).
+
+%!  cancel_timer(+TimerPid, +Self, +Ref) is det.
+%
+%   Match-path teardown for a still-running timer.  Sends `cancelled`
+%   to TimerPid via exit/2 -- thread_signal/2 in Trealla does not
+%   interrupt sleep/1, so the timer will still run to its natural
+%   end, but enqueueing the exit ensures the thread is reaped cleanly
+%   on Prolog halt (without it, the still-sleeping timer triggers a
+%   segfault during halt).  Trealla prints a brief diagnostic line
+%   ("*** signals...") for the queued signal; that noise is harmless.
+%
+%   Then peek the front of the mailbox once for an already-arrived
+%   `'$actor_timeout'(Ref)` sentinel and discard it.  Sentinels that
+%   arrived behind other messages remain briefly in the mailbox;
+%   they are filtered by prune_stale/2 on the next receive call.
+
+cancel_timer(TimerPid, Self, Ref) :-
+    exit(TimerPid, cancelled),
+    (   thread_peek_message(Self, '$actor_timeout'(Ref))
+    ->  thread_get_message(Self, '$actor_timeout'(Ref))
+    ;   true
+    ).
+
+%!  handle_incoming(+Mailbox, +Clauses, +Options, +Deferred, +Msg) is semidet.
+%
+%   Attempt to match Msg against Clauses.  On success, restore the
+%   deferred list and run the body.  On failure, append Msg to Deferred
+%   and loop.
 
 handle_incoming(Mailbox, Clauses, Options, Deferred, Msg) :-
     (   select_body(Clauses, Msg, Body)
@@ -495,25 +682,70 @@ handle_incoming(Mailbox, Clauses, Options, Deferred, Msg) :-
         receive_loop(Mailbox, Clauses, Options, Deferred1)
     ).
 
+%!  select_deferred(+Deferred, +Clauses, -Body, -Rest) is semidet.
+%
+%   Find the first message in the Deferred list that matches Clauses,
+%   returning its Body and the remainder of the deferred list.
+
 select_deferred([Msg|Rest], Clauses, Body, Rest) :-
     select_body(Clauses, Msg, Body), !.
 select_deferred([Msg|Rest0], Clauses, Body, [Msg|Rest]) :-
     select_deferred(Rest0, Clauses, Body, Rest).
 
+%!  deferred_list(-L) is det.
+%!  deferred_put(+L) is det.
+%
+%   Read/write the per-thread deferred message list from/to the
+%   thread-local blackboard.  deferred_list/1 also prunes stale
+%   `'$timeout'(P)` sentinels (timers that have already exited) so
+%   the deferred list does not grow unboundedly across many timed
+%   receive calls.
+
 deferred_list(L) :-
-    (   bb_get('$actor_deferred', L) -> true ; L = [] ).
+    (   bb_get('$actor_deferred', Raw) -> true ; Raw = [] ),
+    prune_stale(Raw, L).
 
 deferred_put(L) :-
     bb_put('$actor_deferred', L).
 
-    
-% Accept both module-qualified M:{...} (from meta_predicate) and plain
-% {Clauses} (when called through a re-exporting module that does not
-% copy meta_predicate semantics, as in Trealla's module system).
+%!  prune_stale(+Raw, -Pruned) is det.
+%
+%   Drop `'$actor_timeout'(_)` sentinels from the deferred list.  Any
+%   such sentinel sitting in the deferred list at the entry of a
+%   receive call is by definition stale: receive/2 is synchronous, so
+%   the timer that produced it has already exited and its receive has
+%   already returned (otherwise the sentinel would have been consumed
+%   inside timed_loop/5).  This GC step prevents the deferred list
+%   from growing unboundedly across many timed receive calls in
+%   high-message-rate scenarios where cancel_timer/3's best-effort
+%   peek-and-drain misses the sentinel.
+
+prune_stale([], []).
+prune_stale(['$actor_timeout'(_)|T0], T) :- !,
+    prune_stale(T0, T).
+prune_stale([H|T0], [H|T]) :-
+    prune_stale(T0, T).
+
+
+%!  select_body(+Clauses, +Message, -Body) is semidet.
+%
+%   Try to match Message against the first applicable clause in the
+%   brace-wrapped clause set Clauses.  Accepts both module-qualified
+%   `M:{...}` forms (produced by meta_predicate expansion) and plain
+%   `{...}` forms (used when the calling module re-exports receive/1
+%   without copying the meta_predicate declaration, as happens in
+%   Trealla's module system).
+
 select_body(_M:{Clauses}, Message, Body) :-
     select_body_aux(Clauses, Message, Body).
 select_body({Clauses}, Message, Body) :-
     select_body_aux(Clauses, Message, Body).
+
+%!  select_body_aux(+Clauses, +Message, -Body) is semidet.
+%
+%   Recursively try each clause in the disjunction.  For a guarded
+%   clause `Pattern if Guard -> Body`, the guard is called via once/1
+%   and any error is treated as a non-match.
 
 select_body_aux((Clause ; Clauses), Message, Body) :-
     (   select_body_aux(Clause,  Message, Body)
@@ -532,14 +764,15 @@ select_body_aux((Head -> Body), Message, Body) :-
 
                 /*******************************
                 *      VARIOUS UTILITIES       *
-                *******************************/  
-                
+                *******************************/
+
 
 %!  flush is det.
 %
 %   Drain the calling actor's mailbox, printing each message to the
-%   current output stream. Intended as a debugging aid at the
-%   toplevel; not for use inside normal actor code.
+%   current output stream.  Intended as a debugging aid at the toplevel;
+%   not for use inside normal actor code.  Uses `timeout(0)` so it
+%   returns immediately once the mailbox is empty.
 
 flush :-
     receive({
@@ -549,16 +782,21 @@ flush :-
     },[ timeout(0)]).
 
 
-    
-
 %!  make_ref(-Ref) is det.
 %
-%   Generate a fresh reference atom, useful for correlating request
-%   and reply messages (see the rpc pattern).
+%   Generate a fresh reference atom by drawing a random 8-digit integer.
+%   Useful for correlating request/reply pairs (see the rpc pattern).
+%
+%   Caveat: because this uses random_between/3 rather than a monotone
+%   counter or a UUID library, there is a small but non-zero probability
+%   of two refs colliding in a busy system.  For typical interactive
+%   use the collision risk is negligible.
 
 make_ref(Ref) :-
     random_between(10000000, 99999999, Num),
-    atom_number(Ref, Num).
+    % atom_number/2 in Trealla only works in the parse direction
+    % (atom -> number), so use format/3 to build the atom from Num.
+    format(atom(Ref), '~w', [Num]).
 
 
                 /*******************************
@@ -566,7 +804,7 @@ make_ref(Ref) :-
                 *******************************/
 
 % Parent is tracked per-thread via the bb blackboard.
-% Key includes the thread ID so threads don't stomp each other.
+% The key is made thread-specific so that each actor has its own parent.
 
 set_parent(Parent) :-
     thread_self(Me),
@@ -582,8 +820,11 @@ get_parent(Parent) :-
 %!  output(+Term) is det.
 %!  output(+Term, +Options) is det.
 %
-%   Send Term as an output(Self, Term) message to the target process.
-%   The default target is the actor's parent.
+%   Send `output(Self, Term)` to the target process (default: this
+%   actor's parent).  Options:
+%
+%     - target(+Pid)
+%       Override the default target.
 
 output(Term) :-
     output(Term, []).
@@ -598,8 +839,12 @@ output(Term, Options) :-
 %!  input(+Prompt, -Answer) is det.
 %!  input(+Prompt, -Answer, +Options) is det.
 %
-%   Send a prompt(Self, Prompt) message to the target and block until
-%   the target sends back '$input'(Target, Answer).
+%   Request input from the target process.  Sends `prompt(Self, Prompt)`
+%   to the target, then blocks until the target replies with
+%   `'$input'(Target, Answer)`.  Options:
+%
+%     - target(+Pid)
+%       Override the default target (the actor's parent).
 
 input(Prompt, Answer) :-
     input(Prompt, Answer, []).
@@ -616,9 +861,9 @@ input(Prompt, Answer, Options) :-
 
 %!  respond(+Pid, +Answer) is det.
 %
-%   Reply to an actor Pid that is waiting for input/2-3.
+%   Reply to an actor Pid that is blocked in input/2,3.  Sends
+%   `'$input'(Self, Answer)` to Pid.
 
 respond(Pid, Answer) :-
     self(Self),
     Pid ! '$input'(Self, Answer).
-
