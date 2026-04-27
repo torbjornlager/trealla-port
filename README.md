@@ -1,11 +1,20 @@
-# Porting `library(actors)` to Trealla Prolog
+# Porting `library(actors)` (and friends) to Trealla Prolog
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
 (v2.92.38).
 
-The port lives alongside this report as `actors.pl` and
-`toplevel_actors.pl`, with a manual test suite in `tests.pl`.
+The port lives alongside this report:
+
+| File                  | Role                                                |
+|-----------------------|-----------------------------------------------------|
+| `actors.pl`           | Erlang-style actor runtime (`spawn`, `receive`, …)  |
+| `toplevel_actors.pl`  | Shell-style PTCP for paged goal execution           |
+| `node.pl`             | HTTP server exposing `/call` for remote queries     |
+| `rpc.pl`              | HTTP client wrapper (`rpc/2,3`) over `/call`        |
+| `parallel.pl`         | `parallel/1` and `first_solution/2` demo client     |
+| `tests.pl`            | Manual test suite (no plunit on Trealla)            |
+
 `parallel.pl` is pure client code over the actors API and runs
 unchanged on Trealla, so no separate Trealla variant is needed.
 This document records what changed versus the canonical
@@ -13,31 +22,36 @@ This document records what changed versus the canonical
 
 ## Test results
 
-All 18 manual tests pass on Trealla:
+All 21 manual tests pass on Trealla:
 
-| # | Test                                     | Status |
-|---|------------------------------------------|--------|
-| 1 | basic `receive` pattern match            | ok     |
-| 2 | deferred (non-matching) message preserved| ok     |
-| 3 | `timeout(0)` poll / on_timeout fires     | ok     |
-| 4 | guarded receive with `if`                | ok     |
-| 5 | `exit(Pid, kill)` + monitor `down` msg   | ok     |
-| 6 | `exit(Pid, bye)` reason propagates       | ok     |
-| 7 | `register/2` + named send                | ok     |
-| 8 | `parallel/1` success case                | ok     |
-| 9 | `parallel/1` failure propagates          | ok     |
-|10 | `first_solution/2` picks fastest         | ok     |
-|11 | `findnsols/4` non-deterministic batches  | ok     |
-|12 | `offset/2` skips N solutions             | ok     |
-|13 | `toplevel_spawn` + `toplevel_call`       | ok     |
-|14 | `toplevel_next` delivers second batch    | ok     |
-|15 | goal failure propagates as `failure/1`   | ok     |
-|16 | goal exception propagates as `error/2`   | ok     |
-|17 | `toplevel_stop` + session reuse          | ok     |
-|18 | `session(true)` loop handles two calls   | ok     |
+| #  | Test                                       | Status |
+|----|--------------------------------------------|--------|
+|  1 | basic `receive` pattern match              | ok     |
+|  2 | deferred (non-matching) message preserved  | ok     |
+|  3 | `timeout(0)` poll / on_timeout fires       | ok     |
+|  4 | guarded receive with `if`                  | ok     |
+|  5 | `exit(Pid, kill)` + monitor `down` msg     | ok     |
+|  6 | `exit(Pid, bye)` reason propagates         | ok     |
+|  7 | `register/2` + named send                  | ok     |
+|  8 | `parallel/1` success case                  | ok     |
+|  9 | `parallel/1` failure propagates            | ok     |
+| 10 | `first_solution/2` picks fastest           | ok     |
+| 11 | `findnsols/4` non-deterministic batches    | ok     |
+| 12 | `offset/2` skips N solutions               | ok     |
+| 13 | `toplevel_spawn` + `toplevel_call`         | ok     |
+| 14 | `toplevel_next` delivers second batch      | ok     |
+| 15 | goal failure propagates as `failure/1`     | ok     |
+| 16 | goal exception propagates as `error/2`     | ok     |
+| 17 | `toplevel_stop` + session reuse            | ok     |
+| 18 | `session(true)` loop handles two calls     | ok     |
+| 19 | positive `timeout(T)` fires when idle      | ok     |
+| 20 | message arrives before positive timeout    | ok     |
+| 21 | deferred-list pruning across timed receives| ok     |
 
 All four demos from `parallel.pl` also run unchanged on Trealla
-against `actors.pl`.
+against `actors.pl`. `node.pl` and `rpc.pl` have no automated tests
+but are exercised manually with `node(3060)` on one Trealla instance
+and `rpc('http://localhost:3060', member(X, [a,b,c]))` from another.
 
 ## What is supported
 
@@ -46,7 +60,8 @@ against `actors.pl`.
 - `spawn/1-3` with `monitor(Bool)` and `link(Bool)` options
 - `self/1`, `send/2`, `(!)/2`
 - `receive/1-2` with patterns, guards (`Pattern if Guard -> Body`),
-  and `timeout(0)` polling
+  `timeout(0)` polling, **and positive `timeout(T)` deadlines**
+  (emulated via a short-lived timer actor — see delta #10 below)
 - `monitor/2`, `demonitor/1-2`
 - `register/2`, `unregister/1`, `whereis/2`
 - `exit/1`, `exit/2`
@@ -67,15 +82,39 @@ against `actors.pl`.
   backtrack delivers the next batch)
 - `offset/2` — skip the first N solutions of a goal
 
+### node.pl
+
+- `node/1` — start an HTTP server on a port
+- `GET /call?goal=…&template=…&offset=…&limit=…&format=prolog`
+  with URL percent-encoded Prolog terms; returns one of
+  `success(Slice, More).`, `failure.`, or `error(E).`
+- Producer-actor caching: a paused actor preserves its WAM stack
+  (including all open choicepoints) across HTTP requests, so paged
+  queries resume from where the previous request left off
+- Bounded FIFO cache (`cache_size/1`, default 100); oldest entry
+  evicted on overflow
+- N+1 lookahead probe to compute `More=true|false` without wasting
+  a solution
+
+### rpc.pl
+
+- `rpc/2,3` — call a goal on a remote node; solutions are yielded one
+  by one on backtracking, with automatic page fetching when the node
+  reports `More=true`
+- `limit(N)` option to control page size
+
+```prolog
+?- rpc('http://localhost:3060', member(X, [a,b,c])).
+X = a ; X = b ; X = c.
+```
+
 ## What is not supported
 
 ### actors.pl
 
-`receive/2` with `timeout(T)` where `T \== 0` and `T \== infinite`.
-Trealla has no `thread_get_message/3` accepting a timeout option,
-so the port throws
-`error(unsupported_option(timeout(T)), 'Trealla port: only timeout(0) is supported')`.
-`timeout(0)` (poll) works by way of `thread_peek_message/2`.
+Everything in the original surface is supported. `receive/2` with a
+positive timeout used to be unsupported on Trealla (no
+`thread_get_message/3`), but is now emulated — see delta #10.
 
 ### toplevel_actors.pl
 
@@ -87,7 +126,22 @@ so the port throws
   protocol compatibility but silently ignored, because the underlying
   mechanism (`nb_setarg/3`) is absent in Trealla.
 
-## Portability deltas
+### node.pl
+
+- Only the `prolog` response format is implemented. Requests for
+  `format=json` receive a brief "not yet implemented" notice.
+- The server loop handles connections one at a time in the calling
+  thread; for production deployment each connection should be
+  dispatched to its own actor.
+
+### rpc.pl
+
+- `https://` URIs are not supported (only `http://`).
+- The response body is read with `getline/2`, which reads exactly
+  one line. The current node format (a single `term.\n` per response)
+  is fine, but multi-line response terms would be truncated.
+
+## Portability deltas — `actors.pl`
 
 Each item below is a place where the canonical SWI source could not
 be used verbatim and why.
@@ -206,7 +260,7 @@ exit(Pid, Reason) :-
     throw(actor_exit).
 ```
 
-### 9. `output/1-2`, `input/2-3`, `respond/2` absent from Trealla port
+### 9. `output/1-2`, `input/2-3`, `respond/2` absent from initial port
 
 The original `simple-node/actors.pl` provides these predicates;
 they were missing from the initial Trealla port. Added alongside
@@ -221,8 +275,32 @@ set_parent(Parent) :-
     bb_put(Key, Parent).
 ```
 
+### 10. `thread_get_message/3` (with timeout) absent
 
-## Portability deltas for `toplevel_actors.pl`
+SWI-Prolog provides `thread_get_message(Mailbox, Msg, [timeout(T)])`,
+which blocks up to T seconds for a message. Trealla's
+`thread_get_message/2` only supports the unconditional blocking
+form. Positive timeouts are emulated by spawning a short-lived
+**timer actor** that sleeps for T seconds and then sends a unique
+`'$timeout'(TimerPid)` sentinel back to the receiver:
+
+```prolog
+receive_loop_timed(Self, Patterns, T, Options) :-
+    make_ref(Ref),
+    spawn(timer_actor(Self, T, Ref), TimerPid, [link(false)]),
+    ...
+    thread_get_message(Self, Msg),
+    (   Msg = '$timeout'(TimerPid)
+    ->  option(on_timeout(Goal), Options, true), call(Goal)
+    ;   try_match_or_defer(Msg, Patterns, ..., TimerPid)
+    ).
+```
+
+On a successful match the timer actor is cancelled and any pending
+sentinel drained from the mailbox. The match path uses
+`cancel_timer/2`; the timeout path lets the timer exit naturally.
+
+## Portability deltas — `toplevel_actors.pl`
 
 ### 1. `findnsols/4` absent
 
@@ -325,11 +403,101 @@ select_body({Clauses}, Message, Body) :-
     select_body_aux(Clauses, Message, Body).
 ```
 
+## Portability deltas — `node.pl`
+
+### 1. `library(http/thread_httpd)`, `http_dispatch`, `http_parameters` absent
+
+Trealla ships only a low-level HTTP layer. The server is built
+directly on `server/3` + `accept/2`, and query parameters are parsed
+manually from the request path with a small percent-decoder
+(`url_decode/2`) and `split/4` driver.
+
+### 2. `library(settings)` absent
+
+Defaults that would be `setting/1` declarations in SWI are plain
+facts (e.g. `cache_size(100).`).
+
+### 3. `predicate_property(_, number_of_clauses(N))` absent
+
+The cache size check uses `findall/3` over the cache facts and a
+`length/2` instead of querying clause count directly.
+
+### 4. Producer-actor caching exploits a Trealla-specific guarantee
+
+Trealla's `receive/1` blocks the OS thread while preserving the
+**complete WAM stack**, including every open choicepoint. That is
+exactly what makes the suspended-producer cache work across HTTP
+requests: the producer actor pauses inside `receive({...})` after
+each solution, and on resume backtracks naturally for the next page.
+The same pattern would need extra machinery in implementations
+where a paused thread does not own a stack snapshot.
+
+### 5. No `receive/2` timeout needed for producer replies
+
+`compute_answer/5` uses unconditional `receive/1` rather than a
+timed receive: the producer is a local actor we just spawned (or
+just resumed via `'$request'`), so a reply is guaranteed and a
+timeout would only obscure real bugs.
+
+## Portability deltas — `rpc.pl`
+
+### 1. `library(url)` absent
+
+URIs are decomposed with a small `parse_uri/4` predicate and the
+query path is assembled with `format/2`. Only `http://` is handled.
+
+### 2. `http_open/3` URL-string form fails for localhost
+
+Calling `http_open('http://localhost:3060/...', S, [])` does not
+reliably connect on Trealla. Workaround: pass the components in
+list form: `http_open([host(H), port(P), path(P0)], S, [])`.
+
+### 3. `port(Port)` cannot be constructed directly with a runtime integer
+
+Trealla's `bif_client_5` does not dereference the port argument
+before calling `is_integer`, so
+
+```prolog
+http_open([host(H), port(Port), path(...)], S, [])
+```
+
+fails when `Port` is bound at runtime. The fix is to build the
+option through `=..`, which produces a fresh compound cell that
+Trealla recognises correctly:
+
+```prolog
+PortOpt =.. [port, Port],
+http_open([host(H), PortOpt, path(...)], S, []).
+```
+
+### 4. `getline/2` reads only one line
+
+The response body is read with `getline/2`, which works because the
+node's response is exactly one line (`term.\n`). Multi-line response
+terms would be silently truncated; if the response format ever
+grows, a proper streaming reader is needed.
+
+### 5. URL percent-encoding is hand-rolled
+
+There is no `uri_encoded/3` or `www_form_encode/2` in Trealla, so
+`url_encode/2` is implemented inline alongside `url_decode/2`,
+following RFC 3986's unreserved-character set.
 
 ## Overall assessment
 
-Both modules are ported and fully tested.  The actors port has one
-missing feature (non-zero `receive` timeout).  The toplevel_actors
-port adds one further limitation (no mid-enumeration limit/target
-change), and does not support infinite generators.  Every other
-delta is a small, localised workaround for a Trealla-specific quirk.
+Four modules are ported and exercised on Trealla:
+
+- **`actors.pl`** — feature-complete, including positive `receive`
+  timeouts (emulated via a timer actor).
+- **`toplevel_actors.pl`** — works for finite generators; the
+  mid-enumeration `limit(N)` / `target(P)` change is silently
+  ignored because Trealla has no `nb_setarg/3`.
+- **`node.pl`** — single-threaded server, `format=prolog` only.
+  The producer-actor cache works particularly cleanly thanks to
+  Trealla's stack-preserving `receive/1`.
+- **`rpc.pl`** — `http://` only; relies on `=..` to dodge a Trealla
+  `bif_client_5` bug and on `getline/2` reading the whole one-line
+  reply.
+
+Every other delta is a small, localised workaround for a
+Trealla-specific quirk.
