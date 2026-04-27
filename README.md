@@ -118,9 +118,6 @@ positive timeout used to be unsupported on Trealla (no
 
 ### toplevel_actors.pl
 
-- **Infinite generators**: `findnsols/4` materialises all solutions via
-  `findall/3` on the first call; goals with infinitely many solutions
-  will not terminate.
 - **Mid-enumeration limit/target change**: the `limit(N)` and
   `target(P)` sub-options of `toplevel_next/2` are accepted for
   protocol compatibility but silently ignored, because the underlying
@@ -311,30 +308,38 @@ left off and delivers the next N solutions.  The original
 (state s3 fails deliberately to backtrack into `findnsols` for the
 next slice).
 
-Trealla port: collect all solutions up front with `findall/3`, then
-deliver them in batches via `between/3`.  A cut on the last batch
-makes it deterministic, so `call_cleanup/2` can set `Det = true`
-immediately — which is how `answer/5` detects that no further
-solutions remain.
+Trealla port: implemented with an `asserta`/`catch` collector that
+takes a **lazy** N+1 probe per batch — never `findall/3` over the
+whole goal, so infinite generators terminate on each page.
+
+`collect_n/5` calls Goal under a `catch/3`; each solution is
+asserted into `nsols_bag/2` and a per-thread blackboard counter is
+incremented. After N+1 hits the helper throws `'$nsols_limit'` to
+stop backtracking; `gather_nsols/3` then harvests the bag in FIFO
+order. The N+1 probe lets `findnsols_batch/6` distinguish "this is
+the final batch" (cut, deterministic) from "more remain" (leave a
+choicepoint to clause 2, which retracts the stored next-offset on
+backtracking and continues):
 
 ```prolog
-findnsols(N0, Template, Goal, List) :-
-    (compound(N0) -> arg(1, N0, N) ; N = N0),
-    findall(Template, Goal, All),
-    length(All, Total),
-    (   Total =:= 0
-    ->  !, List = []
-    ;   NumBatches is (Total + N - 1) // N,
-        between(1, NumBatches, Batch),
-        Start is (Batch - 1) * N,
-        skip_n(Start, All, Rest),
-        take_n(N, Rest, List, _),
-        (Batch =:= NumBatches -> ! ; true)
+findnsols_batch(N, Me, Offset, Template, Goal, List) :-
+    N1 is N + 1,
+    collect_n(N1, Me, Template, offset(Offset, Goal), Probe),
+    length(Probe, Got),
+    (   Got =:= 0     -> !, List = []
+    ;   Got =:= N1    -> NextOffset is Offset + N,
+                         assertz(nsols_state(Me, NextOffset)),
+                         take_n(N, Probe, List, _)
+    ;   !, List = Probe
     ).
+findnsols_batch(N, Me, _, Template, Goal, List) :-
+    retract(nsols_state(Me, NextOffset)),
+    findnsols_batch(N, Me, NextOffset, Template, Goal, List).
 ```
 
 `N0` may be an integer or a `count(N)` compound (the original code
-wraps the limit in `count/1` as a mutable cell for `nb_setarg`).
+wraps the limit in `count/1` as a mutable cell for `nb_setarg`); arg 1
+is unwrapped in both cases.
 
 ### 2. `offset/2` absent
 
@@ -489,9 +494,10 @@ Four modules are ported and exercised on Trealla:
 
 - **`actors.pl`** — feature-complete, including positive `receive`
   timeouts (emulated via a timer actor).
-- **`toplevel_actors.pl`** — works for finite generators; the
-  mid-enumeration `limit(N)` / `target(P)` change is silently
-  ignored because Trealla has no `nb_setarg/3`.
+- **`toplevel_actors.pl`** — paged enumeration works for both finite
+  and infinite generators (lazy N+1 probe per batch, no upfront
+  `findall`); only the mid-enumeration `limit(N)` / `target(P)`
+  change is silently ignored, because Trealla has no `nb_setarg/3`.
 - **`node.pl`** — single-threaded server, `format=prolog` only.
   The producer-actor cache works particularly cleanly thanks to
   Trealla's stack-preserving `receive/1`.
