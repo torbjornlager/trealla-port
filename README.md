@@ -66,6 +66,7 @@ and `rpc('http://localhost:3060', member(X, [a,b,c]))` from another.
 - `register/2`, `unregister/1`, `whereis/2`
 - `exit/1`, `exit/2`
 - `output/1-2`, `input/2-3`, `respond/2`
+- `make_ref/1`, `flush/0`
 - Links (bidirectional lifecycle coupling)
 - Deferred-message semantics (non-matching messages stay in the
   mailbox in arrival order)
@@ -171,11 +172,16 @@ is_thread(Id) :-
 ### 3. No `thread_local/1`
 
 The deferred-message list, previously stored in a `thread_local`
-dynamic predicate, is kept on Trealla's per-thread blackboard:
+dynamic predicate, is kept on Trealla's per-thread blackboard.
+`deferred_list/1` also drops any `'$actor_timeout'(_)` sentinels
+that arrived behind a matched message (so the deferred list does
+not accumulate stale timers across many timed receives — see
+delta #10):
 
 ```prolog
 deferred_list(L) :-
-    (bb_get('$actor_deferred', L) -> true ; L = []).
+    (   bb_get('$actor_deferred', Raw) -> true ; Raw = [] ),
+    prune_stale(Raw, L).
 
 deferred_put(L) :-
     bb_put('$actor_deferred', L).
@@ -278,24 +284,50 @@ SWI-Prolog provides `thread_get_message(Mailbox, Msg, [timeout(T)])`,
 which blocks up to T seconds for a message. Trealla's
 `thread_get_message/2` only supports the unconditional blocking
 form. Positive timeouts are emulated by spawning a short-lived
-**timer actor** that sleeps for T seconds and then sends a unique
-`'$timeout'(TimerPid)` sentinel back to the receiver:
+**timer actor** that sleeps for T seconds and then sends an
+`'$actor_timeout'(Ref)` sentinel back to the receiver. `Ref` is a
+fresh atom from `make_ref/1` — *not* the TimerPid, because Trealla
+loses the identity of a compound containing `'$thread'(N)` opaque
+cells across the throw/catch the timed loop uses to escape.
+
+The control flow is a `catch/3` around an inner mailbox loop. The
+loop throws `'$receive_timeout'(Ref)` the moment it pulls the
+matching sentinel out of the mailbox; the catch then runs the
+`on_timeout/1` goal. On a normal match, the loop returns and the
+match arm cancels the still-running timer:
 
 ```prolog
-receive_loop_timed(Self, Patterns, T, Options) :-
+receive_loop_timed(Mailbox, Clauses, Options, Deferred, T) :-
+    self(Self),
     make_ref(Ref),
     spawn(timer_actor(Self, T, Ref), TimerPid, [link(false)]),
-    ...
-    thread_get_message(Self, Msg),
-    (   Msg = '$timeout'(TimerPid)
-    ->  option(on_timeout(Goal), Options, true), call(Goal)
-    ;   try_match_or_defer(Msg, Patterns, ..., TimerPid)
+    catch(
+        ( timed_loop(Mailbox, Clauses, Options, Deferred, Ref),
+          cancel_timer(TimerPid, Self, Ref) ),
+        '$receive_timeout'(Ref),
+        ( deferred_put(Deferred),
+          option(on_timeout(Goal), Options, true),
+          call(Goal) )
+    ).
+
+timed_loop(Mailbox, Clauses, Options, Deferred, Ref) :-
+    thread_get_message(Mailbox, Msg),
+    (   Msg == '$actor_timeout'(Ref)
+    ->  throw('$receive_timeout'(Ref))
+    ;   select_body(Clauses, Msg, Body)
+    ->  deferred_put(Deferred), call(Body)
+    ;   append(Deferred, [Msg], Deferred1),
+        timed_loop(Mailbox, Clauses, Options, Deferred1, Ref)
     ).
 ```
 
-On a successful match the timer actor is cancelled and any pending
-sentinel drained from the mailbox. The match path uses
-`cancel_timer/2`; the timeout path lets the timer exit naturally.
+The match path runs `cancel_timer/3` (TimerPid, Self, Ref), which
+sends `cancelled` to the timer via `exit/2` and peels one
+already-arrived sentinel off the front of the mailbox. Sentinels
+that arrived *behind* other messages stay briefly in the deferred
+list and are filtered by `prune_stale/2` on the next receive
+(see delta #3). The timeout path leaves the timer to exit
+naturally — signalling it would race with its own at_exit hook.
 
 ## Portability deltas — `toplevel_actors.pl`
 
