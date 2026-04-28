@@ -341,29 +341,16 @@ findnsols_batch(N, Me, _, Template, Goal, List) :-
 wraps the limit in `count/1` as a mutable cell for `nb_setarg`); arg 1
 is unwrapped in both cases.
 
-### 2. `offset/2` absent
+### 2. `offset/2` — now a Trealla built-in
 
-`offset(N, Goal)` skips the first N solutions of Goal.  It must work
-inside `findall/3`, which requires the skip counter to survive
-backtracking.  Implemented with `assertz`/`retract` keyed by thread
-ID:
-
-```prolog
-offset(0, Goal) :- !, call(Goal).
-offset(N, Goal) :-
-    N > 0,
-    thread_self(Me),
-    (retract(offset_counter(Me, _)) -> true ; true),
-    assertz(offset_counter(Me, N)),
-    call(Goal),
-    retract(offset_counter(Me, C)),
-    (   C > 0
-    ->  C1 is C - 1,
-        assertz(offset_counter(Me, C1)),
-        fail
-    ;   true
-    ).
-```
+Earlier versions of this port carried an `assertz`/`retract` polyfill
+keyed by thread ID, because `offset(N, Goal)` had to skip N solutions
+of Goal and the skip counter had to survive backtracking inside
+`findall/3`.  Trealla now provides `offset/2` as a built-in, so the
+polyfill has been removed.  The module declaration still lists
+`offset/2` in its export list — that re-declaration is purely so
+clients can `use_module(toplevel_actors)` and call `offset/2` without
+an explicit `library(lists)`-style import.
 
 ### 3. `nb_setarg/3` absent
 
