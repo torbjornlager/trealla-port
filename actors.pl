@@ -67,8 +67,9 @@ available to later receive/1,2 calls.
 
 ## Links versus monitors {#actors-links-monitors}
 
-A *link* is bidirectional and eager: when a linked actor exits, its
-peer is sent an exit signal.  Links are set up with the `link(true)`
+A *link* is directional and eager: when a parent spawns a child with
+`link(true)`, termination of the parent causes the child to be sent an
+exit signal, but not vice versa.  Links are set up with the `link(true)`
 option on spawn/3 (currently the default) and are primarily a
 supervision tool.
 
@@ -197,8 +198,8 @@ is_thread(Id) :-
 %       with `demonitor(Pid)`.  Default: `false`.
 %     - link(+Bool)
 %       If `true`, the spawning actor and the new actor are linked:
-%       either exiting will propagate an exit signal to the other.
-%       Default: `true`.
+%       termination of the spawning actor propagates an exit signal to
+%       the new actor, but not the reverse. Default: `true`.
 
 :- dynamic(link/2).
 
