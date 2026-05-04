@@ -109,12 +109,14 @@ Reply = hello.
 ## Trealla port notes {#actors-trealla}
 
   - `library(debug)` is absent and has been dropped (it was unused).
-  - `thread_get_message/3` (with a timeout) is absent.  Non-zero
-    timeouts in receive/2 are emulated by spawning a short-lived
-    *timer actor* that sleeps for the requested duration and then
-    sends a unique `'$timeout'(TimerPid)` sentinel to the receiver.
-    The receive loop blocks in `thread_get_message/2` and treats the
-    sentinel as a timeout.
+  - `thread_get_message/3` exists in v2.94.20 and accepts a
+    `timeout(Float)` option, but its granularity is far too coarse
+    to use directly: a request for 0.05 s actually returns after
+    ~0.93 s; 0.1 s after ~2 s. Non-zero timeouts in receive/2 are
+    therefore still emulated by spawning a short-lived *timer actor*
+    that sleeps for the requested duration via `sleep/1` (which is
+    accurate) and then sends a unique `'$actor_timeout'(Ref)`
+    sentinel to the receiver.
   - `thread_local/1` is absent.  Per-thread state (deferred message
     list, parent PID) is stored on the thread-local blackboard via
     `bb_put/2` and `bb_get/2`.

@@ -1,6 +1,5 @@
 :- module(toplevel_actors,
-       [ findnsols/4,            % +N, ?Template, :Goal, -List
-         offset/2,               % +N, :Goal
+       [ offset/2,               % +N, :Goal
 
          toplevel_spawn/1,       % -Pid
          toplevel_spawn/2,       % -Pid, +Options
@@ -46,20 +45,17 @@ A toplevel actor cycles through three states:
     findnsols to fetch the next slice.  On `'$stop'` it returns to s1
     (session mode) or exits.
 
-## findnsols and paging {#toplevel-findnsols}
+## Paging {#toplevel-findnsols}
 
-findnsols/4 collects solutions in batches of N.  It is non-deterministic:
-each call on backtracking delivers the next batch.  Internally it uses
-the N+1 lookahead trick: collect N+1 solutions; if all N+1 were found,
-there is at least one more batch (a choicepoint is left via clause 2 of
-findnsols_batch/6); if fewer were found, the current batch is the last.
+slice/5 calls findnsols/4 (a Trealla built-in since v2.94.20),
+which is lazy and non-deterministic: each backtrack delivers the
+next batch of N solutions. Combined with offset/2 this drives the
+`/call?offset=N&limit=M` paging protocol cleanly.
 
 ## Trealla port notes {#toplevel-trealla}
 
-  - findnsols/4 is implemented via `asserta`/`retract` and
-    exception-based early stopping rather than `nb_getval`/`nb_setval`,
-    which are absent.
-  - offset/2 delegates to Trealla's built-in of the same name.
+  - findnsols/4 and offset/2 are both Trealla built-ins; no shim
+    needed.
   - Changing the batch `limit` or `target` mid-stream via
     toplevel_next/2 options is not supported because it requires
     `nb_setarg/3`, which is absent in Trealla.  The limit(NewLimit)
@@ -81,120 +77,6 @@ findnsols_batch/6); if fewer were found, the current batch is the last.
 %   Skip the first N solutions of Goal, then succeed for each remaining
 %   solution on backtracking.  This is a Trealla built-in; the
 %   declaration here merely makes it importable from this module.
-
-
-                /*******************************
-                *          FINDNSOLS          *
-                *******************************/
-
-%!  findnsols(+N, ?Template, :Goal, -List) is nondet.
-%
-%   Collect at most N solutions of Goal into List.  Non-deterministic:
-%   on backtracking delivers the next batch of N solutions, then the
-%   batch after that, and so on until Goal is exhausted.
-%
-%   N may be a plain integer or a `count(N0)` compound (for
-%   compatibility with the original SWI implementation that wraps the
-%   limit in a `count/1` cell for nb_setarg); arg 1 is used as the
-%   integer limit in both cases.
-%
-%   Implementation: collect N+1 solutions using asserta/catch; if N+1
-%   were found there are more batches (a choicepoint is left via clause
-%   2 of findnsols_batch/6); if fewer were found this is the last batch
-%   (cut, deterministic).  This avoids materialising all solutions at
-%   once, so infinite generators are supported.
-
-:- dynamic(nsols_bag/2).    % nsols_bag(Thread, Template) -- collected items
-:- dynamic(nsols_state/2).  % nsols_state(Thread, NextOffset) -- next batch start
-
-findnsols(N0, Template, Goal, List) :-
-    (compound(N0) -> arg(1, N0, N) ; N = N0),
-    thread_self(Me),
-    retractall(nsols_state(Me, _)),     % fresh start
-    findnsols_batch(N, Me, 0, Template, Goal, List).
-
-
-%!  findnsols_batch(+N, +Me, +Offset, +Template, :Goal, -List) is nondet.
-%
-%   Workhorse for findnsols/4.  Collects one batch of N solutions from
-%   `offset(Offset, Goal)`.  Clause 1 handles the general case and
-%   cuts on the final batch.  Clause 2 is reached on backtracking and
-%   fetches the next batch using the offset stored by clause 1.
-
-% Clause 1 -- collect one batch; cut on last, leave clause 2 otherwise.
-findnsols_batch(N, Me, Offset, Template, Goal, List) :-
-    N1 is N + 1,                                    % probe for one extra
-    collect_n(N1, Me, Template, offset(Offset, Goal), Probe),
-    length(Probe, Got),
-    (   Got =:= 0
-    ->  !, List = []                                % no solutions at all
-    ;   Got =:= N1
-    ->  NextOffset is Offset + N,
-        assertz(nsols_state(Me, NextOffset)),        % remember where to resume
-        take_n(N, Probe, List, _)                    % deliver first N; clause 2 is alternative
-    ;   !, List = Probe                              % partial last batch; cut
-    ).
-
-% Clause 2 -- reached on backtracking; fetch the next batch.
-findnsols_batch(N, Me, _Offset, Template, Goal, List) :-
-    retract(nsols_state(Me, NextOffset)),
-    findnsols_batch(N, Me, NextOffset, Template, Goal, List).
-
-
-%!  collect_n(+N, +Me, +Template, :Goal, -List) is det.
-%
-%   Collect at most N solutions of Goal into List.  Uses the
-%   asserta/catch pattern: Goal is called repeatedly via backtracking;
-%   each solution is asserted into nsols_bag/2; after reaching N
-%   solutions (or exhausting Goal), the accumulated bag is harvested
-%   with gather_nsols/3.
-%
-%   A per-thread counter stored on the blackboard under the key
-%   `'$nsols_cnt_<Me>'` tracks how many solutions have been collected.
-%   When the count reaches N the `'$nsols_limit'` exception is thrown
-%   to cut off further backtracking.
-
-collect_n(N, Me, Template, Goal, List) :-
-    retractall(nsols_bag(Me, _)),
-    format(atom(CntKey), '$nsols_cnt_~w', [Me]),
-    bb_put(CntKey, 0),
-    catch(
-        ( call(Goal),
-          asserta(nsols_bag(Me, Template)),
-          bb_get(CntKey, C), C1 is C + 1, bb_put(CntKey, C1),
-          ( C1 >= N -> throw('$nsols_limit') ; fail )
-        ;   true    % graceful exit when Goal is exhausted before N
-        ),
-        '$nsols_limit',
-        true
-    ),
-    gather_nsols(Me, [], List).
-
-
-%!  gather_nsols(+Me, +Acc, -Bag) is det.
-%
-%   Harvest all nsols_bag(Me, _) facts into Bag in the original
-%   solution order.  `asserta` inserts in LIFO order; prepending each
-%   extracted item to the accumulator reverses again, restoring FIFO
-%   order.
-
-gather_nsols(Me, SoFar, Bag) :-
-    retract(nsols_bag(Me, T)), !,
-    gather_nsols(Me, [T|SoFar], Bag).
-gather_nsols(_, Bag, Bag).
-
-
-%!  take_n(+N, +List, -Head, -Tail) is det.
-%
-%   Split List into the first N elements (Head) and the remainder
-%   (Tail).  If List has fewer than N elements, Head = List and
-%   Tail = [].
-
-take_n(0, Rest, [], Rest) :- !.
-take_n(_, [], [], []) :- !.
-take_n(N, [H|T], [H|S], R) :-
-    N1 is N - 1,
-    take_n(N1, T, S, R).
 
 
                 /*******************************
@@ -260,7 +142,6 @@ slice(Goal, Template, Offset, Limit, Slice) :-
 %   to detect the final batch; this port uses length comparison instead.
 
 answer(Goal, Template, Offset, Limit, Answer) :-
-    (compound(Limit) -> arg(1, Limit, N) ; N = Limit),
     catch(
         slice(Goal, Template, Offset, Limit, Slice),
         Error, true),
@@ -268,7 +149,7 @@ answer(Goal, Template, Offset, Limit, Answer) :-
     ->  Answer = error(Error)
     ;   Slice == []
     ->  Answer = failure
-    ;   length(Slice, Got), Got =:= N
+    ;   length(Slice, Got), Got =:= Limit
     ->  Answer = success(Slice, true)
     ;   Answer = success(Slice, false)
     ).
@@ -305,9 +186,8 @@ state_1(Pid, Target0, Continue) :-
         '$call'(Goal, Options) ->
             option(template(Template), Options, Goal),
             option(offset(Offset),     Options, 0),
-            option(limit(Limit0),      Options, 1000000000),
+            option(limit(Limit),       Options, 1000000000),
             option(target(Target1),    Options, Target0),
-            Limit = count(Limit0),
             state_2(Goal, Template, Offset, Limit, Pid, Answer),
             Target = target(Target1),
             arg(1, Target, Out),

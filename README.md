@@ -2,9 +2,25 @@
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
-(tested on v2.94.16, also runs on v2.92.38).
+(tested on v2.94.20).
 
-## What v2.94.16 changes for this port
+## What v2.94.20 changes for this port
+
+The `findnsols/4` polyfill is gone — Trealla v2.94.20 ships a
+proper lazy, non-deterministic built-in. The `toplevel_actors.pl`
+findnsols section (about 100 lines: the polyfill itself plus
+`collect_n`, `gather_nsols`, `take_n`, and the `nsols_bag` /
+`nsols_state` dynamic state) was deleted, and the `count(N)`
+wrapper that existed only to satisfy SWI's `nb_setarg` mutability
+trick was unwound at the same time. A counter probe confirmed the
+new built-in is genuinely lazy: each batch consumes exactly N
+solutions, not N+M.
+
+`thread_get_message/3` also gained a working `timeout(Float)`
+option in v2.94.20, but the timer-actor emulation in `actors.pl`
+was retained: see delta #7 below for the granularity numbers.
+
+## What v2.94.16 changed for this port
 
 Trealla v2.94.16 ships fixes for almost every quirk the original port
 worked around. The port has been simplified accordingly:
@@ -291,54 +307,47 @@ set_parent(Parent) :-
     bb_put(Key, Parent).
 ```
 
-### 7. `thread_get_message/3` (with timeout) ignored
+### 7. `thread_get_message/3` timeout granularity is too coarse
 
 SWI-Prolog provides `thread_get_message(Mailbox, Msg, [timeout(T)])`,
-which blocks up to T seconds for a message. Trealla v2.94.16 added
-`thread_get_message/3`, but the `timeout(T)` option is parsed and
-then **ignored** — the call still blocks until a message arrives.
-Concrete evidence:
+which blocks up to T seconds for a message. Trealla v2.94.20 has
+this predicate and the `timeout(Float)` option does fire — fixing
+the unreachable-`if` bug noted in earlier releases — but the
+granularity is far too coarse to use as a drop-in:
 
-  - `thread_get_message(Me, _, [timeout(0.0)])` with no message ever
-    sent hangs indefinitely (should fail in 0 ms).
-  - With a sender that delivers `late` 2 s after start and a receiver
-    using `[timeout(0.5)]`, the receiver waits the full 2 s and gets
-    the message — instead of failing at 0.5 s.
+| asked     | actually returned after |
+|-----------|-------------------------|
+| 0.05 s    | 0.93 s                  |
+| 0.1  s    | 1.97 s                  |
+| 0.2  s    | 0.97 s                  |
+| 0.5  s    | 0.97 s                  |
+| 1.0  s    | 2.96 s                  |
+| 2.0  s    | 2.95 s                  |
 
-The bug is in `src/bif_threads.c` (`do_match_message`, around
-lines 459–469). The block that waits for a message is a `do/while`
-spin around `suspend_thread(t, 10)` (a 10 ms `pthread_cond_timedwait`),
-followed by an `if` that *would* honour the timeout — but only when
-no message and no signal arrived, which is exactly the condition
-under which the `do/while` did *not* exit. The `if` is therefore
-unreachable as written:
+The cause is still in `src/bif_threads.c` (`do_match_message`):
+the wait loop is `do { suspend_thread(t, 10); } while (... && cnt++ < 1000)`,
+and the timeout check sits *outside* that loop. So the timeout
+only gets re-evaluated when the inner loop exits — either a message
+arrives, the cnt cap of 1000 (i.e. up to 10 s) is hit, or
+`pthread_cond_timedwait` returns spuriously. For sub-second
+timeouts that's far worse than useful.
 
-```c
-do {
-    suspend_thread(t, 10);
-} while (!list_count(&t->queue) && !list_count(&t->signals)
-         && !q->halt && !q->abort);
+A receive timeout that fires "somewhere between 5x and 20x the
+requested duration" breaks too many real use cases — periodic
+poll loops, supervision deadlines, bounded-wait synchronisation —
+so the timer-actor emulation is retained. The timer uses `sleep/1`
+which is accurate; the test suite (t19) reliably sees ~0.21 s for
+a 0.2 s requested timeout.
 
-if (!list_count(&t->queue) && !list_count(&t->signals)
-    && !q->halt && !q->abort) {            // unreachable
-    pl_int elapsed_ms = (wall_time_in_usec()/1000) - started_ms;
-    if ((ms >= 0) && (elapsed_ms > ms))
-        return false;
-}
-```
-
-The fix would be to move the timeout check *inside* the `do/while`
-so each 10 ms wakeup also re-checks the deadline. On the `main`
-branch (post-v2.94.16) `thread_get_message/3` has simply been
-removed; only `/2` remains.
-
-Until either is shipped in a tagged release, positive timeouts are
-emulated by spawning a short-lived **timer actor** that sleeps for
-T seconds and then sends an `'$actor_timeout'(Ref)` sentinel back
-to the receiver. `Ref` is a fresh atom from `make_ref/1` — *not*
-the TimerPid, because Trealla loses the identity of a compound
-containing `'$thread'(N)` opaque cells across the throw/catch the
-timed loop uses to escape.
+The control flow is a `catch/3` around an inner mailbox loop. A
+fresh atom `Ref` is generated with `make_ref/1`, a short-lived
+timer actor sleeps T seconds and then sends `'$actor_timeout'(Ref)`
+back to the receiver; the inner loop pulls messages with the
+unconditional `thread_get_message/2`, throws `'$receive_timeout'(Ref)`
+when it sees the sentinel, and the outer catch runs `on_timeout/1`.
+`Ref` must be an atom rather than the TimerPid because Trealla
+loses the identity of a compound containing `'$thread'(N)` opaque
+cells across throw/catch:
 
 The control flow is a `catch/3` around an inner mailbox loop. The
 loop throws `'$receive_timeout'(Ref)` the moment it pulls the
@@ -381,47 +390,19 @@ naturally — signalling it would race with its own at_exit hook.
 
 ## Portability deltas — `toplevel_actors.pl`
 
-### 1. `findnsols/4` absent
+### 1. `findnsols/4` — now a Trealla built-in
 
-SWI's `findnsols/4` materialises at most N solutions and, crucially,
-is **non-deterministic**: on backtracking it resumes from where it
-left off and delivers the next N solutions.  The original
-`toplevel_actors.pl` relies on this to drive the PTCP state machine
-(state s3 fails deliberately to backtrack into `findnsols` for the
-next slice).
+Earlier versions of this port carried a sizeable lazy `findnsols/4`
+polyfill (an `asserta`/`catch` collector with N+1 lookahead, plus
+`collect_n`, `gather_nsols`, `take_n` and the `nsols_bag` /
+`nsols_state` dynamic state). Trealla v2.94.20 ships a real lazy
+non-deterministic `findnsols/4`, so the polyfill was deleted.
 
-Trealla port: implemented with an `asserta`/`catch` collector that
-takes a **lazy** N+1 probe per batch — never `findall/3` over the
-whole goal, so infinite generators terminate on each page.
-
-`collect_n/5` calls Goal under a `catch/3`; each solution is
-asserted into `nsols_bag/2` and a per-thread blackboard counter is
-incremented. After N+1 hits the helper throws `'$nsols_limit'` to
-stop backtracking; `gather_nsols/3` then harvests the bag in FIFO
-order. The N+1 probe lets `findnsols_batch/6` distinguish "this is
-the final batch" (cut, deterministic) from "more remain" (leave a
-choicepoint to clause 2, which retracts the stored next-offset on
-backtracking and continues):
-
-```prolog
-findnsols_batch(N, Me, Offset, Template, Goal, List) :-
-    N1 is N + 1,
-    collect_n(N1, Me, Template, offset(Offset, Goal), Probe),
-    length(Probe, Got),
-    (   Got =:= 0     -> !, List = []
-    ;   Got =:= N1    -> NextOffset is Offset + N,
-                         assertz(nsols_state(Me, NextOffset)),
-                         take_n(N, Probe, List, _)
-    ;   !, List = Probe
-    ).
-findnsols_batch(N, Me, _, Template, Goal, List) :-
-    retract(nsols_state(Me, NextOffset)),
-    findnsols_batch(N, Me, NextOffset, Template, Goal, List).
-```
-
-`N0` may be an integer or a `count(N)` compound (the original code
-wraps the limit in `count/1` as a mutable cell for `nb_setarg`); arg 1
-is unwrapped in both cases.
+The original SWI implementation wrapped the limit in `count(N)` so
+that `nb_setarg/3` could mutate it mid-stream; without `nb_setarg`
+that wrapping does nothing useful, so it has been unwound here
+too — the PTCP state machine now passes the integer `Limit`
+straight through.
 
 ### 2. `offset/2` — now a Trealla built-in
 
@@ -530,11 +511,13 @@ following RFC 3986's unreserved-character set.
 Four modules are ported and exercised on Trealla:
 
 - **`actors.pl`** — feature-complete, including positive `receive`
-  timeouts (emulated via a timer actor).
-- **`toplevel_actors.pl`** — paged enumeration works for both finite
-  and infinite generators (lazy N+1 probe per batch, no upfront
-  `findall`); only the mid-enumeration `limit(N)` / `target(P)`
-  change is silently ignored, because Trealla has no `nb_setarg/3`.
+  timeouts (emulated via a timer actor because the native
+  `thread_get_message/3` timeout has ~10x granularity overshoot —
+  see delta #7).
+- **`toplevel_actors.pl`** — paged enumeration uses Trealla's lazy
+  built-in `findnsols/4`; only the mid-enumeration `limit(N)` /
+  `target(P)` change is silently ignored, because Trealla has no
+  `nb_setarg/3`.
 - **`node.pl`** — single-threaded server, `format=prolog` only.
   The producer-actor cache works particularly cleanly thanks to
   Trealla's stack-preserving `receive/1`.
