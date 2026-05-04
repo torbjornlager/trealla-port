@@ -2,7 +2,57 @@
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
-(v2.92.38).
+(tested on v2.94.16, also runs on v2.92.38).
+
+## What v2.94.16 changes for this port
+
+Trealla v2.94.16 ships fixes for almost every quirk the original port
+worked around. The port has been simplified accordingly:
+
+**Polyfills removed (built-ins now exist):**
+
+  - `option/2-3` (former delta #1 in `actors.pl`). Polyfill and the
+    `option/2,3` exports gone; `rpc.pl` no longer imports them.
+  - `is_thread/1` (former delta #2 in `actors.pl`). Polyfill was dead
+    code anyway. Doesn't show up in `current_predicate/1` listings,
+    which is what fooled me at first.
+  - `strip_module/3` (former delta in `toplevel_actors.pl`).
+    Built-in via `library(loader)`; same `current_predicate`-blind
+    story.
+
+**Workarounds removed (Trealla bugs fixed upstream):**
+
+  - `port(Port)` with a runtime-bound integer now reaches the C
+    builtin correctly, so the `PortOpt =.. [port, Port]` trick is
+    gone from `rpc.pl`.
+  - `thread_self/1` in a `thread_signal`-delivered goal no longer
+    raises `uninstantiation_error`, so the `'$do_exit'(Pid, Reason)`
+    helper in `actors.pl` is gone — `exit/2` now injects
+    `actors:exit(Reason)` directly. (Former delta #6.)
+
+**Stdlib used in place of hand-written parsing:**
+
+  - `library(http)`'s `parse_url/2` replaces the home-grown
+    `parse_uri/4` in `rpc.pl`. (Former rpc delta #1.)
+
+Other upstream fixes — `abort/0`, `thread_detach/1` in `at_exit`,
+`thread_property` status in `at_exit`, `thread_signal` on a dead
+thread (now `actors.pl` deltas #2–#5) — were verified with probe
+scripts but the existing workarounds were left in place: they
+continue to work and ripping them out would be a non-trivial
+refactor of the start/at-exit machinery. The deltas below describe
+the workarounds that are still in the code and note where Trealla
+has caught up.
+
+One thing is still missing:
+
+  - `thread_get_message/3` accepts a `timeout(T)` option but appears
+    to ignore it (the call still blocks forever). The timer-actor
+    emulation in delta #7 therefore stays.
+
+`thread_send_message/2` to a dead thread also still raises an
+uncatchable error, which is why the `actor_alive/1` table in
+`actors.pl` (delta #5) remains.
 
 The port lives alongside this report:
 
@@ -61,7 +111,7 @@ and `rpc('http://localhost:3060', member(X, [a,b,c]))` from another.
 - `self/1`, `send/2`, `(!)/2`
 - `receive/1-2` with patterns, guards (`Pattern if Guard -> Body`),
   `timeout(0)` polling, **and positive `timeout(T)` deadlines**
-  (emulated via a short-lived timer actor — see delta #10 below)
+  (emulated via a short-lived timer actor — see delta #7 below)
 - `monitor/2`, `demonitor/1-2`
 - `register/2`, `unregister/1`, `whereis/2`
 - `exit/1`, `exit/2`
@@ -115,7 +165,7 @@ X = a ; X = b ; X = c.
 
 Everything in the original surface is supported. `receive/2` with a
 positive timeout used to be unsupported on Trealla (no
-`thread_get_message/3`), but is now emulated — see delta #10.
+`thread_get_message/3`), but is now emulated — see delta #7.
 
 ### toplevel_actors.pl
 
@@ -142,41 +192,20 @@ positive timeout used to be unsupported on Trealla (no
 ## Portability deltas — `actors.pl`
 
 Each item below is a place where the canonical SWI source could not
-be used verbatim and why.
+be used verbatim and why. The original port had ten such deltas;
+v2.94.16 made the `option/2-3` polyfill obsolete (former #1) and the
+`is_thread/1` polyfill turned out to be dead code that no caller
+ever used (former #2), so the remaining items are renumbered to
+eight.
 
-### 1. `library(option)` absent
-
-SWI-Prolog's `option/2-3` is not shipped with Trealla. Polyfilled
-in-module:
-
-```prolog
-option(Opt, Options, _Default) :-
-    memberchk(Opt, Options), !.
-option(Opt, _, Default) :-
-    functor(Opt, _, 1),
-    arg(1, Opt, Default).
-
-option(Opt, Options) :-
-    memberchk(Opt, Options).
-```
-
-### 2. `is_thread/1` absent
-
-Polyfilled via `thread_property/2`:
-
-```prolog
-is_thread(Id) :-
-    catch(thread_property(Id, status(_)), _, fail).
-```
-
-### 3. No `thread_local/1`
+### 1. No `thread_local/1`
 
 The deferred-message list, previously stored in a `thread_local`
 dynamic predicate, is kept on Trealla's per-thread blackboard.
 `deferred_list/1` also drops any `'$actor_timeout'(_)` sentinels
 that arrived behind a matched message (so the deferred list does
 not accumulate stale timers across many timed receives — see
-delta #10):
+delta #7):
 
 ```prolog
 deferred_list(L) :-
@@ -187,19 +216,20 @@ deferred_put(L) :-
     bb_put('$actor_deferred', L).
 ```
 
-### 4. `abort/0` crashes a thread
+### 2. `abort/0` crashes a thread
 
 Calling `abort/0` inside a spawned thread segfaults Trealla.
 Replaced with `throw(actor_exit)`, which is caught by a wrapper
-in `start/4`.
+in `start/4`. (Fixed upstream in v2.94.16; workaround retained.)
 
-### 5. `thread_detach/1` inside `at_exit` hangs
+### 3. `thread_detach/1` inside `at_exit` hangs
 
 The at-exit hook never returns if it calls `thread_detach/1`.
 Threads are created with `detached(true)` up front instead, and
-`thread_detach` is not called from `stop/2`.
+`thread_detach` is not called from `stop/2`. (Fixed upstream in
+v2.94.16; workaround retained.)
 
-### 6. `thread_property(Pid, status(...))` reports `running` inside `at_exit`
+### 4. `thread_property(Pid, status(...))` reports `running` inside `at_exit`
 
 In SWI, the at-exit hook can read the thread's final status out of
 `thread_property/2`. In Trealla the status is still `running` when
@@ -221,8 +251,11 @@ catch(
 ```
 
 `stop/2` then `retract`s `exit_reason/2` to build the `down` message.
+(Fixed upstream in v2.94.16: `at_exit` now sees the final status;
+workaround retained because exit_reason still carries the user's
+exit reason from `exit/1,2`, which `status/1` does not.)
 
-### 7. `thread_signal` on a dead detached thread raises an uncatchable error
+### 5. `thread_signal` on a dead detached thread raises an uncatchable error
 
 Once a detached thread has finished, `thread_signal/2` on its PID
 throws a domain error that bypasses `catch/3`. The workaround is a
@@ -238,32 +271,12 @@ liveness table:
 
 `exit/2` and `send/2` both check `actor_alive/1` before attempting
 `thread_signal`/`thread_send_message`, and `stop/2` retracts the
-entry as its first action.
+entry as its first action. (Partially fixed upstream in v2.94.16:
+`thread_signal/2` on a dead detached thread now raises a *catchable*
+domain error, but `thread_send_message/2` is still uncatchable, so
+the actor_alive table stays.)
 
-### 8. `thread_self/1` inside a `thread_signal`-delivered goal raises `uninstantiation_error`
-
-This is the subtlest difference. When a goal injected via
-`thread_signal/2` calls `thread_self/1`, Trealla raises
-`error(uninstantiation_error('$thread'(N)), thread_self/1)` --- the
-argument appears to be pre-bound in the signal delivery context.
-
-Consequently we cannot implement `exit(Pid, Reason)` by injecting
-`exit(Reason)` (whose body calls `self/1`). Instead, the PID is
-bound into the injected goal at call-site:
-
-```prolog
-exit(Pid, Reason) :-
-    (   actor_alive(Pid)
-    ->  catch(thread_signal(Pid, actors:'$do_exit'(Pid, Reason)), _, true)
-    ;   true
-    ).
-
-'$do_exit'(Pid, Reason) :-
-    asserta(exit_reason(Pid, Reason)),
-    throw(actor_exit).
-```
-
-### 9. `output/1-2`, `input/2-3`, `respond/2` absent from initial port
+### 6. `output/1-2`, `input/2-3`, `respond/2` absent from initial port
 
 The original `simple-node/actors.pl` provides these predicates;
 they were missing from the initial Trealla port. Added alongside
@@ -278,17 +291,54 @@ set_parent(Parent) :-
     bb_put(Key, Parent).
 ```
 
-### 10. `thread_get_message/3` (with timeout) absent
+### 7. `thread_get_message/3` (with timeout) ignored
 
 SWI-Prolog provides `thread_get_message(Mailbox, Msg, [timeout(T)])`,
-which blocks up to T seconds for a message. Trealla's
-`thread_get_message/2` only supports the unconditional blocking
-form. Positive timeouts are emulated by spawning a short-lived
-**timer actor** that sleeps for T seconds and then sends an
-`'$actor_timeout'(Ref)` sentinel back to the receiver. `Ref` is a
-fresh atom from `make_ref/1` — *not* the TimerPid, because Trealla
-loses the identity of a compound containing `'$thread'(N)` opaque
-cells across the throw/catch the timed loop uses to escape.
+which blocks up to T seconds for a message. Trealla v2.94.16 added
+`thread_get_message/3`, but the `timeout(T)` option is parsed and
+then **ignored** — the call still blocks until a message arrives.
+Concrete evidence:
+
+  - `thread_get_message(Me, _, [timeout(0.0)])` with no message ever
+    sent hangs indefinitely (should fail in 0 ms).
+  - With a sender that delivers `late` 2 s after start and a receiver
+    using `[timeout(0.5)]`, the receiver waits the full 2 s and gets
+    the message — instead of failing at 0.5 s.
+
+The bug is in `src/bif_threads.c` (`do_match_message`, around
+lines 459–469). The block that waits for a message is a `do/while`
+spin around `suspend_thread(t, 10)` (a 10 ms `pthread_cond_timedwait`),
+followed by an `if` that *would* honour the timeout — but only when
+no message and no signal arrived, which is exactly the condition
+under which the `do/while` did *not* exit. The `if` is therefore
+unreachable as written:
+
+```c
+do {
+    suspend_thread(t, 10);
+} while (!list_count(&t->queue) && !list_count(&t->signals)
+         && !q->halt && !q->abort);
+
+if (!list_count(&t->queue) && !list_count(&t->signals)
+    && !q->halt && !q->abort) {            // unreachable
+    pl_int elapsed_ms = (wall_time_in_usec()/1000) - started_ms;
+    if ((ms >= 0) && (elapsed_ms > ms))
+        return false;
+}
+```
+
+The fix would be to move the timeout check *inside* the `do/while`
+so each 10 ms wakeup also re-checks the deadline. On the `main`
+branch (post-v2.94.16) `thread_get_message/3` has simply been
+removed; only `/2` remains.
+
+Until either is shipped in a tagged release, positive timeouts are
+emulated by spawning a short-lived **timer actor** that sleeps for
+T seconds and then sends an `'$actor_timeout'(Ref)` sentinel back
+to the receiver. `Ref` is a fresh atom from `make_ref/1` — *not*
+the TimerPid, because Trealla loses the identity of a compound
+containing `'$thread'(N)` opaque cells across the throw/catch the
+timed loop uses to escape.
 
 The control flow is a `catch/3` around an inner mailbox loop. The
 loop throws `'$receive_timeout'(Ref)` the moment it pulls the
@@ -392,16 +442,7 @@ limit and target cannot change between batches.  The `limit(N)` and
 `target(P)` sub-options of `'$next'(Options)` are therefore accepted
 but ignored.
 
-### 4. `strip_module/3` absent
-
-Two-clause polyfill:
-
-```prolog
-strip_module(_M:Goal, _M, Goal) :- !.
-strip_module(Goal, _, Goal).
-```
-
-### 5. No implicit re-export in Trealla's module system
+### 4. No implicit re-export in Trealla's module system
 
 SWI-Prolog re-exports a predicate when it appears in the module
 declaration but is defined in an imported module.  Trealla does not:
@@ -415,7 +456,7 @@ Consequence: `toplevel_actors` cannot transparently re-export
 :- use_module(toplevel_actors).
 ```
 
-### 6. `select_body` — unqualified `{...}` patterns
+### 5. `select_body` — unqualified `{...}` patterns
 
 Because `meta_predicate` semantics are not propagated through
 Trealla's module boundaries, `receive({...})` called from outside
@@ -465,43 +506,20 @@ timeout would only obscure real bugs.
 
 ## Portability deltas — `rpc.pl`
 
-### 1. `library(url)` absent
-
-URIs are decomposed with a small `parse_uri/4` predicate and the
-query path is assembled with `format/2`. Only `http://` is handled.
-
-### 2. `http_open/3` URL-string form fails for localhost
+### 1. `http_open/3` URL-string form fails for localhost
 
 Calling `http_open('http://localhost:3060/...', S, [])` does not
 reliably connect on Trealla. Workaround: pass the components in
 list form: `http_open([host(H), port(P), path(P0)], S, [])`.
 
-### 3. `port(Port)` cannot be constructed directly with a runtime integer
-
-Trealla's `bif_client_5` does not dereference the port argument
-before calling `is_integer`, so
-
-```prolog
-http_open([host(H), port(Port), path(...)], S, [])
-```
-
-fails when `Port` is bound at runtime. The fix is to build the
-option through `=..`, which produces a fresh compound cell that
-Trealla recognises correctly:
-
-```prolog
-PortOpt =.. [port, Port],
-http_open([host(H), PortOpt, path(...)], S, []).
-```
-
-### 4. `getline/2` reads only one line
+### 2. `getline/2` reads only one line
 
 The response body is read with `getline/2`, which works because the
 node's response is exactly one line (`term.\n`). Multi-line response
 terms would be silently truncated; if the response format ever
 grows, a proper streaming reader is needed.
 
-### 5. URL percent-encoding is hand-rolled
+### 3. URL percent-encoding is hand-rolled
 
 There is no `uri_encoded/3` or `www_form_encode/2` in Trealla, so
 `url_encode/2` is implemented inline alongside `url_decode/2`,
@@ -520,9 +538,8 @@ Four modules are ported and exercised on Trealla:
 - **`node.pl`** — single-threaded server, `format=prolog` only.
   The producer-actor cache works particularly cleanly thanks to
   Trealla's stack-preserving `receive/1`.
-- **`rpc.pl`** — `http://` only; relies on `=..` to dodge a Trealla
-  `bif_client_5` bug and on `getline/2` reading the whole one-line
-  reply.
+- **`rpc.pl`** — `http://` only; relies on `getline/2` reading the
+  whole one-line reply.
 
 Every other delta is a small, localised workaround for a
 Trealla-specific quirk.

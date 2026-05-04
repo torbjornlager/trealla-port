@@ -40,15 +40,10 @@ is fetched automatically on backtracking.
 
 ## Trealla port notes {#rpc-trealla}
 
-  - `library(url)` is absent; URIs are decomposed with parse_uri/4 and
-    the query path is assembled directly with format/2.
-  - `http_open/3` is called with a list form `[host(...), port(...),
-    path(...)]` because the URL-string form fails for localhost in Trealla.
-  - The `port(Port)` option cannot be constructed directly as
-    `port(Port)` when Port is a runtime integer, due to a Trealla bug
-    (bif_client_5 fails to dereference the port argument before calling
-    is_integer).  The workaround is `PortOpt =.. [port, Port]`, which
-    creates a new compound cell that Trealla recognises correctly.
+  - URIs are decomposed with library(http)'s parse_url/2; the query
+    path is assembled with format/2.
+  - `http_open/3` is called with the list form `[host(...), port(...),
+    path(...)]` because the URL-string form fails for localhost.
   - The response body is read with getline/2, which reads one line.
     This works because the node sends the entire answer on a single
     line ending with `.\n`.  Multi-line terms in the response would be
@@ -61,7 +56,6 @@ is fetched automatically on backtracking.
 
 
 :- use_module(library(http)).
-:- use_module(actors, [option/2, option/3]).
 
 
                 /*******************************
@@ -120,45 +114,24 @@ hex_digit(N, D) :-
                 *         URI PARSING         *
                 *******************************/
 
-%!  parse_uri(+URI, -HostChars, -Port, -PathPrefixChars) is det.
+%!  base_path_prefix(+ParseUrlPath, -Prefix) is det.
 %
-%   Decompose an HTTP URI atom (e.g. `'http://localhost:3060'` or
-%   `'http://host:8080/api'`) into its components:
+%   Convert the `path(...)` element returned by parse_url/2 (which
+%   always begins with `/`) into the prefix that precedes
+%   `call?...` in the request path, with no leading `/` (http_open
+%   adds it back) and a trailing `/` when non-empty.
 %
-%     - HostChars: the hostname as a character list (e.g. `"localhost"`).
-%     - Port: the port as an integer (default 80 if absent).
-%     - PathPrefixChars: the path segment after the port as a character
-%       list, with no leading `/` but a trailing `/` when non-empty
-%       (e.g. URI `http://host:8080/api` yields `"api/"`).
-%
-%   The leading `/` is omitted from PathPrefixChars because Trealla's
-%   http_open/3 prepends exactly one `/` to the path option.
-%   Only `http://` URIs are supported (no `https`).
+%     '/'        -> ''        (root: just "call?...")
+%     '/api'     -> 'api/'
+%     '/api/'    -> 'api/'
+%     '/a/b/c'   -> 'a/b/c/'
 
-parse_uri(URI, HostChars, Port, PathPrefixChars) :-
-    atom_chars(URI, URIChars),
-    ( append("http://", AfterScheme, URIChars) -> true
-    ; AfterScheme = URIChars
-    ),
-    ( split(AfterScheme, ':', HostChars, PortAndPath)
-    ->  % explicit port; check for a path after the port digits
-        ( split(PortAndPath, '/', PortChars, PathRest)
-        ->  atom_chars(PortAtom, PortChars),
-            atom_number(PortAtom, Port),
-            % trailing '/' so caller can append path without extra separator;
-            % no leading '/' because http_open adds that itself
-            ( PathRest = []
-            ->  PathPrefixChars = []
-            ;   append(PathRest, ['/'], PathPrefixChars)
-            )
-        ;   atom_chars(PortAtom, PortAndPath),
-            atom_number(PortAtom, Port),
-            PathPrefixChars = []
-        )
-    ;   % no explicit port
-        HostChars = AfterScheme,
-        Port = 80,
-        PathPrefixChars = []
+base_path_prefix('/', '') :- !.
+base_path_prefix(BasePath, Prefix) :-
+    atom_chars(BasePath, ['/'|Cs]),
+    (   append(_, ['/'], Cs)
+    ->  atom_chars(Prefix, Cs)
+    ;   atom_chars(P0, Cs), atom_concat(P0, '/', Prefix)
     ).
 
 
@@ -204,24 +177,19 @@ rpc(URI, Goal, Options) :-
 %   On backtracking after the last solution on this page, fetches the
 %   next page (if More=true) by recursing with Offset incremented by
 %   Limit.
-%
-%   Implementation note: `PortOpt =.. [port, Port]` is a workaround for
-%   a Trealla bug (bif_client_5 does not dereference the port argument
-%   before calling is_integer, so `port(Port)` with a runtime-bound
-%   Port fails).  Using `=..` creates a fresh compound cell that passes
-%   the integer check.
 
 rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options) :-
     url_encode(GoalAtom,     GoalEnc),
     url_encode(TemplateAtom, TemplEnc),
-    format(atom(PathQuery),
-           'call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog',
-           [GoalEnc, TemplEnc, Offset, Limit]),
-    parse_uri(BaseURI, HostChars, Port, PathPrefixChars),
-    atom_chars(PathQuery, PathQueryChars),
-    append(PathPrefixChars, PathQueryChars, FullPathChars),
-    PortOpt =.. [port, Port],           % bif_client_5 workaround (see above)
-    http_open([host(HostChars), PortOpt, path(FullPathChars)], S, []),
+    parse_url(BaseURI, Parts),
+    ( memberchk(host(Host), Parts) -> true ; Host = localhost ),
+    ( memberchk(port(Port), Parts) -> true ; Port = 80 ),
+    ( memberchk(path(BasePath), Parts) -> true ; BasePath = '/' ),
+    base_path_prefix(BasePath, Prefix),
+    format(atom(FullPath),
+           '~wcall?goal=~w&template=~w&offset=~w&limit=~w&format=prolog',
+           [Prefix, GoalEnc, TemplEnc, Offset, Limit]),
+    http_open([host(Host), port(Port), path(FullPath)], S, []),
     getline(S, BodyChars),
     close(S),
     atom_chars(BodyAtom, BodyChars),

@@ -22,8 +22,6 @@
          receive/2,              % +ReceiveClauses, +Options
          make_ref/1,             % -Ref
          flush/0,
-         option/2,               % +Opt, +Options
-         option/3,               % +Opt, +Options, +Default
 
          op(800,  xfx, !),       %
          op(200,  xfx, @),       %
@@ -110,11 +108,7 @@ Reply = hello.
 
 ## Trealla port notes {#actors-trealla}
 
-  - `library(option)` is absent in Trealla; a minimal option/2,3 is
-    provided locally (see below).
   - `library(debug)` is absent and has been dropped (it was unused).
-  - `is_thread/1` is absent; emulated via `thread_property/2` wrapped
-    in `catch/3`.
   - `thread_get_message/3` (with a timeout) is absent.  Non-zero
     timeouts in receive/2 are emulated by spawning a short-lived
     *timer actor* that sleeps for the requested duration and then
@@ -139,37 +133,6 @@ Reply = hello.
                 *             ACTOR            *
                 *******************************/
 
-
-% --- Trealla compatibility shims -------------------------------------
-% library(debug) dropped (unused here).
-% library(option) absent on Trealla; minimal option/2-3 provided below.
-
-%!  option(+Opt, +Options, +Default) is det.
-%!  option(+Opt, +Options) is semidet.
-%
-%   Minimal replacement for library(option) which is absent in Trealla.
-%   option/3 unifies the argument of Opt with the value found in Options,
-%   or with Default if the option is absent.  option/2 simply checks that
-%   Opt (or a term with the same functor/arity) is present in Options.
-
-option(Opt, Options, _Default) :-
-    memberchk(Opt, Options), !.
-option(Opt, _, Default) :-
-    functor(Opt, _, 1),
-    arg(1, Opt, Default).
-
-option(Opt, Options) :-
-    memberchk(Opt, Options).
-
-%!  is_thread(+Id) is semidet.
-%
-%   True if Id identifies a currently known thread.  Trealla does not
-%   export is_thread/1, so we emulate it via thread_property/2 wrapped
-%   in catch/3.
-
-is_thread(Id) :-
-    catch(thread_property(Id, status(_)), _, fail).
-% ---------------------------------------------------------------------
 
 :- meta_predicate(spawn(0)).
 :- meta_predicate(spawn(0, -)).
@@ -421,23 +384,18 @@ exit(Reason) :-
 %   Send an exit signal with Reason to the actor identified by Pid.
 %   If Pid does not exist (or has already exited), succeeds silently.
 %
-%   Implementation note: Trealla's thread_signal/2 raises an
-%   uncatchable domain_error when called on a completed detached thread.
-%   We guard with actor_alive/1 to avoid signalling dead threads.
-%   The goal injected is `actors:'$do_exit'(Pid, Reason)` rather than
-%   `exit(Reason)` because calling thread_self/1 inside a
-%   thread_signal goal raises uninstantiation_error on Trealla; passing
-%   Pid in directly avoids that.
+%   Implementation note: in Trealla v2.94.16 thread_signal/2 raises a
+%   catchable domain_error on a dead detached thread, so the catch is
+%   the safety net. We still consult actor_alive/1 to skip the signal
+%   in the common case where the target is already gone (mostly to
+%   stay symmetrical with send/2, where thread_send_message errors
+%   are still uncatchable).
 
 exit(Pid, Reason) :-
     (   actor_alive(Pid)
-    ->  catch(thread_signal(Pid, actors:'$do_exit'(Pid, Reason)), _, true)
+    ->  catch(thread_signal(Pid, actors:exit(Reason)), _, true)
     ;   true
     ).
-
-'$do_exit'(Pid, Reason) :-
-    asserta(exit_reason(Pid, Reason)),
-    throw(actor_exit).
 
 
 %!  !(+PidOrName, +Message) is det.

@@ -75,19 +75,6 @@ findnsols_batch/6); if fewer were found, the current batch is the last.
 :- use_module(actors).
 
 
-                /*******************************
-                *     SWI COMPATIBILITY SHIMS  *
-                *******************************/
-
-%!  strip_module(:Goal, -Module, -Plain) is det.
-%
-%   Strip a possible module qualifier from Goal, unifying Module with
-%   the qualifier (or left uninstantiated) and Plain with the bare goal.
-
-strip_module(_M:Goal, _M, Goal) :- !.
-strip_module(Goal, _, Goal).
-
-
 
 %!  offset(+N, :Goal) is nondet.
 %
