@@ -2,9 +2,42 @@
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
-(tested on v2.94.20).
+(tested on v2.95.4).
 
-## What v2.94.20 changes for this port
+## What v2.95.4 changes for this port
+
+v2.95.4 renamed several stream/network built-ins by prefixing them
+with `$`:
+
+  - `server/3`     → `$server/3`
+  - `accept/2`     → `$accept/2`
+  - `parse_url/2`  → `$parse_url/2`
+  - `client/5`, `http_location` likewise.
+
+The bare names are now `existence_error(procedure, ...)`. Two of
+our files needed the rename:
+
+  - `node.pl` — `server/3`/`accept/2` calls in `node/1` and
+    `node_loop/1` updated to `'$server'/3` / `'$accept'/2`.
+  - `rpc.pl` — `parse_url/2` updated to `'$parse_url'/2`.
+
+The test suite (t1–t21) does not exercise either file, so the
+suite passed before the rename was applied — the broken behaviour
+only shows up on a real `node(P)` call or `rpc/2,3` round-trip.
+
+`thread_get_message/3`'s timeout granularity is somewhat better in
+v2.95.4 (0.05 s now returns in ~0.075 s), but still bad for
+mid-range values (0.1 → ~0.9 s, 0.2 → ~0.97 s). The timer-actor
+emulation is still retained — see delta #7 for the updated table.
+
+`thread_send_message/2` to a dead thread is *still* uncatchable in
+v2.95.4 (verified), so the `actor_alive/1` table (delta #5) stays.
+
+A `getlines/3` predicate was added with an `empty(+Bool)` option;
+not currently needed by the port (single-line responses suffice for
+`/call`'s prolog format).
+
+## What v2.94.20 changed for this port
 
 The `findnsols/4` polyfill is gone — Trealla v2.94.20 ships a
 proper lazy, non-deterministic built-in. The `toplevel_actors.pl`
@@ -313,16 +346,20 @@ SWI-Prolog provides `thread_get_message(Mailbox, Msg, [timeout(T)])`,
 which blocks up to T seconds for a message. Trealla v2.94.20 has
 this predicate and the `timeout(Float)` option does fire — fixing
 the unreachable-`if` bug noted in earlier releases — but the
-granularity is far too coarse to use as a drop-in:
+granularity is still too coarse to use as a drop-in. Measured on
+v2.95.4:
 
 | asked     | actually returned after |
 |-----------|-------------------------|
-| 0.05 s    | 0.93 s                  |
-| 0.1  s    | 1.97 s                  |
+| 0.05 s    | 0.075 s                 |
+| 0.1  s    | 0.91 s                  |
 | 0.2  s    | 0.97 s                  |
-| 0.5  s    | 0.97 s                  |
-| 1.0  s    | 2.96 s                  |
-| 2.0  s    | 2.95 s                  |
+| 0.5  s    | 0.94 s                  |
+| 1.0  s    | 1.29 s                  |
+| 2.0  s    | 2.01 s                  |
+
+(0.05 s is now genuinely tight; everything between ~0.1 s and
+~1 s still overshoots wildly.)
 
 The cause is still in `src/bif_threads.c` (`do_match_message`):
 the wait loop is `do { suspend_thread(t, 10); } while (... && cnt++ < 1000)`,
@@ -332,7 +369,7 @@ arrives, the cnt cap of 1000 (i.e. up to 10 s) is hit, or
 `pthread_cond_timedwait` returns spuriously. For sub-second
 timeouts that's far worse than useful.
 
-A receive timeout that fires "somewhere between 5x and 20x the
+A receive timeout that fires "somewhere between 5x and 10x the
 requested duration" breaks too many real use cases — periodic
 poll loops, supervision deadlines, bounded-wait synchronisation —
 so the timer-actor emulation is retained. The timer uses `sleep/1`

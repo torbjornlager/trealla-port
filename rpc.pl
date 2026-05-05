@@ -181,7 +181,7 @@ rpc(URI, Goal, Options) :-
 rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options) :-
     url_encode(GoalAtom,     GoalEnc),
     url_encode(TemplateAtom, TemplEnc),
-    parse_url(BaseURI, Parts),
+    '$parse_url'(BaseURI, Parts),
     ( memberchk(host(Host), Parts) -> true ; Host = localhost ),
     ( memberchk(port(Port), Parts) -> true ; Port = 80 ),
     ( memberchk(path(BasePath), Parts) -> true ; BasePath = '/' ),

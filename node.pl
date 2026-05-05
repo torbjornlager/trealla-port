@@ -203,7 +203,7 @@ parse_pairs(QStr, [Key=Val | Rest]) :-
 
 node(Port) :-
     format(atom(Host), ':~w', [Port]),
-    server(Host, S, []),
+    '$server'(Host, S, []),
     format("Node listening on port ~w~n", [Port]),
     node_loop(S).
 
@@ -216,7 +216,7 @@ node(Port) :-
 %   connection.  Either way the loop continues.
 
 node_loop(S) :-
-    accept(S, C),
+    '$accept'(S, C),
     (   catch(
             handle_connection(C),
             Error,
