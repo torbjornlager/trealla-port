@@ -61,8 +61,6 @@ next batch of N solutions. Combined with offset/2 this drives the
     `nb_setarg/3`, which is absent in Trealla.  The limit(NewLimit)
     and target(NewTarget) sub-options of `'$next'` are accepted for
     protocol compatibility but silently ignored.
-  - toplevel_abort/1 uses thread_signal/2; see the caveat in actors.pl
-    about signalling nearly-dead threads.
 
 @author Torbjorn Lager
 */
