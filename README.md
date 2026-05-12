@@ -2,7 +2,7 @@
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
-(tested on v2.95.12).
+(tested on v2.97.13).
 
 The port lives alongside this report:
 
@@ -20,7 +20,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 21 manual tests pass on Trealla v2.95.12:
+All 21 manual tests pass on Trealla v2.97.13:
 
 | #  | Test                                       | Status |
 |----|--------------------------------------------|--------|
@@ -275,7 +275,7 @@ stdlib, so `url_encode/2` is implemented inline alongside
 
 ## Overall assessment
 
-Four modules are ported and exercised on Trealla v2.95.12:
+Four modules are ported and exercised on Trealla v2.97.13:
 
 - **`actors.pl`** — feature-complete, including positive `receive`
   timeouts via the native `thread_get_message/3` `timeout(Float)`
