@@ -77,7 +77,7 @@ with `node(3060)` on one Trealla instance and
 - `exit/1`, `exit/2`
 - `output/1-2`, `input/2-3`, `respond/2`
 - `make_ref/1`, `flush/0`
-- Links (bidirectional lifecycle coupling)
+- Links 
 - Deferred-message semantics (non-matching messages stay in the
   mailbox in arrival order)
 
@@ -131,8 +131,6 @@ fully supported.)
 
 ### node.pl
 
-- Only the `prolog` response format is implemented. Requests for
-  `format=json` receive a brief "not yet implemented" notice.
 - The server loop handles connections one at a time in the calling
   thread; for production deployment each connection should be
   dispatched to its own actor.
