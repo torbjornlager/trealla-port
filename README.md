@@ -223,19 +223,6 @@ enumeration into a single `run_call/6` predicate that allocates
 `Count`, runs `findnsols/4`, and performs `nb_setarg/3` (in
 `page/2`) all inside one `catch/3`.
 
-#### 2. No implicit re-export across modules
-
-SWI re-exports an imported predicate when it appears in the
-importer's module declaration. Trealla does not — only predicates
-actually defined in the module are exported. Consequently
-`toplevel_actors` cannot transparently re-export `spawn/1-3`,
-`receive/1-2`, etc. Users must load both modules:
-
-```prolog
-:- use_module(actors).
-:- use_module(toplevel_actors).
-```
-
 ### `node.pl`
 
 #### 1. No higher-level HTTP framework

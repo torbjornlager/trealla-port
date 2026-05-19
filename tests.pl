@@ -64,9 +64,8 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t30 parallel/1 propagates an exception
 */
 
-:- use_module(actors).
-:- use_module(parallel).
 :- use_module(toplevel_actors).
+:- use_module(parallel).
 
 
                 /*******************************

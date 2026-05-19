@@ -1,5 +1,29 @@
 :- module(toplevel_actors,
-       [ offset/2,               % +N, :Goal
+       [ spawn/1,                % :Goal
+         spawn/2,                % :Goal, -Pid
+         spawn/3,                % :Goal, -Pid, +Options
+         self/1,                 % -Pid
+         monitor/2,              % +PidOrName, -Ref
+         demonitor/1,            % +Ref
+         demonitor/2,            % +Ref, +Options
+         register/2,             % +Name, +Pid
+         unregister/1,           % +Name
+         whereis/2,              % +Name, -Pid
+         exit/1,                 % +Reason
+         exit/2,                 % +Pid, +Reason
+         (!)/2,                  % +Pid, +Message
+         send/2,                 % +Pid, +Message
+         input/2,                % +Prompt, -Answer
+         input/3,                % +Prompt, -Answer, +Options
+         respond/2,              % +Pid, +Answer
+         output/1,               % +Term
+         output/2,               % +Term, +Options
+         receive/1,              % +ReceiveClauses
+         receive/2,              % +ReceiveClauses, +Options
+         make_ref/1,             % -Ref
+         flush/0,
+
+         offset/2,               % +N, :Goal
 
          toplevel_spawn/1,       % -Pid
          toplevel_spawn/2,       % -Pid, +Options
@@ -8,7 +32,11 @@
          toplevel_next/1,        % +Pid
          toplevel_next/2,        % +Pid, +Options
          toplevel_stop/1,        % +Pid
-         toplevel_abort/1        % +Pid
+         toplevel_abort/1,       % +Pid
+
+         op(800,  xfx, !),
+         op(200,  xfx, @),
+         op(1000, xfy, if)
        ]).
 
 /** <module> Toplevel actors -- shell-style control of goal execution
