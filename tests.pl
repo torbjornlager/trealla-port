@@ -10,7 +10,8 @@ ship with a unit-test framework (plunit is absent).
 tpl -g "consult(tests), \
         t1,t2,t3,t4,t5,t6,t7,t8,t9,t10, \
         t11,t12,t13,t14,t15,t16,t17,t18, \
-        t19,t20,t21, \
+        t19,t20,t21,t22, \
+        t23,t24,t25,t26,t27,t28,t29,t30, \
         format('~nALL OK~n'), halt"
 ```
 
@@ -50,6 +51,17 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t19 timeout fires when no message arrives (positive timeout)
   - t20 message arrives before timeout (positive timeout)
   - t21 deferred-list pruning across many timed receives
+
+## Tests: SWI parity (t23-t30) {#tests-parity}
+
+  - t23 catch-all `_` receive clause binds default
+  - t24 catch-all receive picks the deferred message
+  - t25 backtracking through a failed timed receive
+  - t26 whereis/2 returns undefined after exit
+  - t27 toplevel output/1 delivers output/2 then success
+  - t28 toplevel input/respond roundtrip
+  - t29 toplevel_abort/1 unwinds a runaway goal
+  - t30 parallel/1 propagates an exception
 */
 
 :- use_module(actors).
@@ -361,3 +373,148 @@ t22 :-
     receive({ success(Pid, S3, false) -> true }),
     S1 = [a,b], S2 = [c,d,e,f], S3 = [g],
     format("22. mid-stream limit change ok~n").
+
+
+                /*******************************
+                *      SWI parity (t23-t30)   *
+                *******************************/
+
+%!  t23 is det.
+%
+%   Catch-all clause in receive.  Sends a message that does not
+%   match `foo(_)`; verifies the `_ -> X = baz` branch fires and
+%   binds X to baz, then drains the genuinely matching message.
+%   Mirrors SWI plunit `receive:receive2`.
+
+t23 :-
+    self(Me),
+    Me ! not_matching,
+    Me ! foo(bar),
+    receive({ foo(X) -> true
+            ; _       -> X = baz
+            }),
+    X == baz,
+    receive({ foo(_) -> true }),
+    format("23. catch-all receive ok~n").
+
+%!  t24 is det.
+%
+%   Catch-all clause picks the only message available.
+%   Mirrors SWI plunit `receive:receive10`.
+
+t24 :-
+    self(Me),
+    Me ! done,
+    receive({ Result -> true
+            ; unreachable -> Result = wrong
+            }),
+    Result == done,
+    format("24. catch-all picks message ok~n").
+
+%!  t25 is det.
+%
+%   Backtracking through a failed timed receive.  The disjunction
+%   first takes `true`; the outer receive with `on_timeout(fail)`
+%   then fails (no `stop` queued), forcing backtrack into the
+%   second disjunct which sends and receives `foo(stop)` and feeds
+%   `stop` back to self.  The outer receive now succeeds.
+%   Mirrors SWI plunit `receive:receive11`.
+
+t25 :-
+    self(Me),
+    (   true
+    ;   Me ! foo(stop),
+        receive({ foo(X) -> Me ! X })
+    ),
+    receive({ stop -> true },
+            [ timeout(0), on_timeout(fail) ]),
+    format("25. backtracking receive ok~n").
+
+%!  t26 is det.
+%
+%   whereis/2 returns `undefined` after the registered actor exits.
+%   Mirrors SWI plunit `actors:actors3_register_2`.
+
+t26 :-
+    spawn((repeat, fail), Pid, [monitor(true), link(false)]),
+    register(test_w, Pid),
+    whereis(test_w, Pid2),
+    Pid2 == Pid,
+    exit(Pid2, reason),
+    receive({ down(Pid2, _Ref, reason) -> true }),
+    whereis(test_w, undefined),
+    unregister(test_w),
+    format("26. whereis after exit ok~n").
+
+%!  t27 is det.
+%
+%   Toplevel output/1.  Calling output(hello) inside the toplevel
+%   actor sends an `output(Pid, hello)` message to the target, then
+%   the goal succeeds and the success answer follows.
+%   Mirrors SWI plunit `toplevels:shell_output_message`.
+
+t27 :-
+    self(Me),
+    toplevel_spawn(Pid, [target(Me), session(true)]),
+    toplevel_call(Pid, output(hello)),
+    receive({ output(Pid, hello) -> true },
+            [ timeout(1), on_timeout(fail) ]),
+    receive({ success(Pid, [output(hello)], false) -> true },
+            [ timeout(1), on_timeout(fail) ]),
+    format("27. toplevel output ok~n").
+
+%!  t28 is det.
+%
+%   Toplevel input/respond roundtrip.  The actor's input/2 sends a
+%   `prompt(Pid, 'Input')` message and blocks; the test replies
+%   with respond(Pid, hello); the goal succeeds with X = hello.
+%   Mirrors SWI plunit `toplevels:shell_input_roundtrip`.
+
+t28 :-
+    self(Me),
+    toplevel_spawn(Pid, [target(Me), session(true)]),
+    toplevel_call(Pid, input('Input', _X)),
+    receive({ prompt(Pid, 'Input') -> respond(Pid, hello) },
+            [ timeout(1), on_timeout(fail) ]),
+    receive({ success(Pid, [input('Input', hello)], false) -> true },
+            [ timeout(1), on_timeout(fail) ]),
+    format("28. toplevel input/respond ok~n").
+
+%!  t29 is det.
+%
+%   toplevel_abort/1 unwinds a runaway goal.  Asserts a recursive
+%   clause, starts an infinite loop on the toplevel, aborts, then
+%   issues a fresh `true` call on the same (session-mode) actor and
+%   verifies it succeeds.  Mirrors SWI plunit
+%   `toplevels:shell_abort_nonterminating_goal`.
+
+:- dynamic(t29_loop/0).
+
+t29 :-
+    self(Me),
+    toplevel_spawn(Pid, [target(Me), session(true)]),
+    %% SWI uses assert/1; Trealla's actor module only sees the
+    %% ISO assertz/1 -- behaviour under test is the same.
+    toplevel_call(Pid, assertz((t29_loop :- t29_loop))),
+    receive({ success(Pid, _, false) -> true },
+            [ timeout(1), on_timeout(fail) ]),
+    toplevel_call(Pid, t29_loop),
+    sleep(0.05),
+    toplevel_abort(Pid),
+    toplevel_call(Pid, true),
+    receive({ success(Pid, [true], false) -> true },
+            [ timeout(2), on_timeout(fail) ]),
+    retractall(t29_loop),
+    format("29. toplevel_abort ok~n").
+
+%!  t30 is det.
+%
+%   parallel/1 propagates an exception.  One of the goals raises
+%   a type error (sleep(a)); parallel/1 should re-throw it.
+%   Mirrors SWI plunit `parallel:parallel_error`.
+
+t30 :-
+    catch(parallel([sleep(0.05), sleep(a), sleep(0.05)]),
+          Error, true),
+    nonvar(Error),
+    format("30. parallel error ok~n").

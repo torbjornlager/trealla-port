@@ -21,9 +21,10 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 22 manual tests pass on Trealla v2.99.6+ (t22 requires
-`findnsols(count(N), ...)` + `nb_setarg/3`; the other 21 also
-pass on v2.97.13):
+All 30 manual tests pass on Trealla v2.99.6+ (t22 requires
+`findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
+pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
+canonical SWI plunit suite in `simple-node/tests.pl`:
 
 | #  | Test                                       | Status |
 |----|--------------------------------------------|--------|
@@ -49,6 +50,14 @@ pass on v2.97.13):
 | 20 | message arrives before positive timeout    | ok     |
 | 21 | deferred-list pruning across timed receives| ok     |
 | 22 | mid-stream `limit(N)` change via toplevel_next/2 | ok |
+| 23 | catch-all `_` receive clause binds default | ok |
+| 24 | catch-all receive picks the only message   | ok |
+| 25 | backtracking through a failed timed receive | ok |
+| 26 | `whereis/2` returns `undefined` after exit | ok |
+| 27 | toplevel `output/1` delivers `output/2` then success | ok |
+| 28 | toplevel `input/2` + `respond/2` roundtrip | ok |
+| 29 | `toplevel_abort/1` unwinds a runaway goal  | ok |
+| 30 | `parallel/1` propagates an exception       | ok |
 
 All four demos from `parallel.pl` also run unchanged. `node.pl`
 and `rpc.pl` have no automated tests but are exercised manually
