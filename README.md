@@ -2,7 +2,8 @@
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
-(tested on v2.97.13).
+(tested on v2.99.6 and later for mid-stream `limit(N)` changes;
+v2.97.13 for everything else).
 
 The port lives alongside this report:
 
@@ -20,7 +21,9 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 21 manual tests pass on Trealla v2.97.13:
+All 22 manual tests pass on Trealla v2.99.6+ (t22 requires
+`findnsols(count(N), ...)` + `nb_setarg/3`; the other 21 also
+pass on v2.97.13):
 
 | #  | Test                                       | Status |
 |----|--------------------------------------------|--------|
@@ -45,6 +48,7 @@ All 21 manual tests pass on Trealla v2.97.13:
 | 19 | positive `timeout(T)` fires when idle      | ok     |
 | 20 | message arrives before positive timeout    | ok     |
 | 21 | deferred-list pruning across timed receives| ok     |
+| 22 | mid-stream `limit(N)` change via toplevel_next/2 | ok |
 
 All four demos from `parallel.pl` also run unchanged. `node.pl`
 and `rpc.pl` have no automated tests but are exercised manually
@@ -78,6 +82,9 @@ with `node(3060)` on one Trealla instance and
 - `toplevel_abort/1` — abort a running goal; restart PTCP in idle state
 - `offset/2` — skip the first N solutions of a goal (re-exported from
   Trealla's built-in for convenience)
+- `toplevel_next/2` with `limit(NewLimit)` — mid-stream limit change
+  is now honoured (Trealla v2.99.6+), via a mutable `count/1` cell
+  driven by `nb_setarg/3`
 
 ### node.pl
 
@@ -109,11 +116,9 @@ X = a ; X = b ; X = c.
 
 ### toplevel_actors.pl
 
-- **Mid-enumeration limit/target change**: the `limit(N)` and
-  `target(P)` sub-options of `toplevel_next/2` are accepted for
-  protocol compatibility but silently ignored. Implementing them
-  would require `nb_setarg/3` to mutate the in-flight `count(N)`
-  cell; Trealla has no `nb_setarg/3`.
+(No outstanding limitations as of Trealla v2.99.6.  Mid-enumeration
+`limit(N)` and `target(P)` changes via `toplevel_next/2` are now
+fully supported.)
 
 ### node.pl
 
@@ -197,14 +202,17 @@ in delta #1.
 
 ### `toplevel_actors.pl`
 
-#### 1. `nb_setarg/3` absent
+#### 1. Mutable `count(N)` cell must share a catch frame with `findnsols/4`
 
-The canonical SWI implementation wraps the per-call `Limit` in a
-`count(N)` cell so that `nb_setarg/3` can mutate it between
-batches when `toplevel_next(Pid, [limit(NewN)])` arrives. Without
-`nb_setarg/3` the cell is read-only, so the wrapping is unwound
-and mid-stream `limit(N)` / `target(P)` changes are silently
-ignored (see "Remaining limitations" above).
+The SWI implementation can build the `count/1` cell at the top of
+the state machine and mutate it from any nested predicate.  In
+Trealla v2.99.6, `findnsols(count(N), ...)` and `nb_setarg(1, count, ...)`
+work together only when the `count/1` cell is constructed in the
+*same* catch frame as the `findnsols/4` call (a heap-context
+quirk).  The port therefore consolidates the entire paged
+enumeration into a single `run_call/6` predicate that allocates
+`Count`, runs `findnsols/4`, and performs `nb_setarg/3` (in
+`page/2`) all inside one `catch/3`.
 
 #### 2. No implicit re-export across modules
 
@@ -281,9 +289,10 @@ Four modules are ported and exercised on Trealla v2.97.13:
   timeouts via the native `thread_get_message/3` `timeout(Float)`
   option.
 - **`toplevel_actors.pl`** — paged enumeration uses Trealla's
-  built-in lazy `findnsols/4`; only the mid-enumeration `limit(N)`
-  / `target(P)` change is silently ignored, because Trealla has no
-  `nb_setarg/3`.
+  built-in lazy `findnsols/4`.  As of v2.99.6 the mid-enumeration
+  `limit(N)` / `target(P)` change is supported via a mutable
+  `count/1` cell driven by `nb_setarg/3`, matching the SWI
+  semantics.
 - **`node.pl`** — single-threaded server, `format=prolog` only.
   The producer-actor cache works particularly cleanly thanks to
   Trealla's stack-preserving `receive/1`.

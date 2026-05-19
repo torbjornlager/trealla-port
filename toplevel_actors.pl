@@ -47,20 +47,29 @@ A toplevel actor cycles through three states:
 
 ## Paging {#toplevel-findnsols}
 
-slice/5 calls findnsols/4 (a Trealla built-in since v2.94.20),
-which is lazy and non-deterministic: each backtrack delivers the
-next batch of N solutions. Combined with offset/2 this drives the
-`/call?offset=N&limit=M` paging protocol cleanly.
+findnsols/4 (a Trealla built-in) is lazy and non-deterministic:
+each backtrack delivers the next batch of N solutions. Combined
+with offset/2 this drives the `/call?offset=N&limit=M` paging
+protocol cleanly.
+
+The first argument is a `count(N)` cell rather than a bare
+integer, which makes the limit mutable via nb_setarg/3 between
+batches.  This is how toplevel_next/2's `limit(NewLimit)` option
+takes effect mid-enumeration -- the count cell is shared between
+findnsols/4 (which re-reads it on every retry) and the receive
+loop that handles `'$next'(Options)` messages.
 
 ## Trealla port notes {#toplevel-trealla}
 
-  - findnsols/4 and offset/2 are both Trealla built-ins; no shim
-    needed.
-  - Changing the batch `limit` or `target` mid-stream via
-    toplevel_next/2 options is not supported because it requires
-    `nb_setarg/3`, which is absent in Trealla.  The limit(NewLimit)
-    and target(NewTarget) sub-options of `'$next'` are accepted for
-    protocol compatibility but silently ignored.
+  - findnsols/4, offset/2 and nb_setarg/3 are all Trealla built-ins
+    (nb_setarg/3 since v2.99.2, findnsols/4's count(N) form since
+    v2.99.6+); no shims needed.
+  - The mutable `count/1` and `target/1` cells must be constructed
+    inside the same catch frame as the findnsols/4 call and the
+    nb_setarg/3 mutations -- otherwise the mutations do not
+    propagate to findnsols/4's internal counter under Trealla's
+    heap rules.  This is why all paging logic in this module lives
+    inside a single catch in run_call/6.
 
 @author Torbjorn Lager
 */
@@ -110,50 +119,6 @@ toplevel_spawn(Pid, Options) :-
 
 
                 /*******************************
-                *      ANSWER SLICING         *
-                *******************************/
-
-%!  slice(+Goal, +Template, +Offset, +Limit, -Slice) is nondet.
-%
-%   Compute one page of solutions: skip the first Offset solutions of
-%   Goal and collect at most Limit into Slice.  Non-deterministic via
-%   findnsols/4: on backtracking delivers the next batch.
-
-slice(Goal, Template, Offset, Limit, Slice) :-
-    findnsols(Limit, Template, offset(Offset, Goal), Slice).
-
-
-%!  answer(+Goal, +Template, +Offset, +Limit, -Answer) is det.
-%
-%   Compute one page and wrap it in the protocol answer term
-%   (without the Pid).  The More flag is set by comparing the length
-%   of the returned Slice against the integer limit N:
-%
-%     - `Got =:= N` means exactly N solutions were returned, so there
-%       may be more (More = true).
-%     - `Got < N`   means Goal was exhausted within this page
-%       (More = false).
-%
-%   Note: Trealla's call_cleanup/2 does not fire the cleanup goal on
-%   deterministic success (it only fires on cut or failure after the
-%   first solution).  The original SWI implementation relied on this
-%   to detect the final batch; this port uses length comparison instead.
-
-answer(Goal, Template, Offset, Limit, Answer) :-
-    catch(
-        slice(Goal, Template, Offset, Limit, Slice),
-        Error, true),
-    (   nonvar(Error)
-    ->  Answer = error(Error)
-    ;   Slice == []
-    ->  Answer = failure
-    ;   length(Slice, Got), Got =:= Limit
-    ->  Answer = success(Slice, true)
-    ;   Answer = success(Slice, false)
-    ).
-
-
-                /*******************************
                 *      PTCP STATE MACHINE     *
                 *******************************/
 
@@ -172,28 +137,18 @@ session(Pid, Target, Continue) :-
 %!  state_1(+Pid, +Target0, +Continue) is det.
 %
 %   State s1: idle.  Blocks in receive waiting for a
-%   `'$call'(Goal, Options)` message.  On receipt, extracts options,
-%   wraps the limit in `count/1`, calls state_2 to compute the first
-%   answer slice, and sends the answer to the target.  If More=true,
-%   proceeds to state_3 to handle paging.  If Continue=true, loops
-%   back to s1 after the call is complete (session mode); otherwise
-%   exits.
+%   `'$call'(Goal, Options)` message.  On receipt, extracts options
+%   and dispatches to run_call/6 which drives the paged enumeration.
+%   In session mode loops back to s1 after the call completes.
 
 state_1(Pid, Target0, Continue) :-
     receive({
         '$call'(Goal, Options) ->
             option(template(Template), Options, Goal),
             option(offset(Offset),     Options, 0),
-            option(limit(Limit),       Options, 1000000000),
+            option(limit(Limit0),      Options, 1000000000),
             option(target(Target1),    Options, Target0),
-            state_2(Goal, Template, Offset, Limit, Pid, Answer),
-            Target = target(Target1),
-            arg(1, Target, Out),
-            Out ! Answer,
-            (   arg(3, Answer, true)
-            ->  state_3(Limit, Target)
-            ;   true
-            )
+            run_call(Pid, Goal, Template, Offset, Limit0, Target1)
         }),
     (   Continue == false
     ->  true
@@ -201,50 +156,100 @@ state_1(Pid, Target0, Continue) :-
     ).
 
 
-%!  state_2(+Goal, +Template, +Offset, +Limit, +Pid, -Answer) is det.
+%!  run_call(+Pid, +Goal, +Template, +Offset, +Limit0, +Target1) is det.
 %
-%   State s2: compute one answer slice and attach Pid to the answer
-%   term.  This is a thin wrapper around answer/5 + add_pid/3.
-
-state_2(Goal, Template, Offset, Limit, Pid, Answer) :-
-    answer(Goal, Template, Offset, Limit, Answer0),
-    add_pid(Answer0, Pid, Answer).
-
-%!  add_pid(+Answer0, +Pid, -Answer) is det.
+%   Drive the paged enumeration of Goal.  Builds the mutable
+%   `count/1` and `target/1` cells inside the catch frame so that
+%   findnsols/4 and the nb_setarg/3 mutations performed in page/2
+%   share the same heap context -- without that, the mutations do
+%   not propagate to findnsols/4's internal counter.
 %
-%   Attach Pid as the first argument of an answer term:
-%
-%     - success(Slice, More)  -->  success(Pid, Slice, More)
-%     - failure               -->  failure(Pid)
-%     - error(Term)           -->  error(Pid, Term)
+%   `'$abort_goal'` is re-thrown unchanged so that session/3's outer
+%   catch can restart the actor in state s1.  All other exceptions
+%   are reported as `error(Pid, Error)` on the current target.
 
-add_pid(success(Slice, More), Pid, success(Pid, Slice, More)).
-add_pid(failure,              Pid, failure(Pid)).
-add_pid(error(Term),          Pid, error(Pid, Term)).
+run_call(Pid, Goal, Template, Offset, Limit0, Target1) :-
+    catch(
+        ( Count  = count(Limit0),
+          Target = target(Target1),
+          drive(Pid, Goal, Template, Offset, Count, Target)
+        ),
+        Error,
+        handle_error(Pid, Target, Target1, Error)),
+    !.
+
+handle_error(_Pid, _Target, _Orig, '$abort_goal') :- !,
+    throw('$abort_goal').
+handle_error(Pid, Target, Orig, Error) :-
+    (   nonvar(Target), Target = target(_)
+    ->  arg(1, Target, Out)
+    ;   Out = Orig
+    ),
+    Out ! error(Pid, Error).
 
 
-%!  state_3(+Limit, +Target) is det.
+%!  drive(+Pid, +Goal, +Template, +Offset, +Count, +Target) is det.
 %
-%   State s3: waiting for the next paging request.  Blocks in receive
-%   for either:
+%   Step through successive findnsols/4 slices.  After every slice
+%   we read the *current* limit from Count and target from Target,
+%   so any mid-stream nb_setarg/3 mutations performed by page/2 in
+%   response to a previous `'$next'(Options)` are honoured before
+%   the next slice is computed and sent.
 %
-%     - `'$next'(Options)` -- backtrack into findnsols for the next
-%       slice.  (Options are accepted for protocol compatibility but
-%       silently ignored in this port because nb_setarg/3 is absent.)
-%     - `'$stop'` -- discard remaining solutions and return (the
-%       caller will send the PTCP back to s1 or let it exit).
+%   The More flag is set by comparing slice length against the
+%   current limit: Got =:= Limit means a full page (More=true,
+%   suspend in page/2), Got < Limit means the goal was exhausted
+%   within this batch (More=false, terminate).
 %
-%   The cut in state_3 is necessary to avoid leaking the findnsols
-%   choicepoint when `'$stop'` is received.
+%   When findnsols/4 has no solutions at all on the first call it
+%   fails outright; the second clause handles this by sending a
+%   single `failure(Pid)`.
 
-state_3(_Limit, _Target) :-
+drive(Pid, Goal, Template, Offset, Count, Target) :-
+    findnsols(Count, Template, offset(Offset, Goal), Slice),
+    arg(1, Target, Out),
+    arg(1, Count, Lim),
+    length(Slice, Got),
+    (   Got =:= Lim
+    ->  Out ! success(Pid, Slice, true),
+        page(Count, Target),
+        !                       % '$stop' -- cut findnsols choicepoint
+    ;   Out ! success(Pid, Slice, false), !
+    ).
+drive(Pid, _Goal, _Template, _Offset, _Count, Target) :-
+    arg(1, Target, Out),
+    Out ! failure(Pid).
+
+
+%!  page(+Count, +Target) is semidet.
+%
+%   State s3: after a More=true slice, wait for the next protocol
+%   command.  On `'$next'(Options)` apply any `limit(NewN)` or
+%   `target(NewT)` updates to the mutable cells via nb_setarg/3,
+%   then fail to backtrack into findnsols/4 for the next batch.
+%   On `'$stop'` succeed deterministically; the caller (drive/6)
+%   cuts the lingering findnsols choicepoint.
+
+page(Count, Target) :-
     receive({
-        '$next'(_Options2) ->
-            fail ;          % backtrack into findnsols for next slice
+        '$next'(Options) ->
+            apply_next(Options, Count, Target),
+            fail ;
         '$stop' ->
             true
-    }),
-    !.
+    }).
+
+apply_next(Options, Count, Target) :-
+    (   memberchk(limit(NewLim), Options),
+        integer(NewLim), NewLim > 0
+    ->  nb_setarg(1, Count, NewLim)
+    ;   true
+    ),
+    (   memberchk(target(NewT), Options),
+        nonvar(NewT)
+    ->  nb_setarg(1, Target, NewT)
+    ;   true
+    ).
 
 
                 /*******************************
@@ -280,10 +285,14 @@ toplevel_call(Pid, Goal0, Options) :-
 %!  toplevel_next(+Pid, +Options) is det.
 %
 %   Request the next batch of solutions from a suspended PTCP (one
-%   that sent `success(_, _, true)` for the previous page).  Options
-%   are accepted for protocol compatibility but silently ignored in
-%   this Trealla port (limit and target cannot be changed mid-stream
-%   because nb_setarg/3 is absent).
+%   that sent `success(_, _, true)` for the previous page).  Options:
+%
+%     - limit(+N)
+%       Change the per-page limit from this batch onwards.  Applied
+%       via nb_setarg/3 on the mutable `count/1` cell shared with
+%       findnsols/4 (requires Trealla v2.99.6+).
+%     - target(+Pid)
+%       Switch the answer target from this batch onwards.
 
 toplevel_next(Pid) :-
     toplevel_next(Pid, []).

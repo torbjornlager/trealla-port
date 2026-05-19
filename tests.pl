@@ -43,6 +43,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t16 toplevel error answer
   - t17 toplevel_stop/1 followed by a fresh call in session mode
   - t18 session mode with two successive calls
+  - t22 mid-stream limit change via toplevel_next/2
 
 ## Tests: receive timeout (t19-t21) {#tests-timeout}
 
@@ -335,3 +336,28 @@ t21 :-
            ( spawn((sleep(0.02), Me ! tick), _, [link(false)]),
              receive({tick -> true}, [timeout(1.0)]) )),
     format("21. repeated timed receives ok~n").
+
+
+                /*******************************
+                *  mid-stream limit (t22)     *
+                *******************************/
+
+%!  t22 is det.
+%
+%   Mid-stream limit change.  Issues a goal with limit=2 on a
+%   7-element list, then on the second page asks for limit=4.
+%   Expects [a,b] then [c,d,e,f] then [g].  Exercises the
+%   count(N) + nb_setarg/3 path through findnsols/4.
+
+t22 :-
+    self(Me),
+    toplevel_spawn(Pid, [target(Me)]),
+    toplevel_call(Pid, member(X, [a,b,c,d,e,f,g]),
+                  [template(X), limit(2)]),
+    receive({ success(Pid, S1, true) -> true }),
+    toplevel_next(Pid, [limit(4)]),
+    receive({ success(Pid, S2, true) -> true }),
+    toplevel_next(Pid),
+    receive({ success(Pid, S3, false) -> true }),
+    S1 = [a,b], S2 = [c,d,e,f], S3 = [g],
+    format("22. mid-stream limit change ok~n").
