@@ -2,7 +2,7 @@
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
-(tested on v2.99.6 and later for mid-stream `limit(N)` changes;
+(tested on v2.99.12 and v2.99.6 for mid-stream `limit(N)` changes;
 v2.97.13 for everything else).
 
 The port lives alongside this report:
@@ -21,7 +21,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 30 manual tests pass on Trealla v2.99.6+ (t22 requires
+All 30 manual tests pass on Trealla v2.99.6+ and v2.99.12 (t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
 canonical SWI plunit suite in `simple-node/tests.pl`:
@@ -277,7 +277,8 @@ stdlib, so `url_encode/2` is implemented inline alongside
 
 ## Overall assessment
 
-Four modules are ported and exercised on Trealla v2.97.13:
+Four modules are ported and exercised on Trealla v2.97.13 through
+v2.99.12 (all 30 tests pass on every tested version):
 
 - **`actors.pl`** — feature-complete, including positive `receive`
   timeouts via the native `thread_get_message/3` `timeout(Float)`
@@ -286,7 +287,10 @@ Four modules are ported and exercised on Trealla v2.97.13:
   built-in lazy `findnsols/4`.  As of v2.99.6 the mid-enumeration
   `limit(N)` / `target(P)` change is supported via a mutable
   `count/1` cell driven by `nb_setarg/3`, matching the SWI
-  semantics.
+  semantics.  v2.99.12 revised how `findnsols/4` embeds the
+  `count(N)` cells into its instruction sequence (issue #1026), but
+  the port requires no code changes: the same-catch-frame
+  arrangement in `run_call/6` continues to work correctly.
 - **`node.pl`** — single-threaded server, `format=prolog` only.
   The producer-actor cache works particularly cleanly thanks to
   Trealla's stack-preserving `receive/1`.
@@ -294,3 +298,12 @@ Four modules are ported and exercised on Trealla v2.97.13:
 
 Every other delta is a small, localised workaround for a
 Trealla-specific quirk.
+
+### Benchmark stability
+
+The threading benchmarks (`bm-ping-pong.pl`, `bm-spawning.pl`) are
+stable at low iteration counts (≤ 1 000) but crash roughly 30 % of
+the time at 10 000+ iterations under both v2.98.10 and v2.99.12.
+This is an upstream Trealla issue (tracked as issue #1026); the
+application-level tests are unaffected because they use far fewer
+actor round-trips.
