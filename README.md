@@ -69,7 +69,7 @@ with `node(3060)` on one Trealla instance and
 ### actors.pl
 
 - `spawn/1-3` with `monitor(Bool)` and `link(Bool)` options
-- `self/1`, `send/2`, `(!)/2`
+- `self/1`, `(!)/2`
 - `receive/1-2` with patterns, guards (`Pattern if Guard -> Body`),
   `timeout(0)` polling, and positive `timeout(T)` deadlines
 - `monitor/2`, `demonitor/1-2`

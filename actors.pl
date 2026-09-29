@@ -12,7 +12,6 @@
          exit/1,                 % +Reason
          exit/2,                 % +Pid, +Reason
          (!)/2,                  % +Pid, +Message
-         send/2,                 % +Pid, +Message
          input/2,                % +Prompt, -Answer
          input/3,                % +Prompt, -Answer, +Options
          respond/2,              % +Pid, +Answer
@@ -47,7 +46,7 @@ What it does provide:
 
   - spawn/1, spawn/2, spawn/3 to launch a new actor running a goal
   - self/1 to obtain the current actor's PID
-  - (!)/2 / send/2 for asynchronous message passing
+  - (!)/2 for asynchronous message passing
   - receive/1, receive/2 for Erlang-style pattern-matched, guarded,
     optionally timed-out mailbox reads
   - monitor/2 / demonitor/1,2 for passive lifecycle notifications
@@ -113,7 +112,7 @@ Reply = hello.
     list, parent PID) is stored on the thread-local blackboard via
     `bb_put/2` and `bb_get/2`.
   - `thread_signal/2` and `thread_send_message/2` on a dead detached
-    thread raise a catchable domain_error; exit/2 and send/2 use a
+    thread raise a catchable domain_error; exit/2 and actor_send/2 use a
     bare `catch/3` and treat the error as a silent drop.
   - make_ref/1 uses `random_between/3` rather than a true monotone
     counter.  In a busy system, 8-digit random refs could (rarely)
@@ -376,7 +375,6 @@ exit(Pid, Reason) :-
 
 
 %!  !(+PidOrName, +Message) is det.
-%!  send(+PidOrName, +Message) is det.
 %
 %   Asynchronously send Message to the actor identified by PidOrName.
 %   PidOrName may be either a raw PID (thread ID) or an atom previously
@@ -385,13 +383,13 @@ exit(Pid, Reason) :-
 %   exist (or has already exited), the message is silently dropped.
 
 Pid ! Message :-
-    send(Pid, Message).
+    actor_send(Pid, Message).
 
-send(Name, Message) :-
+actor_send(Name, Message) :-
     registered(Name, Pid),
     !,
-    send(Pid, Message).
-send(Pid, Message) :-
+    actor_send(Pid, Message).
+actor_send(Pid, Message) :-
     catch(thread_send_message(Pid, Message), _, true).
 
 
