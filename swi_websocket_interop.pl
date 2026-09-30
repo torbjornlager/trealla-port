@@ -7,7 +7,9 @@
             concurrent_client_test/2,
             concurrent_client_test/3,
             protocol_server/1,
-            protocol_client_test/1
+            protocol_client_test/1,
+            trinity_service_node/2,
+            trinity_terminal_client_test/3
           ]).
 
 :- use_module(library(http/thread_httpd)).
@@ -31,6 +33,34 @@ protocol_server(Port) :-
     http_server(http_dispatch, [port(Port)]),
     thread_get_message(stop),
     http_stop_server(Port, []).
+
+trinity_service_node(Port, NodeFile) :-
+    use_module(NodeFile),
+    node(Port, [profile(actor),auth(open)]),
+    node:current_shared_db_module(SharedModule),
+    actors:spawn(SharedModule:echo_actor, Pid, [link(false)]),
+    actors:register_service(echo, Pid).
+
+trinity_terminal_client_test(HomePort, RemoteURL, NodeFile) :-
+    use_module(NodeFile),
+    node(HomePort, [profile(actor),auth(open)]),
+    actors:self(Parent),
+    actors:spawn(swi_websocket_interop:terminal_client_worker(RemoteURL,
+                                                               Parent), _,
+                 [target(Parent),link(false)]),
+    actors:receive({terminal_output(_Source, trealla_terminal) -> true ;
+                    terminal_client_done -> fail},
+                   [timeout(8),on_timeout(fail)]),
+    actors:receive({terminal_client_done -> true},
+                   [timeout(8),on_timeout(fail)]),
+    format('SWI-to-Trealla distributed terminal test: ok~n').
+
+terminal_client_worker(RemoteURL, Parent) :-
+    actors:spawn(actors:terminal_output(trealla_terminal), Pid,
+                 [node(RemoteURL),monitor(true),link(false)]),
+    actors:receive({down(Pid, Pid, true) -> true},
+                   [timeout(8),on_timeout(fail)]),
+    actors:send(Parent, terminal_client_done).
 
 protocol_connection(WebSocket) :-
     ws_receive(WebSocket, Message),

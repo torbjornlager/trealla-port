@@ -9,7 +9,7 @@ The port lives alongside this report:
 
 | File                  | Role                                                |
 |-----------------------|-----------------------------------------------------|
-| `actors.pl`           | Erlang-style actor runtime (`spawn`, `receive`, …)  |
+| `actors.pl`           | Actor runtime, local names, and published services  |
 | `toplevel_actors.pl`  | Shell-style PTCP for paged goal execution           |
 | `node.pl`             | HTTP server exposing `/call` for remote queries     |
 | `rpc.pl`              | HTTP client wrapper (`rpc/2,3`) over `/call`        |
@@ -19,6 +19,7 @@ The port lives alongside this report:
 | `websocket_tests.pl`  | Unit and Trealla/SWI interoperability tests         |
 | `distribution_tests.pl` | Trealla/Trealla and Trealla/SWI node tests       |
 | `swi_websocket_interop.pl` | SWI side of the interoperability tests        |
+| `UPSTREAM_REPORTS.md`   | Candidate Trealla feature requests and bug reports |
 | `parallel.pl`         | `parallel/1` and `first_solution/2` demo client     |
 | `tests.pl`            | Manual test suite (no plunit on Trealla)            |
 
@@ -27,7 +28,8 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 30 manual tests pass on Trealla v3.12.6, v2.99.6, and v2.99.12 (t22 requires
+All 33 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
 canonical SWI plunit suite in `simple-node/tests.pl`:
@@ -64,6 +66,9 @@ canonical SWI plunit suite in `simple-node/tests.pl`:
 | 28 | toplevel `input/2` + `respond/2` roundtrip | ok |
 | 29 | `toplevel_abort/1` unwinds a runaway goal  | ok |
 | 30 | `parallel/1` propagates an exception       | ok |
+| 31 | descendants inherit their terminal target  | ok |
+| 32 | stream-originated terminal output keeps its provenance | ok |
+| 33 | concurrent `make_ref/1` calls are unique   | ok |
 
 All four demos from `parallel.pl` also run unchanged. `node.pl`
 and `rpc.pl` have no automated tests but are exercised manually
@@ -209,10 +214,13 @@ port with:
 Protocol version 1 uses one JSON object per text frame.  The port accepts the
 core actor commands `spawn`, `send`, `monitor`, `demonitor`, and `exit`, plus
 `toplevel_spawn`, `toplevel_call`, `toplevel_next`, `toplevel_stop`,
-`toplevel_abort`, `toplevel_halt`, and `toplevel_respond`.  It emits Trinity's
+`toplevel_abort`, `toplevel_halt`, `toplevel_respond`, and the private
+node-to-node `io_request` command.  It emits Trinity's
 `spawned`, `success`, `failure`, `error`, `output`, `prompt`, `down`, `stop`,
 `abort`, `responded`, and `halted` events.  The optional version-1
-`transport_hello` / `transport_welcome` exchange is also implemented.
+`transport_hello` / `transport_welcome` exchange is also implemented,
+including connection-scoped browser/local PID capabilities and
+`actor_message` return traffic, plus acknowledged `io_reply` terminal traffic.
 
 The canonical toplevel call keeps terms in strings and shares variables by
 parsing `goal` and `options` together:
@@ -230,8 +238,8 @@ Actors and sessions owned by a connection are terminated when it closes.
 
 The current protocol layer is for trusted peers.  It does not yet port
 Trinity's origin/authentication policy, execution profiles and sandbox,
-resource quotas, source-loading options, browser virtual PIDs, distributed
-terminal acknowledgements, or Trinity's full node-controller routing table.
+resource quotas, source-loading options, distributed terminal
+acknowledgements, or Trinity's full node-controller routing table.
 Do not expose its
 goal execution endpoint directly to an untrusted network.
 
@@ -260,6 +268,59 @@ local parent propagates an exit to its remote children. Multiple local
 actors may independently monitor one remote PID; the connection-owned
 wire notification is fanned out as one `down/3` per local monitor.
 
+Node-wide services use a separate publication registry.  The server publishes
+a live local actor with `register_service/2`; clients address it as
+`Name@Node`:
+
+```prolog
+echo_service :-
+    receive({echo(From, Msg) -> From ! echo(Msg), echo_service}).
+
+?- spawn(echo_service, Echo, [link(false)]),
+   register_service(echo, Echo).
+
+?- self(Self),
+   Service = echo@'http://other-node:3060',
+   Service ! echo(Self, hello),
+   receive({echo(hello) -> true}).
+```
+
+`unregister_service/1` withdraws a publication and `whereis_service/2`
+inspects the local service registry.  Service publication is independent of
+ordinary `register/2` names and of individual WebSocket connections.
+
+Local actor PIDs embedded in remote goals or messages are exported as
+connection-scoped `Id@localhost` capabilities.  A remote Trealla or SWI actor
+can therefore reply with ordinary actor syntax over the same WebSocket:
+
+```prolog
+?- self(Self),
+   spawn(receive({ping(From) -> From ! pong}), Pid,
+         [node('http://other-node:3060'), monitor(true)]),
+   Pid ! ping(Self),
+   receive({pong -> true}).
+```
+
+The numeric capability is meaningful only on the connection that issued it;
+the remote peer never sees Trealla's opaque native thread handle.
+
+Actors spawned from a terminal lineage also inherit an opaque
+`'$io_endpoint'(Token)@HomeNode` capability.  `terminal_output/1-2` and
+`input/2-3` use this endpoint across nodes.  Each remote terminal message has
+a UUID request ID; the sending actor waits for `io_reply` before continuing,
+so a later actor message cannot overtake output already accepted by the home
+terminal mailbox.  Prompt source PIDs are exported as connection-scoped return
+capabilities, allowing `respond/2` to reach the prompting actor.
+
+The home node URL defaults to `http://127.0.0.1:Port`.  Set the externally
+reachable address when starting a node that other machines must call back:
+
+```prolog
+?- use_module(distribution),
+   web_prolog:web_prolog_node(3060,
+       [node_url('https://prolog.example.org')]).
+```
+
 The explicit connection API remains available when connection lifetime must
 be controlled directly:
 
@@ -283,6 +344,14 @@ spawn registration are buffered and replayed after the remote PID is known.
 Connection loss generates `down(Pid,Pid,connection_closed)` for live remote
 targets.
 
+Manager-cached transparent connections reconnect lazily on the next remote
+spawn or `Name@Node` send.  Connection retirement is generation-aware: a late
+close from an old socket cannot remove its replacement.  Published services
+therefore remain reachable after reconnection.  Spawned remote actors are
+connection-owned on both Trealla and Trinity, so their `down/3` notification
+is terminal and reconnection deliberately does not resurrect their old PIDs.
+`remote_drop_connection/1` is provided for controlled failover and testing.
+
 The outbound connection identifies itself with protocol version 1 plus the
 Trinity node headers `X-Web-Prolog-User` and
 `X-Web-Prolog-Capabilities`.  The defaults are intended for trusted private
@@ -300,7 +369,9 @@ node networks and can be replaced with explicit `header/2` options.
 - `register/2`, `unregister/1`, `whereis/2`
 - `exit/1`, `exit/2`
 - `output/1-2`, `input/2-3`, `respond/2`
-- `make_ref/1`, `flush/0`
+- `terminal_output/1-2` with local descendant inheritance
+- `input/2-3` inherits the same terminal target
+- `make_ref/1` with process-lifetime uniqueness, `flush/0`
 - Links 
 - Deferred-message semantics (non-matching messages stay in the
   mailbox in arrival order)
@@ -370,12 +441,10 @@ fully supported.)
 
 ### distribution.pl
 
-- Connections do not yet reconnect automatically or restore routing state
-  after a network failure.
-- Remote actors cannot yet initiate arbitrary messages back to canonical
-  Trealla PIDs, and published `Name@Node` service routing is not implemented.
-- Distributed terminal endpoint inheritance and output acknowledgement remain
-  to be ported.
+- Node-to-node terminal endpoint inheritance, output acknowledgement, and
+  prompt responses are implemented. Browser-terminal second-stage
+  acknowledgement (`browser_io_reply`) and one-shot prompt authorization
+  remain to be ported.
 
 ### rpc.pl
 
@@ -403,9 +472,9 @@ deferred_put(L) :-
     bb_put('$actor_deferred', L).
 ```
 
-Because `bb_put`/`bb_get` are global rather than thread-local, the
-parent-pointer key includes the thread ID so distinct actors don't
-collide:
+The blackboard values used here are thread-scoped.  The parent-pointer code
+also retains an explicit thread ID in its key, making that ownership visible
+and keeping compatibility with older implementations:
 
 ```prolog
 set_parent(Parent) :-

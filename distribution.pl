@@ -2,6 +2,7 @@
     [ remote_node_open/2,
       remote_node_open/3,
       remote_node_close/1,
+      remote_drop_connection/1,
       remote_spawn/4,
       remote_send/3,
       remote_exit/3,
@@ -21,7 +22,8 @@
 /** <module> Native Trealla Web Prolog distribution client
 
 This module keeps one version-1 Web Prolog WebSocket open per remote node.
-A named node-manager caches connections and canonical PID routes.  A writer
+A named node-manager caches connections, reconnects them lazily, and maps
+canonical PID and published `Name@Node` routes.  A writer
 actor serializes frames and spawn rendezvous; an independent reader actor
 turns inbound JSON events into the same Prolog messages used by local actors.
 Remote pids are represented as `WirePid@NodeURL` and ordinary actor operations
@@ -37,6 +39,7 @@ no Logtalk or foreign code.
 :- use_module(actors).
 :- use_module(websocket).
 :- use_module(web_prolog).
+:- use_module(library(uuid)).
 
 :- multifile
     actors:hook_spawn/3,
@@ -45,6 +48,15 @@ no Logtalk or foreign code.
     actors:hook_monitor/3,
     actors:hook_demonitor/1,
     actors:hook_stop/1.
+
+:- multifile web_prolog:hook_io_request/2.
+
+:- dynamic io_endpoint_target/2.
+
+:- catch(mutex_create(_, [alias('$distribution_io_endpoints')]),
+         error(permission_error(create, mutex,
+                                '$distribution_io_endpoints'), _),
+         true).
 
                  /*******************************
                  *        CONNECTION API         *
@@ -100,7 +112,7 @@ default_header(Name, Value, Options, [header(Name, Value)|Options]).
 
 remote_node_close(Node) :-
     Node = remote_node(URL, Reader, Writer),
-    manager_forget_node_if_running(URL),
+    manager_forget_endpoints_if_running(Writer),
     Writer ! '$remote_close',
     ( catch(thread_property(Reader, status(running)), _, fail) ->
         catch(thread_cancel(Reader), _, true)
@@ -108,6 +120,20 @@ remote_node_close(Node) :-
     ),
     wait_thread_end(Reader, 100),
     wait_thread_end(Writer, 100).
+
+%! remote_drop_connection(+URL) is det.
+%
+%  Close the manager-cached connection for URL.  The next transparent
+%  operation reconnects lazily.  Connection-owned actors still terminate;
+%  published service addresses remain reusable after reconnection.
+
+remote_drop_connection(URL0) :-
+    node_url_atom(URL0, URL),
+    distribution_manager(Manager),
+    self(Caller),
+    Manager ! '$node_lookup'(URL, Caller),
+    receive({ '$node_lookup_reply'(Manager, URL, Node) -> true }, []),
+    ( Node == none -> true ; remote_node_close(Node) ).
 
 wait_thread_end(_, 0) :- !.
 wait_thread_end(Thread, Attempts) :-
@@ -132,25 +158,31 @@ remote_spawn(Node, Goal0, RemotePid, Options0) :-
 remote_spawn_mode(Node, Goal0, RemotePid, Options0, Mode) :-
     Node = remote_node(URL, _Reader, Writer),
     self(Target),
-    strip_module(Goal0, _, Goal),
-    term_wire_atom(Goal, GoalText),
+    strip_module(Goal0, _, Goal0Plain),
     exclude(local_spawn_option, Options0, Options),
-    term_wire_atom(Options, OptionsText),
-    web_prolog:object([command-string_atom(spawn),
-                       goal-string_atom(GoalText),
-                       options-string_atom(OptionsText)], JSON),
+    portable_term_for_writer(Writer, Goal0Plain-Options,
+                             Goal-PortableOptions),
+    term_wire_atom(Goal, GoalText),
+    term_wire_atom(PortableOptions, OptionsText),
+    add_inherited_io_fields([command-string_atom(spawn),
+                             goal-string_atom(GoalText),
+                             options-string_atom(OptionsText)], Fields),
+    web_prolog:object(Fields, JSON),
     spawn_request(Writer, URL, Mode, Options0, Target, JSON, RemotePid).
 
 local_spawn_option(target(_)).
 local_spawn_option(link(_)).
 local_spawn_option(monitor(_)).
 local_spawn_option(node(_)).
+local_spawn_option(io_target(_)).
 
 %! remote_send(+Node, +RemotePid, +Message) is det.
 
 remote_send(Node, RemotePid, Message) :-
     node_wire_pid(Node, RemotePid, WirePid),
-    term_wire_atom(Message, MessageText),
+    Node = remote_node(_, _, Writer),
+    portable_term_for_writer(Writer, Message, PortableMessage),
+    term_wire_atom(PortableMessage, MessageText),
     web_prolog:object([command-string_atom(send), pid-number(WirePid),
                        message-string_atom(MessageText)], JSON),
     enqueue_json(Node, JSON).
@@ -159,7 +191,9 @@ remote_send(Node, RemotePid, Message) :-
 
 remote_exit(Node, RemotePid, Reason) :-
     node_wire_pid(Node, RemotePid, WirePid),
-    term_wire_atom(Reason, ReasonText),
+    Node = remote_node(_, _, Writer),
+    portable_term_for_writer(Writer, Reason, PortableReason),
+    term_wire_atom(PortableReason, ReasonText),
     web_prolog:object([command-string_atom(exit), pid-number(WirePid),
                        reason-string_atom(ReasonText)], JSON),
     enqueue_json(Node, JSON).
@@ -194,8 +228,9 @@ remote_toplevel_spawn(Node, RemotePid, Options0) :-
     self(Target),
     exclude(local_spawn_option, Options0, Options),
     term_wire_atom(Options, OptionsText),
-    web_prolog:object([command-string_atom(toplevel_spawn),
-                       options-string_atom(OptionsText)], JSON),
+    add_inherited_io_fields([command-string_atom(toplevel_spawn),
+                             options-string_atom(OptionsText)], Fields),
+    web_prolog:object(Fields, JSON),
     spawn_request(Writer, URL, explicit, Options0, Target, JSON, RemotePid).
 
 %! remote_toplevel_call(+Node, +RemotePid, :Goal, +Options) is det.
@@ -204,9 +239,12 @@ remote_toplevel_spawn(Node, RemotePid, Options0) :-
 
 remote_toplevel_call(Node, RemotePid, Goal0, Options0) :-
     node_wire_pid(Node, RemotePid, WirePid),
-    strip_module(Goal0, _, Goal),
+    Node = remote_node(_, _, Writer),
+    strip_module(Goal0, _, Goal0Plain),
     exclude(local_call_option, Options0, Options),
-    goal_options_wire_atoms(Goal, Options, GoalText, OptionsText),
+    portable_term_for_writer(Writer, Goal0Plain-Options,
+                             Goal-PortableOptions),
+    goal_options_wire_atoms(Goal, PortableOptions, GoalText, OptionsText),
     web_prolog:object([command-string_atom(toplevel_call), pid-number(WirePid),
                        goal-string_atom(GoalText),
                        options-string_atom(OptionsText)], JSON),
@@ -238,7 +276,9 @@ remote_toplevel_halt(Node, RemotePid) :-
 
 remote_toplevel_respond(Node, RemotePid, Input) :-
     node_wire_pid(Node, RemotePid, WirePid),
-    term_wire_atom(Input, InputText),
+    Node = remote_node(_, _, Writer),
+    portable_term_for_writer(Writer, Input, PortableInput),
+    term_wire_atom(PortableInput, InputText),
     web_prolog:object([command-string_atom(toplevel_respond),
                        pid-number(WirePid), input-string_atom(InputText)], JSON),
     enqueue_json(Node, JSON).
@@ -278,7 +318,15 @@ remote_writer_start(WS, URL, Owner) :-
     bb_put('$distribution_owner', Owner),
     bb_put('$distribution_targets', []),
     bb_put('$distribution_monitors', []),
+    bb_put('$distribution_io_requests', []),
+    send_transport_hello(WS),
     remote_writer_loop(WS, URL).
+
+send_transport_hello(WS) :-
+    web_prolog:object([command-string_atom(transport_hello),
+                       version-number(1),browser_pids-boolean(true),
+                       io_ack-boolean(true)], JSON),
+    web_prolog_send(WS, JSON).
 
 remote_writer_loop(WS, URL) :-
     receive({ Message -> true }, []),
@@ -315,6 +363,17 @@ writer_message('$remote_lost'(URL, _Reason), _, _, false) :- !,
 writer_message('$wire_event'(WirePid, Type, Event), _, _, true) :- !,
     writer_deliver_event(WirePid, Event),
     writer_note_terminal(Type, WirePid).
+writer_message('$local_actor_message'(TargetId, Message), _, _, true) :- !,
+    self(Writer),
+    distribution_manager(Manager),
+    Manager ! '$endpoint_deliver'(Writer, TargetId, Message).
+writer_message('$io_request'(JSON, RequestId, ReplyQueue), WS, _, true) :- !,
+    writer_add_io_request(RequestId, ReplyQueue),
+    web_prolog_send(WS, JSON).
+writer_message('$wire_io_reply'(RequestId, Status), _, _, true) :- !,
+    writer_deliver_io_reply(RequestId, Status).
+writer_message('$cancel_io_request'(RequestId), _, _, true) :- !,
+    writer_remove_io_request(RequestId).
 writer_message('$transparent_monitor'(WirePid, Ref, Watcher, Caller), _, _,
                true) :- !,
     writer_add_monitor(WirePid, Ref, Watcher),
@@ -378,6 +437,39 @@ writer_remove_watcher(Watcher) :-
 
 writer_monitor_watcher(Watcher, monitor(_, _, Watcher)).
 
+writer_io_requests(Requests) :-
+    ( bb_get('$distribution_io_requests', Requests) -> true ; Requests = [] ).
+
+writer_add_io_request(RequestId, ReplyQueue) :-
+    writer_io_requests(Requests),
+    bb_put('$distribution_io_requests',
+           [io_request(RequestId, ReplyQueue)|Requests]).
+
+writer_remove_io_request(RequestId) :-
+    writer_io_requests(Requests),
+    exclude(writer_io_request_id(RequestId), Requests, Rest),
+    bb_put('$distribution_io_requests', Rest).
+
+writer_io_request_id(RequestId, io_request(RequestId, _)).
+
+writer_deliver_io_reply(RequestId, Status) :-
+    writer_io_requests(Requests),
+    ( select(io_request(RequestId, ReplyQueue), Requests, Rest) ->
+        bb_put('$distribution_io_requests', Rest),
+        catch(thread_send_message(ReplyQueue, Status), _, true)
+    ; true
+    ).
+
+writer_fail_io_requests(Reason) :-
+    writer_io_requests(Requests),
+    fail_io_requests(Requests, Reason),
+    bb_put('$distribution_io_requests', []).
+
+fail_io_requests([], _).
+fail_io_requests([io_request(_, ReplyQueue)|Requests], Reason) :-
+    catch(thread_send_message(ReplyQueue, Reason), _, true),
+    fail_io_requests(Requests, Reason).
+
 writer_deliver_event(WirePid, Event) :-
     writer_targets(Targets),
     ( memberchk(target(WirePid, Target, _, Mode), Targets) ->
@@ -432,7 +524,10 @@ writer_notify_connection_closed(URL) :-
     notify_live_targets(Targets, URL),
     bb_put('$distribution_targets', []),
     bb_put('$distribution_monitors', []),
-    manager_forget_node_if_running(URL).
+    writer_fail_io_requests(connection_closed),
+    self(Writer),
+    manager_forget_endpoints_if_running(Writer),
+    manager_forget_node_if_running(URL, Writer).
 
 notify_live_targets([], _).
 notify_live_targets([target(WirePid, Target, State, Mode)|Targets], URL) :-
@@ -484,12 +579,24 @@ dispatch_remote_type(error, JSON, _, Writer) :-
     \+ web_prolog:json_field(JSON, pid, _), !,
     remote_error_term(JSON, Error),
     Writer ! '$wire_spawn_error'(Error).
-dispatch_remote_type(transport_welcome, JSON, _, Writer) :- !,
-    Writer ! '$owner_event'(transport_welcome(JSON)).
+dispatch_remote_type(transport_welcome, _, _, _) :- !.
+dispatch_remote_type(io_reply, JSON, _, Writer) :- !,
+    web_prolog:json_text_field(JSON, request_id, RequestId),
+    web_prolog:json_atom_field(JSON, status, Status),
+    Writer ! '$wire_io_reply'(RequestId, Status).
+dispatch_remote_type(actor_message, JSON, _, Writer) :- !,
+    web_prolog:json_text_field(JSON, target, TargetText),
+    browser_target_id(TargetText, TargetId),
+    json_event_term(JSON, message, Message),
+    Writer ! '$local_actor_message'(TargetId, Message).
 dispatch_remote_type(Type, JSON, URL, Writer) :-
     web_prolog:json_pid_field(JSON, pid, WirePid),
     remote_event(Type, JSON, WirePid@URL, Event),
     Writer ! '$wire_event'(WirePid, Type, Event).
+
+browser_target_id(Text, TargetId) :-
+    atom_concat(IdAtom, '@localhost', Text),
+    atom_number(IdAtom, TargetId), integer(TargetId).
 
 remote_event(success, JSON, Pid, success(Pid, Rows, More)) :- !,
     web_prolog:json_field(JSON, data, list(Data)),
@@ -535,6 +642,101 @@ notify_connection_error(Writer, Error) :-
 
 
                  /*******************************
+                 *     DISTRIBUTED TERMINAL I/O *
+                 *******************************/
+
+add_inherited_io_fields(Fields0,
+                        [io_target-string_atom(EndpointText)|Fields0]) :-
+    inherited_io_endpoint(Endpoint),
+    !,
+    term_wire_atom(Endpoint, EndpointText).
+add_inherited_io_fields(Fields, Fields).
+
+inherited_io_endpoint(Endpoint) :-
+    actors:current_io_target(Target),
+    Target \== '$io_sink'(distributed),
+    ( valid_io_endpoint(Target) -> Endpoint = Target
+    ; web_prolog:current_node_url(HomeNode),
+      io_endpoint_for_target(Target, Token),
+      Endpoint = '$io_endpoint'(Token)@HomeNode
+    ).
+
+valid_io_endpoint('$io_endpoint'(Token)@HomeNode) :-
+    atom(Token), atom(HomeNode).
+
+io_endpoint_for_target(Target, Token) :-
+    with_mutex('$distribution_io_endpoints',
+        ( io_endpoint_target(Existing, Target) -> Token = Existing
+        ; fresh_io_token(Token),
+          assertz(io_endpoint_target(Token, Target))
+        )).
+
+fresh_io_token(Token) :-
+    repeat,
+    uuidv4_string(Chars),
+    atom_chars(Candidate, Chars),
+    \+ io_endpoint_target(Candidate, _),
+    !,
+    Token = Candidate.
+
+forget_io_endpoints_for_target(Target) :-
+    with_mutex('$distribution_io_endpoints',
+               retractall(io_endpoint_target(_, Target))).
+
+web_prolog:hook_io_request(Token, Message) :-
+    deliver_io_endpoint(Token, Message).
+
+deliver_io_endpoint(Token, Message) :-
+    io_protocol_message(Message),
+    with_mutex('$distribution_io_endpoints',
+               io_endpoint_target(Token, Target)),
+    catch(thread_property(Target, status(running)), _, fail),
+    Target ! Message.
+
+io_protocol_message(terminal_output(_, _)).
+io_protocol_message(terminal_io_output(_, _)).
+io_protocol_message(prompt(_, _)).
+
+route_io_endpoint(Token, HomeNode, Message) :-
+    io_protocol_message(Message),
+    !,
+    ( web_prolog:current_node_url(HomeNode) ->
+        ( deliver_io_endpoint(Token, Message) -> true
+        ; io_request_error(endpoint_unavailable)
+        )
+    ; remote_io_request(HomeNode, Token, Message)
+    ).
+route_io_endpoint(_, _, _).
+
+remote_io_request(HomeNode, Token, Message0) :-
+    transparent_node(HomeNode, remote_node(_, _, Writer)),
+    portable_term_for_writer(Writer, Message0, Message),
+    term_wire_atom(Message, MessageText),
+    fresh_io_token(RequestId),
+    web_prolog:object([command-string_atom(io_request),
+                       token-string_atom(Token),
+                       message-string_atom(MessageText),
+                       request_id-string_atom(RequestId)], JSON),
+    setup_call_cleanup(
+        message_queue_create(ReplyQueue),
+        ( Writer ! '$io_request'(JSON, RequestId, ReplyQueue),
+          ( thread_get_message(ReplyQueue, Status, [timeout(30)]) ->
+              io_request_result(Status)
+          ; io_request_error(timeout)
+          )
+        ),
+        ( Writer ! '$cancel_io_request'(RequestId),
+          catch(message_queue_destroy(ReplyQueue), _, true)
+        )).
+
+io_request_result(ok) :- !.
+io_request_result(Reason) :- io_request_error(Reason).
+
+io_request_error(Reason) :-
+    throw(error(io_error(write, Reason), terminal_output/2)).
+
+
+                 /*******************************
                  *      TRANSPARENT ROUTING      *
                  *******************************/
 
@@ -545,16 +747,36 @@ actors:hook_spawn(Goal, RemotePid, Options0) :-
     transparent_node(URL, Node),
     remote_spawn_mode(Node, Goal, RemotePid, Options, transparent).
 
+actors:hook_send('$io_endpoint'(Token)@HomeNode, Message) :-
+    !,
+    route_io_endpoint(Token, HomeNode, Message).
+
+actors:hook_send(Name@Node0, Message) :-
+    atom(Name),
+    !,
+    ( Node0 == localhost ->
+        actors:send_service(Name, Message)
+    ; node_url_atom(Node0, URL),
+      transparent_node(URL, remote_node(_, _, Writer)),
+      portable_term_for_writer(Writer, Message, PortableMessage),
+      term_wire_atom(PortableMessage, MessageText),
+      web_prolog:object([command-string_atom(send),pid-json_pid(Name),
+                         message-string_atom(MessageText)], JSON),
+      Writer ! '$remote_json'(JSON)
+    ).
+
 actors:hook_send(RemotePid, Message) :-
     remote_pid_writer(RemotePid, Writer, WirePid),
-    term_wire_atom(Message, MessageText),
+    portable_term_for_writer(Writer, Message, PortableMessage),
+    term_wire_atom(PortableMessage, MessageText),
     web_prolog:object([command-string_atom(send), pid-number(WirePid),
                        message-string_atom(MessageText)], JSON),
     Writer ! '$remote_json'(JSON).
 
 actors:hook_exit(RemotePid, Reason) :-
     remote_pid_writer(RemotePid, Writer, WirePid),
-    term_wire_atom(Reason, ReasonText),
+    portable_term_for_writer(Writer, Reason, PortableReason),
+    term_wire_atom(PortableReason, ReasonText),
     web_prolog:object([command-string_atom(exit), pid-number(WirePid),
                        reason-string_atom(ReasonText)], JSON),
     Writer ! '$remote_json'(JSON).
@@ -574,6 +796,7 @@ actors:hook_demonitor(Ref) :-
     Writer ! '$transparent_demonitor'(Ref).
 
 actors:hook_stop(Target) :-
+    forget_io_endpoints_for_target(Target),
     distribution_manager(Manager),
     Manager ! '$target_stopped'(Target).
 
@@ -620,9 +843,15 @@ manager_register_route(RemotePid, Writer) :-
     Manager ! '$route_register'(RemotePid, Writer, Caller),
     receive({ '$route_registered'(Manager, RemotePid) -> true }, []).
 
-manager_forget_node_if_running(URL) :-
+manager_forget_node_if_running(URL, Writer) :-
     ( catch(thread_property('$distribution_manager', status(running)), _, fail) ->
-        '$distribution_manager' ! '$node_forget'(URL)
+        '$distribution_manager' ! '$node_forget'(URL, Writer)
+    ; true
+    ).
+
+manager_forget_endpoints_if_running(Writer) :-
+    ( catch(thread_property('$distribution_manager', status(running)), _, fail) ->
+        '$distribution_manager' ! '$endpoint_writer_forget'(Writer)
     ; true
     ).
 
@@ -636,7 +865,7 @@ distribution_manager('$distribution_manager') :-
     catch(thread_property('$distribution_manager', status(running)), _, fail),
     !.
 distribution_manager('$distribution_manager') :-
-    catch(thread_create(distribution:distribution_manager_loop([], []), _,
+    catch(thread_create(distribution:distribution_manager_start, _,
                         [alias('$distribution_manager'),detached(true)]),
           _, true),
     wait_distribution_manager(100).
@@ -650,9 +879,14 @@ wait_distribution_manager(Attempts) :-
       wait_distribution_manager(Next)
     ).
 
+distribution_manager_start :-
+    bb_put('$distribution_endpoints', []),
+    distribution_manager_loop([], []).
+
 distribution_manager_loop(Nodes, Routes) :-
     thread_get_message(Message),
-    manager_message(Message, Nodes, Routes, NextNodes, NextRoutes),
+    catch(manager_message(Message, Nodes, Routes, NextNodes, NextRoutes), _,
+          ( NextNodes = Nodes, NextRoutes = Routes )),
     distribution_manager_loop(NextNodes, NextRoutes).
 
 manager_message('$node_request'(URL, Caller), Nodes, Routes,
@@ -661,7 +895,8 @@ manager_message('$node_request'(URL, Caller), Nodes, Routes,
         NextNodes = [node(URL, Node)|Rest], Error = none
     ; catch(remote_node_open(URL, Node), OpenError, true),
       ( var(OpenError) ->
-          NextNodes = [node(URL, Node)|Nodes], Error = none
+          exclude(manager_node_url(URL), Nodes, OtherNodes),
+          NextNodes = [node(URL, Node)|OtherNodes], Error = none
       ; NextNodes = Nodes, Error = OpenError
       )
     ),
@@ -669,6 +904,13 @@ manager_message('$node_request'(URL, Caller), Nodes, Routes,
     ( Error == none -> Caller ! '$node_reply'(Manager, URL, Node)
     ; Caller ! '$node_error'(Manager, URL, Error)
     ).
+manager_message('$node_lookup'(URL, Caller), Nodes, Routes,
+                Nodes, Routes) :- !,
+    self(Manager),
+    ( member(node(URL, Node0), Nodes), node_writer_running(Node0) -> Node = Node0
+    ; Node = none
+    ),
+    Caller ! '$node_lookup_reply'(Manager, URL, Node).
 manager_message('$route_register'(Pid, Writer, Caller), Nodes, Routes,
                 Nodes, [route(Pid, Writer)|Rest]) :- !,
     exclude(manager_route_pid(Pid), Routes, Rest),
@@ -682,24 +924,129 @@ manager_message('$route_request'(Pid, Caller), Nodes, Routes, Nodes, Routes) :- 
     ).
 manager_message('$route_forget'(Pid), Nodes, Routes, Nodes, Rest) :- !,
     exclude(manager_route_pid(Pid), Routes, Rest).
-manager_message('$node_forget'(URL), Nodes, Routes, RestNodes, RestRoutes) :- !,
-    exclude(manager_node_url(URL), Nodes, RestNodes),
-    exclude(manager_route_url(URL), Routes, RestRoutes).
+manager_message('$node_forget'(_URL, Writer), Nodes, Routes,
+                RestNodes, RestRoutes) :- !,
+    remove_writer_nodes(Nodes, Writer, RestNodes),
+    remove_writer_routes(Routes, Writer, RestRoutes).
+manager_message('$endpoint_writer_forget'(Writer), Nodes, Routes,
+                Nodes, Routes) :- !,
+    manager_endpoints(Endpoints),
+    remove_writer_endpoints(Endpoints, Writer, RestEndpoints),
+    bb_put('$distribution_endpoints', RestEndpoints).
 manager_message('$target_stopped'(Target), Nodes, Routes, Nodes, Routes) :- !,
-    notify_node_target_stopped(Nodes, Target).
+    notify_node_target_stopped(Nodes, Target),
+    manager_endpoints(Endpoints),
+    exclude(manager_endpoint_target(Target), Endpoints, RestEndpoints),
+    bb_put('$distribution_endpoints', RestEndpoints).
+manager_message('$endpoint_request'(Writer, Target, Caller),
+                Nodes, Routes, Nodes, Routes) :- !,
+    manager_endpoints(Endpoints),
+    ( endpoint_lookup(Endpoints, Writer, Target, Id) ->
+        NextEndpoints = Endpoints
+    ; fresh_endpoint_id(Endpoints, Id),
+      NextEndpoints = [endpoint(Writer, Id, Target)|Endpoints]
+    ),
+    bb_put('$distribution_endpoints', NextEndpoints),
+    self(Manager),
+    Caller ! '$endpoint_reply'(Manager, Writer, Target, Id).
+manager_message('$endpoint_deliver'(Writer, Id, Message),
+                Nodes, Routes, Nodes, Routes) :- !,
+    manager_endpoints(Endpoints),
+    ( endpoint_lookup_id(Endpoints, Writer, Id, Target) ->
+        Target ! Message
+    ; true
+    ).
 manager_message(_, Nodes, Routes, Nodes, Routes).
 
-node_writer_running(remote_node(_, _, Writer)) :-
+node_writer_running(remote_node(_, Reader, Writer)) :-
+    catch(thread_property(Reader, status(running)), _, fail),
     catch(thread_property(Writer, status(running)), _, fail).
 
 manager_route_pid(Pid, route(Pid, _)).
 manager_node_url(URL, node(URL, _)).
-manager_route_url(URL, route(_@URL, _)).
+manager_endpoint_target(Target, endpoint(_, _, EndpointTarget)) :-
+    EndpointTarget == Target.
+
+remove_writer_nodes([], _, []).
+remove_writer_nodes([Node|Nodes], Writer, Rest) :-
+    Node = node(_, remote_node(_, _, NodeWriter)),
+    ( NodeWriter == Writer -> Rest = Tail ; Rest = [Node|Tail] ),
+    remove_writer_nodes(Nodes, Writer, Tail).
+
+remove_writer_routes([], _, []).
+remove_writer_routes([Route|Routes], Writer, Rest) :-
+    Route = route(_, RouteWriter),
+    ( RouteWriter == Writer -> Rest = Tail ; Rest = [Route|Tail] ),
+    remove_writer_routes(Routes, Writer, Tail).
+
+manager_endpoints(Endpoints) :-
+    ( bb_get('$distribution_endpoints', Endpoints) -> true ; Endpoints = [] ).
+
+remove_writer_endpoints([], _, []).
+remove_writer_endpoints([endpoint(EndpointWriter, Id, Target)|Endpoints],
+                        Writer, Rest) :-
+    ( EndpointWriter == Writer -> Rest = Tail
+    ; Rest = [endpoint(EndpointWriter, Id, Target)|Tail]
+    ),
+    remove_writer_endpoints(Endpoints, Writer, Tail).
+
+endpoint_lookup([endpoint(EndpointWriter, Id, EndpointTarget)|_], Writer,
+                Target, Id) :-
+    EndpointWriter == Writer, EndpointTarget == Target, !.
+endpoint_lookup([_|Endpoints], Writer, Target, Id) :-
+    endpoint_lookup(Endpoints, Writer, Target, Id).
+
+endpoint_lookup_id([endpoint(EndpointWriter, Id0, Target)|_], Writer, Id,
+                   Target) :-
+    EndpointWriter == Writer, Id0 =:= Id, !.
+endpoint_lookup_id([_|Endpoints], Writer, Id, Target) :-
+    endpoint_lookup_id(Endpoints, Writer, Id, Target).
+
+fresh_endpoint_id(Endpoints, Id) :-
+    random_between(1000000000, 9999999999, Candidate),
+    ( member(endpoint(_, Candidate, _), Endpoints) ->
+        fresh_endpoint_id(Endpoints, Id)
+    ; Id = Candidate
+    ).
 
 notify_node_target_stopped([], _).
 notify_node_target_stopped([node(_, remote_node(_, _, Writer))|Nodes], Target) :-
     Writer ! '$target_stopped'(Target),
     notify_node_target_stopped(Nodes, Target).
+
+
+                 /*******************************
+                 *     RETURN-PATH ENDPOINTS     *
+                 *******************************/
+
+portable_term_for_writer(Writer, Term0, Term) :-
+    ( local_runtime_pid(Term0) ->
+        endpoint_for_target(Writer, Term0, Id),
+        Term = Id@localhost
+    ; var(Term0) -> Term = Term0
+    ; atomic(Term0) -> Term = Term0
+    ; functor(Term0, Name, Arity),
+      functor(Term, Name, Arity),
+      portable_term_args(1, Arity, Writer, Term0, Term)
+    ).
+
+portable_term_args(Index, Arity, _, _, _) :- Index > Arity, !.
+portable_term_args(Index, Arity, Writer, Term0, Term) :-
+    arg(Index, Term0, Arg0),
+    portable_term_for_writer(Writer, Arg0, Arg),
+    arg(Index, Term, Arg),
+    Next is Index + 1,
+    portable_term_args(Next, Arity, Writer, Term0, Term).
+
+local_runtime_pid(Pid) :-
+    nonvar(Pid),
+    catch(thread_property(Pid, status(_)), _, fail).
+
+endpoint_for_target(Writer, Target, Id) :-
+    distribution_manager(Manager),
+    self(Caller),
+    Manager ! '$endpoint_request'(Writer, Target, Caller),
+    receive({ '$endpoint_reply'(Manager, Writer, Target, Id) -> true }, []).
 
 
                  /*******************************

@@ -12,6 +12,7 @@ tpl -g "consult(tests), \
         t11,t12,t13,t14,t15,t16,t17,t18, \
         t19,t20,t21,t22, \
         t23,t24,t25,t26,t27,t28,t29,t30, \
+        t31,t32,t33, \
         format('~nALL OK~n'), halt"
 ```
 
@@ -62,6 +63,12 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t28 toplevel input/respond roundtrip
   - t29 toplevel_abort/1 unwinds a runaway goal
   - t30 parallel/1 propagates an exception
+
+## Tests: terminal inheritance and references (t31-t33)
+
+  - t31 descendants inherit a terminal target
+  - t32 stream-originated terminal output keeps its provenance
+  - t33 concurrent make_ref/1 calls produce distinct references
 */
 
 :- use_module(toplevel_actors).
@@ -517,3 +524,57 @@ t30 :-
           Error, true),
     nonvar(Error),
     format("30. parallel error ok~n").
+
+%!  t31 is det.
+%
+%   A child inherits its parent's terminal target independently of its
+%   immediate actor parent.
+
+t31 :-
+    self(Me),
+    spawn(spawn(terminal_output(inherited), _, [link(false)]), Outer,
+          [target(Me), monitor(true), link(false)]),
+    receive({ terminal_output(_Child, inherited) -> true },
+            [timeout(1), on_timeout(fail)]),
+    receive({ down(Outer, Outer, true) -> true },
+            [timeout(1), on_timeout(fail)]),
+    format("31. inherited terminal target ok~n").
+
+%!  t32 is det.
+%
+%   source(io) preserves the distinction between emulated stream output and
+%   explicit terminal events.
+
+t32 :-
+    self(Me),
+    spawn(terminal_output(text, [source(io)]), Pid,
+          [target(Me), monitor(true), link(false)]),
+    receive({ terminal_io_output(Pid, text) -> true },
+            [timeout(1), on_timeout(fail)]),
+    receive({ down(Pid, Pid, true) -> true },
+            [timeout(1), on_timeout(fail)]),
+    format("32. terminal I/O provenance ok~n").
+
+%!  t33 is det.
+%
+%   make_ref/1 remains unique when called concurrently by many actors.
+
+t33 :-
+    self(Me),
+    spawn_ref_makers(50, Me),
+    collect_refs(50, Refs),
+    sort(Refs, Unique),
+    length(Unique, 50),
+    format("33. concurrent unique refs ok~n").
+
+spawn_ref_makers(0, _) :- !.
+spawn_ref_makers(N, Target) :-
+    spawn((make_ref(Ref), Target ! made_ref(Ref)), _, [link(false)]),
+    Next is N - 1,
+    spawn_ref_makers(Next, Target).
+
+collect_refs(0, []) :- !.
+collect_refs(N, [Ref|Refs]) :-
+    receive({ made_ref(Ref) -> true }, [timeout(2), on_timeout(fail)]),
+    Next is N - 1,
+    collect_refs(Next, Refs).

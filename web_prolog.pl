@@ -6,6 +6,7 @@
       web_prolog_connect/3,
       web_prolog_send/2,
       web_prolog_receive/2,
+      current_node_url/1,
       protocol_version/1
     ]).
 
@@ -19,7 +20,8 @@ terms inside JSON fields use quoted Prolog syntax.
 The module implements the core node-to-node vocabulary: `spawn`, `send`,
 `monitor`, `demonitor`, `exit`, `toplevel_spawn`, `toplevel_call`,
 `toplevel_next`, `toplevel_stop`, `toplevel_abort`, `toplevel_halt`,
-`toplevel_respond`, and the additive browser `transport_hello` handshake.
+`toplevel_respond`, private acknowledged `io_request` terminal delivery, and
+the additive browser `transport_hello` handshake.
 
 This first port is intended for trusted peers.  Unlike the Trinity node it
 does not yet implement authentication, origin checks, execution profiles,
@@ -32,6 +34,13 @@ resource quotas, or a source-code sandbox.
 :- use_module(toplevel_actors).
 :- use_module(node).
 :- use_module(websocket).
+
+:- op(200, xfx, @).
+
+:- multifile actors:hook_send/2.
+:- multifile hook_io_request/2.
+
+:- dynamic node_public_url/1.
 
 protocol_version(1).
 
@@ -47,7 +56,24 @@ web_prolog_node(Port) :-
     web_prolog_node(Port, []).
 
 web_prolog_node(Port, Options) :-
+    configure_node_url(Port, Options),
     node(Port, web_prolog_handler, Options).
+
+configure_node_url(Port, Options) :-
+    ( memberchk(node_url(URL0), Options) -> node_url_atom(URL0, URL1)
+    ; format(atom(URL1), 'http://127.0.0.1:~w', [Port])
+    ),
+    strip_url_slash(URL1, URL),
+    retractall(node_public_url(_)),
+    asserta(node_public_url(URL)).
+
+node_url_atom(URL, URL) :- atom(URL), !.
+node_url_atom(Chars, URL) :- atom_chars(URL, Chars).
+
+strip_url_slash(URL0, URL) :- atom_concat(URL, '/', URL0), !.
+strip_url_slash(URL, URL).
+
+current_node_url(URL) :- node_public_url(URL).
 
 %! web_prolog_handler(+WebSocket, +Path) is det.
 
@@ -128,7 +154,8 @@ dispatch(transport_hello, JSON, Relay, _) :- !,
     ).
 dispatch(toplevel_spawn, JSON, Relay, _) :- !,
     json_options(JSON, Options0),
-    safe_spawn_options(Options0, Options),
+    safe_spawn_options(Options0, Options1),
+    spawn_io_options(JSON, Options1, Options),
     thread_self(Reader),
     Relay ! '$toplevel_spawn'(Options, Reader),
     thread_get_message(Reader, '$spawned'(_WirePid)).
@@ -145,9 +172,11 @@ dispatch(toplevel_halt, JSON, Relay, _) :- !,
 dispatch(toplevel_respond, JSON, Relay, _) :- !,
     Relay ! '$ws_command'(toplevel_respond, JSON).
 dispatch(spawn, JSON, Relay, Reader) :- !,
-    json_term_field(JSON, goal, Goal),
+    json_term_field(JSON, goal, Goal0),
+    import_browser_pids(Goal0, Relay, Goal),
     json_options(JSON, Options0),
-    safe_spawn_options(Options0, Options),
+    safe_spawn_options(Options0, Options1),
+    spawn_io_options(JSON, Options1, Options),
     Relay ! '$spawn'(Goal, Options, Reader),
     thread_get_message(Reader, '$spawned'(_Pid)).
 dispatch(send, JSON, Relay, _) :- !,
@@ -158,6 +187,8 @@ dispatch(demonitor, JSON, Relay, _) :- !,
     Relay ! '$ws_command'(demonitor, JSON).
 dispatch(exit, JSON, Relay, _) :- !,
     Relay ! '$ws_command'(exit, JSON).
+dispatch(io_request, JSON, Relay, _) :- !,
+    Relay ! '$io_request'(JSON).
 dispatch(Command, _, _, _) :-
     throw(error(domain_error(web_prolog_command, Command),
                 web_prolog_handler/2)).
@@ -166,7 +197,8 @@ relay_command(toplevel_call, JSON, Relay) :- !,
     owned_pid(JSON, Relay, session, Pid),
     json_text_field(JSON, goal, GoalText),
     json_text_default(JSON, options, '[]', OptionsText),
-    read_goal_options(GoalText, OptionsText, Goal, Options0),
+    read_goal_options(GoalText, OptionsText, Goal0, Options00),
+    import_browser_pids(Goal0-Options00, Relay, Goal-Options0),
     safe_call_options(Options0, Options),
     toplevel_call(Pid, Goal, [target(Relay)|Options]).
 relay_command(toplevel_next, JSON, Relay) :- !,
@@ -189,13 +221,15 @@ relay_command(toplevel_halt, JSON, Relay) :- !,
     exit(Pid, kill).
 relay_command(toplevel_respond, JSON, Relay) :- !,
     owned_pid(JSON, Relay, session, WirePid, Pid),
-    json_term_field(JSON, input, Input),
+    json_term_field(JSON, input, Input0),
+    import_browser_pids(Input0, Relay, Input),
     actors:actor_send(Pid, '$input'(Relay, Input)),
     Relay ! responded(WirePid).
 relay_command(send, JSON, Relay) :- !,
-    owned_pid(JSON, Relay, any, Pid),
-    json_term_field(JSON, message, Message),
-    actors:actor_send(Pid, Message).
+    send_target(JSON, Relay, Target),
+    json_term_field(JSON, message, Message0),
+    import_browser_pids(Message0, Relay, Message),
+    send_to_target(Target, Message).
 relay_command(monitor, JSON, Relay) :- !,
     owned_pid(JSON, Relay, any, Pid),
     json_term_field(JSON, ref, Ref),
@@ -205,7 +239,8 @@ relay_command(demonitor, JSON, _Relay) :- !,
     relay_remove_monitor(Ref).
 relay_command(exit, JSON, Relay) :- !,
     owned_pid(JSON, Relay, any, Pid),
-    json_term_default(JSON, reason, kill, Reason),
+    json_term_default(JSON, reason, kill, Reason0),
+    import_browser_pids(Reason0, Relay, Reason),
     exit(Pid, Reason).
 
 owned_pid(JSON, Relay, Kind, RuntimePid) :-
@@ -220,6 +255,19 @@ owned_pid(JSON, _, _, WirePid, _) :-
     json_pid_field(JSON, pid, WirePid),
     throw(error(permission_error(access, web_prolog_actor, WirePid),
                 web_prolog_handler/2)).
+
+send_target(JSON, _Relay, service(Name)) :-
+    json_pid_field(JSON, pid, Name),
+    atom(Name),
+    actors:published_service_target(Name, _),
+    !.
+send_target(JSON, Relay, actor(Pid)) :-
+    owned_pid(JSON, Relay, any, Pid).
+
+send_to_target(service(Name), Message) :- !,
+    actors:send_service(Name, Message).
+send_to_target(actor(Pid), Message) :-
+    actors:actor_send(Pid, Message).
 
 
                  /*******************************
@@ -270,6 +318,18 @@ relay_message(WS, '$spawn'(Goal, Options, Reader)) :- !,
     relay_add_actor(WirePid, RuntimePid, actor),
     thread_send_message(Reader, '$spawned'(WirePid)),
     send_event(WS, spawned(WirePid)).
+relay_message(WS, '$browser_message'(Target, Message)) :- !,
+    send_event(WS, actor_message(Target, Message)).
+relay_message(WS, '$io_request'(JSON)) :- !,
+    json_text_field(JSON, request_id, RequestId),
+    json_text_field(JSON, token, Token),
+    json_term_field(JSON, message, Message0),
+    self(Relay),
+    import_browser_pids(Message0, Relay, Message),
+    ( catch(once(hook_io_request(Token, Message)), _, fail) -> Status = ok
+    ; Status = endpoint_unavailable
+    ),
+    send_event(WS, io_reply(RequestId, Status)).
 relay_message(WS, down(RuntimePid, _DefaultRef, Reason)) :- !,
     ( relay_actor(WirePid, RuntimePid, _) ->
         relay_take_monitors(RuntimePid, Refs),
@@ -426,9 +486,47 @@ event_json(transport_welcome(Version), JSON) :- !,
             protocol-string_atom(web_prolog_browser_actor),
             io_ack-boolean(true), browser_pids-boolean(true),
             version-number(Version)], JSON).
+event_json(actor_message(Target, Message), JSON) :- !,
+    term_wire_atom(Target, TargetText),
+    term_wire_atom(Message, MessageText),
+    object([type-string_atom(actor_message), target-string_atom(TargetText),
+            message-string_atom(MessageText)], JSON).
+event_json(io_reply(RequestId, Status), JSON) :- !,
+    object([type-string_atom(io_reply),request_id-string_atom(RequestId),
+            status-string_atom(Status)], JSON).
 event_json(Event, JSON) :-
     term_wire_atom(Event, Data),
     object([type-string_atom(error), data-string_atom(Data)], JSON).
+
+
+                 /*******************************
+                 *     BROWSER PID BRIDGING      *
+                 *******************************/
+
+actors:hook_send('$web_prolog_endpoint'(Relay, Id), Message) :-
+    catch(thread_property(Relay, status(running)), _, fail),
+    Relay ! '$browser_message'(Id@localhost, Message).
+
+import_browser_pids(Term0, Relay, Term) :-
+    ( browser_wire_pid(Term0, Id) ->
+        Term = '$web_prolog_endpoint'(Relay, Id)
+    ; var(Term0) -> Term = Term0
+    ; atomic(Term0) -> Term = Term0
+    ; functor(Term0, Name, Arity),
+      functor(Term, Name, Arity),
+      import_browser_pid_args(1, Arity, Relay, Term0, Term)
+    ).
+
+browser_wire_pid(Id@localhost, Id) :-
+    integer(Id), Id >= 1000000000, Id =< 9999999999.
+
+import_browser_pid_args(Index, Arity, _, _, _) :- Index > Arity, !.
+import_browser_pid_args(Index, Arity, Relay, Term0, Term) :-
+    arg(Index, Term0, Arg0),
+    import_browser_pids(Arg0, Relay, Arg),
+    arg(Index, Term, Arg),
+    Next is Index + 1,
+    import_browser_pid_args(Next, Arity, Relay, Term0, Term).
 
 terms_json_strings([], []).
 terms_json_strings([Term|Terms], [string(Chars)|JSONTerms]) :-
@@ -507,10 +605,25 @@ read_goal_options(GoalText, OptionsText, Goal, Options) :-
 safe_spawn_options(Options0, Options) :-
     exclude(reserved_spawn_option, Options0, Options).
 
+spawn_io_options(JSON, Options0, [io_target(Endpoint)|Options0]) :-
+    json_term_field(JSON, io_target, Endpoint),
+    valid_io_endpoint(Endpoint),
+    !.
+spawn_io_options(JSON, _, _) :-
+    json_field(JSON, io_target, _),
+    !,
+    throw(error(domain_error(distributed_io_endpoint, io_target),
+                web_prolog_handler/2)).
+spawn_io_options(_, Options, Options).
+
+valid_io_endpoint('$io_endpoint'(Token)@HomeNode) :-
+    atom(Token), atom(HomeNode).
+
 reserved_spawn_option(target(_)).
 reserved_spawn_option(link(_)).
 reserved_spawn_option(monitor(_)).
 reserved_spawn_option(node(_)).
+reserved_spawn_option(io_target(_)).
 
 safe_call_options(Options0, Options) :-
     exclude(reserved_call_option, Options0, Options).

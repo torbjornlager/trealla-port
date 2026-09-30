@@ -9,6 +9,9 @@
          register/2,             % +Name, +Pid
          unregister/1,           % +Name
          whereis/2,              % +Name, -Pid
+         register_service/2,     % +Name, +Pid
+         unregister_service/1,   % +Name
+         whereis_service/2,      % +Name, -Pid
          exit/1,                 % +Reason
          exit/2,                 % +Pid, +Reason
          (!)/2,                  % +Pid, +Message
@@ -17,6 +20,9 @@
          respond/2,              % +Pid, +Answer
          output/1,               % +Term
          output/2,               % +Term, +Options
+         terminal_output/1,      % +Term
+         terminal_output/2,      % +Term, +Options
+         current_io_target/1,    % -Target
          receive/1,              % +ReceiveClauses
          receive/2,              % +ReceiveClauses, +Options
          make_ref/1,             % -Ref
@@ -52,7 +58,10 @@ What it does provide:
   - monitor/2 / demonitor/1,2 for passive lifecycle notifications
   - A `link` option on spawn/3 for eager lifecycle coupling
   - register/2, unregister/1, whereis/2 for naming actors
+  - register_service/2, unregister_service/1, whereis_service/2 for
+    node-wide names that distribution peers may address
   - exit/1, exit/2 for terminating processes with a reason
+  - terminal_output/1,2 with an inherited per-actor terminal target
 
 ## Mailboxes {#actors-mailboxes}
 
@@ -114,9 +123,8 @@ Reply = hello.
   - `thread_signal/2` and `thread_send_message/2` on a dead detached
     thread raise a catchable domain_error; exit/2 and actor_send/2 use a
     bare `catch/3` and treat the error as a silent drop.
-  - make_ref/1 uses `random_between/3` rather than a true monotone
-    counter.  In a busy system, 8-digit random refs could (rarely)
-    collide; use with care in protocols that rely on ref uniqueness.
+  - Trealla has no `flag/3`; make_ref/1 uses a mutex-protected dynamic
+    counter to provide the same process-lifetime uniqueness property.
 
 @author Torbjörn Lager
 */
@@ -179,13 +187,22 @@ spawn(Goal, Pid) :-
 spawn(Goal, Pid, Options) :-
     hook_spawn(Goal, Pid, Options),
     !.
-spawn(Goal, Pid, Options) :-
+spawn(Goal, Pid, Options0) :-
+    inherit_spawn_io_target(Options0, Options),
     thread_self(Self),
     thread_create(start(Self, Pid, Goal, Options), Pid, [
         detached(true),
         at_exit(stop(Pid, Self))
     ]),
     thread_get_message(initialized(Pid)).
+
+inherit_spawn_io_target(Options, Options) :-
+    ( memberchk(io_target(_), Options) ; memberchk(target(_), Options) ),
+    !.
+inherit_spawn_io_target(Options0, [io_target(Target)|Options0]) :-
+    current_io_target(Target),
+    !.
+inherit_spawn_io_target(Options, Options).
 
 
 
@@ -201,6 +218,7 @@ spawn(Goal, Pid, Options) :-
 
 start(Parent, Pid, Goal, Options) :-
     set_parent(Parent),
+    set_spawn_io_target(Parent, Options),
     option(link(Link), Options, true),
     (   Link == true
     ->  assertz(link(Parent, Pid))
@@ -227,6 +245,17 @@ start(Parent, Pid, Goal, Options) :-
         )
     ).
 
+set_spawn_io_target(_Parent, Options) :-
+    option(io_target(Target), Options),
+    !,
+    bb_put('$actor_io_target', Target).
+set_spawn_io_target(_Parent, Options) :-
+    option(target(Target), Options),
+    !,
+    bb_put('$actor_io_target', Target).
+set_spawn_io_target(Parent, _) :-
+    bb_put('$actor_io_target', Parent).
+
 
 %!  stop(+Pid, +Parent) is det.
 %
@@ -241,6 +270,7 @@ stop(Pid, Parent) :-
     % hook on Trealla.
     retractall(link(Parent, Pid)),
     retractall(registered(_Name, Pid)),
+    retractall(registered_service(_Name, Pid)),
     forall(retract(link(Pid, ChildPid)),
            exit(ChildPid, linked)),
     forall(hook_stop(Pid), true),
@@ -335,6 +365,7 @@ demonitor(Ref, Options) :-
 %   taken by another Pid.
 
 :- dynamic(registered/2).
+:- dynamic(registered_service/2).
 
 register(Name, Pid) :-
     must_be(atom, Name),
@@ -364,6 +395,46 @@ whereis(Name, Pid) :-
     registered(Name, Pid),
     !.
 whereis(_Name, undefined).
+
+%!  register_service(+Name, +Pid) is det.
+%
+%   Publish a live local actor under a node-wide service name.  Unlike an
+%   ordinary registration, a published service may be addressed by remote
+%   peers as `Name@Node`.
+
+register_service(Name, Pid) :-
+    must_be(atom, Name),
+    ( catch(thread_property(Pid, status(running)), _, fail) -> true
+    ; throw(error(existence_error(process, Pid), register_service/2))
+    ),
+    ( registered_service(Name, _) ->
+        throw(error(permission_error(register, service, Name),
+                    register_service/2))
+    ; asserta(registered_service(Name, Pid))
+    ).
+
+%!  unregister_service(+Name) is det.
+
+unregister_service(Name) :-
+    must_be(atom, Name),
+    retractall(registered_service(Name, _)).
+
+%!  whereis_service(+Name, -Pid) is det.
+
+whereis_service(Name, Pid) :-
+    must_be(atom, Name),
+    registered_service(Name, Pid),
+    !.
+whereis_service(_, undefined).
+
+published_service_target(Name, Pid) :-
+    atom(Name),
+    registered_service(Name, Pid).
+
+send_service(Name, Message) :-
+    ( published_service_target(Name, Pid) -> actor_send(Pid, Message)
+    ; true
+    ).
 
 
 %!  exit(+Reason) is det.
@@ -413,6 +484,10 @@ Pid ! Message :-
 
 actor_send(Name, Message) :-
     registered(Name, Pid),
+    !,
+    actor_send(Pid, Message).
+actor_send(Name, Message) :-
+    registered_service(Name, Pid),
     !,
     actor_send(Pid, Message).
 actor_send(Pid, Message) :-
@@ -660,19 +735,23 @@ flush :-
 
 %!  make_ref(-Ref) is det.
 %
-%   Generate a fresh reference atom by drawing a random 8-digit integer.
-%   Useful for correlating request/reply pairs (see the rpc pattern).
-%
-%   Caveat: because this uses random_between/3 rather than a monotone
-%   counter or a UUID library, there is a small but non-zero probability
-%   of two refs colliding in a busy system.  For typical interactive
-%   use the collision risk is negligible.
+%   Generate a process-lifetime unique reference.  SWI's implementation
+%   uses flag/3; Trealla does not provide it, so the increment is protected
+%   explicitly by a mutex.
 
-make_ref(Ref) :-
-    random_between(10000000, 99999999, Num),
-    % atom_number/2 in Trealla only works in the parse direction
-    % (atom -> number), so use format/3 to build the atom from Num.
-    format(atom(Ref), '~w', [Num]).
+:- dynamic(actor_ref_counter/1).
+
+:- catch(mutex_create(_, [alias('$actor_ref_counter')]),
+         error(permission_error(create, mutex, '$actor_ref_counter'), _),
+         true).
+
+make_ref(ref(N)) :-
+    with_mutex('$actor_ref_counter', next_ref_number(N)).
+
+next_ref_number(N) :-
+    ( retract(actor_ref_counter(Current)) -> N = Current ; N = 0 ),
+    Next is N + 1,
+    asserta(actor_ref_counter(Next)).
 
 
                 /*******************************
@@ -712,12 +791,41 @@ output(Term, Options) :-
     Target ! output(Self, Term).
 
 
+%!  terminal_output(+Term) is det.
+%!  terminal_output(+Term, +Options) is det.
+%
+%   Send textual terminal output.  Unlike output/1, the default target is
+%   inherited independently of the actor parent, allowing an actor tree to
+%   share one terminal even when descendants run on another node.
+
+terminal_output(Term) :-
+    terminal_output(Term, []).
+
+terminal_output(Term, Options) :-
+    self(Self),
+    ( option(target(Target), Options) -> true
+    ; current_io_target(Target) -> true
+    ; get_parent(Target)
+    ),
+    ( memberchk(source(io), Options) ->
+        Target ! terminal_io_output(Self, Term)
+    ; Target ! terminal_output(Self, Term)
+    ).
+
+%!  current_io_target(-Target) is semidet.
+
+current_io_target(Target) :-
+    bb_get('$actor_io_target', Target).
+
+
 %!  input(+Prompt, -Answer) is det.
 %!  input(+Prompt, -Answer, +Options) is det.
 %
 %   Request input from the target process.  Sends `prompt(Self, Prompt)`
 %   to the target, then blocks until the target replies with
-%   `'$input'(Target, Answer)`.  Options:
+%   `'$input'(From, Answer)`.  The sender is intentionally not required to be
+%   identical to the terminal target: distributed terminal endpoints return a
+%   connection-scoped actor capability.  Options:
 %
 %     - target(+Pid)
 %       Override the default target (the actor's parent).
@@ -727,11 +835,13 @@ input(Prompt, Answer) :-
 
 input(Prompt, Answer, Options) :-
     self(Self),
-    get_parent(Parent),
-    option(target(Target), Options, Parent),
+    ( option(target(Target), Options) -> true
+    ; current_io_target(Target) -> true
+    ; get_parent(Target)
+    ),
     Target ! prompt(Self, Prompt),
     receive({
-        '$input'(Target, Answer) -> true
+        '$input'(_From, Answer) -> true
     }).
 
 
