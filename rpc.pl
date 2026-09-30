@@ -40,10 +40,12 @@ is fetched automatically on backtracking.
 
 ## Trealla port notes {#rpc-trealla}
 
-  - URIs are decomposed with library(http)'s parse_url/2; the query
-    path is assembled with format/2.
-  - `http_open/3` is called with the list form `[host(...), port(...),
-    path(...)]` because the URL-string form fails for localhost.
+  - The request URL is assembled from the base URI and handed directly to
+    the current `http_open/3`. This avoids Trealla's removed private
+    `'$parse_url'/2` predicate.
+  - `http_open/3` is wrapped in `once/1`: the current implementation leaves
+    internal socket-opening choicepoints that must not be revisited while
+    rpc/3 yields remote answers on backtracking.
   - The response body is read with getline/2, which reads one line.
     This works because the node sends the entire answer on a single
     line ending with `.\n`.  Multi-line terms in the response would be
@@ -181,21 +183,22 @@ rpc(URI, Goal, Options) :-
 rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options) :-
     url_encode(GoalAtom,     GoalEnc),
     url_encode(TemplateAtom, TemplEnc),
-    '$parse_url'(BaseURI, Parts),
-    ( memberchk(host(Host), Parts) -> true ; Host = localhost ),
-    ( memberchk(port(Port), Parts) -> true ; Port = 80 ),
-    ( memberchk(path(BasePath), Parts) -> true ; BasePath = '/' ),
-    base_path_prefix(BasePath, Prefix),
-    format(atom(FullPath),
-           '~wcall?goal=~w&template=~w&offset=~w&limit=~w&format=prolog',
-           [Prefix, GoalEnc, TemplEnc, Offset, Limit]),
-    http_open([host(Host), port(Port), path(FullPath)], S, []),
+    strip_trailing_slash(BaseURI, RootURI),
+    format(atom(URL),
+           '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog',
+           [RootURI, GoalEnc, TemplEnc, Offset, Limit]),
+    once(http_open(URL, S, [])),
     getline(S, BodyChars),
     close(S),
     atom_chars(BodyAtom, BodyChars),
     read_term_from_atom(BodyAtom, Answer, []),
     rpc_answer(Answer, Template, Offset, Limit,
                GoalAtom, TemplateAtom, BaseURI, Options).
+
+strip_trailing_slash(URI, Root) :-
+    atom_concat(Root0, '/', URI), !,
+    strip_trailing_slash(Root0, Root).
+strip_trailing_slash(URI, URI).
 
 
 %!  rpc_answer(+Answer, +Template, +Offset, +Limit, ...) is nondet.

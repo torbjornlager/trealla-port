@@ -1,5 +1,7 @@
 :- module(node,
-       [ node/1                  % +Port
+       [ node/1,                 % +Port
+         node/2,                 % +Port, :WebSocketHandler
+         node/3                  % +Port, :WebSocketHandler, +Options
        ]).
 
 /** <module> Node -- simple HTTP endpoint for toplevel queries
@@ -72,18 +74,18 @@ When a new request arrives:
 The cache is bounded by `cache_size/1` (default 100).  When the limit
 is reached, the oldest entry is evicted (FIFO).
 
-## Concurrency {#node-concurrency}
+## HTTP and WebSocket on one port {#node-websocket}
 
-The server loop in node_loop/1 handles connections one at a time in
-the calling thread.  For a production deployment each connection
-should be handled in a separate actor.
+`node(Port)` serves the existing `/call` HTTP endpoint. The
+`node(Port, WebSocketHandler)` form additionally enables `/ws`; after a
+successful RFC 6455 upgrade it calls `WebSocketHandler(WebSocket, '/ws')`.
+Accepted HTTP and WebSocket connections run in independent detached threads.
 
 ## Trealla port notes {#node-trealla}
 
-  - `library(http/thread_httpd)`, `library(http/http_dispatch)`, and
-    `library(http/http_parameters)` are absent.  The server is built
-    with Trealla's low-level `server/3` + `accept/2` loop, and query
-    parameters are parsed manually from the request path.
+  - The server uses `library(sockets)` directly so it can hand an upgraded
+    stream to the WebSocket protocol instead of closing it after an HTTP
+    response. Query parameters and request headers are parsed locally.
   - `library(settings)` is absent; cache_size defaults are plain facts.
   - `compute_answer/5` uses `receive/1` (unlimited wait) because
     producer replies are guaranteed: the producer is a local actor
@@ -95,8 +97,12 @@ should be handled in a separate actor.
 */
 
 
-:- use_module(library(http)).
+:- use_module(library(sockets)).
 :- use_module(actors).
+:- use_module(websocket).
+
+:- meta_predicate(node(+, 2)).
+:- meta_predicate(node(+, 2, +)).
 
 
                 /*******************************
@@ -192,66 +198,148 @@ parse_pairs(QStr, [Key=Val | Rest]) :-
 
 %!  node(+Port) is det.
 %
-%   Start the node HTTP server on Port.  Opens a server socket, prints
-%   a startup message, and enters node_loop/1.  Does not return.
-%
-%   The calling thread must be a registered actor (the top-level thread
-%   always is) because compute_answer/5 uses receive/1 to collect
-%   producer replies.  Concurrent connections are serialised; for a
-%   production server each connection should be handled by a separate
-%   spawn/3 actor.
+%   Start the HTTP-only node server on Port. Connections are dispatched to
+%   detached threads. Use node/2 to enable the `/ws` upgrade route.
 
 node(Port) :-
-    format(atom(Host), ':~w', [Port]),
-    '$server'(Host, S, []),
+    node_server(Port, none, []).
+
+%!  node(+Port, :WebSocketHandler) is det.
+%
+%   Start the node with a `/ws` WebSocket endpoint on the same listener as
+%   `/call`. Each upgraded connection calls
+%   `WebSocketHandler(WebSocket, Path)` in its own thread.
+
+node(Port, WebSocketHandler) :-
+    node_server(Port, WebSocketHandler, []).
+
+%!  node(+Port, :WebSocketHandler, +Options) is det.
+%
+%   Options include `ssl(true)`, `keyfile(File)`, `certfile(File)`, and
+%   `websocket_options(Options)` (for example subprotocol negotiation).
+
+node(Port, WebSocketHandler, Options) :-
+    node_server(Port, WebSocketHandler, Options).
+
+node_server(Port, WebSocketHandler, Options) :-
+    node_socket_options(Options, SocketOptions),
+    option(websocket_options(WebSocketOptions), Options, []),
+    socket_server_open(Port, S, SocketOptions),
     format("Node listening on port ~w~n", [Port]),
-    node_loop(S).
+    node_loop(S, WebSocketHandler, WebSocketOptions).
 
-%!  node_loop(+ServerSocket) is det.
+node_socket_options(Options, SocketOptions) :-
+    node_copy_option(ssl, Options, [], O1),
+    node_copy_option(keyfile, Options, O1, O2),
+    node_copy_option(certfile, Options, O2, SocketOptions).
+
+node_copy_option(Name, Options, Input, Output) :-
+    Option =.. [Name, _Value],
+    ( memberchk(Option, Options) -> append(Input, [Option], Output)
+    ; Output = Input
+    ).
+
+%!  node_loop(+ServerSocket, :WebSocketHandler) is det.
 %
-%   Accept connections in a loop.  Each accepted connection is handled
-%   by handle_connection/1.  Both exceptions thrown by
-%   handle_connection/1 and clean failures are caught: an exception is
-%   logged and the connection is closed; a failure also closes the
-%   connection.  Either way the loop continues.
+%   Accept continuously, starting an independent thread for each HTTP or
+%   WebSocket connection.
 
-node_loop(S) :-
-    '$accept'(S, C),
-    (   catch(
-            handle_connection(C),
-            Error,
-            ( format("node: error handling request: ~q~n", [Error]),
-              close(C) )
-        )
-    ->  true
-    ;   close(C)
+node_loop(S, WebSocketHandler, WebSocketOptions) :-
+    ( catch(socket_server_accept(S, _, C, [type(binary)]), Error,
+            ( format(user_error, "node: accept error: ~q~n", [Error]), fail ))
+    -> ( catch(thread_create(node_serve(C, WebSocketHandler, WebSocketOptions), _,
+                             [detached(true)]),
+               ThreadError,
+               ( close(C), throw(ThreadError) ))
+       -> true
+       ; close(C)
+       )
+    ; true
     ),
-    node_loop(S).
+    node_loop(S, WebSocketHandler, WebSocketOptions).
+
+node_serve(C, WebSocketHandler, WebSocketOptions) :-
+    catch(handle_connection(C, WebSocketHandler, WebSocketOptions), Error,
+          format(user_error, "node: error handling request: ~q~n", [Error])),
+    catch(close(C), _, true).
 
 
-%!  handle_connection(+Client) is det.
+%!  handle_connection(+Client, :WebSocketHandler) is det.
 %
-%   Read one HTTP request from Client, dispatch to the appropriate
-%   handler, and close the connection.  Only GET requests to `/call`
-%   are handled; everything else gets a 404 response.
-%
-%   The method is normalised to uppercase by http_request/5.  The
-%   path portion (before any `?`) is extracted with split/4 and
-%   converted to an atom for matching.
+%   Dispatch `/call` as ordinary HTTP and `/ws` as an RFC 6455 socket
+%   handoff. Other paths receive a 404 response.
 
-handle_connection(C) :-
-    http_request(C, Method, Path, Ver, _Hdrs),
-    ( Method = "GET", split(Path, '?', PathPart, _)
+handle_connection(C, WebSocketHandler, WebSocketOptions) :-
+    node_http_request(C, Method, Path, Ver, Headers),
+    ( split(Path, '?', PathPart, _)
     -> true
     ;  PathPart = Path
     ),
     atom_chars(PathAtom, PathPart),
-    ( PathAtom == '/call'
+    ( Method == get, PathAtom == '/call'
     -> handle_call(C, Path, Ver)
+    ; Method == get, PathAtom == '/ws', WebSocketHandler \== none
+    -> ws_accept(C, Headers, WebSocket, WebSocketOptions),
+       call(WebSocketHandler, WebSocket, PathAtom)
     ;  http_reply(C, Ver, 404, 'Not Found',
                   'text/plain', 'Not found\n')
-    ),
-    close(C).
+    ).
+
+
+%!  node_http_request(+Stream, -Method, -Path, -Version, -Headers) is det.
+%
+%   Parse one HTTP/1.x request without consuming bytes past the header block.
+%   Header names are normalized to lowercase atoms for ws_accept/3.
+
+node_http_request(Stream, Method, Path, Version, Headers) :-
+    node_http_line(Stream, RequestLine),
+    atom_codes(RequestAtom, RequestLine),
+    atomic_list_concat([Method0, Target, HTTPVersion], ' ', RequestAtom),
+    node_downcase_atom(Method0, Method),
+    atom_concat('HTTP/', Version, HTTPVersion),
+    atom_chars(Target, Path),
+    node_http_headers(Stream, Headers).
+
+node_http_headers(Stream, Headers) :-
+    node_http_line(Stream, Line),
+    ( Line == [] -> Headers = []
+    ; node_http_header(Line, Header),
+      Headers = [Header|Rest],
+      node_http_headers(Stream, Rest)
+    ).
+
+node_http_header(Codes, Name-Value) :-
+    append(NameCodes, [0':|RawValue], Codes),
+    node_trim_space(RawValue, ValueCodes),
+    atom_codes(Name0, NameCodes), node_downcase_atom(Name0, Name),
+    atom_codes(Value, ValueCodes).
+
+node_http_line(Stream, Line) :-
+    get_byte(Stream, Byte),
+    ( Byte =:= -1 -> throw(error(unexpected_eof, node_http_request/5))
+    ; Byte =:= 13 ->
+        get_byte(Stream, LF),
+        ( LF =:= 10 -> Line = []
+        ; throw(error(bad_http_line_ending, node_http_request/5)) )
+    ; Line = [Byte|Rest], node_http_line(Stream, Rest)
+    ).
+
+node_trim_space(Codes, Trimmed) :-
+    node_drop_space(Codes, Left), reverse(Left, Reversed),
+    node_drop_space(Reversed, ReversedTrimmed), reverse(ReversedTrimmed, Trimmed).
+
+node_drop_space([C|Cs], Rest) :- (C =:= 32 ; C =:= 9), !,
+    node_drop_space(Cs, Rest).
+node_drop_space(Cs, Cs).
+
+node_downcase_atom(Atom, Lower) :-
+    atom_codes(Atom, Codes), node_lower_codes(Codes, LowerCodes),
+    atom_codes(Lower, LowerCodes).
+
+node_lower_codes([], []).
+node_lower_codes([C|Cs], [L|Ls]) :-
+    ( C >= 65, C =< 90 -> L is C + 32 ; L = C ),
+    node_lower_codes(Cs, Ls).
 
 
 %!  handle_call(+Client, +Path, +Ver) is det.
@@ -305,8 +393,33 @@ param(Key, Params, Val, Default) :-
 %   would produce list notation in the response.
 
 http_reply(C, Ver, Code, Status, CType, Body) :-
-    format(C, "HTTP/~s ~w ~w\r\nContent-Type: ~w\r\nConnection: close\r\n\r\n~w",
-           [Ver, Code, Status, CType, Body]).
+    atom_codes(Body, BodyCodes), node_utf8_encode(BodyCodes, BodyBytes),
+    length(BodyBytes, Length),
+    format(atom(Header),
+           'HTTP/~w ~w ~w\r\nContent-Type: ~w\r\nContent-Length: ~w\r\nConnection: close\r\n\r\n',
+           [Ver, Code, Status, CType, Length]),
+    atom_codes(Header, HeaderBytes),
+    node_write_bytes(C, HeaderBytes), node_write_bytes(C, BodyBytes),
+    flush_output(C).
+
+node_write_bytes(_, []).
+node_write_bytes(Stream, [B|Bs]) :-
+    put_byte(Stream, B), node_write_bytes(Stream, Bs).
+
+node_utf8_encode([], []).
+node_utf8_encode([C|Cs], Bytes) :-
+    node_utf8_code(C, Head), append(Head, Rest, Bytes),
+    node_utf8_encode(Cs, Rest).
+
+node_utf8_code(C, [C]) :- C =< 127, !.
+node_utf8_code(C, [B1,B2]) :- C =< 2047, !,
+    B1 is 192 \/ (C >> 6), B2 is 128 \/ (C /\ 63).
+node_utf8_code(C, [B1,B2,B3]) :- C =< 65535, !,
+    B1 is 224 \/ (C >> 12), B2 is 128 \/ ((C >> 6) /\ 63),
+    B3 is 128 \/ (C /\ 63).
+node_utf8_code(C, [B1,B2,B3,B4]) :-
+    B1 is 240 \/ (C >> 18), B2 is 128 \/ ((C >> 12) /\ 63),
+    B3 is 128 \/ ((C >> 6) /\ 63), B4 is 128 \/ (C /\ 63).
 
 %!  reply_answer(+Client, +Ver, +Format, +Answer) is det.
 %

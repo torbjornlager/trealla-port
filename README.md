@@ -2,8 +2,8 @@
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
-(tested on v2.99.12 and v2.99.6 for mid-stream `limit(N)` changes;
-v2.97.13 for everything else).
+(currently tested on v3.12.6; earlier actor/RPC work was also tested on
+v2.99.12, v2.99.6, and v2.97.13).
 
 The port lives alongside this report:
 
@@ -13,6 +13,12 @@ The port lives alongside this report:
 | `toplevel_actors.pl`  | Shell-style PTCP for paged goal execution           |
 | `node.pl`             | HTTP server exposing `/call` for remote queries     |
 | `rpc.pl`              | HTTP client wrapper (`rpc/2,3`) over `/call`        |
+| `websocket.pl`        | Native RFC 6455 WebSocket client/server transport   |
+| `web_prolog.pl`       | Trinity-compatible version-1 actor protocol         |
+| `distribution.pl`     | Persistent remote-node client and `Pid@Node` routing |
+| `websocket_tests.pl`  | Unit and Trealla/SWI interoperability tests         |
+| `distribution_tests.pl` | Trealla/Trealla and Trealla/SWI node tests       |
+| `swi_websocket_interop.pl` | SWI side of the interoperability tests        |
 | `parallel.pl`         | `parallel/1` and `first_solution/2` demo client     |
 | `tests.pl`            | Manual test suite (no plunit on Trealla)            |
 
@@ -21,7 +27,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 30 manual tests pass on Trealla v2.99.6+ and v2.99.12 (t22 requires
+All 30 manual tests pass on Trealla v3.12.6, v2.99.6, and v2.99.12 (t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
 canonical SWI plunit suite in `simple-node/tests.pl`:
@@ -64,6 +70,203 @@ and `rpc.pl` have no automated tests but are exercised manually
 with `node(3060)` on one Trealla instance and
 `rpc('http://localhost:3060', member(X, [a,b,c]))` from another.
 
+## Native WebSocket transport
+
+`websocket.pl` is a plain Trealla Prolog implementation of the RFC 6455
+opening handshake and wire protocol. It has no Logtalk or foreign-code
+dependency. The client and standalone server have been tested in both
+directions against SWI-Prolog 10.1.3 using text (including Unicode), binary
+messages, 16-bit and 64-bit payload lengths, masking, and the closing
+handshake.
+
+The API mirrors the useful subset of SWI's WebSocket library:
+
+```prolog
+http_open_websocket('ws://localhost:8080/echo', WS, []),
+ws_send(WS, text(hello)),
+ws_receive(WS, Reply),
+ws_close(WS, 1000, done).
+```
+
+Messages are represented as `text(Atom)`, `binary(Bytes)`, `ping(Bytes)`,
+`pong(Bytes)`, and `close(Code, Reason)`. Incoming ping frames are answered
+automatically. Fragmented messages are reassembled. Incoming payloads default
+to a 16 MiB limit, configurable with `max_payload_length(Bytes)`.
+
+For a concurrent standalone server, define a handler that accepts a WebSocket
+and the requested path:
+
+```prolog
+echo(WS, '/echo') :-
+    ws_receive(WS, Message),
+    ( Message = close(Code, Reason) ->
+        ws_send(WS, close(Code, Reason))
+    ; ws_send(WS, Message),
+      echo(WS, '/echo')
+    ).
+
+?- websocket_server(8080, echo).
+```
+
+`websocket_server/2` accepts continuously in the calling thread and dispatches
+each connection to a detached handler thread. For programmatic lifecycle
+control, `websocket_server_start(Port, Handler, Server)` returns immediately
+and `websocket_server_stop(Server)` stops and joins the listener. Existing
+connection handlers are allowed to finish independently.
+
+Run the unit tests on Trealla:
+
+```sh
+tpl -g "consult(websocket_tests),websocket_tests,halt"
+```
+
+For a Trealla client against an SWI server, start the server:
+
+```sh
+swipl -q -s swi_websocket_interop.pl -g "server(38765)"
+```
+
+Then run:
+
+```sh
+tpl -g "consult(websocket_tests),trealla_client_test(38765),halt"
+```
+
+For the reverse direction, start the one-shot Trealla server:
+
+```sh
+tpl -g "consult(websocket_tests),trealla_server_once(38766),halt"
+```
+
+Then run the SWI client:
+
+```sh
+swipl -q -s swi_websocket_interop.pl -g "client_test(38766),halt"
+```
+
+The concurrent server stress/interoperability test uses eight simultaneous SWI
+clients:
+
+```sh
+tpl -g "consult(websocket_tests),trealla_concurrent_server(38767,8),halt"
+```
+
+In another terminal:
+
+```sh
+swipl -q -s swi_websocket_interop.pl \
+  -g "concurrent_client_test(38767,8),halt"
+```
+
+The node can expose HTTP RPC and WebSocket traffic on one port:
+
+```prolog
+node_ws(WS, '/ws') :-
+    ws_receive(WS, Message),
+    ws_send(WS, Message),
+    node_ws(WS, '/ws').
+
+?- node(3060, node_ws).
+```
+
+Clients can then use `http://localhost:3060/call?...` and
+`ws://localhost:3060/ws` concurrently. The handoff uses `ws_accept/3`, which
+validates the already-parsed upgrade headers, sends the HTTP 101 response, and
+returns the WebSocket handle without closing the stream.
+
+`wss://` is supported natively when Trealla was built with OpenSSL.  A secure
+node uses the same handler and adds socket options:
+
+```prolog
+?- web_prolog_node(3060,
+       [ssl(true), keyfile('key.pem'), certfile('cert.pem')]).
+```
+
+The client selects TLS from the URL automatically.  Trealla 3.12.6 encrypts a
+connection opened without `certfile/1`, but its socket layer does not verify
+the peer in that mode.  Passing `certfile/1` enables the verification path but
+the current Trealla implementation does not perform hostname verification.
+Production deployments should terminate TLS in a well-configured proxy until
+Trealla's client verification is complete.
+
+The transport also implements optional RFC 6455 subprotocol negotiation.
+Web Prolog does **not** request a WebSocket subprotocol: Trinity version 1 is
+announced with `X-Web-Prolog-Protocol: 1` and its JSON command vocabulary.
+Extensions such as `permessage-deflate` remain unsupported.
+
+## Native Web Prolog protocol
+
+`web_prolog.pl` implements the protocol specified by the Trinity demonstrator
+in `prolog/web_prolog/node_ws.pl`, `remote_protocol.pl`, and
+`docs/CROSS_NODE_ARCHITECTURE.md`.  It is native Trealla code and uses no
+Logtalk.  Start an HTTP `/call` endpoint and Web Prolog `/ws` endpoint on one
+port with:
+
+```prolog
+?- use_module(web_prolog), web_prolog_node(3060).
+```
+
+Protocol version 1 uses one JSON object per text frame.  The port accepts the
+core actor commands `spawn`, `send`, `monitor`, `demonitor`, and `exit`, plus
+`toplevel_spawn`, `toplevel_call`, `toplevel_next`, `toplevel_stop`,
+`toplevel_abort`, `toplevel_halt`, and `toplevel_respond`.  It emits Trinity's
+`spawned`, `success`, `failure`, `error`, `output`, `prompt`, `down`, `stop`,
+`abort`, `responded`, and `halted` events.  The optional version-1
+`transport_hello` / `transport_welcome` exchange is also implemented.
+
+The canonical toplevel call keeps terms in strings and shares variables by
+parsing `goal` and `options` together:
+
+```json
+{"command":"toplevel_call", "pid":1,
+ "goal":"member(X,[a,b,c])", "options":"[template(X),limit(2)]"}
+```
+
+Trealla allocates integer wire PIDs, matching the Trinity
+protocol even though current Trealla thread handles are opaque terms.  A
+dedicated relay actor is the only WebSocket writer, while the connection
+reader remains free to accept `next`, `stop`, and `abort` during execution.
+Actors and sessions owned by a connection are terminated when it closes.
+
+The current protocol layer is for trusted peers.  It does not yet port
+Trinity's origin/authentication policy, execution profiles and sandbox,
+resource quotas, source-loading options, browser virtual PIDs, distributed
+terminal acknowledgements, or Trinity's full node-controller routing table.
+Do not expose its
+goal execution endpoint directly to an untrusted network.
+
+### Persistent remote nodes
+
+`distribution.pl` adds the client-side distribution layer.  Each
+`remote_node_open/2` call creates one persistent WebSocket with separate
+reader and writer actors.  The writer serializes frames and spawn replies;
+the reader routes events to the local actor that initiated the remote spawn.
+
+```prolog
+?- use_module(distribution),
+   remote_node_open('ws://other-node:3060/ws', Node),
+   remote_toplevel_spawn(Node, Pid, [session(true)]),
+   remote_toplevel_call(Node, Pid, member(X,[a,b,c]),
+                        [template(X),limit(2)]),
+   receive({success(Pid, Rows, More) -> true}).
+Pid = 1@'ws://other-node:3060/ws',
+Rows = [a,b],
+More = true.
+```
+
+The API provides `remote_spawn/4`, `remote_send/3`, `remote_exit/3`, remote
+monitor operations, and the complete remote `toplevel_*` control family.
+Goal and template variables are numbered together before transmission, so
+variable sharing survives the two JSON string fields.  Events that race with
+spawn registration are buffered and replayed after the remote PID is known.
+Connection loss generates `down(Pid,Pid,connection_closed)` for live remote
+targets.
+
+The outbound connection identifies itself with protocol version 1 plus the
+Trinity node headers `X-Web-Prolog-User` and
+`X-Web-Prolog-Capabilities`.  The defaults are intended for trusted private
+node networks and can be replaced with explicit `header/2` options.
+
 ## What is supported
 
 ### actors.pl
@@ -98,6 +301,8 @@ with `node(3060)` on one Trealla instance and
 ### node.pl
 
 - `node/1` — start an HTTP server on a port
+- `node/2` — serve `/call` and a `/ws` WebSocket endpoint on the same port;
+  each connection runs in its own detached thread
 - `GET /call?goal=…&template=…&offset=…&limit=…&format=prolog`
   with URL percent-encoded Prolog terms; returns one of
   `success(Slice, More).`, `failure.`, or `error(E).`
@@ -131,9 +336,23 @@ fully supported.)
 
 ### node.pl
 
-- The server loop handles connections one at a time in the calling
-  thread; for production deployment each connection should be
-  dispatched to its own actor.
+- Active detached connections are not currently tracked for graceful
+  process-wide shutdown.
+
+### web_prolog.pl
+
+- Core version-1 wire compatibility is implemented; Trinity's security,
+  resource-governance, source-loading, and full distributed-routing layers
+  remain to be ported.
+- A TLS-enabled Trealla client currently lacks complete hostname-verified
+  certificate validation in the underlying socket implementation.
+
+### distribution.pl
+
+- Remote operations currently use explicit `remote_*` predicates rather than
+  transparent hooks on local `spawn/3`, `!/2`, and `exit/2`.
+- Connections do not yet reconnect automatically or restore routing state
+  after a network failure.
 
 ### rpc.pl
 
@@ -223,14 +442,13 @@ enumeration into a single `run_call/6` predicate that allocates
 
 ### `node.pl`
 
-#### 1. No higher-level HTTP framework
+#### 1. Direct socket server enables protocol handoff
 
-Trealla ships only a low-level HTTP layer in `library(http)`
-(`http_server/2` is a thin wrapper that forks per connection,
-which would break the producer-actor cache). The server is built
-directly on `'$server'/3` + `'$accept'/2`, and query parameters
-are parsed manually with a small percent-decoder (`url_decode/2`)
-and a `split/4` driver.
+The node uses `library(sockets)` directly. It parses the HTTP request once,
+serves `/call` normally, or passes the same open stream to `ws_accept/3` for
+`/ws`. This avoids the standard HTTP server's unconditional
+`Content-Length`, `Connection: close`, and socket close behavior. Query
+parameters are parsed with a small percent-decoder (`url_decode/2`).
 
 #### 2. `library(settings)` absent
 
@@ -262,12 +480,13 @@ timeout would only obscure real bugs.
 
 ### `rpc.pl`
 
-#### 1. `http_open/3` URL-string form is unreliable for localhost
+#### 1. `http_open/3` is committed with `once/1`
 
-Calling `http_open('http://localhost:3060/...', S, [])` does not
-reliably connect on Trealla. The list form is used instead:
-`http_open([host(H), port(P), path(P0)], S, [])`. URI
-decomposition is delegated to `library(http)`'s `'$parse_url'/2`.
+Trealla v3.12.6's `http_open/3` leaves internal socket-opening choicepoints.
+The RPC client commits to the successful connection with `once/1`, preventing
+those internals from being revisited when RPC answers are yielded on
+backtracking. URLs are passed directly to the public API; the removed private
+`'$parse_url'/2` predicate is no longer used.
 
 #### 2. URL percent-encoding is hand-rolled
 
@@ -277,8 +496,8 @@ stdlib, so `url_encode/2` is implemented inline alongside
 
 ## Overall assessment
 
-Four modules are ported and exercised on Trealla v2.97.13 through
-v2.99.12 (all 30 tests pass on every tested version):
+The actor/RPC modules are ported and exercised through Trealla v3.12.6
+(all 30 actor tests pass on the current version):
 
 - **`actors.pl`** — feature-complete, including positive `receive`
   timeouts via the native `thread_get_message/3` `timeout(Float)`
@@ -291,10 +510,17 @@ v2.99.12 (all 30 tests pass on every tested version):
   `count(N)` cells into its instruction sequence (issue #1026), but
   the port requires no code changes: the same-catch-frame
   arrangement in `run_call/6` continues to work correctly.
-- **`node.pl`** — single-threaded server, `format=prolog` only.
+- **`node.pl`** — concurrent HTTP/WebSocket server, `format=prolog` only for
+  the legacy `/call` route.
   The producer-actor cache works particularly cleanly thanks to
   Trealla's stack-preserving `receive/1`.
 - **`rpc.pl`** — `http://` only.
+- **`websocket.pl` / `web_prolog.pl`** — native `ws://` and `wss://`
+  transport with the Trinity version-1 actor vocabulary, tested in both
+  Trealla-to-SWI and SWI-to-Trealla directions.
+- **`distribution.pl`** — persistent remote-node connections and asynchronous
+  routing to local actor mailboxes using Trinity-compatible `Pid@NodeURL`
+  identifiers.
 
 Every other delta is a small, localised workaround for a
 Trealla-specific quirk.
