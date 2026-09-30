@@ -39,8 +39,8 @@ Erlang-on-Prolog implementation, it omits:
 
   - *Goal isolation*: there is no `load_*` option to sandbox a spawned
     goal; spawned code runs in the caller's module space.
-  - *Distribution*: all actors run in the same Prolog process; there
-    is no `node` option and no network transport.
+  - *Distribution by itself*: loading `distribution.pl` installs routing
+    hooks for remote `spawn/3`, `(!)/2`, `exit/2`, and monitor operations.
 
 What it does provide:
 
@@ -132,6 +132,14 @@ Reply = hello.
 :- meta_predicate(spawn(0, -, +)).
 :- meta_predicate(receive(:, +)).
 
+:- multifile
+    hook_spawn/3,
+    hook_send/2,
+    hook_exit/2,
+    hook_monitor/3,
+    hook_demonitor/1,
+    hook_stop/1.
+
 
 %!  spawn(:Goal) is det.
 %!  spawn(:Goal, -Pid) is det.
@@ -156,6 +164,9 @@ Reply = hello.
 %       If `true`, the spawning actor and the new actor are linked:
 %       termination of the spawning actor propagates an exit signal to
 %       the new actor, but not the reverse. Default: `true`.
+%     - node(+URL)
+%       When `distribution.pl` is loaded and URL is not `localhost`, spawn
+%       the actor on that Web Prolog node and return a canonical `Pid@URL`.
 
 :- dynamic(link/2).
 
@@ -165,6 +176,9 @@ spawn(Goal) :-
 spawn(Goal, Pid) :-
     spawn(Goal, Pid, []).
 
+spawn(Goal, Pid, Options) :-
+    hook_spawn(Goal, Pid, Options),
+    !.
 spawn(Goal, Pid, Options) :-
     thread_self(Self),
     thread_create(start(Self, Pid, Goal, Options), Pid, [
@@ -229,6 +243,7 @@ stop(Pid, Parent) :-
     retractall(registered(_Name, Pid)),
     forall(retract(link(Pid, ChildPid)),
            exit(ChildPid, linked)),
+    forall(hook_stop(Pid), true),
     down_reason(Pid, Reason),
     forall(retract(monitor(Other, Pid, Ref)),
            Other ! down(Pid, Ref, Reason)).
@@ -281,9 +296,16 @@ self(Self) :-
 :- dynamic(monitor/3).
 
 monitor(Name, Ref) :-
+    atom(Name),
     whereis(Name, Pid),
     !,
     monitor(Pid, Ref).
+monitor(Pid, Ref) :-
+    self(Self),
+    make_ref(Ref),
+    hook_monitor(Self, Pid, Ref),
+    !,
+    assertz(monitor(Self, Pid, Ref)).
 monitor(Pid, Ref) :-
     self(Self),
     make_ref(Ref),
@@ -294,6 +316,7 @@ demonitor(Ref) :-
     demonitor(Ref, []).
 
 demonitor(Ref, Options) :-
+    forall(hook_demonitor(Ref), true),
     retractall(monitor(_, _, Ref)),
     (   option(flush, Options)
     ->  receive({
@@ -371,6 +394,9 @@ exit(Reason) :-
 %   safety net.
 
 exit(Pid, Reason) :-
+    hook_exit(Pid, Reason),
+    !.
+exit(Pid, Reason) :-
     catch(thread_signal(Pid, actors:exit(Reason)), _, true).
 
 
@@ -389,6 +415,9 @@ actor_send(Name, Message) :-
     registered(Name, Pid),
     !,
     actor_send(Pid, Message).
+actor_send(Pid, Message) :-
+    hook_send(Pid, Message),
+    !.
 actor_send(Pid, Message) :-
     catch(thread_send_message(Pid, Message), _, true).
 

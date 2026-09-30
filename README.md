@@ -238,9 +238,30 @@ goal execution endpoint directly to an untrusted network.
 ### Persistent remote nodes
 
 `distribution.pl` adds the client-side distribution layer.  Each
-`remote_node_open/2` call creates one persistent WebSocket with separate
-reader and writer actors.  The writer serializes frames and spawn replies;
-the reader routes events to the local actor that initiated the remote spawn.
+remote node uses one persistent WebSocket with separate reader and writer
+actors.  A node-manager thread caches connections and maps canonical
+`Pid@Node` values to their writer.  The writer serializes frames and spawn
+replies; the reader routes events to the local actors that own monitors.
+
+Loading `distribution.pl` installs transparent routing hooks in `actors.pl`.
+Ordinary actor syntax can therefore target a remote node:
+
+```prolog
+?- use_module(distribution),
+   spawn(receive({hello -> true}), Pid,
+         [node('http://other-node:3060'), monitor(true)]),
+   Pid ! hello,
+   receive({down(Pid, Pid, true) -> true}).
+```
+
+The same `Pid@Node` value works with `!/2`, `exit/2`, `monitor/2`, and
+`demonitor/1-2`. Cross-node links default to `true`, so termination of a
+local parent propagates an exit to its remote children. Multiple local
+actors may independently monitor one remote PID; the connection-owned
+wire notification is fanned out as one `down/3` per local monitor.
+
+The explicit connection API remains available when connection lifetime must
+be controlled directly:
 
 ```prolog
 ?- use_module(distribution),
@@ -349,10 +370,12 @@ fully supported.)
 
 ### distribution.pl
 
-- Remote operations currently use explicit `remote_*` predicates rather than
-  transparent hooks on local `spawn/3`, `!/2`, and `exit/2`.
 - Connections do not yet reconnect automatically or restore routing state
   after a network failure.
+- Remote actors cannot yet initiate arbitrary messages back to canonical
+  Trealla PIDs, and published `Name@Node` service routing is not implemented.
+- Distributed terminal endpoint inheritance and output acknowledgement remain
+  to be ported.
 
 ### rpc.pl
 
