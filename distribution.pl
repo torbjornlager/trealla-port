@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 :- module(distribution,
     [ remote_node_open/2,
       remote_node_open/3,

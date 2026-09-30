@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 /** <module> SWI-Prolog side of the WebSocket interoperability tests */
 
 :- module(swi_websocket_interop,

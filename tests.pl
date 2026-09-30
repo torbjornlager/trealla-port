@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 /** <module> Tests -- manual test suite for actors and toplevel_actors
 
 This file is a flat, sequential test suite for actors.pl and

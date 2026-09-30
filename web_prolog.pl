@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 :- module(web_prolog,
     [ web_prolog_node/1,
       web_prolog_node/2,

@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 %%  parallel(+Goals)
 %
 %   Runs all Goals concurrently and succeeds only if every goal succeeds.

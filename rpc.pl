@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 :- module(rpc,
        [ rpc/2,                  % +URI, :Goal
          rpc/3                   % +URI, :Goal, +Options

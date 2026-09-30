@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 /** <module> Integration drivers for native Web Prolog distribution */
 
 :- use_module(distribution).

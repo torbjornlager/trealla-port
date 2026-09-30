@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 :- module(node,
        [ node/1,                 % +Port
          node/2,                 % +Port, :WebSocketHandler

@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 :- module(actors,
        [ spawn/1,                % :Goal
          spawn/2,                % :Goal, -Pid

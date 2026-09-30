@@ -20,6 +20,7 @@ The port lives alongside this report:
 | `distribution_tests.pl` | Trealla/Trealla and Trealla/SWI node tests       |
 | `swi_websocket_interop.pl` | SWI side of the interoperability tests        |
 | `UPSTREAM_REPORTS.md`   | Candidate Trealla feature requests and bug reports |
+| `NOTICE.md`            | Source provenance and third-party attribution   |
 | `parallel.pl`         | `parallel/1` and `first_solution/2` demo client     |
 | `tests.pl`            | Manual test suite (no plunit on Trealla)            |
 
@@ -449,6 +450,13 @@ fully supported.)
 ### rpc.pl
 
 - `https://` URIs are not supported (only `http://`).
+
+## License and attribution
+
+This project is distributed under the [MIT License](LICENSE). Source
+provenance, runtime licenses, and development acknowledgements are recorded in
+[NOTICE.md](NOTICE.md). Trealla Prolog and SWI-Prolog are external dependencies
+and are not vendored in this repository.
 
 ## Portability deltas
 

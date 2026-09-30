@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 :- module(websocket,
     [ http_open_websocket/3,
       ws_open/3,

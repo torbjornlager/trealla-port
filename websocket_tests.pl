@@ -1,3 +1,5 @@
+% SPDX-License-Identifier: MIT
+
 /** <module> Tests for the native Trealla WebSocket transport
 
 Run the self-contained tests with:
