@@ -674,6 +674,77 @@ Current workaround: the Trealla actor I/O adapter translates unescaped `~p`
 to Trealla's `~q` before calling native `format/3`. Escaped `~~p` remains
 literal text. Regression test 111 covers the original guarded-receive query.
 
+### BUG-019: Rebuilding `If -> Then ; Else` loses commitment semantics
+
+**Status:** Ready
+**Priority:** High
+
+Trealla v3.12.6 changes the semantics of an if-then-else term after the term
+has been recursively deconstructed and rebuilt. If `If` succeeds and `Then`
+subsequently fails, `Else` is incorrectly executed. Calling the original term
+without rebuilding it correctly fails without entering `Else`.
+
+Standalone reproducer (`reproducers/bug-019-rebuilt-if-then-else.pl`):
+
+```prolog
+reproducer :-
+    rebuild_control((true -> fail ; writeln(unexpected_else)), Goal),
+    ( call(Goal) ->
+        writeln(unexpected_success)
+    ; writeln(expected_failure)
+    ).
+
+rebuild_control((Left0 ; Right0), (Left ; Right)) :- !,
+    rebuild_control(Left0, Left),
+    rebuild_control(Right0, Right).
+rebuild_control((If0 -> Then0), (If -> Then)) :- !,
+    rebuild_control(If0, If),
+    rebuild_control(Then0, Then).
+rebuild_control(Goal, Goal).
+```
+
+Run:
+
+```text
+tpl -f reproducers/bug-019-rebuilt-if-then-else.pl -g "reproducer,halt"
+```
+
+Expected output:
+
+```text
+expected_failure
+```
+
+Observed output:
+
+```text
+unexpected_else
+unexpected_success
+```
+
+The reproducer was confirmed on macOS 26.5.1 arm64, built with Apple Clang
+21.0.0 and `NOSSL=1`, against both the v3.12.6 release and upstream `HEAD`
+commit `8fa6f4e986016fdfe0ad7c29a8560fba22868194` (the two refs currently resolve
+to the same commit). It does not depend on Web Prolog, modules, threads,
+sockets, or dynamically asserted clauses.
+
+No duplicate was found in the upstream tracker on 2026-10-02. Closed issues
+[#130](https://github.com/trealla-prolog/trealla-prolog/issues/130) and
+[#651](https://github.com/trealla-prolog/trealla-prolog/issues/651) concern
+other if-then-else discrepancies, but neither involves rebuilding a control
+term before `call/1`.
+
+Impact: compatibility layers commonly walk control terms to qualify or rewrite
+their leaves before execution. The Web Prolog actor isolation layer does this
+for private source modules; the defect caused a failed timeout branch to enter
+the terminating `Else` branch, so repeated promise polling returned its first
+timeout instead of waiting for the remote answer.
+
+Current workaround: the Trealla port detects the affected promise-polling
+shape and executes its control loop in the statically compiled RPC module.
+Regression test 121 covers reconstructed commitment, and the SWI-to-Trealla
+promise/yield interoperability test covers the original polling query.
+
 ## Compatibility gaps worth tracking, but not yet bug reports
 
 These missing facilities increase porting work but need a clearer upstream
