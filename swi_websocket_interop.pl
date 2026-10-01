@@ -10,6 +10,7 @@
             concurrent_client_test/3,
             protocol_server/1,
             protocol_client_test/1,
+            connection_thread_parity_test/1,
             source_server/1,
             source_uri_client_test/2,
             ip_policy_client_test/1,
@@ -175,6 +176,38 @@ protocol_client_test(Port) :-
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
     format('SWI Web Prolog protocol client test: ok~n').
+
+connection_thread_parity_test(Port) :-
+    open_parity_shell(Port, First, FirstPid),
+    assert_parity_shape(First, FirstPid),
+    % Closing the underlying WebSocket stream without a close frame models a
+    % browser reload or network loss.  The Trealla node must reclaim both its
+    % shell and relay before the replacement connection becomes observable.
+    close(First, [force(true)]),
+    sleep(0.2),
+    open_parity_shell(Port, Second, SecondPid),
+    assert_parity_shape(Second, SecondPid),
+    close(Second, [force(true)]),
+    sleep(0.2),
+    format('SWI client -> Trealla connection thread parity test: ok~n').
+
+open_parity_shell(Port, WS, Pid) :-
+    format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
+    http_open_websocket(URL, WS, []),
+    send_json(WS, json{command:"transport_hello", version:1}),
+    receive_type(WS, "transport_welcome", _),
+    send_json(WS, json{command:"toplevel_spawn", options:"[]"}),
+    receive_type(WS, "spawned", Spawned),
+    Pid = Spawned.pid.
+
+assert_parity_shape(WS, Pid) :-
+    send_json(WS, json{command:"toplevel_call", pid:Pid,
+                       goal:"actors(Actors),length(Actors,Visible),live_actor_count(Live)",
+                       options:"[limit(1)]"}),
+    receive_type(WS, "success", Success),
+    Success.data = [Bindings],
+    get_dict('Visible', Bindings, "1"),
+    get_dict('Live', Bindings, "2").
 
 source_uri_client_test(Port, SourcePort) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),

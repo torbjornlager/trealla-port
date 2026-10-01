@@ -33,6 +33,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t9  parallel/1 -- one goal fails (overall failure)
   - t10 first_solution/2 -- race between slow and fast goal
   - t113 actors/1 returns a deterministic live-actor snapshot
+  - t115 connection-scoped actors/1 hides internal relays and other shells
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -200,7 +201,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 run_test_group(actors) :-
     t1, t2, t3, t4, t5, t6, t7,
     t19, t20, t21, t23, t24, t25, t26,
-    t31, t32, t33, t98, t113.
+    t31, t32, t33, t98, t113, t115.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
     t22, t27, t28, t29, t99, t100, t101, t111, t112.
@@ -828,6 +829,37 @@ t113 :-
     actors(After),
     \+ memberchk(Child, After),
     format("113. live actor enumeration ok~n").
+
+%!  t115 is det.
+%
+%   A scoped internal actor is a runtime implementation detail.  Its public
+%   child inherits the scope and sees only public actors in that same scope.
+
+t115 :-
+    self(Self),
+    actors:spawn_scoped(scoped_actor_probe(Self), Relay,
+                        [monitor(true),link(false)],
+                        ws_client(test_scope), internal),
+    receive({scoped_actor_result(Child, Visible) -> true},
+            [timeout(1),on_timeout(fail)]),
+    Visible == [Child],
+    actors(All),
+    memberchk(Relay, All),
+    memberchk(Child, All),
+    Relay ! finish,
+    receive({down(Relay, Relay, true) -> true},
+            [timeout(1),on_timeout(fail)]),
+    \+ actors:actor_public_namespace(Child, _),
+    format("115. connection-scoped public actor enumeration ok~n").
+
+scoped_actor_probe(Parent) :-
+    spawn(receive({stop -> true}), Child, [monitor(true),link(false)]),
+    actors(Visible),
+    Parent ! scoped_actor_result(Child, Visible),
+    receive({finish -> true}),
+    Child ! stop,
+    receive({down(Child, Child, true) -> true},
+            [timeout(1),on_timeout(fail)]).
 
 
                 /*******************************

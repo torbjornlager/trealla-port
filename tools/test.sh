@@ -214,6 +214,9 @@ run_interop() {
     run_with_timeout "SWI client -> Trealla protocol node" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "protocol_client_test($trealla_protocol_port),halt"
+    run_with_timeout "SWI client -> Trealla connection thread parity" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "connection_thread_parity_test($trealla_protocol_port),halt"
     run_with_timeout "SWI client -> Trealla allowlisted source URI" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "source_uri_client_test($trealla_protocol_port,$source_port),halt"

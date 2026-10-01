@@ -141,6 +141,7 @@ Reply = hello.
 :- meta_predicate(spawn(0)).
 :- meta_predicate(spawn(0, -)).
 :- meta_predicate(spawn(0, -, +)).
+:- meta_predicate(spawn_scoped(0, -, +, +, +)).
 :- meta_predicate(receive(:, +)).
 
 :- use_module(isolation).
@@ -159,6 +160,8 @@ Reply = hello.
 :- dynamic thread_pid/2.
 :- dynamic issued_pid/1.
 :- dynamic issued_ref/1.
+:- dynamic actor_namespace/2.
+:- dynamic actor_public_namespace/2.
 
 :- catch(mutex_create(_, [alias('$actor_registry')]),
          error(permission_error(create, mutex, '$actor_registry'), _),
@@ -207,6 +210,20 @@ spawn(Goal, Pid, Options) :-
     hook_spawn(Goal, Pid, Options),
     !.
 spawn(Goal, Pid, Options0) :-
+    current_actor_namespace(Namespace),
+    spawn_local(Goal, Pid, Options0, Namespace, public).
+
+% Internal entry point used by connection runtimes.  An internal actor still
+% carries Namespace so actors that it spawns inherit the browser session's
+% scope, but it is deliberately omitted from actors/1 in that scope.
+spawn_scoped(Goal, Pid, Options, Namespace, Visibility) :-
+    valid_actor_visibility(Visibility),
+    spawn_local(Goal, Pid, Options, Namespace, Visibility).
+
+valid_actor_visibility(public).
+valid_actor_visibility(internal).
+
+spawn_local(Goal, Pid, Options0, Namespace, Visibility) :-
     strip_module(Goal, GoalModule, _),
     isolation:rewrite_source_options(Options0, GoalModule, Options1),
     inherit_spawn_io_target(Options1, Options),
@@ -219,7 +236,8 @@ spawn(Goal, Pid, Options0) :-
               detached(true),
               at_exit(stop(Pid, Self))
           ]),
-          assertz(actor_alive(Pid))
+          assertz(actor_alive(Pid)),
+          remember_actor_namespace(Visibility, Pid, Namespace)
         )),
     thread_get_message('$actor_started'(Pid, StartResult)),
     ( StartResult == ok
@@ -227,6 +245,24 @@ spawn(Goal, Pid, Options0) :-
     ; StartResult = error(Error),
       throw(Error)
     ).
+
+current_actor_namespace(Namespace) :-
+    thread_self(Thread),
+    thread_pid(Thread, Pid),
+    actor_namespace(Pid, Namespace),
+    !.
+current_actor_namespace(none).
+
+remember_actor_namespace(Visibility, Pid, Namespace) :-
+    Namespace \== none,
+    !,
+    assertz(actor_namespace(Pid, Namespace)),
+    remember_public_actor_namespace(Visibility, Pid, Namespace).
+remember_actor_namespace(_, _, _).
+
+remember_public_actor_namespace(public, Pid, Namespace) :- !,
+    assertz(actor_public_namespace(Pid, Namespace)).
+remember_public_actor_namespace(_, _, _).
 
 inherit_spawn_io_target(Options, Options) :-
     ( memberchk(io_target(_), Options) ; memberchk(target(_), Options) ),
@@ -316,6 +352,8 @@ stop(Pid, Parent) :-
     retractall(registered_service(_Name, Pid)),
     with_mutex('$actor_registry',
         ( retractall(actor_alive(Pid)),
+          retractall(actor_namespace(Pid, _)),
+          retractall(actor_public_namespace(Pid, _)),
           retractall(pid_thread(Pid, _)),
           retractall(thread_pid(_, Pid))
         )),
@@ -342,12 +380,25 @@ live_actor_count_unlocked(Count) :-
 
 %!  actors(-Pids) is det.
 %
-%   Return a snapshot of all live actor PIDs.  This intentionally excludes
-%   non-actor runtime threads that acquired an identity through self/1.
+%   Return a snapshot of live public actor PIDs.  Inside a WebSocket actor,
+%   the snapshot is restricted to that connection's namespace and omits the
+%   internal relay.  Outside a scoped runtime it retains the local diagnostic
+%   behaviour of returning every actor.  Non-actor threads that merely
+%   acquired an identity through self/1 are always excluded.
 
 actors(Pids) :-
-    with_mutex('$actor_registry', findall(Pid, actor_alive(Pid), Pids)),
+    current_actor_namespace(Namespace),
+    with_mutex('$actor_registry', actors_unlocked(Namespace, Pids)),
     !.
+
+actors_unlocked(none, Pids) :-
+    findall(Pid, actor_alive(Pid), Pids).
+actors_unlocked(Namespace, Pids) :-
+    findall(Pid,
+            ( actor_alive(Pid),
+              actor_public_namespace(Pid, Namespace)
+            ),
+            Pids).
 
 
 %!  down_reason(+Pid, -Reason) is det.

@@ -135,6 +135,7 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 103 | submitted guarded receives and timeout callbacks retain actor syntax/module | ok |
 | 113 | live `actors/1` snapshots exclude non-actor runtime threads | ok |
 | 114 | shared database visibility and actor-local shadowing | ok |
+| 115 | connection-scoped `actors/1` hides relays and other shells | ok |
 | 104 | sandboxed nested spawn retains its runtime module in source sessions | ok |
 | 105 | nested `src_predicates/1` copies source from its private parent session | ok |
 
@@ -607,7 +608,13 @@ logical-PID-to-thread registry. The same PID is returned by `spawn/2`, by
 the child actor's `self/1`, and on the WebSocket wire; opaque Trealla thread
 handles never enter the public actor API. A dedicated relay actor is the only WebSocket writer, while the connection
 reader remains free to accept `next`, `stop`, and `abort` during execution.
-Actors and sessions owned by a connection are terminated when it closes.
+Like the SWI implementation, an active browser shell therefore uses three
+threads: one connection reader, one relay, and one shell actor. `actors/1`
+returns only public actors in the calling shell's connection namespace, so a
+fresh shell reports itself rather than its internal relay or actors belonging
+to other browser connections. Actors and sessions owned by a connection are
+terminated before connection cleanup completes; this applies to close frames,
+abrupt socket loss, and browser reloads.
 Every PID-bearing control command also resolves the PID through that
 connection's relay, so a second authenticated connection cannot send to,
 monitor, exit, stop, abort, respond to, or halt another connection's actors or

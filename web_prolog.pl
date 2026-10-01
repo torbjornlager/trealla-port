@@ -137,10 +137,15 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
     ; Principal = principal(local, [admin]), Identity = local
     ),
     thread_self(Reader),
-    spawn(relay_start(WS, Principal, Identity), Relay, [link(false)]),
+    make_ref(NamespaceId),
+    Namespace = ws_client(NamespaceId),
+    actors:spawn_scoped(
+        relay_start(WS, Principal, Identity), Relay,
+        [link(false)], Namespace, internal),
     setup_call_cleanup(
         observe_activity_start(ws_connection, Reader, Principal, websocket),
-        read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity),
+        once(read_loop(WS, Relay, Reader, Profile, Sandbox,
+                       Principal, Identity)),
         ( close_connection(Relay),
           observe_activity_end(ws_connection, Reader, disconnected) )
     ).
@@ -154,8 +159,7 @@ read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
               ( note_ws_ip_offense(Error), Relay ! protocol_error(Error) )),
         read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity)
     ; Frame = close(Code, Reason) ->
-        Relay ! '$peer_close'(Code, Reason, Reader),
-        thread_get_message(Reader, '$peer_closed'(Relay))
+        Relay ! '$peer_close'(Code, Reason)
     ; Frame == end_of_file ->
         true
     ; read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity)
@@ -163,7 +167,44 @@ read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
 
 close_connection(Relay) :-
     close_browser_io(Relay),
-    Relay ! '$ws_close'.
+    connection_owned_actors(Relay, OwnedActors),
+    Relay ! '$ws_close',
+    await_actor_threads_stopped([Relay|OwnedActors], 3),
+    stop_connection_survivors([Relay|OwnedActors]),
+    await_actor_threads_stopped([Relay|OwnedActors], 2).
+
+connection_owned_actors(Relay, Actors) :-
+    with_mutex('$browser_actor_capabilities',
+        findall(RuntimePid,
+                browser_actor_capability(Relay, _, RuntimePid),
+                Actors0)),
+    sort(Actors0, Actors).
+
+stop_connection_survivors([]).
+stop_connection_survivors([Pid|Pids]) :-
+    ( actors:actor_thread(Pid, _) -> catch(exit(Pid, connection_closed), _, true)
+    ; true
+    ),
+    stop_connection_survivors(Pids).
+
+await_actor_threads_stopped(Pids, Timeout) :-
+    get_time(Now),
+    Deadline is Now + Timeout,
+    await_actor_threads_stopped_until(Pids, Deadline).
+
+await_actor_threads_stopped_until(Pids, Deadline) :-
+    ( actor_threads_stopped(Pids) -> true
+    ; get_time(Now),
+      ( Now >= Deadline -> true
+      ; sleep(0.01),
+        await_actor_threads_stopped_until(Pids, Deadline)
+      )
+    ).
+
+actor_threads_stopped([]).
+actor_threads_stopped([Pid|Pids]) :-
+    \+ actors:actor_thread(Pid, _),
+    actor_threads_stopped(Pids).
 
 note_ws_ip_offense(error(rate_limit_exceeded(_,_,_,_), _)) :- !,
     ( node:current_connection_client_ip(ClientIP)
@@ -421,10 +462,9 @@ relay_message(WS, '$transport_hello'(Version, IoAck, Profile, Sandbox, Reader)) 
     set_browser_io_enabled(Relay, IoAck),
     send_event(WS, transport_welcome(Version, Profile, Sandbox)),
     thread_send_message(Reader, '$transport_ready'(Relay)).
-relay_message(WS, '$peer_close'(Code, Reason, Reader)) :- !,
-    self(Relay),
+relay_message(WS, '$peer_close'(Code, Reason)) :- !,
     catch(ws_send(WS, close(Code, Reason)), _, true),
-    thread_send_message(Reader, '$peer_closed'(Relay)).
+    true.
 relay_message(WS, '$ws_command'(Command, JSON)) :- !,
     self(Relay),
     catch(relay_command(Command, JSON, Relay), Error,
@@ -610,10 +650,19 @@ relay_remove_actor(WirePid) :-
 
 wire_actor(WirePid, actor(WirePid, _, _)).
 
-stop_relay_actors([]).
-stop_relay_actors([actor(_, RuntimePid, _)|Actors]) :-
+stop_relay_actors(Actors) :-
+    relay_actor_pids(Actors, RuntimePids),
+    stop_relay_actor_pids(RuntimePids),
+    await_actor_threads_stopped(RuntimePids, 2).
+
+relay_actor_pids([], []).
+relay_actor_pids([actor(_, RuntimePid, _)|Actors], [RuntimePid|Pids]) :-
+    relay_actor_pids(Actors, Pids).
+
+stop_relay_actor_pids([]).
+stop_relay_actor_pids([RuntimePid|Actors]) :-
     catch(exit(RuntimePid, connection_closed), _, true),
-    stop_relay_actors(Actors).
+    stop_relay_actor_pids(Actors).
 
 relay_monitors(Monitors) :-
     relay_state_key(monitors, Key),
