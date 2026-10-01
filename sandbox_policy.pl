@@ -225,7 +225,8 @@ check_receive_clauses(M,P,C,A,(Head->Body)) :- !,
     check_receive_head(M,P,C,A,Head), sandbox_check_goal_(M,P,C,A,Body).
 check_receive_clauses(_,_,_,_,_).
 
-check_receive_head(M,P,C,A,if(_Pattern,Guard)) :- !,
+check_receive_head(M,P,C,A,Head) :-
+    nonvar(Head), Head = if(_Pattern,Guard), !,
     sandbox_check_goal_(M,P,C,A,Guard).
 check_receive_head(_,_,_,_,_).
 
@@ -509,7 +510,9 @@ rewrite_receive_clauses(M,P,C,A,(H0->B0),(H->B)) :- !,
     rewrite_receive_head(M,P,C,A,H0,H), rewrite_goal(M,P,C,A,B0,B).
 rewrite_receive_clauses(_,_,_,_,Q,Q).
 
-rewrite_receive_head(M,P,C,A,if(Pattern,G0),if(Pattern,G)) :- !,
+rewrite_receive_head(M,P,C,A,H0,H) :-
+    nonvar(H0), H0 = if(Pattern,G0), !,
+    H = if(Pattern,G),
     rewrite_goal(M,P,C,A,G0,G).
 rewrite_receive_head(_,_,_,_,H,H).
 
