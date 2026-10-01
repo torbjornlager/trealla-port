@@ -25,6 +25,7 @@ Status terms:
 | Controlled distribution failover via `remote_drop_connection/1` | SWI | Implemented | Implemented | Not assessed | Candidate |
 | Profile, sandbox, resource, authentication, and per-principal governance policies | SWI | Implemented | Implemented | Not assessed | Partial |
 | IP allow/block lists and temporary rate-limit bans | SWI | Implemented | Implemented | Not assessed | Candidate |
+| Resolve-check-connect source egress with a public-only default and explicit IP-range pinning | Trealla port | Candidate | Implemented | Not assessed | Needed before adoption as shared behavior |
 | Explicit `trusted_proxy_ranges/1` boundary for forwarded client, scheme, and identity headers | Trealla port | Candidate | Implemented | Not assessed | Needed before adoption as shared behavior |
 | Live IP strike and temporary-ban state in `/admin/runtime` | Trealla port | Candidate | Implemented | Not assessed | Candidate; admin-only behavior |
 | IPv4 wildcard bind to avoid incorrect dual-stack peer addresses | Trealla port | N/A | Runtime-local workaround for BUG-013 | Not assessed | N/A |

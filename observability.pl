@@ -31,6 +31,7 @@ runtime snapshot does, and is intended only for the authenticated admin route.
 :- use_module(governance_policy,
               [current_governance_policy/1,current_governance_usage/1]).
 :- use_module(resource_policy, [current_resource_policy/1]).
+:- use_module(source_policy, [current_source_policy/1]).
 :- use_module(node_tokens, [token_count/1,current_tokens_file/1]).
 :- use_module(ip_policy, [current_ip_policy/1,current_ip_usage/1]).
 
@@ -380,6 +381,7 @@ node_runtime_json(JSONAtom) :-
     recent_error_count(Events, RecentErrors),
     current_governance_policy(GovernancePolicy),
     current_resource_policy(ResourcePolicy),
+    current_source_policy(SourcePolicy),
     current_ip_policy(IPPolicy),
     current_ip_usage(IPUsage),
     current_governance_usage(GovernanceUsage),
@@ -396,6 +398,7 @@ node_runtime_json(JSONAtom) :-
     activities_json(ws_actor, Activities, ActorsJSON),
     term_text(GovernancePolicy, GovernanceText),
     term_text(ResourcePolicy, ResourceText),
+    term_text(SourcePolicy, SourcePolicyText),
     term_text(IPPolicy, IPPolicyText),
     term_text(IPUsage, IPUsageText),
     json_object([active_sessions-number(Sessions),
@@ -412,6 +415,7 @@ node_runtime_json(JSONAtom) :-
         active_ws_actors-number(WSActors), retained_events-number(Retained),
         governance_policy-string_atom(GovernanceText),
         resource_policy-string_atom(ResourceText),
+        source_policy-string_atom(SourcePolicyText),
         ip_policy-string_atom(IPPolicyText),
         ip_usage-string_atom(IPUsageText),
         token_count-number(TokenCount),

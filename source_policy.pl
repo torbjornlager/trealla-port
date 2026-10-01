@@ -8,15 +8,22 @@
       resolve_source_options/2,
       fetch_source_uri/2,
       normalize_source_origin/2,
-      resolve_redirect_uri/3
+      resolve_redirect_uri/3,
+      resolve_source_host/3,
+      source_address_allowed/2
     ]).
 
 /** <module> Controlled remote source loading
 
 `src_uri/1` is disabled unless the node operator supplies an exact origin
-allowlist.  Every redirect is resolved and checked against the same list
-before a connection is opened.  Bodies are read incrementally under the
-node's source-size ceiling and a separate wall-clock deadline.
+allowlist. Every redirect is resolved and checked against the same list
+before a connection is opened. Host names are resolved once, the numeric
+destination is checked, and the connection is made to that same address so
+DNS rebinding cannot move the fetch after authorization. By default only
+public addresses are accepted; `load_uri_allowed_ip_ranges/1` replaces that
+default with an explicit address/CIDR allowlist for private or pinned sources.
+Bodies are read incrementally under the node's source-size ceiling and a
+separate wall-clock deadline.
 
 Trealla's TLS client does not currently verify host names.  HTTPS source
 origins are consequently rejected unless the operator explicitly enables
@@ -26,12 +33,14 @@ runtime limitation.
 */
 
 :- use_module(library(error)).
+:- use_module(library(socket), [tcp_host_to_address/2]).
 :- use_module(library(sockets)).
 :- use_module(resource_policy).
+:- use_module(ip_policy, [ip_matches/2,peer_ip/2,valid_ip_pattern/1]).
 
 :- dynamic active_source_policy/1.
 
-default_source_policy(source_policy([], 10, 5, false)).
+default_source_policy(source_policy([], 10, 5, false, public)).
 
 reset_source_policy :-
     default_source_policy(Policy),
@@ -51,7 +60,9 @@ configure_source_policy(Options, Policy) :-
     nonnegative_integer(max_source_redirects, Redirects0, Redirects),
     option(allow_unverified_https(Unverified0), Options, false),
     boolean_option(allow_unverified_https, Unverified0, Unverified),
-    Policy = source_policy(Origins, Timeout, Redirects, Unverified),
+    source_address_policy(Options, AddressPolicy),
+    Policy = source_policy(Origins, Timeout, Redirects, Unverified,
+                           AddressPolicy),
     retractall(active_source_policy(_)),
     assertz(active_source_policy(Policy)).
 
@@ -72,6 +83,22 @@ boolean_option(_, false, false) :- !.
 boolean_option(Name, Value, _) :-
     throw(error(domain_error(Name, Value),
                 source_policy:configure_source_policy/2)).
+
+source_address_policy(Options, allowlist(Patterns)) :-
+    memberchk(load_uri_allowed_ip_ranges(Patterns0), Options), !,
+    must_be(list, Patterns0),
+    normalize_ip_patterns(Patterns0, Patterns).
+source_address_policy(_, public).
+
+normalize_ip_patterns([], []).
+normalize_ip_patterns([Pattern0|Patterns0], [Pattern|Patterns]) :-
+    source_text_atom(Pattern0, Pattern1), ascii_lower_atom(Pattern1, Pattern),
+    ( valid_ip_pattern(Pattern) -> true
+    ; throw(error(domain_error(load_uri_allowed_ip_ranges, Pattern0),
+                  context(source_policy:configure_source_policy/2,
+                          'expected an IPv4 CIDR or exact IPv4/IPv6 address')))
+    ),
+    normalize_ip_patterns(Patterns0, Patterns).
 
 
                  /*******************************
@@ -95,7 +122,7 @@ fetch_source_uri(URI0, Text) :-
                   resource_policy))
     ),
     current_source_policy(source_policy(Origins, Timeout, Redirects,
-                                        AllowUnverifiedHTTPS)),
+                                        AllowUnverifiedHTTPS, AddressPolicy)),
     ( Origins == []
     -> throw(error(permission_error(load, source_uri, URI),
                    context(source_policy:fetch_source_uri/2,
@@ -104,7 +131,7 @@ fetch_source_uri(URI0, Text) :-
     ),
     create_resource_timer(Timeout, Timer),
     catch(fetch_source_uri_(URI, Origins, Redirects,
-                            AllowUnverifiedHTTPS, Bytes), Error0,
+                            AllowUnverifiedHTTPS, AddressPolicy, Bytes), Error0,
           ( disarm_resource_timer(Timer),
             source_fetch_exception(Error0, URI, Error),
             throw(Error) )),
@@ -120,21 +147,25 @@ source_fetch_exception(time_limit_exceeded, URI,
                              source_policy)) :- !.
 source_fetch_exception(Error, _, Error).
 
-fetch_source_uri_(URI, Origins, Redirects, AllowUnverifiedHTTPS, Bytes) :-
+fetch_source_uri_(URI, Origins, Redirects, AllowUnverifiedHTTPS,
+                  AddressPolicy, Bytes) :-
     parse_http_uri(URI, Scheme, Host, Port, Path),
     require_allowed_origin(URI, Scheme, Host, Port, Origins),
     require_supported_tls(URI, Scheme, AllowUnverifiedHTTPS),
-    open_source_connection(Scheme, Host, Port, Stream),
+    resolve_source_host(URI, Host, Address),
+    require_source_address(URI, Address, AddressPolicy),
+    open_source_connection(Scheme, Host, Address, Port, Stream),
     catch(( send_source_request(Stream, Host, Port, Path),
             read_status(Stream, Status),
             read_headers(Stream, Headers),
             source_response(Status, Headers, Stream, URI, Origins,
-                            Redirects, AllowUnverifiedHTTPS, Bytes) ),
+                            Redirects, AllowUnverifiedHTTPS, AddressPolicy,
+                            Bytes) ),
           Error, ( catch(close(Stream), _, true), throw(Error) )),
     catch(close(Stream), _, true).
 
 source_response(Status, Headers, Stream, URI, Origins, Redirects,
-                AllowUnverifiedHTTPS, Bytes) :-
+                AllowUnverifiedHTTPS, AddressPolicy, Bytes) :-
     redirect_status(Status),
     !,
     ( Redirects > 0 -> true
@@ -148,8 +179,8 @@ source_response(Status, Headers, Stream, URI, Origins, Redirects,
     close(Stream),
     NextRedirects is Redirects - 1,
     fetch_source_uri_(NextURI, Origins, NextRedirects,
-                      AllowUnverifiedHTTPS, Bytes).
-source_response(Status, Headers, Stream, URI, _, _, _, Bytes) :-
+                      AllowUnverifiedHTTPS, AddressPolicy, Bytes).
+source_response(Status, Headers, Stream, URI, _, _, _, _, Bytes) :-
     ( Status >= 200, Status < 300
     -> current_resource_policy(resource_policy(_,_,_,_,_,Limit,_)),
        read_response_body(Stream, Headers, Limit, Bytes)
@@ -191,6 +222,58 @@ require_supported_tls(URI, https, false) :-
     throw(error(permission_error(load, unverified_https_source, URI),
                 context(source_policy:fetch_source_uri/2,
                         'Trealla TLS lacks host-name verification; opt in explicitly or use a verified fetch proxy'))).
+
+resolve_source_host(URI, Host, Address) :-
+    ( catch(tcp_host_to_address(Host, Address0), _, fail)
+    -> peer_ip(Address0, Address)
+    ; throw(error(existence_error(source_host, Host),
+                  context(source_policy:fetch_source_uri/2, URI)))
+    ).
+
+require_source_address(URI, Address, Policy) :-
+    ( source_address_allowed(Address, Policy) -> true
+    ; throw(error(permission_error(load, source_address, Address),
+                  context(source_policy:fetch_source_uri/2, URI)))
+    ).
+
+source_address_allowed(Address, allowlist(Patterns)) :-
+    member(Pattern, Patterns), ip_matches(Address, Pattern), !.
+source_address_allowed(Address, public) :-
+    public_source_address(Address).
+
+public_source_address(Address) :-
+    ip_matches(Address, '0.0.0.0/0'), !,
+    \+ nonpublic_ipv4(Address).
+public_source_address(Address) :-
+    public_ipv6(Address).
+
+nonpublic_ipv4(Address) :-
+    member(Pattern,
+           ['0.0.0.0/8','10.0.0.0/8','100.64.0.0/10','127.0.0.0/8',
+            '169.254.0.0/16','172.16.0.0/12','192.0.0.0/24',
+            '192.0.2.0/24','192.168.0.0/16','198.18.0.0/15',
+            '198.51.100.0/24','203.0.113.0/24','224.0.0.0/4',
+            '240.0.0.0/4']),
+    ip_matches(Address, Pattern), !.
+
+% Global-unicast IPv6 currently occupies 2000::/3. Numeric resolver output
+% always begins with an explicit first hextet, so compressed local forms do
+% not need special cases here.
+public_ipv6(Address) :-
+    atom_codes(Address, Codes),
+    take_hextet(Codes, Hextet, [0':|_]), Hextet \== [],
+    hex_number(Hextet, 0, Value),
+    Value >= 8192, Value < 16384.
+
+take_hextet([0':|Codes], [], [0':|Codes]) :- !.
+take_hextet([Code|Codes], [Code|Hextet], Rest) :-
+    take_hextet(Codes, Hextet, Rest).
+
+hex_number([], Value, Value).
+hex_number([Code|Codes], Value0, Value) :-
+    hex_digit_value(Code, Digit),
+    Value1 is Value0 * 16 + Digit,
+    hex_number(Codes, Value1, Value).
 
 parse_http_uri(URI, Scheme, Host, Port, Path) :-
     atom(URI),
@@ -316,10 +399,10 @@ default_port(http, 80). default_port(https, 443).
                  *          HTTP CLIENT         *
                  *******************************/
 
-open_source_connection(http, Host, Port, Stream) :-
-    socket_client_open(Host:Port, Stream, [type(binary)]).
-open_source_connection(https, Host, Port, Stream) :-
-    socket_client_open(Host:Port, Stream, [ssl(true),type(binary)]).
+open_source_connection(http, _, Address, Port, Stream) :-
+    socket_client_open(Address:Port, Stream, [type(binary)]).
+open_source_connection(https, _, Address, Port, Stream) :-
+    socket_client_open(Address:Port, Stream, [ssl(true),type(binary)]).
 
 send_source_request(Stream, Host, Port, Path) :-
     write_http(Stream, 'GET ~w HTTP/1.1\r\n', [Path]),

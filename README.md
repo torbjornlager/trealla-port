@@ -37,7 +37,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 92 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 94 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
@@ -115,7 +115,7 @@ override their defaults.
 | 69–73 | per-principal rate and concurrency governance | ok |
 | 74–79 | audit, runtime usage, and metrics observability | ok |
 | 80–84 | persistent bearer-token lifecycle       | ok |
-| 85–88 | controlled source-URI policy             | ok |
+| 85–88, 93–94 | controlled source-URI and egress policy | ok |
 | 89–92 | IP/CIDR and trusted-proxy policy          | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
@@ -316,20 +316,30 @@ not.
 ```prolog
 ?- web_prolog_node(3060,
        [ load_uri_allowed_origins(
-             ['http://127.0.0.1:8080',
-              'https://source.example.org']),
+             ['http://127.0.0.1:8080']),
+         load_uri_allowed_ip_ranges(['127.0.0.0/8']),
          source_fetch_timeout(10),
          max_source_redirects(5)
        ]).
 ```
 
+Every source host is resolved once, checked, and then contacted at that same
+numeric address, closing the DNS-rebinding interval between authorization and
+connection. Without `load_uri_allowed_ip_ranges/1`, only public IPv4 and IPv6
+global-unicast destinations are accepted. Supplying the option replaces that
+default with an explicit exact-address/IPv4-CIDR allowlist; the example
+therefore deliberately permits its loopback source server. Redirect targets
+go through the same resolution and address policy.
+
 Trealla v3.12.6 does not verify TLS host names. For that reason HTTPS source
 fetching fails even for an allowlisted origin unless the operator also sets
 `allow_unverified_https(true)`. That switch acknowledges the limitation; it
 does not provide server authentication. A hostname-verifying reverse proxy is
-the recommended deployment boundary. The origin policy trusts operator-chosen
-host names and does not itself pin resolved IP addresses, so network egress
-policy remains important where DNS rebinding is in scope.
+the recommended deployment boundary. Because Trealla cannot yet separate a
+socket's numeric connection address from its TLS server name, the pinned
+address is also used as SNI; HTTPS sites requiring name-based SNI may need that
+proxy (FR-009 in `UPSTREAM_REPORTS.md`). The operating system or container
+should still enforce an independent egress boundary as defense in depth.
 
 Public nodes also install resource ceilings. They are configured with these
 startup options (defaults shown):
@@ -486,7 +496,8 @@ Operational observability is available on two additional HTTP routes:
   contents.
 - `GET /admin/runtime` returns JSON containing current counters, detailed
   per-principal rate/capacity usage, active connection and actor counts, and
-  the bounded recent audit-event window. It requires an authenticated
+  the bounded recent audit-event window. It also reports the active resource,
+  source-egress, IP, and governance policies. It requires an authenticated
   principal with the `admin` capability.
 
 The in-memory audit window defaults to 500 events. An optional append-only,
@@ -774,8 +785,9 @@ X = a ; X = b ; X = c.
   connection ownership, plus per-principal rate/concurrency and IP/CIDR
   access limits with explicit trusted-proxy handling.
   The deployment boundary still needs to be finalized. `src_uri/1` now has an
-  exact-origin, redirect-aware, size- and time-bounded fetch policy, but DNS/IP
-  egress controls remain a deployment responsibility.
+  exact-origin, redirect-aware, size- and time-bounded fetch policy plus
+  resolve-check-connect IP pinning. OS/container egress policy remains
+  recommended as an independent boundary.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.
 

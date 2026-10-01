@@ -118,12 +118,14 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t67 development mode grants execution only to direct loopback peers
   - t68 WebSocket origins allow native, same-origin, and configured clients
 
-## Tests: controlled source URI policy (t85-t88)
+## Tests: controlled source URI policy (t85-t88, t93-t94)
 
   - t85 remote source loading is denied by default
   - t86 source origins are normalized and validated exactly
   - t87 relative redirects are resolved without weakening origin checks
   - t88 unverified HTTPS requires an explicit operator opt-in
+  - t93 default source egress admits public addresses and rejects special-use ranges
+  - t94 source destinations are resolved once and may be explicitly pinned
 
 ## Tests: IP/CIDR and trusted-proxy policy (t89-t92)
 
@@ -219,7 +221,7 @@ run_test_group(tokens) :-
     clear_tokens_file,
     reset_auth_policy.
 run_test_group(source_policy) :-
-    t85, t86, t87, t88,
+    t85, t86, t87, t88, t93, t94,
     reset_source_policy.
 run_test_group(ip_policy) :-
     t89, t90, t91, t92,
@@ -1238,6 +1240,7 @@ t78 :-
     node_runtime_json(JSON),
     atom_chars(JSON, JSONChars), phrase(json:json_chars(_), JSONChars),
     sub_atom(JSON, _, _, _, '"governance"'),
+    sub_atom(JSON, _, _, _, '"source_policy"'),
     sub_atom(JSON, _, _, _, '"activity_summary"'),
     sub_atom(JSON, _, _, _, '"rate_limits"'),
     format("78. governance runtime payload ok~n").
@@ -1330,7 +1333,7 @@ t84 :-
 
 
                 /*******************************
-                *   SOURCE URI POLICY (85-88) *
+                * SOURCE URI POLICY (85-88,93-94) *
                 *******************************/
 
 t85 :-
@@ -1352,7 +1355,7 @@ t86 :-
         source_origin),
     configure_source_policy(
         [load_uri_allowed_origins(['http://example.com'])],
-        source_policy([origin(http,'example.com',80)],10,5,false)),
+        source_policy([origin(http,'example.com',80)],10,5,false,public)),
     format("86. source origin normalization ok~n").
 
 t87 :-
@@ -1376,8 +1379,47 @@ t88 :-
         [load_uri_allowed_origins(['https://example.com']),
          allow_unverified_https(true),source_fetch_timeout(2),
          max_source_redirects(1)],
-        source_policy([origin(https,'example.com',443)],2,1,true)),
+        source_policy([origin(https,'example.com',443)],2,1,true,public)),
     format("88. HTTPS source opt-in policy ok~n").
+
+t93 :-
+    source_address_allowed('8.8.8.8', public),
+    source_address_allowed('2606:4700:4700::1111', public),
+    \+ source_address_allowed('0.0.0.0', public),
+    \+ source_address_allowed('10.2.3.4', public),
+    \+ source_address_allowed('100.64.1.2', public),
+    \+ source_address_allowed('127.0.0.1', public),
+    \+ source_address_allowed('169.254.1.2', public),
+    \+ source_address_allowed('172.16.1.2', public),
+    \+ source_address_allowed('192.168.1.2', public),
+    \+ source_address_allowed('224.0.0.1', public),
+    \+ source_address_allowed('::1', public),
+    \+ source_address_allowed('fd00::1', public),
+    \+ source_address_allowed('fe80::1', public),
+    format("93. public-only source egress policy ok~n").
+
+t94 :-
+    configure_source_policy(
+        [load_uri_allowed_origins(['http://127.0.0.1:9'])], _),
+    caught_source_permission(
+        fetch_source_uri('http://127.0.0.1:9/source.pl', _),
+        source_address),
+    configure_source_policy(
+        [load_uri_allowed_origins(['http://127.0.0.1:9']),
+         load_uri_allowed_ip_ranges(['127.0.0.0/8','::1'])],
+        source_policy([origin(http,'127.0.0.1',9)],10,5,false,
+                      allowlist(['127.0.0.0/8','::1']))),
+    resolve_source_host('http://127.0.0.1:9/source.pl', '127.0.0.1',
+                        '127.0.0.1'),
+    source_address_allowed('127.0.0.1',
+                           allowlist(['127.0.0.0/8','::1'])),
+    \+ source_address_allowed('8.8.8.8',
+                              allowlist(['127.0.0.0/8','::1'])),
+    caught_source_domain(
+        configure_source_policy(
+            [load_uri_allowed_ip_ranges(['999.1.2.3'])], _),
+        load_uri_allowed_ip_ranges),
+    format("94. resolved and pinned source destination policy ok~n").
 
 
                 /*******************************

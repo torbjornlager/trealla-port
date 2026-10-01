@@ -183,6 +183,34 @@ Current workaround: the Trealla port enforces wall-clock, live-actor, result
 page, and textual-input limits. Hard process memory and CPU ceilings must be
 provided by the container or service manager.
 
+### FR-009: Separate a socket's connection address from its TLS server name
+
+**Status:** Needs design
+**Priority:** Medium
+
+A DNS-rebinding-resistant HTTPS client needs to resolve and authorize a
+numeric destination, connect to that exact address, and still send the
+original host name as TLS SNI (and eventually verify it as the certificate
+identity). Trealla's `socket_client_open/3` currently derives both the TCP
+destination and TLS server name from the same address term.
+
+Connecting to the authorized numeric address therefore pins the destination
+but also supplies that address, rather than the URI host, as SNI. Connecting
+by host name preserves SNI but performs another resolution inside the socket
+primitive, reopening the authorization-to-connection race.
+
+Desired behavior: a supported client option such as
+`tls_server_name(Host)`/`server_name(Host)`, independent of the TCP address,
+or a public TLS-upgrade API that accepts the authenticated host name after a
+caller-controlled TCP connection has been established. A way to obtain all
+candidate resolver addresses would also allow policy-checking each candidate
+without losing normal address-family fallback.
+
+Current workaround: `source_policy.pl` resolves once and connects to the
+authorized numeric address. HTTP is unaffected; HTTPS sites that require
+name-based SNI may need a trusted fetch proxy until the two values can be
+supplied separately.
+
 ## Bug reports
 
 ### BUG-001: Abrupt in-process WebSocket teardown can crash Trealla

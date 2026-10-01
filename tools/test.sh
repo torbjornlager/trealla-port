@@ -204,7 +204,7 @@ run_interop() {
     wait_for_port "$source_port" || fail "SWI source fixture did not start on port $source_port"
 
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_protocol_port,[load_uri_allowed_origins(['http://127.0.0.1:$source_port']),max_source_text_bytes(128)])"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_protocol_port,[load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8']),max_source_text_bytes(128)])"
     trealla_protocol_pid=$STARTED_PID
     # The native node treats a bare TCP readiness probe as a malformed HTTP
     # request and logs unexpected_eof. Avoid adding noise to successful runs.
