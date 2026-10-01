@@ -42,6 +42,7 @@ deployment_options(Port, Options) :-
     env_atom('WP_PUBLIC_URL', 'http://localhost:8080', PublicURL),
     env_choice('WP_PROFILE', [relation,isobase,isotope,actor], actor, Profile),
     env_choice('WP_AUTH', [open,private,dev], private, Auth),
+    env_atom('WP_OWNER', '', Owner),
     env_choice('WP_SANDBOX', [whitelist,blacklist], whitelist, Sandbox),
     public_acknowledged(Auth),
     admin_token(AdminToken),
@@ -71,7 +72,8 @@ deployment_options(Port, Options) :-
     env_integer('WP_MAX_AUDIT_LOG_BYTES', 10485760, AuditBytes), positive(max_audit_log_bytes, AuditBytes),
     env_integer('WP_MAX_AUDIT_LOG_BACKUPS', 5, AuditBackups), nonnegative(max_audit_log_backups, AuditBackups),
     env_atom('WP_TOKENS_FILE', '/state/tokens.pl', TokensFile),
-    Core = [bind_address('0.0.0.0'),node_url(PublicURL),profile(Profile),
+    owner_options(Auth, Owner, OwnerOptions),
+    Core0 = [bind_address('0.0.0.0'),node_url(PublicURL),profile(Profile),
             sandbox(Sandbox),auth(Auth),
             bearer_token(pilot_admin,AdminToken,[execute,admin]),
             tutorial_sections(TutorialSections),
@@ -88,6 +90,7 @@ deployment_options(Port, Options) :-
             auto_ban_window_seconds(BanWindow),auto_ban_seconds(BanSeconds),
             audit_log_file(AuditFile),max_audit_log_bytes(AuditBytes),
             max_audit_log_backups(AuditBackups),tokens_file(TokensFile)],
+    append(OwnerOptions, Core0, Core),
     optional_list(ws_allowed_origins, WSOrigins, Core, O1),
     optional_list(trusted_proxy_ranges, TrustedProxies, O1, O2),
     optional_list(ip_allowlist, IPAllowlist, O2, O3),
@@ -145,6 +148,13 @@ public_acknowledged(open) :- !,
                   deployment_start))
     ).
 public_acknowledged(_).
+
+% Match the SWI deployment's owner/1 policy: the identity asserted by the
+% trusted SSO proxy receives the administrator capability (which subsumes
+% execution); other authenticated identities remain unprivileged.
+owner_options(private, Owner, [principal(Owner,[admin,public_read])]) :-
+    Owner \== '', !.
+owner_options(_, _, []).
 
 optional_list(_, [], Options, Options) :- !.
 optional_list(Name, Values, Options, [Option|Options]) :-

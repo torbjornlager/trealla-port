@@ -1553,6 +1553,7 @@ t96 :-
                    '"self_url":"https:\\/\\/trealla.example.test"'),
           sub_atom(Info, _, _, _, '"profile":"workbench"'),
           sub_atom(Info, _, _, _, '"principal_execution":false'),
+          sub_atom(Info, _, _, _, '"self_contained":true'),
           sub_atom(Info, _, _, _, '"ws_allowed_origins":["https:\\/\\/demo.example.test"]'),
           sub_atom(Info, _, _, _, '"tutorial_sections":["actor"]'),
           node_test_post_json(Port, '/admin/maintenance', Auth,

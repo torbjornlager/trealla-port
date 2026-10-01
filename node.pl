@@ -751,7 +751,7 @@ handle_node_info(Port, C, Ver, Peer, Headers) :-
          internal_transport_principal_prefix-string_atom('node:'),
          principal_id-string_atom(PrincipalId),
          principal_execution-boolean(Execution),maintenance-boolean(Maintenance),
-         services-list([]),provides-list([]),self_contained-boolean(false),
+         services-list([]),provides-list([]),self_contained-boolean(true),
          ws_allowed_origins-list(WSAllowedOriginsJSON),
          tutorial_sections-list(TutorialSectionsJSON)],
         JSON),
