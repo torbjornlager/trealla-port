@@ -17,6 +17,7 @@
          sandbox_spawn/7,
          sandbox_toplevel_call/7,
          sandbox_format/2,
+         sandbox_sleep/1,
          sandbox_clause/6,
          sandbox_assert/5,
          sandbox_assert/6,
@@ -135,6 +136,9 @@ sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
     % when its parent session loaded them.  This one qualified runtime helper
     % is capability-free and applies its own runtime format guard.
     reject_format_meta_call(Format).
+sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
+                    sandbox_policy:sandbox_sleep(_Seconds)) :-
+    !.
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     clause(Head, Body)) :-
     !,
@@ -467,6 +471,7 @@ reserved_source_name(sandbox_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_toplevel_call).
 reserved_source_name(sandbox_format).
+reserved_source_name(sandbox_sleep).
 reserved_source_name(sandbox_clause).
 reserved_source_name(sandbox_assert).
 reserved_source_name(sandbox_asserta).
@@ -518,6 +523,10 @@ rewrite_goal_(_M,_P,_C,_A,format(Format),
               sandbox_policy:sandbox_format(Format,[])).
 rewrite_goal_(_M,_P,_C,_A,format(Format,Args),
               sandbox_policy:sandbox_format(Format,Args)).
+% sleep/1 is available in Trealla's user module but is not inherited by the
+% short-lived private modules used for actor sessions.
+rewrite_goal_(_M,_P,_C,_A,sleep(Seconds),
+              sandbox_policy:sandbox_sleep(Seconds)).
 % Session input is an actor protocol operation, never a read from the node's
 % process-local standard input.  This matches SWI's isotope goal rewrite.
 rewrite_goal_(_M,_P,_C,_A,read(Term),actors:input('|:',Term)).
@@ -674,6 +683,7 @@ call_in_context(Module, Goal) :- context_module(Module, RuntimeModule), call(Run
 context_module(actor_context, Module) :- !,
     actors:self(Pid),
     ( isolation:actor_source_module(Pid, Module) -> true
+    ; isolation:actor_module(Pid, Module) -> true
     ; throw(error(existence_error(actor_context, source_module), sandbox_policy))
     ).
 context_module(Module, Module).
@@ -836,6 +846,9 @@ sandbox_format(Format, Args) :-
     format(atom(Text), NativeFormat, Args),
     actors:terminal_output(Text, [source(io)]).
 
+sandbox_sleep(Seconds) :-
+    sleep(Seconds).
+
 % Read clauses from the current actor's submitted program only.  In
 % particular, do not expose the bootstrap predicates, imported libraries, or
 % node runtime to a source-level meta-interpreter.  The source marker also
@@ -870,6 +883,8 @@ restore_clause_body(Module,
 restore_clause_body(Module, Module:Inner0, Inner) :-
     !,
     restore_clause_body(Module, Inner0, Inner).
+restore_clause_body(_Module, sandbox_policy:sandbox_sleep(Seconds),
+                    sleep(Seconds)) :- !.
 restore_clause_body(_Module, Term, Term) :- var(Term), !.
 restore_clause_body(_Module, Term, Term) :- atomic(Term), !.
 restore_clause_body(Module, Term0, Term) :-

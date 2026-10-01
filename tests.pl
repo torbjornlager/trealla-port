@@ -201,7 +201,7 @@ run_test_group(actors) :-
     t31, t32, t33, t98.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
-    t22, t27, t28, t29, t99, t100, t101, t111.
+    t22, t27, t28, t29, t99, t100, t101, t111, t112.
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
@@ -1133,6 +1133,33 @@ t111 :-
             }, [timeout(1),on_timeout(throw(t111_success_timeout))]),
     exit(Session, test_complete),
     format("111. guarded receive supports SWI ~~p formatting ok~n").
+
+t112 :-
+    Goal0 = (spawn(sleep(0.05), Child),
+             monitor(Child, Ref1),
+             monitor(Child, Ref2),
+             sleep(0.12),
+             flush),
+    sandbox_prepare_spawn(blacklist, actor, actor_context,
+                          Goal0, [], Goal, Options),
+    self(Me),
+    toplevel_spawn(Session, [target(Me),session(true)|Options]),
+    toplevel_call(Session, Goal,
+                  [template(Child-Ref1-Ref2),target(Me)]),
+    receive({ terminal_output(Session, First) -> true
+            ; error(Session, Error) -> throw(Error)
+            }, [timeout(1),on_timeout(throw(t112_first_flush_timeout))]),
+    receive({ terminal_output(Session, Second) -> true
+            ; error(Session, Error2) -> throw(Error2)
+            }, [timeout(1),on_timeout(throw(t112_second_flush_timeout))]),
+    sub_atom(First, _, _, _, 'down('),
+    sub_atom(Second, _, _, _, 'down('),
+    receive({ success(Session, [Child-Ref1-Ref2], false) -> true
+            ; error(Session, Error3) -> throw(Error3)
+            }, [timeout(1),on_timeout(throw(t112_success_timeout))]),
+    Ref1 \== Ref2,
+    exit(Session, test_complete),
+    format("112. sandboxed sleep supports monitored child lifecycle ok~n").
 
 
                 /*******************************

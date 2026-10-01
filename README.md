@@ -38,7 +38,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 111 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 112 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12). Tests t23-t30 mirror behaviours from the
 canonical SWI plunit suite in `simple-node/tests.pl`:
 
