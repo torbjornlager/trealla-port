@@ -205,7 +205,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -1062,6 +1062,53 @@ t107 :-
     sub_atom(SourceText, _, _, _, 'p(b).'),
     sub_atom(SourceText, _, _, _, 'q(c).'),
     format("107. private sessions expose sandboxed rpc source options ok~n").
+
+%!  t109 is det.
+%
+%   Source-level clause/2 is available to meta-interpreters, but is scoped to
+%   predicates belonging to the submitted program.  Empty dynamic predicates
+%   must fail normally so an expert system can fall through to its askable
+%   rule.  Predicate export restores portable clause/2 rather than leaking the
+%   Trealla runtime guard.
+
+t109 :-
+    Source = ':- dynamic tweets/1, has_feathers/1, cuddly/1, small/1, yellow/1.\nprove(true) :- !.\nprove((B, Bs)) :- !, prove(B), prove(Bs).\nprove(H) :- clause(H, B), prove(B).\nprove(A) :- askable(A, Q), writeln(Q), read(Answer), Answer == yes.\ngood_pet(X) :- bird(X), small(X).\ngood_pet(X) :- cuddly(X), yellow(X).\nbird(X) :- has_feathers(X), tweets(X).\naskable(tweets(_), ''Does it tweet?'').\naskable(small(_), ''Is it small?'').\naskable(cuddly(_), ''Is it cuddly?'').\naskable(has_feathers(_), ''Does it have feathers?'').\naskable(yellow(_), ''Is it yellow?'').',
+    sandbox_prepare_options(blacklist, actor, actor_context,
+                            [src_text(Source)], SourceOptions),
+    self(Me),
+    toplevel_spawn(Session, [target(Me), session(true)|SourceOptions]),
+    toplevel_call(Session, prove(good_pet(tweety)),
+                  [template(ok), target(Me)]),
+    answer_expert_prompts(Session, 5),
+    receive({ success(Session, Values, More) ->
+                  ( Values == [ok,ok], More == false -> true
+                  ; throw(t109_unexpected_success(Values, More)) )
+            ; error(Session, Error) -> throw(Error)
+            }, [timeout(1), on_timeout(throw(t109_proof_timeout))]),
+    isolation:actor_module(Session, Module),
+    isolation:load_options_text(
+        Module, [src_predicates([prove/1,has_feathers/1])], Text),
+    sub_atom(Text, _, _, _, 'clause('),
+    sub_atom(Text, _, _, _, 'dynamic has_feathers/1'),
+    \+ sub_atom(Text, _, _, _, 'sandbox_clause'),
+    sandbox_prepare_goal(blacklist, actor, actor_context,
+                         clause(current_prolog_flag(_,_),_), BadGoal),
+    toplevel_call(Session, BadGoal, [target(Me)]),
+    receive({ error(Session,
+                    error(permission_error(access,procedure,_),clause/2)) -> true
+            }, [timeout(1), on_timeout(throw(t109_scope_timeout))]),
+    exit(Session, test_complete),
+    drain_test_mailbox,
+    format("109. guarded application clause/2 supports meta-interpreters ok~n").
+
+answer_expert_prompts(_, 0) :- !.
+answer_expert_prompts(Session, N) :-
+    receive({ prompt(Session, '|:') -> respond(Session, yes)
+            ; error(Session, Error) -> throw(Error)
+            ; failure(Session) -> throw(t109_unexpected_failure)
+            }, [timeout(1), on_timeout(throw(t109_prompt_timeout(N)))]),
+    Next is N - 1,
+    answer_expert_prompts(Session, Next).
 
 
                 /*******************************

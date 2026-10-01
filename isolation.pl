@@ -319,8 +319,9 @@ write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile) :-
     format(Out, ':- module(~q, [\'$actor_load\'/1, \'$actor_call\'/1, \'$actor_copy_predicates\'/2, \'$actor_cleanup\'/0]).~n', [Module]),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
     format(Out, ':- use_module(~q, [rpc/2,rpc/3]).~n', [RpcFile]),
-    format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_format/2,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
+    format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_format/2,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     format(Out, ':- dynamic \'$actor_source_pi\'/1.~n', []),
+    format(Out, ':- dynamic \'$actor_dynamic_pi\'/1.~n', []),
     format(Out, '\'$actor_load\'([]).~n', []),
     format(Out, '\'$actor_load\'([src_text(Text)|Rest]) :- !, \'$actor_text\'(Text), \'$actor_load\'(Rest).~n', []),
     format(Out, '\'$actor_load\'([src_list(Terms)|Rest]) :- !, \'$actor_terms\'(Terms), \'$actor_load\'(Rest).~n', []),
@@ -366,10 +367,18 @@ write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile) :-
     format(Out, '\'$actor_expanded\'([]) :- !.~n', []),
     format(Out, '\'$actor_expanded\'([Term|Terms]) :- !, \'$actor_expanded\'(Term), \'$actor_expanded\'(Terms).~n', []),
     format(Out, '\'$actor_expanded\'((:- module(Name, Exports))) :- !, throw(error(permission_error(load, module, module(Name, Exports)), \'$actor_load\'/1)).~n', []),
+    % Clauses are installed with assertz/1 and are therefore mutable already.
+    % Trealla does not expose dynamic/1 as a callable runtime predicate, so
+    % retain the declaration as source ownership metadata without calling it.
+    format(Out, '\'$actor_expanded\'((:- dynamic(PI))) :- !, \'$actor_remember_pi\'(PI), \'$actor_remember_dynamic_pi\'(PI).~n', []),
     format(Out, '\'$actor_expanded\'((:- Directive)) :- !, call(Directive).~n', []),
     format(Out, '\'$actor_expanded\'((Head :- Body)) :- !, \'$actor_remember\'(Head), assertz((Head :- Body)).~n', []),
     format(Out, '\'$actor_expanded\'(Head) :- \'$actor_remember\'(Head), assertz(Head).~n', []),
     format(Out, '\'$actor_remember\'(Head) :- callable(Head), functor(Head, Name, Arity), PI = Name/Arity, ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ).~n', []),
+    format(Out, '\'$actor_remember_pi\'((A,B)) :- !, \'$actor_remember_pi\'(A), \'$actor_remember_pi\'(B).~n', []),
+    format(Out, '\'$actor_remember_pi\'(PI) :- ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ).~n', []),
+    format(Out, '\'$actor_remember_dynamic_pi\'((A,B)) :- !, \'$actor_remember_dynamic_pi\'(A), \'$actor_remember_dynamic_pi\'(B).~n', []),
+    format(Out, '\'$actor_remember_dynamic_pi\'(PI) :- ( \'$actor_dynamic_pi\'(PI) -> true ; assertz(\'$actor_dynamic_pi\'(PI)) ).~n', []),
     % Trealla does not preserve imports when an arbitrary term is passed
     % through call/1 here.  Route the flat Web Prolog RPC surface explicitly,
     % matching the actor_api re-export used by the SWI implementation.
@@ -377,9 +386,13 @@ write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile) :-
     format(Out, '\'$actor_call\'(rpc(URI,Goal,Options)) :- !, rpc:rpc(URI,Goal,Options).~n', []),
     format(Out, '\'$actor_call\'(Goal) :- call(Goal).~n', []),
     format(Out, '\'$actor_copy_predicates\'([], []).~n', []),
-    format(Out, '\'$actor_copy_predicates\'([Name/Arity|PIs], Terms) :- \'$actor_source_pi\'(Name/Arity), !, functor(Head,Name,Arity), findall(Term, (clause(Head,Body0), \'$actor_strip_source_module\'(Body0,Body), \'$actor_clause_term\'(Head,Body,Term)), Here), \'$actor_copy_predicates\'(PIs,Rest), append(Here,Rest,Terms).~n', []),
+    format(Out, '\'$actor_copy_predicates\'([Name/Arity|PIs], Terms) :- PI = Name/Arity, \'$actor_source_pi\'(PI), !, functor(Head,Name,Arity), \'$actor_dynamic_terms\'(PI,Declarations), findall(Term, (clause(Head,Body0), \'$actor_strip_source_module\'(Body0,Body), \'$actor_clause_term\'(Head,Body,Term)), Here), append(Declarations,Here,Current), \'$actor_copy_predicates\'(PIs,Rest), append(Current,Rest,Terms).~n', []),
     format(Out, '\'$actor_copy_predicates\'([PI|_], _) :- throw(error(existence_error(procedure,PI), src_predicates/1)).~n', []),
+    format(Out, '\'$actor_dynamic_terms\'(PI, [(:- dynamic(PI))]) :- \'$actor_dynamic_pi\'(PI), !.~n', []),
+    format(Out, '\'$actor_dynamic_terms\'(_, []).~n', []),
     format(Out, '\'$actor_strip_source_module\'(Term, Term) :- var(Term), !.~n', []),
+    format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0), clause(Head,Body)) :- !, \'$actor_strip_source_module\'(Head0,Head), \'$actor_strip_source_module\'(Body0,Body).~n', []),
+    format(Out, '\'$actor_strip_source_module\'(actors:input(\'|:\',Term0), read(Term)) :- !, \'$actor_strip_source_module\'(Term0,Term).~n', []),
     format(Out, '\'$actor_strip_source_module\'(Source:Inner0, Inner) :- Source == ~q, !, \'$actor_strip_source_module\'(Inner0,Inner).~n', [Module]),
     format(Out, '\'$actor_strip_source_module\'(Term, Term) :- atomic(Term), !.~n', []),
     format(Out, '\'$actor_strip_source_module\'(Term0, Term) :- Term0 =.. [Functor|Args0], \'$actor_strip_source_args\'(Args0,Args), Term =.. [Functor|Args].~n', []),
@@ -387,7 +400,7 @@ write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile) :-
     format(Out, '\'$actor_strip_source_args\'([Arg0|Args0], [Arg|Args]) :- \'$actor_strip_source_module\'(Arg0,Arg), \'$actor_strip_source_args\'(Args0,Args).~n', []),
     format(Out, '\'$actor_clause_term\'(Head, true, Head) :- !.~n', []),
     format(Out, '\'$actor_clause_term\'(Head, Body, (Head :- Body)).~n', []),
-    format(Out, '\'$actor_cleanup\' :- forall(retract(\'$actor_source_pi\'(Name/Arity)), (functor(Head, Name, Arity), retractall(Head))).~n', []).
+    format(Out, '\'$actor_cleanup\' :- forall(retract(\'$actor_source_pi\'(Name/Arity)), (functor(Head, Name, Arity), retractall(Head))), retractall(\'$actor_dynamic_pi\'(_)).~n', []).
 
 call_in_module(Module, Goal) :-
     Qualified = Module:Goal,

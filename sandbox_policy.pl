@@ -17,6 +17,7 @@
          sandbox_spawn/7,
          sandbox_toplevel_call/7,
          sandbox_format/2,
+         sandbox_clause/6,
          sandbox_assert/5,
          sandbox_assert/6,
          sandbox_asserta/5,
@@ -134,6 +135,12 @@ sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
     % when its parent session loaded them.  This one qualified runtime helper
     % is capability-free and applies its own runtime format guard.
     reject_format_meta_call(Format).
+sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
+                    clause(Head, Body)) :-
+    !,
+    allow_application_clause_goal(Head, Body).
+sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs, read(_Term)) :-
+    !.
 sandbox_check_goal_(Mode, Profile, Module, AppPIs, Qualified:Goal) :-
     atom(Qualified),
     !,
@@ -460,6 +467,7 @@ reserved_source_name(sandbox_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_toplevel_call).
 reserved_source_name(sandbox_format).
+reserved_source_name(sandbox_clause).
 reserved_source_name(sandbox_assert).
 reserved_source_name(sandbox_asserta).
 reserved_source_name(sandbox_assertz).
@@ -510,6 +518,11 @@ rewrite_goal_(_M,_P,_C,_A,format(Format),
               sandbox_policy:sandbox_format(Format,[])).
 rewrite_goal_(_M,_P,_C,_A,format(Format,Args),
               sandbox_policy:sandbox_format(Format,Args)).
+% Session input is an actor protocol operation, never a read from the node's
+% process-local standard input.  This matches SWI's isotope goal rewrite.
+rewrite_goal_(_M,_P,_C,_A,read(Term),actors:input('|:',Term)).
+rewrite_goal_(M,P,C,A,clause(Head,Body),
+              sandbox_policy:sandbox_clause(M,P,C,A,Head,Body)).
 rewrite_goal_(M,P,C,A,(X0,Y0),(X,Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
 rewrite_goal_(M,P,C,A,(X0;Y0),(X;Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
 rewrite_goal_(M,P,C,A,(X0->Y0),(X->Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
@@ -796,3 +809,49 @@ sandbox_format(Format, Args) :-
     reject_format_meta_call(Format),
     format(atom(Text), Format, Args),
     actors:terminal_output(Text, [source(io)]).
+
+% Read clauses from the current actor's submitted program only.  In
+% particular, do not expose the bootstrap predicates, imported libraries, or
+% node runtime to a source-level meta-interpreter.  The source marker also
+% covers declared-but-empty dynamic predicates, for which clause/2 simply
+% fails and lets an interpreter try its next rule.
+sandbox_clause(_Mode, _Profile, Module, _AppPIs, Head, Body) :-
+    allow_application_clause_goal(Head, Body),
+    ( var(Head) -> throw(error(instantiation_error, clause/2)) ; true ),
+    functor(Head, Name, Arity),
+    context_module(Module, RuntimeModule),
+    PI = Name/Arity,
+    ( call(RuntimeModule:'$actor_source_pi'(PI))
+    -> call(RuntimeModule:clause(Head, Stored)),
+       restore_clause_body(RuntimeModule, Stored, Body)
+    ; throw(error(permission_error(access, procedure, Head), clause/2))
+    ).
+
+allow_application_clause_goal(Head, Body) :-
+    ( nonvar(Head), Head = _:_
+    -> throw(error(permission_error(call, sandboxed, clause(Head, Body)),
+                   context(sandbox_policy:sandbox_check_goal/4,
+                           module_qualification)))
+    ; true
+    ).
+
+restore_clause_body(Module,
+                    sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0),
+                    clause(Head,Body)) :-
+    !,
+    restore_clause_body(Module, Head0, Head),
+    restore_clause_body(Module, Body0, Body).
+restore_clause_body(Module, Module:Inner0, Inner) :-
+    !,
+    restore_clause_body(Module, Inner0, Inner).
+restore_clause_body(_Module, Term, Term) :- var(Term), !.
+restore_clause_body(_Module, Term, Term) :- atomic(Term), !.
+restore_clause_body(Module, Term0, Term) :-
+    Term0 =.. [Functor|Args0],
+    restore_clause_args(Module, Args0, Args),
+    Term =.. [Functor|Args].
+
+restore_clause_args(_, [], []).
+restore_clause_args(Module, [Arg0|Args0], [Arg|Args]) :-
+    restore_clause_body(Module, Arg0, Arg),
+    restore_clause_args(Module, Args0, Args).
