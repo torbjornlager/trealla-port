@@ -1,0 +1,11 @@
+# syntax=docker/dockerfile:1
+
+# SPDX-License-Identifier: MIT
+
+FROM caddy:2.8.4-alpine
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+RUN mkdir -p /usr/share/licenses/caddy \
+    && wget -qO /usr/share/licenses/caddy/LICENSE \
+       https://raw.githubusercontent.com/caddyserver/caddy/v2.8.4/LICENSE \
+    && test -s /usr/share/licenses/caddy/LICENSE
+COPY Deployment/Caddyfile /etc/caddy/Caddyfile

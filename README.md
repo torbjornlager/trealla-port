@@ -29,6 +29,7 @@ The port lives alongside this report:
 | `UPSTREAM_REPORTS.md`   | Candidate Trealla feature requests and bug reports |
 | `CROSS_IMPLEMENTATION_LEDGER.md` | SWI/Trealla/GNU Prolog change tracking |
 | `NOTICE.md`            | Source provenance and third-party attribution   |
+| `Deployment/`          | Fail-closed Docker/Caddy private-pilot bundle   |
 | `parallel.pl`         | `parallel/1` and `first_solution/2` demo client     |
 | `tests.pl`            | Manual test suite (no plunit on Trealla)            |
 
@@ -71,6 +72,15 @@ Trealla/SWI WebSocket and
 protocol matrix with `./tools/test.sh interop`, or everything with
 `./tools/test.sh all`. Set `SWIPL`, `TEST_TIMEOUT`, or `TEST_PORT_BASE` to
 override their defaults.
+
+For an invitation-only deployment, see [Deployment/README.md](Deployment/README.md).
+The bundle pins Trealla v3.12.6, runs it unprivileged and read-only behind
+Caddy, applies container resource limits, exposes only an authenticated route
+allowlist, drains on shutdown, and has an end-to-end smoke test:
+
+```sh
+./tools/deployment-smoke.sh
+```
 
 | #  | Test                                       | Status |
 |----|--------------------------------------------|--------|
@@ -810,10 +820,10 @@ X = a ; X = b ; X = c.
   textual-input ceilings, authentication, WebSocket origin checks, and
   connection ownership, plus per-principal rate/concurrency and IP/CIDR
   access limits with explicit trusted-proxy handling.
-  The deployment boundary still needs to be finalized. `src_uri/1` now has an
-  exact-origin, redirect-aware, size- and time-bounded fetch policy plus
-  resolve-check-connect IP pinning. OS/container egress policy remains
-  recommended as an independent boundary.
+  A Docker/Caddy boundary for an invitation-only pilot is provided under
+  `Deployment/`. `src_uri/1` has an exact-origin, redirect-aware, size- and
+  time-bounded fetch policy plus resolve-check-connect IP pinning.
+  OS/container egress policy remains recommended as an independent boundary.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.
 

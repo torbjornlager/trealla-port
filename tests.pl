@@ -1513,6 +1513,9 @@ t95 :-
 t96 :-
     socket_server_open('127.0.0.1':Port, Probe, []), close(Probe),
     Options = [bind_address('127.0.0.1'),auth(private),
+               node_url('https://trealla.example.test/'),
+               tutorial_sections([actor]),
+               ws_allowed_origins(['https://demo.example.test']),
                bearer_token(operator, 'admin-secret', [execute,admin])],
     thread_create(node:node(Port, none, Options), Server, []),
     setup_call_cleanup(
@@ -1536,8 +1539,12 @@ t96 :-
                         Auth, ErrorReply),
           sub_atom(ErrorReply, _, _, _, '{"type":"error"'),
           node_test_get(Port, '/node_info', [], Info),
+          sub_atom(Info, _, _, _,
+                   '"self_url":"https:\\/\\/trealla.example.test"'),
           sub_atom(Info, _, _, _, '"profile":"workbench"'),
           sub_atom(Info, _, _, _, '"principal_execution":false'),
+          sub_atom(Info, _, _, _, '"ws_allowed_origins":["https:\\/\\/demo.example.test"]'),
+          sub_atom(Info, _, _, _, '"tutorial_sections":["actor"]'),
           node_test_post_json(Port, '/admin/maintenance', Auth,
                               '{"enabled":true}', Enabled),
           sub_atom(Enabled, _, _, _, '{"enabled":true}'),

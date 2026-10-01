@@ -1,0 +1,90 @@
+services:
+  trealla:
+    build:
+      context: ..
+      dockerfile: Deployment/Dockerfile
+      args:
+        TREALLA_VERSION: ${TREALLA_VERSION:-v3.12.6}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    environment:
+      WP_PORT: "3060"
+      WP_PUBLIC_URL: ${PUBLIC_NODE_URL:?Set PUBLIC_NODE_URL}
+      WP_PROFILE: ${WP_PROFILE:-actor}
+      # The private Docker network and Caddy's pilot authentication are the
+      # outer boundary. Opening the backend still requires this explicit ack.
+      WP_AUTH: open
+      WP_ACK_PUBLIC: "yes"
+      WP_SANDBOX: ${WP_SANDBOX:-whitelist}
+      WP_ADMIN_TOKEN: ${WP_ADMIN_TOKEN:?Set WP_ADMIN_TOKEN}
+      WP_WS_ALLOWED_ORIGINS: ${BROWSER_ORIGIN:?Set BROWSER_ORIGIN}
+      WP_TRUSTED_PROXY_RANGES: 172.28.0.0/24
+      WP_AUDIT_LOG_FILE: /state/audit.jsonl
+      WP_TOKENS_FILE: /state/tokens.pl
+      WP_TIME_LIMIT: ${WP_TIME_LIMIT:-10}
+      WP_IDLE_LIMIT: ${WP_IDLE_LIMIT:-120}
+      WP_MAX_ACTORS: ${WP_MAX_ACTORS:-128}
+      WP_MAX_SOLUTIONS: ${WP_MAX_SOLUTIONS:-100}
+      WP_MAX_INFLIGHT_CALLS: ${WP_MAX_INFLIGHT_CALLS:-4}
+      WP_DRAIN_GRACE_SECONDS: ${WP_DRAIN_GRACE_SECONDS:-10}
+    volumes:
+      - trealla_state:/state
+    expose:
+      - "3060"
+    networks:
+      pilot:
+        ipv4_address: 172.28.0.10
+    mem_limit: 512m
+    cpus: 0.75
+    pids_limit: 256
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    build:
+      context: ..
+      dockerfile: Deployment/Dockerfile.caddy
+    restart: unless-stopped
+    depends_on:
+      trealla:
+        condition: service_healthy
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-http://localhost:8080}
+      BROWSER_ORIGIN: ${BROWSER_ORIGIN:?Set BROWSER_ORIGIN}
+      PILOT_USER: ${PILOT_USER:?Set PILOT_USER}
+      PILOT_PASSWORD_HASH: ${PILOT_PASSWORD_HASH:?Set PILOT_PASSWORD_HASH}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - "${PILOT_PORT:-8080}:8080"
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    networks:
+      pilot:
+        ipv4_address: 172.28.0.11
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  pilot:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+
+volumes:
+  trealla_state:
+  caddy_data:
+  caddy_config:

@@ -91,16 +91,21 @@ web_prolog_node(Port, Options) :-
     normalize_profile(Profile0, Profile),
     option(sandbox(Sandbox0), Options, blacklist),
     normalize_sandbox_mode(Sandbox0, Sandbox),
-    configure_node_url(Port, Options),
-    node(Port, web_prolog_handler(Profile, Sandbox), Options).
+    configure_node_url(Port, Options, PublicURL),
+    public_url_options(Options, PublicURL, NodeOptions),
+    node(Port, web_prolog_handler(Profile, Sandbox), NodeOptions).
 
-configure_node_url(Port, Options) :-
+configure_node_url(Port, Options, URL) :-
     ( memberchk(node_url(URL0), Options) -> node_url_atom(URL0, URL1)
     ; format(atom(URL1), 'http://127.0.0.1:~w', [Port])
     ),
     strip_url_slash(URL1, URL),
     retractall(node_public_url(_)),
     asserta(node_public_url(URL)).
+
+public_url_options(Options, _, Options) :-
+    memberchk(node_url(_), Options), !.
+public_url_options(Options, URL, [node_url(URL)|Options]).
 
 node_url_atom(URL, URL) :- atom(URL), !.
 node_url_atom(Chars, URL) :- atom_chars(URL, Chars).

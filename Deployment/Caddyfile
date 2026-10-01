@@ -1,0 +1,58 @@
+{
+	servers {
+		timeouts {
+			read_header 10s
+			idle 5m
+		}
+	}
+}
+
+{$SITE_ADDRESS:http://localhost:8080} {
+	encode zstd gzip
+
+	log {
+		output stdout
+		format json
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	basic_auth {
+		{$PILOT_USER} {$PILOT_PASSWORD_HASH}
+	}
+
+	@preflight method OPTIONS
+	handle @preflight {
+		header Access-Control-Allow-Origin "{$BROWSER_ORIGIN}"
+		header Access-Control-Allow-Methods "GET, POST, DELETE, OPTIONS"
+		header Access-Control-Allow-Headers "Authorization, Content-Type"
+		header Access-Control-Allow-Credentials "true"
+		respond 204
+	}
+
+	@allowed path /call /ws /healthz /readyz /version /node_info /metrics
+	handle @allowed {
+		header Access-Control-Allow-Origin "{$BROWSER_ORIGIN}"
+		header Access-Control-Allow-Credentials "true"
+		reverse_proxy trealla:3060 {
+			header_up -X-Web-Prolog-User
+			header_up -X-Web-Prolog-Principal
+			header_up -X-Web-Prolog-Capabilities
+			header_up -X-Web-Prolog-Caps
+			header_up -X-Authenticated-User
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+			transport http {
+				read_timeout 0
+				write_timeout 0
+			}
+		}
+	}
+
+	respond "Not found" 404
+}

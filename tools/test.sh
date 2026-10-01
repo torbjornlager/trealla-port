@@ -102,7 +102,7 @@ run_tpl_goal() {
     test_label=$1
     test_goal=$2
     run_with_timeout "$test_label" \
-        "$TPL" -g "consult('$ROOT/tests.pl'),($test_goal->halt;halt(1))"
+        "$TPL" -g "(catch((consult('$ROOT/tests.pl'),$test_goal),_,fail)->halt(0);halt(1))"
 }
 
 run_unit() {
@@ -121,7 +121,7 @@ run_unit() {
     run_tpl_goal "IP/CIDR and trusted-proxy policy" "run_test_group(ip_policy)"
     run_tpl_goal "node lifecycle" "run_test_group(lifecycle)"
     run_with_timeout "WebSocket and protocol vectors" \
-        "$TPL" -g "consult('$ROOT/websocket_tests.pl'),(websocket_tests->halt;halt(1))"
+        "$TPL" -g "(catch((consult('$ROOT/websocket_tests.pl'),websocket_tests),_,fail)->halt(0);halt(1))"
 }
 
 wait_for_port() {

@@ -131,7 +131,7 @@ waits for their normal cleanup under a bounded timeout.
 :- dynamic node_listener/4.
 :- dynamic node_connection/4.
 :- dynamic node_stopping/1.
-:- dynamic node_configuration/4.
+:- dynamic node_configuration/7.
 :- dynamic node_in_maintenance/1.
 
 :- catch(mutex_create(_, [alias('$node_lifecycle')]),
@@ -251,6 +251,7 @@ node(Port, WebSocketHandler) :-
 %
 %   Options include `profile(Profile)`, `sandbox(Mode)`, `auth(Mode)`,
 %   `principal(Id, Capabilities)`, `bearer_token(Id, Token, Capabilities)`,
+%   `node_url(PublicURL)`, `tutorial_sections(Sections)`,
 %   `ws_allowed_origins(Origins)`, `relations(Patterns)`,
 %   `rate_window_seconds(Seconds)`, `max_call_requests_per_window(Count)`,
 %   `max_session_spawns_per_window(Count)`,
@@ -288,7 +289,7 @@ node_server(Port, WebSocketHandler, Options) :-
     configure_token_store(Options),
     configure_ip_policy(Options, _IPPolicy),
     configure_auth_policy(Options, AuthPolicy),
-    AuthPolicy = auth_config(AuthMode, _, _, _, _, _, _, _),
+    AuthPolicy = auth_config(AuthMode, _, _, _, _, _, WSAllowedOrigins, _),
     configure_governance_policy(Options, _GovernancePolicy),
     configure_resource_policy(Options, _ResourcePolicy),
     configure_source_policy(Options, _SourcePolicy),
@@ -298,10 +299,16 @@ node_server(Port, WebSocketHandler, Options) :-
     resource_websocket_options(WebSocketOptions0, WebSocketOptions),
     option(bind_address(BindAddress0), Options, '0.0.0.0'),
     node_bind_address(BindAddress0, BindAddress),
+    option(node_url(PublicURL0), Options, none),
+    node_public_url(PublicURL0, PublicURL),
+    option(tutorial_sections(TutorialSections0), Options, []),
+    normalize_metadata_atoms(tutorial_sections, TutorialSections0,
+                             TutorialSections),
     socket_server_open(BindAddress:Port, S, SocketOptions),
     setup_call_cleanup(
         register_node_listener(Port, S, BindAddress, SocketOptions,
-                               Profile, Sandbox, AuthMode),
+                               Profile, Sandbox, AuthMode, PublicURL,
+                               TutorialSections, WSAllowedOrigins),
         ( format("Node listening on port ~w (profile ~w, sandbox ~w, auth ~w)~n",
                  [Port, Profile, Sandbox, AuthMode]),
           catch(node_loop(Port, S, WebSocketHandler, WebSocketOptions,
@@ -314,6 +321,30 @@ node_bind_address(Address, Atom) :-
     is_list(Address), atom_chars(Atom, Address), Atom \== '', !.
 node_bind_address(Address, _) :-
     throw(error(domain_error(bind_address, Address), node:node/3)).
+
+node_public_url(none, none) :- !.
+node_public_url(URL0, URL) :-
+    ( atom(URL0) -> URL1 = URL0
+    ; is_list(URL0) -> atom_chars(URL1, URL0)
+    ; throw(error(domain_error(node_url, URL0), node:node/3))
+    ),
+    ( atom_concat(URL, '/', URL1) -> true ; URL = URL1 ),
+    ( atom_concat('http://', _, URL) ; atom_concat('https://', _, URL) ), !.
+node_public_url(URL, _) :-
+    throw(error(domain_error(node_url, URL), node:node/3)).
+
+normalize_metadata_atoms(_, [], []) :- !.
+normalize_metadata_atoms(Name, Values, Atoms) :-
+    must_be(list, Values),
+    normalize_metadata_atom_list(Name, Values, Atoms).
+
+normalize_metadata_atom_list(_, [], []).
+normalize_metadata_atom_list(Name, [Value0|Values], [Value|Atoms]) :-
+    ( atom(Value0) -> Value = Value0
+    ; is_list(Value0) -> atom_chars(Value, Value0)
+    ; throw(error(domain_error(Name, Value0), node:node/3))
+    ),
+    normalize_metadata_atom_list(Name, Values, Atoms).
 
 node_socket_options(Options, SocketOptions) :-
     node_copy_option(ssl, Options, [], O1),
@@ -407,13 +438,16 @@ report_node_connection_error(_, Error) :-
                  *******************************/
 
 register_node_listener(Port, S, BindAddress, SocketOptions,
-                       Profile, Sandbox, AuthMode) :-
+                       Profile, Sandbox, AuthMode, PublicURL,
+                       TutorialSections, WSAllowedOrigins) :-
     ( memberchk(ssl(true), SocketOptions) -> SSL = true ; SSL = false ),
     with_mutex('$node_lifecycle',
         ( retractall(node_stopping(Port)),
           retractall(node_in_maintenance(Port)),
-          retractall(node_configuration(Port, _, _, _)),
-          assertz(node_configuration(Port, Profile, Sandbox, AuthMode)),
+          retractall(node_configuration(Port, _, _, _, _, _, _)),
+          assertz(node_configuration(Port, Profile, Sandbox, AuthMode,
+                                     PublicURL, TutorialSections,
+                                     WSAllowedOrigins)),
           retractall(node_listener(Port, _, _, _)),
           assertz(node_listener(Port, S, BindAddress, SSL)) )).
 
@@ -424,7 +458,7 @@ cleanup_node_listener(Port, S) :-
         ( retractall(node_listener(Port, _, _, _)),
           retractall(node_stopping(Port)),
           retractall(node_in_maintenance(Port)),
-          retractall(node_configuration(Port, _, _, _)) )).
+          retractall(node_configuration(Port, _, _, _, _, _, _)) )).
 
 register_node_connection(Port, Key, Stream) :-
     with_mutex('$node_lifecycle',
@@ -689,9 +723,10 @@ reply_draining(C, Ver) :-
                ['Retry-After'-'1']).
 
 handle_node_info(Port, C, Ver, Peer, Headers) :-
-    node_configuration(Port, Profile, Sandbox, AuthMode),
+    node_configuration(Port, Profile, Sandbox, AuthMode, PublicURL,
+                       TutorialSections, WSAllowedOrigins),
     node_listener(Port, _, BindAddress, SSL),
-    node_self_url(BindAddress, Port, SSL, SelfURL),
+    node_self_url(PublicURL, BindAddress, Port, SSL, SelfURL),
     ( catch(request_principal(Peer, Headers, Principal), _, fail) -> true
     ; Principal = anonymous([])
     ),
@@ -705,6 +740,8 @@ handle_node_info(Port, C, Ver, Peer, Headers) :-
                       'X-Authenticated-User'], IdentityHeaders),
     json_string_list(['X-Web-Prolog-Capabilities','X-Web-Prolog-Caps'],
                      CapabilityHeaders),
+    json_string_list(TutorialSections, TutorialSectionsJSON),
+    json_string_list(WSAllowedOrigins, WSAllowedOriginsJSON),
     node_json_object(
         [self_url-string_atom(SelfURL),profile-string_atom(Profile),
          auth-string_atom(AuthMode),sandbox-string_atom(Sandbox),
@@ -714,11 +751,14 @@ handle_node_info(Port, C, Ver, Peer, Headers) :-
          internal_transport_principal_prefix-string_atom('node:'),
          principal_id-string_atom(PrincipalId),
          principal_execution-boolean(Execution),maintenance-boolean(Maintenance),
-         services-list([]),provides-list([]),self_contained-boolean(false)],
+         services-list([]),provides-list([]),self_contained-boolean(false),
+         ws_allowed_origins-list(WSAllowedOriginsJSON),
+         tutorial_sections-list(TutorialSectionsJSON)],
         JSON),
     reply_json(C, Ver, JSON).
 
-node_self_url(BindAddress, Port, SSL, URL) :-
+node_self_url(PublicURL, _, _, _, PublicURL) :- PublicURL \== none, !.
+node_self_url(_, BindAddress, Port, SSL, URL) :-
     ( SSL == true -> Scheme = https ; Scheme = http ),
     ( memberchk(BindAddress, ['0.0.0.0','::']) -> Host = localhost
     ; Host = BindAddress
