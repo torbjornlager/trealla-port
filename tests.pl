@@ -32,6 +32,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t8  parallel/1 -- all goals succeed
   - t9  parallel/1 -- one goal fails (overall failure)
   - t10 first_solution/2 -- race between slow and fast goal
+  - t113 actors/1 returns a deterministic live-actor snapshot
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -78,6 +79,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t39 a toplevel evaluates calls in its private namespace
   - t40 actor termination removes loaded clauses and namespace bookkeeping
   - t41 source-preparation errors propagate without retaining a namespace
+  - t114 node-wide shared source is visible, with local predicate shadowing
 
 ## Tests: execution profiles (t42-t46)
 
@@ -198,14 +200,14 @@ pass, fails (or throws) on failure.  Tests are grouped:
 run_test_group(actors) :-
     t1, t2, t3, t4, t5, t6, t7,
     t19, t20, t21, t23, t24, t25, t26,
-    t31, t32, t33, t98.
+    t31, t32, t33, t98, t113.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
     t22, t27, t28, t29, t99, t100, t101, t111, t112.
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109, t114.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -805,7 +807,27 @@ t33 :-
     collect_refs(50, Refs),
     sort(Refs, Unique),
     length(Unique, 50),
+    forall(member(Ref, Refs),
+           (integer(Ref), Ref >= 1000000000, Ref =< 9999999999)),
     format("33. concurrent unique refs ok~n").
+
+%!  t113 is det.
+%
+%   actors/1 reports live actors, excludes an ordinary caller that merely
+%   acquired a PID through self/1, and drops actors after exit cleanup.
+
+t113 :-
+    self(Self),
+    spawn(receive({stop -> true}), Child, [monitor(true),link(false)]),
+    actors(Alive),
+    memberchk(Child, Alive),
+    \+ memberchk(Self, Alive),
+    Child ! stop,
+    receive({down(Child, Child, true) -> true},
+            [timeout(1),on_timeout(fail)]),
+    actors(After),
+    \+ memberchk(Child, After),
+    format("113. live actor enumeration ok~n").
 
 
                 /*******************************
@@ -831,6 +853,35 @@ t35 :-
     receive({isolated_list(Value) -> true}),
     Value == list,
     format("35. src_list private predicate ok~n").
+
+%!  t114 is det.
+%
+%   Node-wide shared source is visible in every actor, while a predicate in
+%   actor-local source shadows (rather than extends) its shared counterpart.
+
+t114 :-
+    File = '/tmp/trealla-shared-db-test.pl',
+    setup_call_cleanup(
+        ( setup_call_cleanup(open(File, write, Out),
+                             format(Out,
+                                    'shared_value(node).~nshadowed(shared).~n',
+                                    []),
+                             close(Out)),
+          isolation:configure_shared_db([File])
+        ),
+        ( self(Me),
+          spawn((shared_value(Value), findall(X, shadowed(X), Values),
+                 Me ! shared_result(Value, Values)), Child,
+                [src_list([shadowed(local)]),monitor(true),link(false)]),
+          receive({shared_result(node, [local]) -> true},
+                  [timeout(1),on_timeout(fail)]),
+          receive({down(Child, Child, true) -> true},
+                  [timeout(1),on_timeout(fail)]),
+          format("114. shared database visibility and local shadowing ok~n")
+        ),
+        ( isolation:clear_shared_db,
+          catch(delete_file(File), _, true)
+        )).
 
 t36 :-
     self(Me),
@@ -1961,6 +2012,11 @@ t96 :-
 
 t97 :-
     socket_server_open('127.0.0.1':Port, Probe, []), close(Probe),
+    File = '/tmp/trealla-node-shared-db-test.pl',
+    setup_call_cleanup(open(File, write, SharedOut),
+                       format(SharedOut, 'node_shared_value(visible).~n', []),
+                       close(SharedOut)),
+    isolation:configure_shared_db([File]),
     Options = [bind_address('127.0.0.1'),auth(private),
                bearer_token(rpc_client, 'rpc-secret', [execute])],
     thread_create(node:node(Port, none, Options), Server, []),
@@ -1972,10 +2028,18 @@ t97 :-
                       [limit(1),timeout(2),
                        request_header('Authorization'='Bearer rpc-secret')]),
                   Xs),
-          Xs == [a,b,c] ),
+          Xs == [a,b,c],
+          findall(Value,
+                  rpc(URI, node_shared_value(Value),
+                      [timeout(2),
+                       request_header('Authorization'='Bearer rpc-secret')]),
+                  Values),
+          Values == [visible] ),
         ( ( catch(stop_node(Port, [timeout(2)]), _, fail) -> true ; true ),
-          ( catch(thread_join(Server, _), _, fail) -> true ; true ) )),
-    format("97. RPC paging and HTTP option forwarding ok~n").
+          ( catch(thread_join(Server, _), _, fail) -> true ; true ),
+          isolation:clear_shared_db,
+          catch(delete_file(File), _, true) )),
+    format("97. RPC paging, options, and shared database ok~n").
 
 node_test_get(Port, Path, Headers, Response) :-
     node_test_headers(Headers, HeaderText),

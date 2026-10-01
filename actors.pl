@@ -25,6 +25,7 @@
          terminal_output/1,      % +Term
          terminal_output/2,      % +Term, +Options
          current_io_target/1,    % -Target
+         actors/1,              % -Pids
          live_actor_count/1,     % -Count
          actor_thread/2,         % +Pid, -NativeThread
          receive/1,              % +ReceiveClauses
@@ -125,8 +126,8 @@ Reply = hello.
   - `thread_signal/2` and `thread_send_message/2` on a dead detached
     thread raise a catchable domain_error; exit/2 and actor_send/2 use a
     bare `catch/3` and treat the error as a silent drop.
-  - Trealla has no `flag/3`; make_ref/1 uses a mutex-protected dynamic
-    counter to provide the same process-lifetime uniqueness property.
+  - Public PIDs and monitor references are collision-checked random
+    ten-digit integers, matching the SWI distribution layer's wire form.
 
 @author Torbjörn Lager
 */
@@ -157,6 +158,7 @@ Reply = hello.
 :- dynamic pid_thread/2.
 :- dynamic thread_pid/2.
 :- dynamic issued_pid/1.
+:- dynamic issued_ref/1.
 
 :- catch(mutex_create(_, [alias('$actor_registry')]),
          error(permission_error(create, mutex, '$actor_registry'), _),
@@ -337,6 +339,15 @@ live_actor_count(Count) :-
 live_actor_count_unlocked(Count) :-
     findall(Pid, actor_alive(Pid), Pids),
     length(Pids, Count).
+
+%!  actors(-Pids) is det.
+%
+%   Return a snapshot of all live actor PIDs.  This intentionally excludes
+%   non-actor runtime threads that acquired an identity through self/1.
+
+actors(Pids) :-
+    with_mutex('$actor_registry', findall(Pid, actor_alive(Pid), Pids)),
+    !.
 
 
 %!  down_reason(+Pid, -Reason) is det.
@@ -845,18 +856,21 @@ flush_outputs([Message|Messages]) :-
 
 %!  make_ref(-Ref) is det.
 %
-%   Generate a process-lifetime unique reference.  SWI's implementation
-%   uses flag/3; Trealla does not provide it, so the increment is protected
-%   explicitly by a mutex.
+%   Generate a process-lifetime unique ten-digit reference.  Public Trealla
+%   nodes use the same representation for references and PIDs as the SWI
+%   distribution layer.  The two allocation sets are checked together so a
+%   reference cannot be confused with a PID minted by this process.
 
-:- dynamic(actor_ref_counter/1).
+make_ref(Ref) :-
+    with_mutex('$actor_registry', make_ref_unlocked(Ref)).
 
-:- catch(mutex_create(_, [alias('$actor_ref_counter')]),
-         error(permission_error(create, mutex, '$actor_ref_counter'), _),
-         true).
-
-make_ref(ref(N)) :-
-    with_mutex('$actor_ref_counter', next_ref_number(N)).
+make_ref_unlocked(Ref) :-
+    random_between(1000000000, 9999999999, Candidate),
+    ( issued_pid(Candidate) -> make_ref_unlocked(Ref)
+    ; issued_ref(Candidate) -> make_ref_unlocked(Ref)
+    ; assertz(issued_ref(Candidate)),
+      Ref = Candidate
+    ).
 
 %!  make_pid(-Pid) is det.
 %
@@ -870,14 +884,10 @@ make_pid(Pid) :-
 make_pid_unlocked(Pid) :-
     random_between(1000000000, 9999999999, Candidate),
     ( issued_pid(Candidate) -> make_pid_unlocked(Pid)
+    ; issued_ref(Candidate) -> make_pid_unlocked(Pid)
     ; assertz(issued_pid(Candidate)),
       Pid = Candidate
     ).
-
-next_ref_number(N) :-
-    ( retract(actor_ref_counter(Current)) -> N = Current ; N = 0 ),
-    Next is N + 1,
-    asserta(actor_ref_counter(Next)).
 
 
                 /*******************************

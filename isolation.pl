@@ -4,6 +4,8 @@
        [ prepare_actor/4,          % +Pid, +GoalModule, +Options, -Module
          run_actor_goal/3,         % +Module, :Goal, +Options
          cleanup_actor/1,          % +Pid
+         configure_shared_db/1,    % +Files
+         clear_shared_db/0,
          actor_module/2,           % +Pid, -Module
          actor_source_module/2,    % +Pid, -Module
          execution_goal/2,         % +Goal, -QualifiedGoal
@@ -33,6 +35,7 @@ policy before actor creation.
 
 :- dynamic actor_namespace/2.
 :- dynamic actor_source_namespace/2.
+:- dynamic shared_db_text/1.
 
 :- catch(mutex_create(_, [alias('$isolation_listing')]),
          error(permission_error(create, mutex, '$isolation_listing'), _),
@@ -52,6 +55,45 @@ rpc_library_file(RpcFile) :-
                 *       PUBLIC OPERATIONS      *
                 *******************************/
 
+%!  configure_shared_db(+Files) is det.
+%
+%   Load trusted node-wide source files for every subsequently created actor.
+%   The source is copied into each actor namespace so ordinary actor calls and
+%   nested spawns see the same database.  Actor-local source retains SWI's
+%   shadowing semantics: defining a predicate locally replaces the shared
+%   clauses for that predicate in that actor only.
+
+configure_shared_db(Files) :-
+    must_be(list, Files),
+    shared_files_text(Files, '', Text),
+    retractall(shared_db_text(_)),
+    ( Text == '' -> true ; assertz(shared_db_text(Text)) ).
+
+clear_shared_db :-
+    retractall(shared_db_text(_)).
+
+shared_files_text([], Text, Text).
+shared_files_text([File0|Files], Acc, Text) :-
+    shared_file_atom(File0, File),
+    setup_call_cleanup(open(File, read, Stream, [type(binary)]),
+                       read_stream_bytes(Stream, Bytes), close(Stream)),
+    atom_codes(Source, Bytes),
+    ( Acc == '' -> Next = Source
+    ; atom_concat(Acc, '\n', Prefix), atom_concat(Prefix, Source, Next)
+    ),
+    shared_files_text(Files, Next, Text).
+
+shared_file_atom(File, File) :- atom(File), !.
+shared_file_atom(File, Atom) :- string(File), !, atom_string(Atom, File).
+shared_file_atom(File, _) :-
+    throw(error(type_error(source_sink, File), configure_shared_db/1)).
+
+read_stream_bytes(Stream, Bytes) :-
+    get_byte(Stream, Byte),
+    ( Byte =:= -1 -> Bytes = []
+    ; Bytes = [Byte|Rest], read_stream_bytes(Stream, Rest)
+    ).
+
 prepare_actor(Pid, _GoalModule, Options, Module) :-
     fresh_namespace(Module, File),
     catch(
@@ -60,8 +102,13 @@ prepare_actor(Pid, _GoalModule, Options, Module) :-
           delete_file(File),
           assertz(actor_namespace(Pid, Module)),
           source_options(Options, Sources),
+          ( shared_db_text(SharedText)
+          -> call_in_module(Module, '$actor_load_shared'(SharedText)),
+             HasShared = true
+          ; HasShared = false
+          ),
           call_in_module(Module, '$actor_load'(Sources)),
-          ( Sources == [] -> true
+          ( Sources == [], HasShared == false -> true
           ; assertz(actor_source_namespace(Pid, Module))
           )
         ),
@@ -226,7 +273,7 @@ predicates_to_terms(Module, PIs, Terms) :-
 predicates_to_terms(Module, PIs, Terms) :-
     must_be(list, PIs),
     maplist(valid_source_predicate_indicator, PIs),
-    actors:make_ref(ref(Id)),
+    actors:make_ref(Id),
     format(atom(HelperName), '$isolation_listing_~w', [Id]),
     HelperHead =.. [HelperName, PI],
     HelperClause = (HelperHead :- listing(PI)),
@@ -293,7 +340,7 @@ source_predicate_indicator(PI, Name, Arity) :-
                 *******************************/
 
 fresh_namespace(Module, File) :-
-    actors:make_ref(ref(Id)),
+    actors:make_ref(Id),
     format(atom(Module), '$trealla_actor_~w', [Id]),
     fresh_bootstrap_file(Id, File).
 
@@ -316,12 +363,15 @@ write_bootstrap(File, Module) :-
 
 write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile) :-
     format(Out, '%% SPDX-License-Identifier: MIT~n', []),
-    format(Out, ':- module(~q, [\'$actor_load\'/1, \'$actor_call\'/1, \'$actor_copy_predicates\'/2, \'$actor_cleanup\'/0]).~n', [Module]),
+    format(Out, ':- module(~q, [\'$actor_load\'/1, \'$actor_load_shared\'/1, \'$actor_call\'/1, \'$actor_copy_predicates\'/2, \'$actor_cleanup\'/0]).~n', [Module]),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
     format(Out, ':- use_module(~q, [rpc/2,rpc/3]).~n', [RpcFile]),
     format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_format/2,sandbox_sleep/1,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     format(Out, ':- dynamic \'$actor_source_pi\'/1.~n', []),
     format(Out, ':- dynamic \'$actor_dynamic_pi\'/1.~n', []),
+    format(Out, ':- dynamic \'$actor_shared_pi\'/1.~n', []),
+    format(Out, ':- dynamic \'$actor_loading_shared\'/0.~n', []),
+    format(Out, '\'$actor_load_shared\'(Text) :- setup_call_cleanup(assertz(\'$actor_loading_shared\'), \'$actor_text\'(Text), retractall(\'$actor_loading_shared\')).~n', []),
     format(Out, '\'$actor_load\'([]).~n', []),
     format(Out, '\'$actor_load\'([src_text(Text)|Rest]) :- !, \'$actor_text\'(Text), \'$actor_load\'(Rest).~n', []),
     format(Out, '\'$actor_load\'([src_list(Terms)|Rest]) :- !, \'$actor_terms\'(Terms), \'$actor_load\'(Rest).~n', []),
@@ -374,9 +424,11 @@ write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile) :-
     format(Out, '\'$actor_expanded\'((:- Directive)) :- !, call(Directive).~n', []),
     format(Out, '\'$actor_expanded\'((Head :- Body)) :- !, \'$actor_remember\'(Head), assertz((Head :- Body)).~n', []),
     format(Out, '\'$actor_expanded\'(Head) :- \'$actor_remember\'(Head), assertz(Head).~n', []),
-    format(Out, '\'$actor_remember\'(Head) :- callable(Head), functor(Head, Name, Arity), PI = Name/Arity, ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ).~n', []),
+    format(Out, '\'$actor_remember\'(Head) :- callable(Head), functor(Head, Name, Arity), PI = Name/Arity, \'$actor_prepare_pi\'(PI,Head).~n', []),
     format(Out, '\'$actor_remember_pi\'((A,B)) :- !, \'$actor_remember_pi\'(A), \'$actor_remember_pi\'(B).~n', []),
-    format(Out, '\'$actor_remember_pi\'(PI) :- ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ).~n', []),
+    format(Out, '\'$actor_remember_pi\'(Name/Arity) :- functor(Head,Name,Arity), \'$actor_prepare_pi\'(Name/Arity,Head).~n', []),
+    format(Out, '\'$actor_prepare_pi\'(PI,_Head) :- \'$actor_loading_shared\', !, ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ), ( \'$actor_shared_pi\'(PI) -> true ; assertz(\'$actor_shared_pi\'(PI)) ).~n', []),
+    format(Out, '\'$actor_prepare_pi\'(Name/Arity,_Head) :- PI = Name/Arity, ( retract(\'$actor_shared_pi\'(PI)) -> functor(SharedHead,Name,Arity), retractall(SharedHead) ; true ), ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ).~n', []),
     format(Out, '\'$actor_remember_dynamic_pi\'((A,B)) :- !, \'$actor_remember_dynamic_pi\'(A), \'$actor_remember_dynamic_pi\'(B).~n', []),
     format(Out, '\'$actor_remember_dynamic_pi\'(PI) :- ( \'$actor_dynamic_pi\'(PI) -> true ; assertz(\'$actor_dynamic_pi\'(PI)) ).~n', []),
     % Trealla does not preserve imports when an arbitrary term is passed
@@ -401,7 +453,7 @@ write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile) :-
     format(Out, '\'$actor_strip_source_args\'([Arg0|Args0], [Arg|Args]) :- \'$actor_strip_source_module\'(Arg0,Arg), \'$actor_strip_source_args\'(Args0,Args).~n', []),
     format(Out, '\'$actor_clause_term\'(Head, true, Head) :- !.~n', []),
     format(Out, '\'$actor_clause_term\'(Head, Body, (Head :- Body)).~n', []),
-    format(Out, '\'$actor_cleanup\' :- forall(retract(\'$actor_source_pi\'(Name/Arity)), (functor(Head, Name, Arity), retractall(Head))), retractall(\'$actor_dynamic_pi\'(_)).~n', []).
+    format(Out, '\'$actor_cleanup\' :- forall(retract(\'$actor_source_pi\'(Name/Arity)), (functor(Head, Name, Arity), retractall(Head))), retractall(\'$actor_dynamic_pi\'(_)), retractall(\'$actor_shared_pi\'(_)), retractall(\'$actor_loading_shared\').~n', []).
 
 call_in_module(Module, Goal) :-
     Qualified = Module:Goal,

@@ -53,6 +53,7 @@ deployment_options(Port, Options) :-
     env_csv('WP_LOAD_URI_ORIGINS', SourceOrigins),
     env_csv('WP_LOAD_URI_ORIGIN_ALIASES', SourceAliases),
     env_csv_default('WP_TUTORIAL_SECTIONS', [actor], TutorialSections),
+    shared_db_files(SharedDBFiles),
     env_integer('WP_TIME_LIMIT', 10, TimeLimit), positive(time_limit, TimeLimit),
     env_integer('WP_IDLE_LIMIT', 120, IdleLimit), positive(idle_limit, IdleLimit),
     env_integer('WP_MAX_ACTORS', 128, MaxActors), positive(max_actors, MaxActors),
@@ -74,6 +75,7 @@ deployment_options(Port, Options) :-
     env_integer('WP_MAX_AUDIT_LOG_BACKUPS', 5, AuditBackups), nonnegative(max_audit_log_backups, AuditBackups),
     env_atom('WP_TOKENS_FILE', '/state/tokens.pl', TokensFile),
     owner_options(Auth, Owner, OwnerOptions),
+    shared_db_options(SharedDBFiles, SharedDBOptions),
     Core0 = [bind_address('0.0.0.0'),node_url(PublicURL),profile(Profile),
             sandbox(Sandbox),auth(Auth),
             bearer_token(pilot_admin,AdminToken,[execute,admin]),
@@ -91,7 +93,8 @@ deployment_options(Port, Options) :-
             auto_ban_window_seconds(BanWindow),auto_ban_seconds(BanSeconds),
             audit_log_file(AuditFile),max_audit_log_bytes(AuditBytes),
             max_audit_log_backups(AuditBackups),tokens_file(TokensFile)],
-    append(OwnerOptions, Core0, Core),
+    append(OwnerOptions, SharedDBOptions, PrefixOptions),
+    append(PrefixOptions, Core0, Core),
     optional_list(ws_allowed_origins, WSOrigins, Core, O1),
     optional_list(trusted_proxy_ranges, TrustedProxies, O1, O2),
     optional_list(ip_allowlist, IPAllowlist, O2, O3),
@@ -157,6 +160,26 @@ public_acknowledged(_).
 owner_options(private, Owner, [principal(Owner,[admin,public_read])]) :-
     Owner \== '', !.
 owner_options(_, _, []).
+
+% WP_SHARED_DB_FILES is the preferred ordered, comma-separated form.  The
+% singular variables retain compatibility with the SWI deployment layout.
+shared_db_files(Files) :-
+    env_csv('WP_SHARED_DB_FILES', Configured),
+    ( Configured \== [] -> Files = Configured
+    ; env_atom('WP_SHARED_DB_FILE', '', Base),
+      env_atom('WP_SHARED_DB_OVERLAY_FILE', '', Overlay),
+      nonempty_atoms([Base,Overlay], Files)
+    ).
+
+nonempty_atoms([], []).
+nonempty_atoms([''|Atoms], Values) :- !,
+    nonempty_atoms(Atoms, Values).
+nonempty_atoms([Atom|Atoms], [Atom|Values]) :-
+    nonempty_atoms(Atoms, Values).
+
+shared_db_options([], []).
+shared_db_options([File|Files], [load_shared_db_file(File)|Options]) :-
+    shared_db_options(Files, Options).
 
 optional_list(_, [], Options, Options) :- !.
 optional_list(Name, Values, Options, [Option|Options]) :-

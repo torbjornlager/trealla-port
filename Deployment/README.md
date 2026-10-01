@@ -24,6 +24,11 @@ public origin and resolved address, the fetch uses that explicit internal
 endpoint while retaining the public Host header. This is intended for a
 trusted deployment network behind its TLS terminator, not as a general proxy.
 
+`WP_SHARED_DB_FILES` is an ordered comma-separated list of trusted Prolog
+source files copied into every actor namespace. Actor-local source shadows a
+shared predicate of the same name and arity, matching the SWI node. The legacy
+`WP_SHARED_DB_FILE` plus `WP_SHARED_DB_OVERLAY_FILE` pair is also accepted.
+
 ## Local smoke test
 
 Run the complete build and proxy test:

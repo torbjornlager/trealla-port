@@ -19,6 +19,7 @@
          respond/2,              % +Pid, +Answer
          output/1,               % +Term
          output/2,               % +Term, +Options
+         actors/1,              % -Pids
          receive/1,              % +ReceiveClauses
          receive/2,              % +ReceiveClauses, +Options
          make_ref/1,             % -Ref

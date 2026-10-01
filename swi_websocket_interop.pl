@@ -26,6 +26,8 @@
 :- use_module(library(http/websocket)).
 :- use_module(library(http/json)).
 
+:- op(200, xfx, @).
+
 :- http_handler(root(echo),
                 http_upgrade_to_websocket(echo, []),
                 [spawn([])]).
@@ -166,10 +168,8 @@ protocol_client_test(Port) :-
     receive_json(WS, SelfAnswer),
     SelfAnswer.data = [SelfRow],
     get_dict('Self', SelfRow, SelfText),
-    number_string(SelfId, SelfText),
+    local_pid_text(SelfText, SelfId, Port),
     SelfId == Pid,
-    SelfId >= 1000000000,
-    SelfId =< 9999999999,
     SelfAnswer.more == false,
     send_json(WS, json{command:"toplevel_halt", pid:Pid}),
     receive_type(WS, "halted", _Halted),
@@ -392,7 +392,7 @@ browser_io_client_test(Port) :-
     FirstPage.more == true,
     FirstPage.data = [FirstRow],
     get_dict('Self', FirstRow, FirstSelfText),
-    number_string(FirstSelf, FirstSelfText),
+    local_pid_text(FirstSelfText, FirstSelf, Port),
     FirstSelf == Pid,
     send_json(WS, json{command:"toplevel_next", pid:Pid}),
     receive_type(WS, "io_request", LaterRequest),
@@ -474,6 +474,10 @@ browser_distributed_io_client_test(Port, RemoteURL) :-
     Answer.event.type == "output",
     Answer.event.data == "remote_prompt_answered",
     acknowledge_browser_output(WS, Answer),
+    % The relay monitors every command-spawned actor.  Consume its terminal
+    % lifecycle event before starting the WebSocket close handshake; otherwise
+    % fast completion can race ws_close/3 and appear as an unexpected frame.
+    receive_type(WS, "down", _Down),
     ws_close(WS, 1000, done),
     format('SWI browser-to-remote-Trealla terminal test: ok~n').
 
@@ -501,6 +505,12 @@ send_json(WS, Dict) :-
 receive_json(WS, Dict) :-
     ws_receive(WS, Message), Message.opcode == text,
     atom_json_dict(Message.data, Dict, []).
+
+local_pid_text(Text, Pid, Port) :-
+    term_string(Pid@Node, Text, [module(swi_websocket_interop)]),
+    integer(Pid), Pid >= 1000000000, Pid =< 9999999999,
+    format(atom(ExpectedNode), 'http://127.0.0.1:~w', [Port]),
+    Node == ExpectedNode.
 
 receive_type(WS, Type, Dict) :-
     receive_json(WS, Event),

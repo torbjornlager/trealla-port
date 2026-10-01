@@ -123,6 +123,7 @@ waits for their normal cleanup under a bounded timeout.
 :- use_module(source_policy).
 :- use_module(ip_policy).
 :- use_module(websocket).
+:- use_module(isolation, [execution_goal/2]).
 
 :- meta_predicate(node(+, 2)).
 :- meta_predicate(node(+, 2, +)).
@@ -1356,7 +1357,8 @@ run_goal_producer(Goal, Template) :-
     setup_call_cleanup(
         arm_http_timer(TimeLimit),
         catch(
-        (   call(Goal),
+        (   execution_goal(Goal, ExecutionGoal),
+            call(ExecutionGoal),
             producer_solution_wait(Template, TimeLimit),
             fail                        % backtrack for next solution
         ;   producer_eos_wait

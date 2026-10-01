@@ -791,6 +791,7 @@ actor_safe_pi(writeln/1).
 actor_safe_pi(format/1). actor_safe_pi(format/2).
 actor_safe_pi(input/2). actor_safe_pi(input/3). actor_safe_pi(respond/2).
 actor_safe_pi(make_ref/1). actor_safe_pi(flush/0).
+actor_safe_pi(actors/1).
 actor_safe_pi(toplevel_spawn/1). actor_safe_pi(toplevel_spawn/2).
 actor_safe_pi(toplevel_call/2). actor_safe_pi(toplevel_call/3).
 actor_safe_pi(toplevel_next/1). actor_safe_pi(toplevel_next/2).

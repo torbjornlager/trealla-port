@@ -133,6 +133,8 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 101 | `flush/0` routes drained messages to the inherited terminal | ok |
 | 102 | `receive/1` bodies retain their private source module | ok |
 | 103 | submitted guarded receives and timeout callbacks retain actor syntax/module | ok |
+| 113 | live `actors/1` snapshots exclude non-actor runtime threads | ok |
+| 114 | shared database visibility and actor-local shadowing | ok |
 | 104 | sandboxed nested spawn retains its runtime module in source sessions | ok |
 | 105 | nested `src_predicates/1` copies source from its private parent session | ok |
 
@@ -753,7 +755,8 @@ the defaults can be replaced with explicit `header/2` options.
 - `output/1-2`, `input/2-3`, `respond/2`
 - `terminal_output/1-2` with local descendant inheritance
 - `input/2-3` inherits the same terminal target
-- `make_ref/1` with process-lifetime uniqueness, `flush/0`
+- `make_ref/1` with process-lifetime-unique ten-digit integer references,
+  `actors/1` for a live-actor snapshot, and `flush/0`
 - Links 
 - Deferred-message semantics (non-matching messages stay in the
   mailbox in arrival order)

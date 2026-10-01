@@ -98,6 +98,8 @@ web_prolog_node(Port, Options) :-
     normalize_profile(Profile0, Profile),
     option(sandbox(Sandbox0), Options, blacklist),
     normalize_sandbox_mode(Sandbox0, Sandbox),
+    findall(File, member(load_shared_db_file(File), Options), SharedDBFiles),
+    configure_shared_db(SharedDBFiles),
     configure_node_url(Port, Options, PublicURL),
     public_url_options(Options, PublicURL, NodeOptions),
     node(Port, web_prolog_handler(Profile, Sandbox), NodeOptions).
@@ -841,7 +843,7 @@ browser_output_message(terminal_output(_, _)).
 browser_output_message(terminal_io_output(_, _)).
 
 browser_request_id(RequestId) :-
-    make_ref(ref(N)),
+    make_ref(N),
     format(atom(RequestId), 'browser-~w', [N]).
 
 browser_io_result(ok) :- !.
