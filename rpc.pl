@@ -155,6 +155,11 @@ base_path_prefix(BasePath, Prefix) :-
 %       size).  Smaller values yield more requests but lower latency
 %       per solution.  Default: a very large number (effectively no
 %       paging).
+%     - timeout(+Seconds), request_header(+Name=Value), and the remaining
+%       Trealla `http_open/3` client options are forwarded to the transport.
+%       The HTTP library parses `https://` when Trealla is built with TLS;
+%       hostname verification remains subject to BUG-005 in
+%       `UPSTREAM_REPORTS.md`.
 %
 %   The goal's free variables are collected with term_variables/2 and
 %   wrapped in a `v(...)` template.  Both goal and template are
@@ -189,9 +194,9 @@ rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options) :-
     format(atom(URL),
            '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog',
            [RootURI, GoalEnc, TemplEnc, Offset, Limit]),
-    once(http_open(URL, S, [])),
-    getline(S, BodyChars),
-    close(S),
+    rpc_http_options(Options, HTTPOptions),
+    once(http_open(URL, S, HTTPOptions)),
+    setup_call_cleanup(true, getline(S, BodyChars), close(S)),
     atom_chars(BodyAtom, BodyChars),
     read_term_from_atom(BodyAtom, Answer, []),
     rpc_answer(Answer, Template, Offset, Limit,
@@ -201,6 +206,12 @@ strip_trailing_slash(URI, Root) :-
     atom_concat(Root0, '/', URI), !,
     strip_trailing_slash(Root0, Root).
 strip_trailing_slash(URI, URI).
+
+rpc_http_options([], []).
+rpc_http_options([limit(_)|Options], HTTPOptions) :- !,
+    rpc_http_options(Options, HTTPOptions).
+rpc_http_options([Option|Options], [Option|HTTPOptions]) :-
+    rpc_http_options(Options, HTTPOptions).
 
 
 %!  rpc_answer(+Answer, +Template, +Offset, +Limit, ...) is nondet.

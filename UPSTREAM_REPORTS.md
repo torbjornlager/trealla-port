@@ -555,6 +555,44 @@ Current workaround: `node.pl` marks the listener as stopping and makes one
 local wake-up connection. The accept loop observes the flag, closes the wake
 connection, and closes its own listener from the owning thread.
 
+### BUG-015: A TLS-disabled build reports `resource_error(memory)` for SSL
+
+**Status:** Ready
+**Priority:** Low
+
+On macOS arm64 with Trealla v3.12.6 built using `make NOSSL=1`, requesting an
+SSL client socket immediately raises `error(resource_error(memory),'$client'/5)`.
+This is not evidence of a defect in an SSL-enabled build; it is misleading
+feature-unavailability reporting in the explicitly TLS-disabled build used by
+this repository's default build helper.
+
+Start a disposable TLS peer (using any test certificate and key):
+
+```sh
+openssl s_server -quiet -accept 43129 -cert cert.pem -key key.pem -www
+```
+
+Then run:
+
+```sh
+tpl -g "use_module(library(sockets)),catch(socket_client_open('127.0.0.1':43129,S,[ssl(true)]),E,(writeq(E),nl,halt(2))),close(S),halt"
+```
+
+Observed result:
+
+```text
+error(resource_error(memory),'$client'/5)
+```
+
+The same failure is visible through
+`http_open('https://127.0.0.1:43129/', Stream, [])`. Expected behavior is a
+specific `existence_error(feature, ssl)` or similar availability error, never
+a spurious memory-exhaustion exception.
+
+Current workaround: build Trealla with OpenSSL when TLS is required, or
+terminate TLS in a reverse proxy. Hostname verification in SSL-enabled builds
+remains a separate requirement tracked in BUG-005.
+
 ## Compatibility gaps worth tracking, but not yet bug reports
 
 These missing facilities increase porting work but need a clearer upstream

@@ -37,7 +37,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 95 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 97 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
@@ -57,10 +57,10 @@ system installation:
 TPL="$PWD/.build/trealla-v3.12.6/tpl" ./tools/test.sh all
 ```
 
-The helper disables TLS in this test build; the automated matrix uses plain
-loopback HTTP and WebSocket connections. Production TLS behavior must be
-tested with an SSL-enabled build or, preferably for now, behind a terminating
-proxy.
+The helper disables TLS by default; the automated matrix uses plain loopback
+HTTP and WebSocket connections. Set `TREALLA_TLS=1` when the host OpenSSL
+development files are available. Production TLS behavior must be tested with
+that SSL-enabled build or, preferably for now, behind a terminating proxy.
 
 The runner rejects executables that report `trealla(0,0,0,[])`, applies a
 hard timeout to every fresh process, and keeps actor, toplevel, parallel, and
@@ -595,8 +595,11 @@ separate explicitly published routing surface.
 
 The native layer now has profile, sandbox, resource, authentication, origin,
 per-principal rate/concurrency, connection-ownership enforcement, aggregate
-metrics, and bounded audit logging. It does not yet port Trinity's complete
-node-controller routing table. Do not expose goal
+metrics, bounded audit logging, JSON `/call` replies, and the core operational
+routes (`/healthz`, `/readyz`, `/version`, `/node_info`, and
+`/admin/maintenance`). The
+larger SWI administration and browser UI surface remains outside this native
+core. Do not expose goal
 execution directly to an untrusted network without TLS and OS-level
 containment.
 
@@ -760,6 +763,14 @@ the defaults can be replaced with explicit `header/2` options.
 - `GET /call?goal=…&template=…&offset=…&limit=…&format=prolog`
   with URL percent-encoded Prolog terms; returns one of
   `success(Slice, More).`, `failure.`, or `error(E).`
+- `format=json` with Trinity-compatible named binding objects; as in the SWI
+  implementation, JSON mode derives visible names from the goal and ignores
+  the explicit template
+- Unauthenticated `/healthz`, `/readyz`, `/version`, and `/node_info`
+  operational routes
+- Admin-protected `GET|POST /admin/maintenance`; maintenance makes readiness
+  return 503 and refuses new `/call` and `/ws` work without aborting in-flight
+  handlers
 - Producer-actor caching: a paused actor preserves its WAM stack
   (including all open choicepoints) across HTTP requests, so paged
   queries resume from where the previous request left off
@@ -774,6 +785,8 @@ the defaults can be replaced with explicit `header/2` options.
   by one on backtracking, with automatic page fetching when the node
   reports `More=true`
 - `limit(N)` option to control page size
+- Remaining `http_open/3` options such as `timeout/1` and
+  `request_header/1` are passed through to the transport
 
 ```prolog
 ?- rpc('http://localhost:3060', member(X, [a,b,c])).
@@ -814,7 +827,11 @@ X = a ; X = b ; X = c.
 
 ### rpc.pl
 
-- `https://` URIs are not supported (only `http://`).
+- Trealla's HTTP library recognizes `https://` when the runtime is built with
+  OpenSSL. The repository's convenience build uses `NOSSL=1`, so use an
+  SSL-enabled runtime or terminate TLS at a reverse proxy. TLS-disabled builds
+  currently report the missing feature as `resource_error(memory)` (BUG-015),
+  while SSL-enabled clients still lack hostname verification (BUG-005).
 
 ## License and attribution
 

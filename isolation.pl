@@ -98,7 +98,7 @@ source_options([Option|Options], Sources) :-
     ; Option = src_uri(URI)
     -> throw(error(permission_error(load, source_uri, URI),
                    context(isolation:prepare_actor/4,
-                           'src_uri/1 is not yet supported by the Trealla port')))
+                           'src_uri/1 must be materialized by source_policy before isolation')))
     ; Sources = Rest
     ),
     source_options(Options, Rest).

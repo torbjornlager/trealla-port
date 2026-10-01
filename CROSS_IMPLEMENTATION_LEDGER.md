@@ -22,6 +22,8 @@ Status terms:
 | Change | Origin | SWI-Prolog | Trealla | GNU Prolog | Conformance |
 |---|---|---|---|---|---|
 | Version-1 actor WebSocket protocol and cross-node PID routing | SWI | Implemented | Implemented | Not assessed | Partial; expand with GNU Prolog when available |
+| Stateless `/call` JSON named-binding response format | SWI | Implemented | Implemented | Not assessed | Candidate |
+| `/healthz`, `/readyz`, `/version`, `/node_info`, and maintenance/drain semantics | SWI | Implemented | Implemented (native core fields) | Not assessed | Candidate operational profile |
 | Controlled distribution failover via `remote_drop_connection/1` | SWI | Implemented | Implemented | Not assessed | Candidate |
 | Bounded listener shutdown with active-connection cleanup | SWI runtime (`http_stop_server/2`) | Implemented | Implemented via `stop_node/1-2` | Not assessed | Candidate operational test |
 | Profile, sandbox, resource, authentication, and per-principal governance policies | SWI | Implemented | Implemented | Not assessed | Partial |

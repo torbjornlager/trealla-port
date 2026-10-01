@@ -7,7 +7,9 @@
          stop_node/1,            % +Port
          stop_node/2,            % +Port, +Options
          node_running/1,         % ?Port
-         node_connection_count/2 % +Port, -Count
+         node_connection_count/2,% +Port, -Count
+         set_node_maintenance/2, % +Port, +Boolean
+         node_maintenance/2      % +Port, -Boolean
        ]).
 
 :- op(800, xfx, !).
@@ -38,7 +40,7 @@ Parameters and their defaults:
 | template   | same as goal   | Term to collect for each solution        |
 | offset     | `0`            | Number of solutions to skip              |
 | limit      | `1000000000`   | Requested page size (owner-clamped)       |
-| format     | `prolog`       | Response format (`prolog` only for now)  |
+| format     | `prolog`       | Response format (`prolog` or `json`)     |
 
 Empty values for offset or limit are treated as if the parameter were
 absent (i.e. the default is used), so URLs like `?offset=&limit=1`
@@ -103,8 +105,8 @@ waits for their normal cleanup under a bounded timeout.
     we just spawned or resumed.  No timeout is needed.
   - `predicate_property(..., number_of_clauses(N))` is absent; the
     cache size is counted with `findall/3`.
-  - Only the `prolog` response format is implemented.  Requests for
-    `json` receive a brief "not yet implemented" notice.
+  - JSON responses use Trinity's named-binding shape and ignore the explicit
+    template parameter, as the SWI implementation does.
 */
 
 
@@ -129,6 +131,8 @@ waits for their normal cleanup under a bounded timeout.
 :- dynamic node_listener/4.
 :- dynamic node_connection/4.
 :- dynamic node_stopping/1.
+:- dynamic node_configuration/4.
+:- dynamic node_in_maintenance/1.
 
 :- catch(mutex_create(_, [alias('$node_lifecycle')]),
          error(permission_error(create, mutex, '$node_lifecycle'), _),
@@ -296,7 +300,8 @@ node_server(Port, WebSocketHandler, Options) :-
     node_bind_address(BindAddress0, BindAddress),
     socket_server_open(BindAddress:Port, S, SocketOptions),
     setup_call_cleanup(
-        register_node_listener(Port, S, BindAddress, SocketOptions),
+        register_node_listener(Port, S, BindAddress, SocketOptions,
+                               Profile, Sandbox, AuthMode),
         ( format("Node listening on port ~w (profile ~w, sandbox ~w, auth ~w)~n",
                  [Port, Profile, Sandbox, AuthMode]),
           catch(node_loop(Port, S, WebSocketHandler, WebSocketOptions,
@@ -387,7 +392,7 @@ node_connection_peer(_, Reported, Reported).
 
 node_serve(Port, C, Peer, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
            RelationPatterns) :-
-    catch(handle_connection(C, Peer, WebSocketHandler, WebSocketOptions,
+    catch(handle_connection(Port, C, Peer, WebSocketHandler, WebSocketOptions,
                             Profile, Sandbox, RelationPatterns), Error,
           report_node_connection_error(Port, Error)),
     catch(close(C), _, true).
@@ -401,10 +406,14 @@ report_node_connection_error(_, Error) :-
                  *       NODE LIFECYCLE         *
                  *******************************/
 
-register_node_listener(Port, S, BindAddress, SocketOptions) :-
+register_node_listener(Port, S, BindAddress, SocketOptions,
+                       Profile, Sandbox, AuthMode) :-
     ( memberchk(ssl(true), SocketOptions) -> SSL = true ; SSL = false ),
     with_mutex('$node_lifecycle',
         ( retractall(node_stopping(Port)),
+          retractall(node_in_maintenance(Port)),
+          retractall(node_configuration(Port, _, _, _)),
+          assertz(node_configuration(Port, Profile, Sandbox, AuthMode)),
           retractall(node_listener(Port, _, _, _)),
           assertz(node_listener(Port, S, BindAddress, SSL)) )).
 
@@ -413,7 +422,9 @@ cleanup_node_listener(Port, S) :-
     close_node_connections(Port),
     with_mutex('$node_lifecycle',
         ( retractall(node_listener(Port, _, _, _)),
-          retractall(node_stopping(Port)) )).
+          retractall(node_stopping(Port)),
+          retractall(node_in_maintenance(Port)),
+          retractall(node_configuration(Port, _, _, _)) )).
 
 register_node_connection(Port, Key, Stream) :-
     with_mutex('$node_lifecycle',
@@ -437,6 +448,32 @@ node_connection_count(Port, Count) :-
     with_mutex('$node_lifecycle',
         ( findall(Key, node_connection(Port, Key, _, _), Keys),
           length(Keys, Count) )).
+
+%!  set_node_maintenance(+Port, +Boolean) is det.
+%
+%   Enter or leave drain mode. Existing work is left alone; new `/call` and
+%   `/ws` execution requests receive 503 while readiness reports not-ready.
+
+set_node_maintenance(Port, Boolean) :-
+    must_be(integer, Port), must_be(boolean, Boolean),
+    ( node_running(Port) -> true
+    ; throw(error(existence_error(node, Port), node:set_node_maintenance/2))
+    ),
+    with_mutex('$node_lifecycle', set_node_maintenance_locked(Port, Boolean)).
+
+set_node_maintenance_locked(Port, true) :-
+    ( node_in_maintenance(Port) -> true ; assertz(node_in_maintenance(Port)) ).
+set_node_maintenance_locked(Port, false) :-
+    retractall(node_in_maintenance(Port)).
+
+node_maintenance(Port, Boolean) :-
+    with_mutex('$node_lifecycle',
+        ( node_in_maintenance(Port) -> Boolean = true ; Boolean = false )).
+
+node_accepting_work(Port) :-
+    node_running(Port),
+    \+ node_is_stopping(Port),
+    node_maintenance(Port, false).
 
 node_is_stopping(Port) :-
     with_mutex('$node_lifecycle', node_stopping(Port)).
@@ -473,6 +510,8 @@ begin_node_shutdown(Port, Wake, Streams) :-
     with_mutex('$node_lifecycle',
         ( ( node_listener(Port, _, BindAddress, SSL)
           -> Wake = wake(BindAddress, SSL),
+             ( node_in_maintenance(Port) -> true
+             ; assertz(node_in_maintenance(Port)) ),
              ( node_stopping(Port) -> true ; assertz(node_stopping(Port)) )
           ; Wake = _
           ),
@@ -526,7 +565,7 @@ wait_node_shutdown(Port, Deadline) :-
 %   Dispatch `/call` as ordinary HTTP and `/ws` as an RFC 6455 socket
 %   handoff. Other paths receive a 404 response.
 
-handle_connection(C, Peer, WebSocketHandler, WebSocketOptions,
+handle_connection(Port, C, Peer, WebSocketHandler, WebSocketOptions,
                   Profile, Sandbox, RelationPatterns) :-
     node_http_request(C, Method, Path, Ver, Headers),
     ( split(Path, '?', PathPart, _)
@@ -534,11 +573,19 @@ handle_connection(C, Peer, WebSocketHandler, WebSocketOptions,
     ;  PathPart = Path
     ),
     atom_chars(PathAtom, PathPart),
-    ( Method == get, PathAtom == '/call'
-    -> handle_call_route(C, Path, Ver, Peer, Headers,
+    ( Method == get, PathAtom == '/healthz'
+    -> reply_status_json(C, Ver, 200, 'OK', ok)
+    ; Method == get, PathAtom == '/version'
+    -> handle_version(C, Ver)
+    ; Method == get, PathAtom == '/readyz'
+    -> handle_readyz(Port, C, Ver)
+    ; Method == get, PathAtom == '/node_info'
+    -> handle_node_info(Port, C, Ver, Peer, Headers)
+    ; Method == get, PathAtom == '/call'
+    -> handle_call_route(Port, C, Path, Ver, Peer, Headers,
                          Profile, Sandbox, RelationPatterns)
     ; Method == get, PathAtom == '/ws', WebSocketHandler \== none
-    -> handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
+    -> handle_ws_route(Port, C, Ver, Peer, Headers, WebSocketHandler,
                        WebSocketOptions, Profile, PathAtom)
     ; Method == get, PathAtom == '/metrics'
     -> node_metrics_text(Metrics),
@@ -548,11 +595,17 @@ handle_connection(C, Peer, WebSocketHandler, WebSocketOptions,
     -> handle_admin_runtime(C, Ver, Peer, Headers)
     ; memberchk(Method, [get,post,delete]), PathAtom == '/admin/tokens'
     -> handle_admin_tokens(C, Method, Path, Ver, Peer, Headers)
+    ; memberchk(Method, [get,post]), PathAtom == '/admin/maintenance'
+    -> handle_admin_maintenance(Port, C, Method, Ver, Peer, Headers)
     ;  http_reply(C, Ver, 404, 'Not Found',
                   'text/plain', 'Not found\n')
     ).
 
-handle_call_route(C, Path, Ver, Peer, Headers,
+handle_call_route(Port, C, _Path, Ver, _Peer, _Headers,
+                  _Profile, _Sandbox, _RelationPatterns) :-
+    \+ node_accepting_work(Port), !,
+    reply_draining(C, Ver).
+handle_call_route(_Port, C, Path, Ver, Peer, Headers,
                   Profile, Sandbox, RelationPatterns) :-
     catch(( require_ip_access(Peer, Headers, ClientIP),
             request_principal(Peer, Headers, Principal),
@@ -566,7 +619,7 @@ handle_call_route(C, Path, Ver, Peer, Headers,
                                       Profile, Sandbox, RelationPatterns)),
              GovernanceError,
              ( note_ip_governance_offense(Peer, Headers, GovernanceError),
-               reply_governance_denied(C, Ver, GovernanceError) ))
+               reply_call_error(C, Path, Ver, GovernanceError) ))
     ;  audit_principal(Principal, AuditPrincipal),
        observe_rejection(AuditPrincipal, http, call, RouteError),
        reply_policy_denied(C, Ver, RouteError)
@@ -581,7 +634,11 @@ handle_governed_call(C, Path, Ver, Principal, Identity,
         handle_call(C, Path, Ver, EffectiveProfile, Sandbox,
                     RelationPatterns)).
 
-handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
+handle_ws_route(Port, C, Ver, _Peer, _Headers, _WebSocketHandler,
+                _WebSocketOptions, _Profile, _PathAtom) :-
+    \+ node_accepting_work(Port), !,
+    reply_draining(C, Ver).
+handle_ws_route(_Port, C, Ver, Peer, Headers, WebSocketHandler,
                 WebSocketOptions, Profile, PathAtom) :-
     catch(( require_ip_access(Peer, Headers, ClientIP),
             ws_require_allowed_origin(Peer, Headers),
@@ -603,6 +660,71 @@ handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
 audit_principal(Principal, Principal) :- nonvar(Principal), !.
 audit_principal(_, anonymous([])).
 
+handle_readyz(Port, C, Ver) :-
+    ( node_accepting_work(Port)
+    -> reply_status_json(C, Ver, 200, 'OK', ready)
+    ; reply_status_json(C, Ver, 503, 'Service Unavailable', not_ready)
+    ).
+
+reply_status_json(C, Ver, Code, Reason, Status) :-
+    node_json_object([status-string_atom(Status)], JSON),
+    reply_json_status(C, Ver, Code, Reason, JSON).
+
+handle_version(C, Ver) :-
+    ( current_prolog_flag(version_data, trealla(Major, Minor, Patch, _))
+    -> format(atom(Runtime), '~w.~w.~w', [Major, Minor, Patch])
+    ; Runtime = unknown
+    ),
+    node_json_object([web_prolog-string_atom('trealla-port'),
+                      trealla-string_atom(Runtime),protocol-number(1)], JSON),
+    reply_json(C, Ver, JSON).
+
+reply_draining(C, Ver) :-
+    node_json_object([type-string_atom(error),
+                      error-string_atom('node draining; not accepting new work')],
+                     JSON),
+    phrase(json_chars(JSON), Chars), atom_chars(Body, Chars),
+    http_reply(C, Ver, 503, 'Service Unavailable',
+               'application/json; charset=UTF-8', Body,
+               ['Retry-After'-'1']).
+
+handle_node_info(Port, C, Ver, Peer, Headers) :-
+    node_configuration(Port, Profile, Sandbox, AuthMode),
+    node_listener(Port, _, BindAddress, SSL),
+    node_self_url(BindAddress, Port, SSL, SelfURL),
+    ( catch(request_principal(Peer, Headers, Principal), _, fail) -> true
+    ; Principal = anonymous([])
+    ),
+    principal_id(Principal, PrincipalId),
+    ( catch(require_route_access(Principal, call), _, fail)
+    -> Execution = true
+    ; Execution = false
+    ),
+    node_maintenance(Port, Maintenance),
+    json_string_list(['X-Web-Prolog-User','X-Web-Prolog-Principal',
+                      'X-Authenticated-User'], IdentityHeaders),
+    json_string_list(['X-Web-Prolog-Capabilities','X-Web-Prolog-Caps'],
+                     CapabilityHeaders),
+    node_json_object(
+        [self_url-string_atom(SelfURL),profile-string_atom(Profile),
+         auth-string_atom(AuthMode),sandbox-string_atom(Sandbox),
+         protocol_version-number(1),auth_boundary-string_atom(trusted_headers),
+         trusted_identity_headers-list(IdentityHeaders),
+         trusted_capability_headers-list(CapabilityHeaders),
+         internal_transport_principal_prefix-string_atom('node:'),
+         principal_id-string_atom(PrincipalId),
+         principal_execution-boolean(Execution),maintenance-boolean(Maintenance),
+         services-list([]),provides-list([]),self_contained-boolean(false)],
+        JSON),
+    reply_json(C, Ver, JSON).
+
+node_self_url(BindAddress, Port, SSL, URL) :-
+    ( SSL == true -> Scheme = https ; Scheme = http ),
+    ( memberchk(BindAddress, ['0.0.0.0','::']) -> Host = localhost
+    ; Host = BindAddress
+    ),
+    format(atom(URL), '~w://~w:~w', [Scheme, Host, Port]).
+
 handle_admin_runtime(C, Ver, Peer, Headers) :-
     request_principal(Peer, Headers, Principal),
     catch(require_admin_access(Principal), Error, true),
@@ -614,6 +736,34 @@ handle_admin_runtime(C, Ver, Peer, Headers) :-
     ; observe_rejection(Principal, http, admin_runtime, Error),
       reply_policy_denied(C, Ver, Error)
     ).
+
+handle_admin_maintenance(Port, C, Method, Ver, Peer, Headers) :-
+    request_principal(Peer, Headers, Principal),
+    catch(require_admin_access(Principal), AccessError, true),
+    ( var(AccessError)
+    -> catch(observe_request(
+                 Principal, http, admin_maintenance,
+                 admin_maintenance_response(Port, C, Method, Ver, Headers)),
+             Error,
+             reply_admin_error(C, Ver, Error))
+    ; observe_rejection(Principal, http, admin_maintenance, AccessError),
+      reply_policy_denied(C, Ver, AccessError)
+    ).
+
+admin_maintenance_response(Port, C, get, Ver, _) :- !,
+    node_maintenance(Port, Enabled),
+    node_json_object([enabled-boolean(Enabled)], JSON),
+    reply_json(C, Ver, JSON).
+admin_maintenance_response(Port, C, post, Ver, Headers) :-
+    read_json_request(C, Headers, JSON),
+    ( node_json_field(JSON, enabled, boolean(Enabled)),
+      memberchk(Enabled, [true,false])
+    -> set_node_maintenance(Port, Enabled)
+    ; throw(error(domain_error(maintenance_field, enabled),
+                  node:handle_admin_maintenance/7))
+    ),
+    node_json_object([enabled-boolean(Enabled)], Response),
+    reply_json(C, Ver, Response).
 
 require_admin_access(Principal) :-
     ( principal_has_capability(Principal, admin) -> true
@@ -763,8 +913,11 @@ node_json_value(string_atom(Atom), string(Chars)) :- !, atom_chars(Atom, Chars).
 node_json_value(Value, Value).
 
 reply_json(C, Ver, JSON) :-
+    reply_json_status(C, Ver, 200, 'OK', JSON).
+
+reply_json_status(C, Ver, Code, Reason, JSON) :-
     phrase(json_chars(JSON), Chars), atom_chars(Body, Chars),
-    http_reply(C, Ver, 200, 'OK', 'application/json; charset=UTF-8', Body).
+    http_reply(C, Ver, Code, Reason, 'application/json; charset=UTF-8', Body).
 
 reply_admin_error(C, Ver, Error) :-
     format(atom(Body), '~q.\n', [error(Error)]),
@@ -820,6 +973,28 @@ reply_governance_denied(C, Ver,
                'text/plain; charset=UTF-8', Body).
 reply_governance_denied(C, Ver, Error) :-
     reply_answer(C, Ver, prolog, error(Error)).
+
+reply_call_error(C, Path, Ver, Error) :-
+    parse_query(Path, Params), param(format, Params, Format, prolog),
+    ( Format == json
+    -> reply_json_call_error(C, Ver, Error)
+    ; reply_governance_denied(C, Ver, Error)
+    ).
+
+reply_json_call_error(C, Ver, Error) :-
+    Error = error(rate_limit_exceeded(_,_,_,Window), _), !,
+    answer_json(error(Error), JSON),
+    phrase(json_chars(JSON), Chars), atom_chars(Body, Chars),
+    format(atom(RetryAfter), '~w', [Window]),
+    http_reply(C, Ver, 429, 'Too Many Requests',
+               'application/json; charset=UTF-8', Body,
+               ['Retry-After'-RetryAfter]).
+reply_json_call_error(C, Ver, Error) :-
+    Error = error(resource_limit_exceeded(_,_,_), _), !,
+    answer_json(error(Error), JSON),
+    reply_json_status(C, Ver, 429, 'Too Many Requests', JSON).
+reply_json_call_error(C, Ver, Error) :-
+    reply_answer(C, Ver, json, error(Error)).
 
 reply_profile_denied(C, Ver, Error) :-
     format(atom(Body), '~q.\n', [error(Error)]),
@@ -913,11 +1088,27 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     effective_solution_limit(RequestedLimit, Limit),
     % Parse Goal and Template as a single term so variables are shared
     atomic_list_concat([GoalAtom, +, TemplateAtom], QTAtom),
-    read_term_from_atom(QTAtom, Goal+Template, []),
+    read_term_from_atom(QTAtom, Goal+Template0, [variable_names(Bindings0)]),
+    response_template(Format, Template0, Bindings0, Template),
     profile_check_goal(Profile, Goal, RelationPatterns),
     sandbox_prepare_goal(Sandbox, Profile, user, Goal, ExecutionGoal),
     compute_answer(ExecutionGoal, Template, Offset, Limit, Answer),
     reply_answer(C, Ver, Format, Answer).
+
+response_template(json, _, Bindings0, json_bindings(Bindings)) :- !,
+    named_bindings(Bindings0, Bindings).
+response_template(_, Template, _, Template).
+
+named_bindings([], []).
+named_bindings([Name=Value|Bindings], Named) :-
+    ( anonymous_variable_name(Name)
+    -> Named = Rest
+    ; Named = [Name=Value|Rest]
+    ),
+    named_bindings(Bindings, Rest).
+
+anonymous_variable_name(Name) :-
+    atom_chars(Name, ['_'|_]).
 
 
 %!  param(+Key, +Params, -Val, +Default) is det.
@@ -985,18 +1176,44 @@ node_utf8_code(C, [B1,B2,B3,B4]) :-
 
 %!  reply_answer(+Client, +Ver, +Format, +Answer) is det.
 %
-%   Format and send an answer term.  Currently only `prolog` format is
-%   supported.  The term is written with `~q` (quoted) so it can be
-%   read back with `read_term_from_atom/3`.  JSON requests receive a
-%   brief error message.
+%   Format and send an answer term. Prolog terms are written with `~q`
+%   so they round-trip through `read_term_from_atom/3`; JSON uses the
+%   Trinity `{type,data,more}` response shape with named binding objects.
 
 reply_answer(C, Ver, prolog, Answer) :- !,
     format(atom(AnswerAtom), "~q.\n",
            [Answer]),   % quoted so it round-trips through read_term_from_atom
     http_reply(C, Ver, 200, 'OK', 'text/plain; charset=UTF-8', AnswerAtom).
-reply_answer(C, Ver, _, _) :-
-    http_reply(C, Ver, 200, 'OK', 'text/plain; charset=UTF-8',
-               'JSON output is not yet implemented\nUse format=prolog\n').
+reply_answer(C, Ver, json, Answer) :- !,
+    answer_json(Answer, JSON),
+    reply_json(C, Ver, JSON).
+reply_answer(_, _, Format, _) :-
+    throw(error(domain_error(response_format, Format), node:reply_answer/4)).
+
+answer_json(success(Rows0, More), JSON) :-
+    answer_json_rows(Rows0, Rows),
+    node_json_object([type-string_atom(success),data-list(Rows),
+                      more-boolean(More)], JSON).
+answer_json(failure, JSON) :-
+    node_json_object([type-string_atom(failure)], JSON).
+answer_json(error(Error), JSON) :-
+    term_json_string(Error, ErrorString),
+    node_json_object([type-string_atom(error),data-string_atom(ErrorString)], JSON).
+
+answer_json_rows([], []).
+answer_json_rows([json_bindings(Bindings)|Rows], [JSON|JSONRows]) :-
+    binding_json_fields(Bindings, Fields),
+    node_json_object(Fields, JSON),
+    answer_json_rows(Rows, JSONRows).
+
+binding_json_fields([], []).
+binding_json_fields([Name=Value|Bindings],
+                    [Name-string_atom(Text)|Fields]) :-
+    term_json_string(Value, Text),
+    binding_json_fields(Bindings, Fields).
+
+term_json_string(Term, Text) :-
+    format(atom(Text), '~q', [Term]).
 
 
                 /*******************************

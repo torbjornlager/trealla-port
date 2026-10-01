@@ -134,9 +134,11 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t91 allowlist, blocklist, and precedence are enforced
   - t92 repeated rate-limit offenses trigger and clear a temporary ban
 
-## Tests: node lifecycle (t95)
+## Tests: node HTTP and lifecycle (t95-t97)
 
   - t95 stopping a node closes its listener and tracked client connections
+  - t96 JSON calls and operational/maintenance routes match the SWI surface
+  - t97 RPC forwards HTTP options while preserving paged backtracking
 
 ## Tests: per-principal governance (t69-t73)
 
@@ -176,6 +178,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 :- use_module(crypto_portable).
 :- use_module(node_tokens).
 :- use_module(node).
+:- use_module(rpc).
 :- use_module(source_policy).
 :- use_module(ip_policy).
 :- use_module(library(sockets),
@@ -233,7 +236,7 @@ run_test_group(ip_policy) :-
     t89, t90, t91, t92,
     reset_ip_policy.
 run_test_group(lifecycle) :-
-    t95.
+    t95, t96, t97.
 
 
                 /*******************************
@@ -1506,6 +1509,100 @@ t95 :-
           ( catch(stop_node(Port, [timeout(0.5)]), _, fail) -> true ; true ),
           ( catch(thread_join(Server, _), _, fail) -> true ; true ) )),
     format("95. bounded node shutdown and connection cleanup ok~n").
+
+t96 :-
+    socket_server_open('127.0.0.1':Port, Probe, []), close(Probe),
+    Options = [bind_address('127.0.0.1'),auth(private),
+               bearer_token(operator, 'admin-secret', [execute,admin])],
+    thread_create(node:node(Port, none, Options), Server, []),
+    setup_call_cleanup(
+        wait_node_running(Port, 2),
+        ( node_test_get(Port, '/healthz', [], Health),
+          sub_atom(Health, 0, _, _, 'HTTP/1.1 200'),
+          sub_atom(Health, _, _, _, '{"status":"ok"}'),
+          node_test_get(Port, '/version', [], Version),
+          sub_atom(Version, _, _, _, '"web_prolog":"trealla-port"'),
+          sub_atom(Version, _, _, _, '"protocol":1'),
+          node_test_get(Port, '/readyz', [], Ready),
+          sub_atom(Ready, 0, _, _, 'HTTP/1.1 200'),
+          CallPath = '/call?goal=member(X%2C%5Ba%2Cb%5D)&template=true&offset=0&limit=1&format=json',
+          Auth = ['Authorization'-'Bearer admin-secret'],
+          node_test_get(Port, CallPath, Auth, Call),
+          sub_atom(Call, _, _, _,
+                   '{"type":"success","data":[{"X":"a"}],"more":true}'),
+          node_test_get(Port, '/call?goal=fail&format=json', Auth, Failure),
+          sub_atom(Failure, _, _, _, '{"type":"failure"}'),
+          node_test_get(Port, '/call?goal=unknown_predicate&format=json',
+                        Auth, ErrorReply),
+          sub_atom(ErrorReply, _, _, _, '{"type":"error"'),
+          node_test_get(Port, '/node_info', [], Info),
+          sub_atom(Info, _, _, _, '"profile":"workbench"'),
+          sub_atom(Info, _, _, _, '"principal_execution":false'),
+          node_test_post_json(Port, '/admin/maintenance', Auth,
+                              '{"enabled":true}', Enabled),
+          sub_atom(Enabled, _, _, _, '{"enabled":true}'),
+          node_maintenance(Port, true),
+          node_test_get(Port, '/readyz', [], Draining),
+          sub_atom(Draining, 0, _, _, 'HTTP/1.1 503'),
+          node_test_get(Port, CallPath, Auth, Rejected),
+          sub_atom(Rejected, 0, _, _, 'HTTP/1.1 503'),
+          node_test_post_json(Port, '/admin/maintenance', Auth,
+                              '{"enabled":false}', Disabled),
+          sub_atom(Disabled, _, _, _, '{"enabled":false}'),
+          node_test_get(Port, '/readyz', [], ReadyAgain),
+          sub_atom(ReadyAgain, 0, _, _, 'HTTP/1.1 200') ),
+        ( ( catch(stop_node(Port, [timeout(2)]), _, fail) -> true ; true ),
+          ( catch(thread_join(Server, _), _, fail) -> true ; true ) )),
+    format("96. JSON and node operational routes ok~n").
+
+t97 :-
+    socket_server_open('127.0.0.1':Port, Probe, []), close(Probe),
+    Options = [bind_address('127.0.0.1'),auth(private),
+               bearer_token(rpc_client, 'rpc-secret', [execute])],
+    thread_create(node:node(Port, none, Options), Server, []),
+    setup_call_cleanup(
+        wait_node_running(Port, 2),
+        ( format(atom(URI), 'http://127.0.0.1:~w', [Port]),
+          findall(X,
+                  rpc(URI, member(X,[a,b,c]),
+                      [limit(1),timeout(2),
+                       request_header('Authorization'='Bearer rpc-secret')]),
+                  Xs),
+          Xs == [a,b,c] ),
+        ( ( catch(stop_node(Port, [timeout(2)]), _, fail) -> true ; true ),
+          ( catch(thread_join(Server, _), _, fail) -> true ; true ) )),
+    format("97. RPC paging and HTTP option forwarding ok~n").
+
+node_test_get(Port, Path, Headers, Response) :-
+    node_test_headers(Headers, HeaderText),
+    format(atom(Request), 'GET ~w HTTP/1.1\r\nHost: localhost\r\n~wConnection: close\r\n\r\n',
+           [Path, HeaderText]),
+    node_test_request(Port, Request, Response).
+
+node_test_post_json(Port, Path, Headers, Body, Response) :-
+    node_test_headers(Headers, HeaderText),
+    atom_codes(Body, BodyCodes), length(BodyCodes, Length),
+    format(atom(Request),
+           'POST ~w HTTP/1.1\r\nHost: localhost\r\n~wContent-Type: application/json\r\nContent-Length: ~w\r\nConnection: close\r\n\r\n~w',
+           [Path, HeaderText, Length, Body]),
+    node_test_request(Port, Request, Response).
+
+node_test_headers([], '').
+node_test_headers([Name-Value|Headers], Text) :-
+    format(atom(Line), '~w: ~w\r\n', [Name, Value]),
+    node_test_headers(Headers, Rest), atom_concat(Line, Rest, Text).
+
+node_test_request(Port, Request, Response) :-
+    setup_call_cleanup(
+        socket_client_open('127.0.0.1':Port, Stream, [type(binary)]),
+        ( atom_codes(Request, RequestBytes),
+          node_test_write_bytes(Stream, RequestBytes), flush_output(Stream),
+          read_test_bytes(Stream, ResponseBytes), atom_codes(Response, ResponseBytes) ),
+        close(Stream)).
+
+node_test_write_bytes(_, []).
+node_test_write_bytes(Stream, [Byte|Bytes]) :-
+    put_byte(Stream, Byte), node_test_write_bytes(Stream, Bytes).
 
 wait_node_running(Port, Timeout) :-
     get_time(Now), Deadline is Now + Timeout,
