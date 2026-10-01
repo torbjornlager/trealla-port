@@ -16,6 +16,7 @@
             ip_policy_client_test/1,
             private_ownership_client_test/1,
             browser_io_client_test/1,
+            browser_io_client_test/2,
             nested_toplevel_binding_test/1,
             nested_toplevel_binding_test/2,
             promise_yield_client_test/1,
@@ -414,7 +415,13 @@ private_token_admin_test(Port) :-
 
 browser_io_client_test(Port) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
-    http_open_websocket(URL, WS, []),
+    browser_io_client_test_(URL, [], Port).
+
+browser_io_client_test(URL, OpenOptions) :-
+    browser_io_client_test_(URL, OpenOptions, _).
+
+browser_io_client_test_(URL, OpenOptions, ExpectedPort) :-
+    http_open_websocket(URL, WS, OpenOptions),
     send_json(WS, json{command:"transport_hello", version:1,
                        browser_pids:true, io_ack:true}),
     receive_json(WS, Welcome),
@@ -436,6 +443,16 @@ browser_io_client_test(Port) :-
     receive_type(WS, "success", Success),
     Success.more == false,
     send_json(WS, json{command:"toplevel_call", pid:Pid,
+                       goal:"format('Pong received ping.~n')",
+                       options:"[]"}),
+    receive_type(WS, "io_request", FormatRequest),
+    FormatRequest.event.type == "output",
+    FormatRequest.event.data == "Pong received ping.",
+    send_json(WS, json{command:"browser_io_reply",
+                       request_id:FormatRequest.request_id, status:"ok"}),
+    receive_type(WS, "success", FormatSuccess),
+    FormatSuccess.more == false,
+    send_json(WS, json{command:"toplevel_call", pid:Pid,
                        goal:"self(Self);writeln(later)",
                        options:"[template(Self),limit(1)]"}),
     receive_json(WS, FirstPage),
@@ -443,7 +460,7 @@ browser_io_client_test(Port) :-
     FirstPage.more == true,
     FirstPage.data = [FirstRow],
     get_dict('Self', FirstRow, FirstSelfText),
-    local_pid_text(FirstSelfText, FirstSelf, Port),
+    local_pid_text(FirstSelfText, FirstSelf, ExpectedPort),
     FirstSelf == Pid,
     send_json(WS, json{command:"toplevel_next", pid:Pid}),
     receive_type(WS, "io_request", LaterRequest),
@@ -674,8 +691,10 @@ receive_json(WS, Dict) :-
 local_pid_text(Text, Pid, Port) :-
     term_string(Pid@Node, Text, [module(swi_websocket_interop)]),
     integer(Pid), Pid >= 1000000000, Pid =< 9999999999,
-    format(atom(ExpectedNode), 'http://127.0.0.1:~w', [Port]),
-    Node == ExpectedNode.
+    ( var(Port) -> true
+    ; format(atom(ExpectedNode), 'http://127.0.0.1:~w', [Port]),
+      Node == ExpectedNode
+    ).
 
 receive_type(WS, Type, Dict) :-
     receive_json(WS, Event),

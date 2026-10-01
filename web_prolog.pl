@@ -589,11 +589,35 @@ wire_event(Relay, output(RuntimePid, Data), output(WirePid, Data)) :- !,
     runtime_connection_pid(Relay, RuntimePid, WirePid).
 wire_event(Relay, prompt(RuntimePid, Data), prompt(WirePid, Data)) :- !,
     runtime_connection_pid(Relay, RuntimePid, WirePid).
-wire_event(Relay, terminal_output(RuntimePid, Data), output(WirePid, Data)) :- !,
-    browser_source_pid(Relay, RuntimePid, WirePid).
-wire_event(Relay, terminal_io_output(RuntimePid, Data), output(WirePid, Data)) :- !,
-    browser_source_pid(Relay, RuntimePid, WirePid).
+wire_event(Relay, terminal_output(RuntimePid, Data0), output(WirePid, Data)) :- !,
+    browser_source_pid(Relay, RuntimePid, WirePid),
+    browser_terminal_output_data(Data0, Data).
+wire_event(Relay, terminal_io_output(RuntimePid, Data0), output(WirePid, Data)) :- !,
+    browser_source_pid(Relay, RuntimePid, WirePid),
+    browser_terminal_output_data(Data0, Data).
 wire_event(_, Event, Event).
+
+% Browser terminals add a line ending for each output event. Match the SWI
+% node boundary by removing one line-ending marker already supplied by user
+% code; otherwise format('text~n') renders a blank line after the text.
+browser_terminal_output_data(Data0, Data) :-
+    atom(Data0),
+    !,
+    strip_terminal_trailing_newline(Data0, Data).
+browser_terminal_output_data(Data, Data).
+
+strip_terminal_trailing_newline(Text0, Text) :-
+    atom_concat(Text, '~n', Text0),
+    !.
+strip_terminal_trailing_newline(Text0, Text) :-
+    atom_concat(Text, '\r\n', Text0),
+    Text \== '',
+    !.
+strip_terminal_trailing_newline(Text0, Text) :-
+    atom_concat(Text, '\n', Text0),
+    Text \== '',
+    !.
+strip_terminal_trailing_newline(Text, Text).
 
 browser_source_pid(_Relay, RuntimePid, WirePid) :-
     relay_actor(WirePid, RuntimePid, _),
