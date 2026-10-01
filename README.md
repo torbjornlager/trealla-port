@@ -27,6 +27,7 @@ The port lives alongside this report:
 | `distribution_tests.pl` | Trealla/Trealla and Trealla/SWI node tests       |
 | `swi_websocket_interop.pl` | SWI side of the interoperability tests        |
 | `UPSTREAM_REPORTS.md`   | Candidate Trealla feature requests and bug reports |
+| `CROSS_IMPLEMENTATION_LEDGER.md` | SWI/Trealla/GNU Prolog change tracking |
 | `NOTICE.md`            | Source provenance and third-party attribution   |
 | `parallel.pl`         | `parallel/1` and `first_solution/2` demo client     |
 | `tests.pl`            | Manual test suite (no plunit on Trealla)            |
