@@ -103,6 +103,7 @@ run_unit() {
     run_tpl_goal "private source isolation" "run_test_group(isolation)"
     run_tpl_goal "execution profile policy" "run_test_group(profiles)"
     run_tpl_goal "sandbox and public source policy" "run_test_group(sandbox)"
+    run_tpl_goal "resource governance" "run_test_group(resources)"
     run_with_timeout "WebSocket and protocol vectors" \
         "$TPL" -g "consult('$ROOT/websocket_tests.pl'),(websocket_tests->halt;halt(1))"
 }

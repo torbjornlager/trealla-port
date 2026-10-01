@@ -100,12 +100,23 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t54 runtime-constructed asserted clauses are checked before mutation
   - t55 producer exceptions return to the HTTP worker instead of deadlocking
   - t56 the portable abolish/2 form stays scoped to the actor module
+
+## Tests: resource governance (t57-t62)
+
+  - t57 node resource options normalize and client limits are clamped
+  - t58 term, source, and WebSocket size ceilings reject oversized input
+  - t59 the live-actor cap rejects excess work and reclaims the slot
+  - t60 the HTTP solution producer reports execution-time exhaustion
+  - t61 PTCP execution timeout returns an error and preserves the session
+  - t62 PTCP idle timeout reclaims an inactive session normally
 */
 
 :- use_module(toplevel_actors).
+:- use_module(actors, [live_actor_count/1]).
 :- use_module(parallel).
 :- use_module(profile_policy).
 :- use_module(sandbox_policy).
+:- use_module(resource_policy).
 :- use_module(node).
 
 
@@ -134,6 +145,9 @@ run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56.
+run_test_group(resources) :-
+    t57, t58, t59, t60, t61, t62,
+    reset_resource_policy.
 
 
                 /*******************************
@@ -883,6 +897,85 @@ t56 :-
     caught_sandbox(sandbox_prepare_goal(
         blacklist, isotope, user, abolish('$actor_call', 1), _)),
     format("56. scoped portable abolish/2 ok~n").
+
+
+                /*******************************
+                *    RESOURCES (t57-t62)       *
+                *******************************/
+
+t57 :-
+    configure_resource_policy(
+        [time_limit(2),idle_limit(3),max_actors(4),max_solutions(5)],
+        Policy),
+    policy_time_limit(Policy, 2),
+    policy_idle_limit(Policy, 3),
+    effective_time_limit(10, 2),
+    effective_time_limit(1, 1),
+    effective_solution_limit(20, 5),
+    effective_solution_limit(2, 2),
+    format("57. resource policy normalization and clamping ok~n").
+
+t58 :-
+    configure_resource_policy(
+        [max_term_text_bytes(4),max_source_text_bytes(8),
+         max_ws_frame_bytes(6)], _),
+    check_term_text_size(goal, 'abcd'),
+    caught_resource(check_term_text_size(goal, 'abcde'), input_size),
+    caught_resource(check_source_options_size([src_text('123456789')]),
+                    input_size),
+    caught_resource(check_ws_frame_size('1234567'), input_size),
+    resource_websocket_options([max_payload_length(99)], WSOptions),
+    memberchk(max_payload_length(6), WSOptions),
+    format("58. textual input ceilings ok~n").
+
+t59 :-
+    configure_resource_policy([max_actors(1)], _),
+    spawn(receive({resource_stop -> true}), Pid,
+          [monitor(true),link(false)]),
+    caught_resource(spawn(true, _, [link(false)]), actors),
+    Pid ! resource_stop,
+    receive({down(Pid, Pid, true) -> true},
+            [timeout(2),on_timeout(fail)]),
+    live_actor_count(0),
+    spawn(true, _, [link(false)]),
+    format("59. live actor capacity and reclamation ok~n").
+
+t60 :-
+    configure_resource_policy([time_limit(0.05)], _),
+    catch((node:compute_answer((repeat,fail), value, 0, 1, _), fail),
+          error(resource_error(time), _),
+          true),
+    format("60. HTTP producer execution timeout ok~n").
+
+t61 :-
+    configure_resource_policy([time_limit(0.05),idle_limit(2)], _),
+    self(Me),
+    toplevel_spawn(Pid, [target(Me),session(true),link(false)]),
+    toplevel_call(Pid, (repeat,fail), []),
+    receive({TimeMessage ->
+                TimeMessage = error(Pid, error(resource_error(time), _))},
+            [timeout(2),on_timeout(fail)]),
+    toplevel_call(Pid, true, [template(ok)]),
+    receive({success(Pid, [ok], false) -> true},
+            [timeout(2),on_timeout(fail)]),
+    exit(Pid, resource_test_done),
+    format("61. PTCP time limit preserves session ok~n").
+
+t62 :-
+    configure_resource_policy([time_limit(2),idle_limit(0.05)], _),
+    self(Me),
+    toplevel_spawn(Pid, [target(Me),session(true),monitor(true),link(false)]),
+    receive({down(Pid, Pid, true) -> true},
+            [timeout(2),on_timeout(fail)]),
+    format("62. PTCP idle reclamation ok~n").
+
+caught_resource(Goal, Category) :-
+    catch((Goal, fail),
+          error(resource_error(Resource), _),
+          resource_category(Resource, Category)).
+
+resource_category(actors, actors).
+resource_category(input_size(_,_,_), input_size).
 
 caught_sandbox(Goal) :-
     catch((Goal, fail),

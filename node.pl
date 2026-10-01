@@ -6,6 +6,9 @@
          node/3                  % +Port, :WebSocketHandler, +Options
        ]).
 
+:- op(800, xfx, !).
+:- op(1000, xfy, if).
+
 /** <module> Node -- simple HTTP endpoint for toplevel queries
 
 Exposes a small HTTP interface for evaluating Prolog goals through a
@@ -30,7 +33,7 @@ Parameters and their defaults:
 | goal       | `''`           | Goal to call                             |
 | template   | same as goal   | Term to collect for each solution        |
 | offset     | `0`            | Number of solutions to skip              |
-| limit      | `1000000000`   | Maximum solutions in this page           |
+| limit      | `1000000000`   | Requested page size (owner-clamped)       |
 | format     | `prolog`       | Response format (`prolog` only for now)  |
 
 Empty values for offset or limit are treated as if the parameter were
@@ -103,6 +106,7 @@ Accepted HTTP and WebSocket connections run in independent detached threads.
 :- use_module(actors).
 :- use_module(profile_policy).
 :- use_module(sandbox_policy).
+:- use_module(resource_policy).
 :- use_module(websocket).
 
 :- meta_predicate(node(+, 2)).
@@ -219,7 +223,10 @@ node(Port, WebSocketHandler) :-
 
 %!  node(+Port, :WebSocketHandler, +Options) is det.
 %
-%   Options include `profile(Profile)`, `sandbox(Mode)`, `relations(Patterns)`, `ssl(true)`,
+%   Options include `profile(Profile)`, `sandbox(Mode)`, `relations(Patterns)`,
+%   `time_limit(Seconds)`, `idle_limit(Seconds)`, `max_actors(Count)`,
+%   `max_solutions(Count)`, `max_term_text_bytes(Bytes)`,
+%   `max_source_text_bytes(Bytes)`, `max_ws_frame_bytes(Bytes)`, `ssl(true)`,
 %   `keyfile(File)`, `certfile(File)`, and `websocket_options(Options)` (for
 %   example subprotocol negotiation).  Defaults are `profile(workbench)` and
 %   `sandbox(blacklist)`.
@@ -234,8 +241,10 @@ node_server(Port, WebSocketHandler, Options) :-
     normalize_sandbox_mode(Sandbox0, Sandbox),
     option(relations(RelationPatterns0), Options, []),
     normalize_relation_patterns(RelationPatterns0, RelationPatterns),
+    configure_resource_policy(Options, _ResourcePolicy),
     node_socket_options(Options, SocketOptions),
-    option(websocket_options(WebSocketOptions), Options, []),
+    option(websocket_options(WebSocketOptions0), Options, []),
+    resource_websocket_options(WebSocketOptions0, WebSocketOptions),
     socket_server_open(Port, S, SocketOptions),
     format("Node listening on port ~w (profile ~w, sandbox ~w)~n",
            [Port, Profile, Sandbox]),
@@ -405,8 +414,14 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     param(offset,   Params, OffsetAtom,   '0'),
     param(limit,    Params, LimitAtom,    '1000000000'),
     param(format,   Params, Format,       prolog),
+    check_term_text_size(goal, GoalAtom),
+    check_term_text_size(template, TemplateAtom),
     (OffsetAtom == '' -> Offset = 0         ; atom_number(OffsetAtom, Offset)),
-    (LimitAtom  == '' -> Limit  = 1000000000 ; atom_number(LimitAtom,  Limit)),
+    (LimitAtom  == '' -> RequestedLimit = 1000000000
+    ; atom_number(LimitAtom, RequestedLimit)),
+    ( integer(Offset), Offset >= 0 -> true
+    ; throw(error(domain_error(offset, Offset), node:handle_call/6)) ),
+    effective_solution_limit(RequestedLimit, Limit),
     % Parse Goal and Template as a single term so variables are shared
     atomic_list_concat([GoalAtom, +, TemplateAtom], QTAtom),
     read_term_from_atom(QTAtom, Goal+Template, []),
@@ -553,7 +568,11 @@ compute_answer(Goal, Template, Offset, Limit, Answer) :-
 %   receiving `eos`.
 
 run_goal_producer(Goal, Template) :-
-    catch(
+    current_resource_policy(Policy),
+    policy_time_limit(Policy, TimeLimit),
+    setup_call_cleanup(
+        create_resource_timer(TimeLimit, Timer),
+        catch(
         (   call(Goal),
             receive({
                 '$request'(C) -> C ! sol(Template)
@@ -566,16 +585,17 @@ run_goal_producer(Goal, Template) :-
             })
         ),
         '$prod_stop',
-        true
-    ).
+        true),
+        disarm_resource_timer(Timer)).
 
 % Execute a producer while preserving exceptions as a reply to the next
 % outstanding page request.  Public sandbox runtime guards can reject a goal
 % only after variables become concrete, so dropping an actor exception here
 % would otherwise leave the HTTP worker blocked forever.
 run_goal_producer_guarded(Goal, Template) :-
-    catch(run_goal_producer(Goal, Template), Error,
-          producer_error_reply(Error)).
+    catch(run_goal_producer(Goal, Template), Error0,
+          ( normalize_resource_exception(Error0, Error),
+            producer_error_reply(Error) )).
 
 producer_error_reply(Error) :-
     receive({

@@ -106,6 +106,7 @@ loop that handles `'$next'(Options)` messages.
 
 :- use_module(actors).
 :- use_module(isolation).
+:- use_module(resource_policy).
 
 :- meta_predicate(toplevel_spawn(-, :)).
 
@@ -136,6 +137,12 @@ loop that handles `'$next'(Options)` messages.
 %     - target(+PidOrName)
 %       Actor that should receive answer, output, and prompt messages.
 %       Default: the calling process.
+%     - time_limit(+SecondsOrInfinite)
+%       Wall-time ceiling for a call, including suspended result pages.
+%       The node-owner ceiling may only be tightened by this option.
+%     - idle_limit(+SecondsOrInfinite)
+%       Maximum wait in the idle and paging states. The node-owner ceiling
+%       may only be tightened by this option.
 %
 %   Standard spawn/3 options such as `monitor(true)` are also accepted
 %   and forwarded to spawn/3.
@@ -149,24 +156,42 @@ toplevel_spawn(Pid, Options0) :-
     self(Self),
     option(target(Target), Options, Self),
     option(session(Continue), Options, false),
-    spawn(session(Pid, Target, Continue), Pid,
-          ['$entry_context'(caller)|Options]).
+    option(time_limit(RequestedTime), Options, infinite),
+    option(idle_limit(RequestedIdle), Options, infinite),
+    effective_time_limit(RequestedTime, TimeLimit),
+    effective_idle_limit(RequestedIdle, IdleLimit),
+    remove_lifecycle_options(Options, SpawnOptions),
+    spawn(session(Pid, Target, Continue, TimeLimit, IdleLimit), Pid,
+          ['$entry_context'(caller)|SpawnOptions]).
+
+remove_lifecycle_options([], []).
+remove_lifecycle_options([time_limit(_)|Options], Rest) :- !,
+    remove_lifecycle_options(Options, Rest).
+remove_lifecycle_options([idle_limit(_)|Options], Rest) :- !,
+    remove_lifecycle_options(Options, Rest).
+remove_lifecycle_options([Option|Options], [Option|Rest]) :-
+    remove_lifecycle_options(Options, Rest).
 
 
                 /*******************************
                 *      PTCP STATE MACHINE     *
                 *******************************/
 
-%!  session(+Pid, +Target, +Continue) is det.
+%!  session(+Pid, +Target, +Continue, +TimeLimit, +IdleLimit) is det.
 %
 %   Entry point for a toplevel actor.  Wraps the state machine in a
 %   catch that restarts the session from s1 if a goal is aborted via
 %   toplevel_abort/1 (which signals `'$abort_goal'`).
 
-session(Pid, Target, Continue) :-
-    catch(state_1(Pid, Target, Continue),
+session(Pid, Target, Continue, TimeLimit, IdleLimit) :-
+    catch(session_running(Pid, Target, Continue, TimeLimit, IdleLimit),
+          '$resource_idle',
+          true).
+
+session_running(Pid, Target, Continue, TimeLimit, IdleLimit) :-
+    catch(state_1(Pid, Target, Continue, TimeLimit, IdleLimit),
           '$abort_goal',
-          session(Pid, Target, Continue)).
+          session_running(Pid, Target, Continue, TimeLimit, IdleLimit)).
 
 
 %!  state_1(+Pid, +Target0, +Continue) is det.
@@ -176,20 +201,27 @@ session(Pid, Target, Continue) :-
 %   and dispatches to run_call/6 which drives the paged enumeration.
 %   In session mode loops back to s1 after the call completes.
 
-state_1(Pid, Target0, Continue) :-
-    receive({
+state_1(Pid, Target0, Continue, TimeLimit, IdleLimit) :-
+    receive_with_idle_limit({
         '$call'(Goal, Options) ->
             option(template(Template), Options, Goal),
             option(offset(Offset),     Options, 0),
-            option(limit(Limit0),      Options, 1000000000),
+            option(limit(RequestedLimit), Options, 1000000000),
+            effective_solution_limit(RequestedLimit, Limit0),
             option(target(Target1),    Options, Target0),
             isolation:execution_goal(Goal, ExecutionGoal),
-            run_call(Pid, ExecutionGoal, Template, Offset, Limit0, Target1)
-        }),
+            run_call(Pid, ExecutionGoal, Template, Offset, Limit0, Target1,
+                     TimeLimit, IdleLimit)
+        }, IdleLimit),
     (   Continue == false
     ->  true
-    ;   state_1(Pid, Target0, Continue)
+    ;   state_1(Pid, Target0, Continue, TimeLimit, IdleLimit)
     ).
+
+receive_with_idle_limit(Clauses, infinite) :- !, receive(Clauses).
+receive_with_idle_limit(Clauses, IdleLimit) :-
+    receive(Clauses, [timeout(IdleLimit),
+                      on_timeout(throw('$resource_idle'))]).
 
 
 %!  run_call(+Pid, +Goal, +Template, +Offset, +Limit0, +Target1) is det.
@@ -204,18 +236,25 @@ state_1(Pid, Target0, Continue) :-
 %   catch can restart the actor in state s1.  All other exceptions
 %   are reported as `error(Pid, Error)` on the current target.
 
-run_call(Pid, Goal, Template, Offset, Limit0, Target1) :-
+run_call(Pid, Goal, Template, Offset, Limit0, Target1,
+         TimeLimit, IdleLimit) :-
     catch(
         ( Count  = count(Limit0),
           Target = target(Target1),
-          drive(Pid, Goal, Template, Offset, Count, Target)
+          create_resource_timer(TimeLimit, Timer),
+          drive(Pid, Goal, Template, Offset, Count, Target, IdleLimit),
+          disarm_resource_timer(Timer)
         ),
-        Error,
-        handle_error(Pid, Target, Target1, Error)),
+        Error0,
+        ( ( nonvar(Timer) -> disarm_resource_timer(Timer) ; true ),
+          normalize_resource_exception(Error0, Error),
+          handle_error(Pid, Target, Target1, Error) )),
     !.
 
 handle_error(_Pid, _Target, _Orig, '$abort_goal') :- !,
     throw('$abort_goal').
+handle_error(_Pid, _Target, _Orig, '$resource_idle') :- !,
+    throw('$resource_idle').
 handle_error(Pid, Target, Orig, Error) :-
     (   nonvar(Target), Target = target(_)
     ->  arg(1, Target, Out)
@@ -241,18 +280,18 @@ handle_error(Pid, Target, Orig, Error) :-
 %   fails outright; the second clause handles this by sending a
 %   single `failure(Pid)`.
 
-drive(Pid, Goal, Template, Offset, Count, Target) :-
+drive(Pid, Goal, Template, Offset, Count, Target, IdleLimit) :-
     findnsols(Count, Template, offset(Offset, Goal), Slice),
     arg(1, Target, Out),
     arg(1, Count, Lim),
     length(Slice, Got),
     (   Got =:= Lim
     ->  Out ! success(Pid, Slice, true),
-        page(Count, Target),
+        page(Count, Target, IdleLimit),
         !                       % '$stop' -- cut findnsols choicepoint
     ;   Out ! success(Pid, Slice, false), !
     ).
-drive(Pid, _Goal, _Template, _Offset, _Count, Target) :-
+drive(Pid, _Goal, _Template, _Offset, _Count, Target, _IdleLimit) :-
     arg(1, Target, Out),
     Out ! failure(Pid).
 
@@ -266,19 +305,20 @@ drive(Pid, _Goal, _Template, _Offset, _Count, Target) :-
 %   On `'$stop'` succeed deterministically; the caller (drive/6)
 %   cuts the lingering findnsols choicepoint.
 
-page(Count, Target) :-
-    receive({
+page(Count, Target, IdleLimit) :-
+    receive_with_idle_limit({
         '$next'(Options) ->
             apply_next(Options, Count, Target),
             fail ;
         '$stop' ->
             true
-    }).
+    }, IdleLimit).
 
 apply_next(Options, Count, Target) :-
     (   memberchk(limit(NewLim), Options),
         integer(NewLim), NewLim > 0
-    ->  nb_setarg(1, Count, NewLim)
+    ->  effective_solution_limit(NewLim, EffectiveLimit),
+        nb_setarg(1, Count, EffectiveLimit)
     ;   true
     ),
     (   memberchk(target(NewT), Options),

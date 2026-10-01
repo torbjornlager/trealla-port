@@ -46,6 +46,7 @@ still required for an internet-facing node.
 :- use_module(library(error)).
 :- use_module(profile_policy).
 :- use_module(isolation).
+:- use_module(resource_policy).
 
 
                  /*******************************
@@ -87,6 +88,7 @@ sandbox_prepare_spawn(Mode0, Profile, Module, Goal0, Options0,
                       Goal, Options) :-
     normalize_sandbox_mode(Mode0, Mode),
     must_be(list, Options0),
+    check_source_options_size(Options0),
     profile_check_spawn_options(Profile, Options0),
     ( Mode == off -> Goal = Goal0, Options = Options0
     ; prepare_source_options(Mode, Profile, Options0, Options, AppPIs),
@@ -99,6 +101,7 @@ sandbox_prepare_spawn(Mode0, Profile, Module, Goal0, Options0,
 sandbox_prepare_options(Mode0, Profile, _Module, Options0, Options) :-
     normalize_sandbox_mode(Mode0, Mode),
     must_be(list, Options0),
+    check_source_options_size(Options0),
     profile_check_spawn_options(Profile, Options0),
     ( Mode == off -> Options = Options0
     ; prepare_source_options(Mode, Profile, Options0, Options, _),

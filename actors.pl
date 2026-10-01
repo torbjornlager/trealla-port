@@ -25,6 +25,7 @@
          terminal_output/1,      % +Term
          terminal_output/2,      % +Term, +Options
          current_io_target/1,    % -Target
+         live_actor_count/1,     % -Count
          receive/1,              % +ReceiveClauses
          receive/2,              % +ReceiveClauses, +Options
          make_ref/1,             % -Ref
@@ -148,7 +149,14 @@ Reply = hello.
     hook_exit/2,
     hook_monitor/3,
     hook_demonitor/1,
+    hook_admit_spawn/2,
     hook_stop/1.
+
+:- dynamic actor_alive/1.
+
+:- catch(mutex_create(_, [alias('$actor_registry')]),
+         error(permission_error(create, mutex, '$actor_registry'), _),
+         true).
 
 
 %!  spawn(:Goal) is det.
@@ -197,10 +205,15 @@ spawn(Goal, Pid, Options0) :-
     isolation:rewrite_source_options(Options0, GoalModule, Options1),
     inherit_spawn_io_target(Options1, Options),
     thread_self(Self),
-    thread_create(start(Self, Pid, GoalModule, Goal, Options), Pid, [
-        detached(true),
-        at_exit(stop(Pid, Self))
-    ]),
+    with_mutex('$actor_registry',
+        ( live_actor_count_unlocked(LiveCount),
+          forall(hook_admit_spawn(LiveCount, Options), true),
+          thread_create(start(Self, Pid, GoalModule, Goal, Options), Pid, [
+              detached(true),
+              at_exit(stop(Pid, Self))
+          ]),
+          assertz(actor_alive(Pid))
+        )),
     thread_get_message('$actor_started'(Pid, StartResult)),
     ( StartResult == ok
     -> true
@@ -289,6 +302,7 @@ stop(Pid, Parent) :-
     retractall(link(Parent, Pid)),
     retractall(registered(_Name, Pid)),
     retractall(registered_service(_Name, Pid)),
+    with_mutex('$actor_registry', retractall(actor_alive(Pid))),
     isolation:cleanup_actor(Pid),
     forall(retract(link(Pid, ChildPid)),
            exit(ChildPid, linked)),
@@ -296,6 +310,19 @@ stop(Pid, Parent) :-
     down_reason(Pid, Reason),
     forall(retract(monitor(Other, Pid, Ref)),
            Other ! down(Pid, Ref, Reason)).
+
+
+%!  live_actor_count(-Count) is det.
+%
+%   Number of actors whose at_exit cleanup has not begun. Actor creation and
+%   removal are serialized so admission checks cannot race each other.
+
+live_actor_count(Count) :-
+    with_mutex('$actor_registry', live_actor_count_unlocked(Count)).
+
+live_actor_count_unlocked(Count) :-
+    findall(Pid, actor_alive(Pid), Pids),
+    length(Pids, Count).
 
 
 %!  down_reason(+Pid, -Reason) is det.

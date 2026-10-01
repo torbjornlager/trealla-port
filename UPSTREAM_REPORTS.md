@@ -163,6 +163,26 @@ Current workaround: `sandbox_policy.pl` implements a native blacklist and a
 conservative whitelist, rewrites opaque meta-calls through runtime guards, and
 validates submitted source before it reaches an actor's private module.
 
+### FR-008: Add inference and per-thread stack ceilings
+
+**Status:** Ready
+**Priority:** High
+
+The SWI node bounds public calls with `call_with_inference_limit/3` and actor
+memory with the `stack_limit(Bytes)` thread option. Trealla v3.12.6 provides
+neither facility: `call_with_inference_limit/3` is absent and
+`thread_create/3` rejects `stack_limit/1` with
+`domain_error(thread_option, stack_limit(_))`.
+
+Desired behavior: a catchable inference-limit primitive and a supported
+per-thread stack/heap ceiling. Together with an application-level actor cap,
+these allow a public node to bound CPU work and process memory without placing
+every individual query in a separate OS process.
+
+Current workaround: the Trealla port enforces wall-clock, live-actor, result
+page, and textual-input limits. Hard process memory and CPU ceilings must be
+provided by the container or service manager.
+
 ## Bug reports
 
 ### BUG-001: Abrupt in-process WebSocket teardown can crash Trealla
@@ -363,6 +383,27 @@ named helper in the source module, invokes unqualified `listing/1` from that
 helper with output redirected to a temporary file, reads the terms back, and
 removes the helper. Access is serialized because `listing/1` has no explicit
 stream argument.
+
+### BUG-011: `call_with_time_limit/2` discards goal choicepoints
+
+**Status:** Ready
+**Priority:** Medium
+
+Trealla v3.12.6 implements `call_with_time_limit/2` by applying `once/1` to
+its goal. A nondeterministic goal consequently exposes only its first answer:
+
+```prolog
+?- findall(X, call_with_time_limit(1, member(X, [a,b])), Xs).
+Xs = [a].
+```
+
+Expected for compatibility with the SWI interface is `Xs = [a,b]`, with the
+timer applying while each resumed branch executes.
+
+Current workaround: the PTCP and HTTP producer paths use Trealla's internal
+reusable `$alarm` primitive around the complete pageable call. This preserves
+choicepoints, but means the wall-time ceiling also runs while a result page is
+suspended awaiting the client.
 
 ## Compatibility gaps worth tracking, but not yet bug reports
 

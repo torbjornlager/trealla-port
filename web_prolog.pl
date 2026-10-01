@@ -33,8 +33,9 @@ scoped to the connection that received the prompt.
 Node startup accepts Trinity-compatible execution profiles and native Trealla
 `off`, `blacklist`, and `whitelist` sandbox modes. Public goals, opaque
 meta-calls, asserted clauses, and source-bearing spawn options pass through
-the configured policy. Authentication, general origin policy, and resource
-quotas are not yet implemented, so OS-level containment remains necessary.
+the configured policy. Execution/idle time, actor count, page size, and text
+input ceilings are enforced independently. Authentication, general origin
+policy, inference/stack ceilings, and OS-level containment remain necessary.
 */
 
 :- use_module(library(dcgs)).
@@ -43,6 +44,7 @@ quotas are not yet implemented, so OS-level containment remains necessary.
 :- use_module(isolation).
 :- use_module(profile_policy).
 :- use_module(sandbox_policy).
+:- use_module(resource_policy).
 :- use_module(toplevel_actors).
 :- use_module(node).
 :- use_module(websocket).
@@ -121,7 +123,8 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
 read_loop(WS, Relay, Reader, Profile, Sandbox) :-
     ws_receive(WS, Frame),
     ( Frame = text(Text) ->
-        catch(dispatch_text(Text, Relay, Reader, Profile, Sandbox), Error,
+        catch(( check_ws_frame_size(Text),
+                dispatch_text(Text, Relay, Reader, Profile, Sandbox) ), Error,
               Relay ! protocol_error(Error)),
         read_loop(WS, Relay, Reader, Profile, Sandbox)
     ; Frame = close(Code, Reason) ->
@@ -812,6 +815,7 @@ json_pid_field(JSON, Key, Pid) :-
 
 json_term_field(JSON, Key, Term) :-
     json_text_field(JSON, Key, Text),
+    check_term_text_size(Key, Text),
     read_term_from_atom(Text, Term, []).
 
 json_term_default(JSON, Key, Default, Term) :-
@@ -819,10 +823,13 @@ json_term_default(JSON, Key, Default, Term) :-
 
 json_options(JSON, Options) :-
     json_text_default(JSON, options, '[]', Text),
+    check_term_text_size(options, Text),
     read_term_from_atom(Text, Options, []),
     must_be(list, Options).
 
 read_goal_options(GoalText, OptionsText, Goal, Options) :-
+    check_term_text_size(goal, GoalText),
+    check_term_text_size(options, OptionsText),
     format(atom(Text), '(~w)-(~w)', [GoalText, OptionsText]),
     read_term_from_atom(Text, Goal-Options, []),
     must_be(list, Options).

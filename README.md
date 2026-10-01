@@ -96,11 +96,13 @@ override their defaults.
 | 31 | descendants inherit their terminal target  | ok |
 | 32 | stream-originated terminal output keeps its provenance | ok |
 | 33 | concurrent `make_ref/1` calls are unique   | ok |
+| 34–41 | private source isolation and cleanup    | ok |
+| 42–46 | execution-profile enforcement           | ok |
+| 47–56 | sandbox and public source policy        | ok |
+| 57–62 | resource governance                     | ok |
 
-All four demos from `parallel.pl` also run unchanged. `node.pl`
-and `rpc.pl` have no automated tests but are exercised manually
-with `node(3060)` on one Trealla instance and
-`rpc('http://localhost:3060', member(X, [a,b,c]))` from another.
+All four demos from `parallel.pl` also run unchanged. The isolated suite and
+the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
 
 ## Native WebSocket transport
 
@@ -285,10 +287,37 @@ distribution layer does. `src_uri/1` remains disabled until fetch limits,
 redirect handling, and an origin allowlist are implemented. Nested remote
 spawn is currently restricted to loopback node URLs in sandbox mode.
 
+Public nodes also install resource ceilings. They are configured with these
+startup options (defaults shown):
+
+```prolog
+?- web_prolog_node(3060,
+       [ time_limit(300), idle_limit(300),
+         max_actors(256), max_solutions(1000),
+         max_term_text_bytes(32768),
+         max_source_text_bytes(262144),
+         max_ws_frame_bytes(262144)
+       ]).
+```
+
+`time_limit/1` bounds one HTTP producer or PTCP call; `idle_limit/1` reclaims
+an inactive PTCP in either waiting state. Client-supplied PTCP limits and page
+sizes may make the owner limits tighter but cannot raise them. The actor limit
+is admitted atomically and its slot is reclaimed in actor cleanup. Textual
+goals/templates, source options, and WebSocket payloads are checked before
+parsing or loading, and the node clamps the WebSocket transport's own payload
+limit as well.
+
+Trealla's reusable timer currently spans a PTCP call including time suspended
+between result pages; the separate idle ceiling can be lower. Trealla v3.12.6
+does not expose SWI-equivalent inference or per-thread stack ceilings, so
+process memory/CPU containment remains the deployment boundary for those
+resources.
+
 The optional `transport_welcome` event advertises the configured profile and
 sandbox in additive `profile` and `sandbox` fields. These Prolog-level checks
 are defense in depth, not a host security boundary: public deployment still
-requires authentication, resource ceilings, and OS/container isolation.
+requires authentication and OS/container isolation.
 
 Protocol version 1 uses one JSON object per text frame.  The port accepts the
 core actor commands `spawn`, `send`, `monitor`, `demonitor`, and `exit`, plus
@@ -519,9 +548,10 @@ X = a ; X = b ; X = c.
 
 ### toplevel_actors.pl
 
-(No outstanding limitations as of Trealla v2.99.6.  Mid-enumeration
-`limit(N)` and `target(P)` changes via `toplevel_next/2` are now
-fully supported.)
+- Mid-enumeration `limit(N)` and `target(P)` changes are supported. Because
+  Trealla's public `call_with_time_limit/2` commits to the first solution, the
+  port uses a reusable runtime timer around the complete pageable call;
+  `time_limit/1` therefore includes time suspended between pages.
 
 ### node.pl
 
@@ -532,9 +562,10 @@ fully supported.)
 
 - Core version-1 wire compatibility and source-bearing actor/toplevel spawns
   now include execution-profile enforcement and native Trealla blacklist and
-  whitelist sandbox modes. Authentication, resource governance, and the
-  deployment boundary still need to be ported. `src_uri/1` remains disabled
-  pending an explicit fetch-origin policy.
+  whitelist sandbox modes plus wall-time, idle, actor-count, page-size, and
+  textual-input ceilings. Authentication and the deployment boundary still
+  need to be ported. `src_uri/1` remains disabled pending an explicit
+  fetch-origin policy.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.
 
