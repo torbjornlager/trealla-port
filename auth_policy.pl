@@ -33,6 +33,8 @@ native node-to-node connections on such a network.
 
 :- dynamic auth_configuration/1.
 
+:- use_module(node_tokens, [verify_bearer_token/2]).
+
 default_auth_configuration(
     auth_config(open, dev, [execute], [], [], [], [], http)).
 
@@ -163,6 +165,10 @@ request_principal(Peer, Headers, Principal) :-
     ; anonymous_capabilities(Mode, Caps), Principal = anonymous(Caps)
     ).
 
+bearer_principal(Headers, _Tokens, principal(Id, Capabilities)) :-
+    memberchk(authorization-Header, Headers),
+    bearer_header_token(Header, Token),
+    verify_bearer_token(Token, principal(Id, Capabilities)), !.
 bearer_principal(Headers, Tokens, principal(Id, Capabilities)) :-
     memberchk(authorization-Header, Headers),
     bearer_header_token(Header, Token),

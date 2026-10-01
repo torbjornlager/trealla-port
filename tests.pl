@@ -134,6 +134,14 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t77 activity start/end state is reclaimed
   - t78 governance usage and the protected runtime payload are renderable
   - t79 Prometheus output and rotating JSONL audit logging work
+
+## Tests: bearer-token lifecycle (t80-t84)
+
+  - t80 portable SHA-256 and OS random bytes work
+  - t81 issued secrets authenticate but are absent from token listings
+  - t82 expiry and revocation invalidate credentials
+  - t83 hashed token records survive an atomic save/load cycle
+  - t84 managed tokens participate in normal request authentication
 */
 
 :- use_module(toplevel_actors).
@@ -145,6 +153,8 @@ pass, fails (or throws) on failure.  Tests are grouped:
 :- use_module(auth_policy).
 :- use_module(governance_policy).
 :- use_module(observability).
+:- use_module(crypto_portable).
+:- use_module(node_tokens).
 :- use_module(node).
 
 
@@ -186,6 +196,11 @@ run_test_group(observability) :-
     t74, t75, t76, t77, t78, t79,
     reset_observability,
     reset_governance_policy.
+run_test_group(tokens) :-
+    t80, t81, t82, t83, t84,
+    clear_all_tokens,
+    clear_tokens_file,
+    reset_auth_policy.
 
 
                 /*******************************
@@ -1220,6 +1235,85 @@ t79 :-
         ( ( exists_file(File) -> delete_file(File) ; true ),
           ( exists_file(Backup) -> delete_file(Backup) ; true ) )),
     format("79. metrics and rotating JSONL audit log ok~n").
+
+
+                /*******************************
+                * TOKENS (t80-t84)             *
+                *******************************/
+
+t80 :-
+    sha256_hex('',
+        e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855),
+    sha256_hex(abc,
+        ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad),
+    sha256_hex(abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq,
+        '248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1'),
+    secure_random_bytes(24, Bytes), length(Bytes, 24),
+    bytes_hex(Bytes, Hex), atom_length(Hex, 48),
+    format("80. portable SHA-256 and OS CSPRNG ok~n").
+
+t81 :-
+    clear_all_tokens, clear_tokens_file,
+    issue_token(alice, [execute], [label(cli)], Token),
+    atom_length(Token, 68),
+    verify_bearer_token(Token, principal(alice,[execute])),
+    current_tokens([token_info(Id,alice,[execute],_,0,Used,false,cli)]),
+    Used > 0,
+    atomic_list_concat([wp,Id,_], '_', Token),
+    format("81. token issue and secret-free listing ok~n").
+
+t82 :-
+    clear_all_tokens,
+    issue_token(alice, [execute], [expires_in(0.001)], Expiring),
+    sleep(0.01),
+    \+ verify_bearer_token(Expiring, _),
+    issue_token(alice, [execute], [], Revocable),
+    atomic_list_concat([wp,Id,_], '_', Revocable),
+    revoke_token(Id),
+    \+ verify_bearer_token(Revocable, _),
+    format("82. token expiry and revocation ok~n").
+
+t83 :-
+    actors:make_ref(Ref),
+    format(atom(File), '/tmp/trealla-port-tokens-~w.pl', [Ref]),
+    atom_concat(File, '.tmp', Temporary),
+    setup_call_cleanup(
+        ( clear_all_tokens, set_tokens_file(File) ),
+        ( issue_token(bob, [execute], [label(persistent)], Token),
+          read_test_file(File, StoreText),
+          \+ sub_atom(StoreText, _, _, _, Token),
+          atomic_list_concat([wp,_,Secret], '_', Token),
+          \+ sub_atom(StoreText, _, _, _, Secret),
+          clear_all_tokens, load_tokens,
+          verify_bearer_token(Token, principal(bob,[execute])),
+          atomic_list_concat([wp,Id,_], '_', Token),
+          revoke_token(Id), clear_all_tokens, load_tokens,
+          \+ verify_bearer_token(Token, _) ),
+        ( clear_all_tokens, clear_tokens_file,
+          ( exists_file(File) -> delete_file(File) ; true ),
+          ( exists_file(Temporary) -> delete_file(Temporary) ; true ) )),
+    format("83. hashed token persistence ok~n").
+
+t84 :-
+    clear_all_tokens, clear_tokens_file,
+    configure_auth_policy([auth(private)], _),
+    issue_token(carol, [execute], [], Token),
+    format(atom(Header), 'Bearer ~w', [Token]),
+    request_principal('203.0.113.8':42000, [authorization-Header], Principal),
+    Principal = principal(carol,[execute]),
+    require_route_access(Principal, call),
+    format("84. managed bearer authentication ok~n").
+
+read_test_file(File, Text) :-
+    setup_call_cleanup(open(File, read, Stream, [type(binary)]),
+                       read_test_bytes(Stream, Bytes), close(Stream)),
+    atom_codes(Text, Bytes).
+
+read_test_bytes(Stream, Bytes) :-
+    get_byte(Stream, Byte),
+    ( Byte =:= -1 -> Bytes = []
+    ; Bytes = [Byte|Rest], read_test_bytes(Stream, Rest)
+    ).
 
 caught_resource(Goal, Category) :-
     catch((Goal, fail),

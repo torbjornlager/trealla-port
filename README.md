@@ -15,6 +15,8 @@ The port lives alongside this report:
 | `auth_policy.pl`      | Authentication, authorization, and WS origin policy |
 | `governance_policy.pl` | Per-principal rate and concurrency governance      |
 | `observability.pl`    | Audit events, activity tracking, and metrics       |
+| `node_tokens.pl`      | Hashed bearer issuance, revocation, and persistence |
+| `crypto_portable.pl`  | OS randomness and portable SHA-256 fallback        |
 | `rpc.pl`              | HTTP client wrapper (`rpc/2,3`) over `/call`        |
 | `websocket.pl`        | Native RFC 6455 WebSocket client/server transport   |
 | `web_prolog.pl`       | Trinity-compatible version-1 actor protocol         |
@@ -32,7 +34,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 79 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 84 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
@@ -106,6 +108,7 @@ override their defaults.
 | 63–68 | authentication and WebSocket origin policy | ok |
 | 69–73 | per-principal rate and concurrency governance | ok |
 | 74–79 | audit, runtime usage, and metrics observability | ok |
+| 80–84 | persistent bearer-token lifecycle       | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -333,12 +336,39 @@ principal only to a direct loopback TCP peer:
        ]).
 ```
 
-The static `bearer_token(Id, Token, Capabilities)` form is an initial native
-credential mechanism. Tokens are kept as plaintext in process memory, so they
-must be high-entropy secrets, passed only over TLS, and supplied without
-exposing them in shell history or logs. This does not yet replace Trinity's
-full hashed, persistent token-issuance and revocation lifecycle. A bearer can
-also be used by the explicit distribution API:
+The static `bearer_token(Id, Token, Capabilities)` form remains useful as a
+bootstrap credential, but is kept as plaintext in process memory. The managed
+token store provides the Trinity lifecycle: 64-bit public ids, one-time
+192-bit secrets, salted SHA-256 hashes at rest, expiry, revocation,
+last-used timestamps, secret-free listings, and atomic persistence. Enable
+persistence with `tokens_file/1` (also accepted as `token_store_file/1`):
+
+```prolog
+?- web_prolog_node(3060,
+       [ auth(private),
+         bearer_token(bootstrap, 'replace-with-a-secret', [admin]),
+         tokens_file('state/tokens.pl')
+       ]).
+```
+
+The parent directory must exist. The store uses the same portable `token/8`
+terms as the SWI implementation and never contains the presented secret.
+Managed tokens are tried before static credentials. Administrative operations
+require an authenticated `admin` principal:
+
+- `GET /admin/tokens` lists metadata without hashes or secrets.
+- `POST /admin/tokens` accepts JSON containing `principal`, optional
+  `capabilities` (default `["execute"]`), `expires_in`, and `label`. The full
+  bearer token appears once in this response.
+- `DELETE /admin/tokens?id=<public-id>` revokes a token while retaining its
+  audit metadata.
+
+Trealla's current `crypto_n_random_bytes/2` is not cryptographically secure,
+so this layer deliberately reads the macOS/Linux OS CSPRNG and fails closed if
+it is unavailable. SHA-256 uses Trealla's OpenSSL primitive when present and a
+portable implementation otherwise. Tokens must still be transported only over
+TLS and kept out of shell history and logs. A bearer can be used by the
+explicit distribution API:
 
 ```prolog
 ?- remote_node_open('wss://node.example.org/ws', Node,
@@ -474,7 +504,7 @@ separate explicitly published routing surface.
 The native layer now has profile, sandbox, resource, authentication, origin,
 per-principal rate/concurrency, connection-ownership enforcement, aggregate
 metrics, and bounded audit logging. It does not yet port Trinity's complete
-token administration or full node-controller routing table. Do not expose goal
+node-controller routing table. Do not expose goal
 execution directly to an untrusted network without TLS and OS-level
 containment.
 
@@ -678,8 +708,8 @@ X = a ; X = b ; X = c.
   whitelist sandbox modes plus wall-time, idle, actor-count, page-size, and
   textual-input ceilings, authentication, WebSocket origin checks, and
   connection ownership, plus per-principal rate and concurrency limits.
-  Persistent hashed token administration and the deployment boundary still
-  need to be ported. `src_uri/1` remains disabled pending an
+  The deployment boundary still needs to be finalized. `src_uri/1` remains
+  disabled pending an
   explicit fetch-origin policy.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.

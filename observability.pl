@@ -31,6 +31,7 @@ runtime snapshot does, and is intended only for the authenticated admin route.
 :- use_module(governance_policy,
               [current_governance_policy/1,current_governance_usage/1]).
 :- use_module(resource_policy, [current_resource_policy/1]).
+:- use_module(node_tokens, [token_count/1,current_tokens_file/1]).
 
 :- meta_predicate observe_request(+, +, +, 0).
 
@@ -378,6 +379,11 @@ node_runtime_json(JSONAtom) :-
     current_governance_policy(GovernancePolicy),
     current_resource_policy(ResourcePolicy),
     current_governance_usage(GovernanceUsage),
+    token_count(TokenCount),
+    ( current_tokens_file(TokenFile)
+    -> TokenStoreJSON = string_atom(TokenFile), TokensPersistent = true
+    ; TokenStoreJSON = null, TokensPersistent = false
+    ),
     counters_json(Counters, CountersJSON), events_json(Events, EventsJSON),
     governance_usage_json(GovernanceUsage, UsageJSON),
     GovernanceUsage = governance_usage(Rates, _), rates_json(Rates, RatesJSON),
@@ -400,6 +406,9 @@ node_runtime_json(JSONAtom) :-
         active_ws_actors-number(WSActors), retained_events-number(Retained),
         governance_policy-string_atom(GovernanceText),
         resource_policy-string_atom(ResourceText),
+        token_count-number(TokenCount),
+        tokens_persistent-boolean(TokensPersistent),
+        tokens_file-TokenStoreJSON,
         counters-CountersJSON, governance-UsageJSON,
         sessions-list(SessionsJSON), ws_connections-list(ConnectionsJSON),
         ws_actors-list(ActorsJSON), limit_usage-LimitUsageJSON,

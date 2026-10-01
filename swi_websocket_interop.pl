@@ -115,6 +115,7 @@ protocol_client_test(Port) :-
 private_ownership_client_test(Port) :-
     private_http_rate_test(Port),
     private_observability_test(Port),
+    private_token_admin_test(Port),
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
     ( catch(http_open_websocket(URL, Unauthenticated, []), _, fail)
     -> catch(ws_close(Unauthenticated, 1000, done), _, true), fail
@@ -198,6 +199,50 @@ private_observability_test(Port) :-
     _ = RuntimeJSON.activity_summary,
     _ = RuntimeJSON.rate_limits,
     _ = RuntimeJSON.recent_events.
+
+private_token_admin_test(Port) :-
+    format(atom(TokensURL), 'http://127.0.0.1:~w/admin/tokens', [Port]),
+    AdminAuth = request_header('Authorization'='Bearer admin-secret'),
+    setup_call_cleanup(
+        http_open(TokensURL, Invalid,
+                  [AdminAuth,post(atom('{}')),status_code(InvalidStatus)]),
+        read_string(Invalid, _, _),
+        close(Invalid)),
+    InvalidStatus == 400,
+    Body = '{"principal":"issued","capabilities":["execute"],"label":"interop"}',
+    setup_call_cleanup(
+        http_open(TokensURL, Issued,
+                  [AdminAuth,post(atom(Body)),status_code(IssueStatus)]),
+        read_string(Issued, _, IssueText),
+        close(Issued)),
+    IssueStatus == 200,
+    atom_json_dict(IssueText, IssueJSON, []),
+    Token = IssueJSON.token,
+    Id = IssueJSON.id,
+    [Listed|_] = IssueJSON.tokens,
+    \+ get_dict(hash, Listed, _),
+    format(atom(CallURL), 'http://127.0.0.1:~w/call?goal=true', [Port]),
+    TokenAuth = request_header('Authorization'=BearerHeader),
+    format(atom(BearerHeader), 'Bearer ~w', [Token]),
+    setup_call_cleanup(
+        http_open(CallURL, Authorized, [TokenAuth,status_code(AuthorizedStatus)]),
+        read_string(Authorized, _, _),
+        close(Authorized)),
+    AuthorizedStatus == 200,
+    format(atom(RevokeURL), '~w?id=~w', [TokensURL,Id]),
+    setup_call_cleanup(
+        http_open(RevokeURL, Revoked,
+                  [AdminAuth,method(delete),status_code(RevokeStatus)]),
+        read_string(Revoked, _, RevokeText),
+        close(Revoked)),
+    RevokeStatus == 200,
+    atom_json_dict(RevokeText, RevokeJSON, []),
+    RevokeJSON.revoked == true,
+    setup_call_cleanup(
+        http_open(CallURL, Rejected, [TokenAuth,status_code(RejectedStatus)]),
+        read_string(Rejected, _, _),
+        close(Rejected)),
+    RejectedStatus == 401.
 
 browser_io_client_test(Port) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),

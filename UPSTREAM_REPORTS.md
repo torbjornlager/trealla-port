@@ -417,6 +417,43 @@ reusable `$alarm` primitive around the complete pageable call. This preserves
 choicepoints, but means the wall-time ceiling also runs while a result page is
 suspended awaiting the client.
 
+### BUG-012: `crypto_n_random_bytes/2` repeats predictable output across processes
+
+**Status:** Ready
+**Priority:** Critical for credential generation
+
+Trealla v3.12.6 implements `crypto_n_random_bytes/2` with C `rand()`, seeded
+once with `time(NULL)`. Fresh processes started in the same second therefore
+produce identical byte sequences:
+
+```sh
+for i in 1 2 3; do
+  tpl -g "crypto_n_random_bytes(16,B),writeq(B),halt"
+  echo
+done
+```
+
+Observed output:
+
+```text
+[28,194,191,34,120,145,237,31,137,35,43,88,71,237,26,244]
+[28,194,191,34,120,145,237,31,137,35,43,88,71,237,26,244]
+[28,194,191,34,120,145,237,31,137,35,43,88,71,237,26,244]
+```
+
+The source itself currently carries the comment `FIXME: not truly crypto
+strength`, but the predicate name and its use by `library(uuid)` can lead
+applications to treat it as a CSPRNG.
+
+Desired behavior: obtain bytes from the operating-system cryptographic random
+source and fail closed when that source is unavailable. If compatibility
+requires retaining the current PRNG, it should have a name that does not imply
+cryptographic security.
+
+Current workaround: `crypto_portable.pl` reads `/dev/urandom` directly for
+bearer-token ids and secrets. Token issuance fails rather than falling back to
+`crypto_n_random_bytes/2` when the OS source is unavailable.
+
 ## Compatibility gaps worth tracking, but not yet bug reports
 
 These missing facilities increase porting work but need a clearer upstream

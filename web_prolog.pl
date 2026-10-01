@@ -37,9 +37,9 @@ the configured policy. Execution/idle time, actor count, page size, and text
 input ceilings are enforced independently. HTTP/WebSocket authentication,
 browser WebSocket origin policy, and per-connection actor ownership are
 enforced by the node boundary. Per-principal request rates, concurrent HTTP
-calls, and WebSocket-owned actor counts are governed independently.
-Persistent token administration,
-inference/stack ceilings, and OS-level containment remain necessary.
+calls, and WebSocket-owned actor counts are governed independently. Managed
+bearer tokens support hashed persistence, expiry, and revocation.
+Inference/stack ceilings and OS-level containment remain necessary.
 */
 
 :- use_module(library(dcgs)).

@@ -107,6 +107,7 @@ run_unit() {
     run_tpl_goal "authentication and origin policy" "run_test_group(auth)"
     run_tpl_goal "per-principal governance" "run_test_group(governance)"
     run_tpl_goal "audit and metrics observability" "run_test_group(observability)"
+    run_tpl_goal "persistent bearer-token lifecycle" "run_test_group(tokens)"
     run_with_timeout "WebSocket and protocol vectors" \
         "$TPL" -g "consult('$ROOT/websocket_tests.pl'),(websocket_tests->halt;halt(1))"
 }

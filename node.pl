@@ -103,11 +103,13 @@ Accepted HTTP and WebSocket connections run in independent detached threads.
 
 
 :- use_module(library(sockets)).
+:- use_module(library(json), [json_chars//1]).
 :- use_module(actors).
 :- use_module(profile_policy).
 :- use_module(auth_policy).
 :- use_module(governance_policy).
 :- use_module(observability).
+:- use_module(node_tokens).
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
 :- use_module(websocket).
@@ -239,6 +241,7 @@ node(Port, WebSocketHandler) :-
 %   `max_audit_log_bytes(Bytes)`, `max_audit_log_backups(Count)`,
 %   (the last three also accept their SWI names `interaction_log_file/1`,
 %   `max_interaction_log_bytes/1`, and `max_interaction_log_backups/1`),
+%   `tokens_file(File)` (alias `token_store_file(File)`),
 %   `time_limit(Seconds)`, `idle_limit(Seconds)`, `max_actors(Count)`,
 %   `max_solutions(Count)`, `max_term_text_bytes(Bytes)`,
 %   `max_source_text_bytes(Bytes)`, `max_ws_frame_bytes(Bytes)`, `ssl(true)`,
@@ -256,6 +259,7 @@ node_server(Port, WebSocketHandler, Options) :-
     normalize_sandbox_mode(Sandbox0, Sandbox),
     option(relations(RelationPatterns0), Options, []),
     normalize_relation_patterns(RelationPatterns0, RelationPatterns),
+    configure_token_store(Options),
     configure_auth_policy(Options, AuthPolicy),
     AuthPolicy = auth_config(AuthMode, _, _, _, _, _, _, _),
     configure_governance_policy(Options, _GovernancePolicy),
@@ -336,6 +340,8 @@ handle_connection(C, Peer, WebSocketHandler, WebSocketOptions,
                   'text/plain; version=0.0.4; charset=UTF-8', Metrics)
     ; Method == get, PathAtom == '/admin/runtime'
     -> handle_admin_runtime(C, Ver, Peer, Headers)
+    ; memberchk(Method, [get,post,delete]), PathAtom == '/admin/tokens'
+    -> handle_admin_tokens(C, Method, Path, Ver, Peer, Headers)
     ;  http_reply(C, Ver, 404, 'Not Found',
                   'text/plain', 'Not found\n')
     ).
@@ -403,17 +409,157 @@ require_admin_access(Principal) :-
     ( principal_has_capability(Principal, admin) -> true
     ; Principal = anonymous(_)
     -> throw(error(authentication_required(admin_runtime),
-                   context(node:handle_admin_runtime/4,
-                           'admin runtime requires authentication')))
+                   context(node:require_admin_access/1,
+                           'admin endpoint requires authentication')))
     ; principal_id(Principal, Id),
       throw(error(authorization_error(Id, admin),
-                  context(node:handle_admin_runtime/4,
+                  context(node:require_admin_access/1,
                           'principal lacks the admin capability')))
     ).
 
 reply_admin_runtime(C, Ver) :-
     node_runtime_json(JSON),
     http_reply(C, Ver, 200, 'OK', 'application/json; charset=UTF-8', JSON).
+
+handle_admin_tokens(C, Method, Path, Ver, Peer, Headers) :-
+    request_principal(Peer, Headers, Principal),
+    catch(require_admin_access(Principal), AccessError, true),
+    ( var(AccessError)
+    -> admin_token_operation(Method, Operation),
+       catch(observe_request(
+                 Principal, http, Operation,
+                 admin_tokens_response(C, Method, Path, Ver, Headers)),
+             Error,
+             reply_admin_error(C, Ver, Error))
+    ; observe_rejection(Principal, http, admin_tokens, AccessError),
+      reply_policy_denied(C, Ver, AccessError)
+    ).
+
+admin_token_operation(get, admin_token_list).
+admin_token_operation(post, admin_token_issue).
+admin_token_operation(delete, admin_token_revoke).
+
+admin_tokens_response(C, get, _, Ver, _) :- !,
+    current_tokens(Tokens), tokens_json(Tokens, TokensJSON),
+    node_json_object([tokens-list(TokensJSON)], JSON),
+    reply_json(C, Ver, JSON).
+admin_tokens_response(C, post, _, Ver, Headers) :- !,
+    read_json_request(C, Headers, JSON),
+    admin_issue_fields(JSON, Principal, Capabilities, Options),
+    issue_token(Principal, Capabilities, Options, FullToken),
+    atomic_list_concat([wp,Id,_], '_', FullToken),
+    current_tokens(Tokens), tokens_json(Tokens, TokensJSON),
+    node_json_object([token-string_atom(FullToken),id-string_atom(Id),
+                      tokens-list(TokensJSON)], Response),
+    reply_json(C, Ver, Response).
+admin_tokens_response(C, delete, Path, Ver, _) :-
+    parse_query(Path, Params),
+    ( memberchk(id=Id, Params), Id \== '' -> true
+    ; throw(error(domain_error(token_field, id), node:handle_admin_tokens/6))
+    ),
+    ( revoke_token(Id) -> Revoked = true ; Revoked = false ),
+    current_tokens(Tokens), tokens_json(Tokens, TokensJSON),
+    node_json_object([revoked-boolean(Revoked),id-string_atom(Id),
+                      tokens-list(TokensJSON)], Response),
+    reply_json(C, Ver, Response).
+
+read_json_request(C, Headers, JSON) :-
+    ( memberchk('content-length'-LengthAtom, Headers),
+      catch(atom_number(LengthAtom, Length), _, fail),
+      integer(Length), Length > 0
+    -> true
+    ; throw(error(domain_error(content_length, missing),
+                  node:handle_admin_tokens/6))
+    ),
+    current_resource_policy(resource_policy(_,_,_,_,MaxBytes,_,_)),
+    ( Length =< MaxBytes -> true
+    ; throw(error(resource_error(input_size(admin_json,Length,MaxBytes)), node))
+    ),
+    read_exact_bytes(C, Length, Codes), atom_codes(Body, Codes),
+    atom_chars(Body, Chars),
+    ( phrase(json_chars(JSON), Chars) -> true
+    ; throw(error(syntax_error(json), node:handle_admin_tokens/6))
+    ).
+
+read_exact_bytes(_, 0, []) :- !.
+read_exact_bytes(Stream, Count, [Byte|Bytes]) :-
+    get_byte(Stream, Byte),
+    ( Byte >= 0 -> true
+    ; throw(error(unexpected_eof, node:handle_admin_tokens/6))
+    ),
+    Next is Count-1, read_exact_bytes(Stream, Next, Bytes).
+
+admin_issue_fields(JSON, Principal, Capabilities, Options) :-
+    ( node_json_text(JSON, principal, Principal), Principal \== '' -> true
+    ; throw(error(domain_error(token_field, principal),
+                  node:handle_admin_tokens/6))
+    ),
+    ( node_json_field(JSON, capabilities, CapabilityValue)
+    -> ( CapabilityValue = list(Values), json_atom_list(Values, Capabilities)
+       -> true
+       ; throw(error(domain_error(token_field, capabilities),
+                     node:handle_admin_tokens/6)) )
+    ; Capabilities = [execute]
+    ),
+    admin_issue_options(JSON, Options).
+
+admin_issue_options(JSON, Options) :-
+    ( node_json_field(JSON, expires_in, ExpiryValue)
+    -> ( ExpiryValue = number(Seconds)
+       -> Options = [expires_in(Seconds)|Rest]
+       ; throw(error(domain_error(token_field, expires_in),
+                     node:handle_admin_tokens/6)) )
+    ; Rest = Options
+    ),
+    ( node_json_field(JSON, label, LabelValue)
+    -> ( LabelValue = string(LabelChars), atom_chars(Label, LabelChars)
+       -> Rest = [label(Label)]
+       ; throw(error(domain_error(token_field, label),
+                     node:handle_admin_tokens/6)) )
+    ; Rest = []
+    ).
+
+json_atom_list([], []).
+json_atom_list([string(Chars)|Values], [Atom|Atoms]) :-
+    atom_chars(Atom, Chars), json_atom_list(Values, Atoms).
+
+tokens_json([], []).
+tokens_json([token_info(Id,Principal,Caps,Created,Expires,Used,Revoked,Label)|Tokens],
+            [JSON|JSONTokens]) :-
+    json_string_list(Caps, CapsJSON),
+    node_json_object([id-string_atom(Id),principal_id-string_atom(Principal),
+                      capabilities-list(CapsJSON),created_at-number(Created),
+                      expires_at-number(Expires),last_used_at-number(Used),
+                      revoked-boolean(Revoked),label-string_atom(Label)], JSON),
+    tokens_json(Tokens, JSONTokens).
+
+json_string_list([], []).
+json_string_list([Atom|Atoms], [string(Chars)|Values]) :-
+    atom_chars(Atom, Chars), json_string_list(Atoms, Values).
+
+node_json_field(pairs(Pairs), Key, Value) :-
+    atom_chars(Key, KeyChars), memberchk(string(KeyChars)-Value, Pairs).
+
+node_json_text(JSON, Key, Atom) :-
+    node_json_field(JSON, Key, string(Chars)), atom_chars(Atom, Chars).
+
+node_json_object(Fields, pairs(Pairs)) :- node_json_fields(Fields, Pairs).
+node_json_fields([], []).
+node_json_fields([Key-Value0|Fields], [string(KeyChars)-Value|Pairs]) :-
+    atom_chars(Key, KeyChars), node_json_value(Value0, Value),
+    node_json_fields(Fields, Pairs).
+
+node_json_value(string_atom(Atom), string(Chars)) :- !, atom_chars(Atom, Chars).
+node_json_value(Value, Value).
+
+reply_json(C, Ver, JSON) :-
+    phrase(json_chars(JSON), Chars), atom_chars(Body, Chars),
+    http_reply(C, Ver, 200, 'OK', 'application/json; charset=UTF-8', Body).
+
+reply_admin_error(C, Ver, Error) :-
+    format(atom(Body), '~q.\n', [error(Error)]),
+    http_reply(C, Ver, 400, 'Bad Request',
+               'text/plain; charset=UTF-8', Body).
 
 set_connection_governance(Principal, Identity) :-
     thread_self(Thread),
