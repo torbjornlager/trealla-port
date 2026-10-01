@@ -8,15 +8,11 @@ ship with a unit-test framework (plunit is absent).
 
 ## Running {#tests-running}
 
-```
-tpl -g "consult(tests), \
-        t1,t2,t3,t4,t5,t6,t7,t8,t9,t10, \
-        t11,t12,t13,t14,t15,t16,t17,t18, \
-        t19,t20,t21,t22, \
-        t23,t24,t25,t26,t27,t28,t29,t30, \
-        t31,t32,t33, \
-        format('~nALL OK~n'), halt"
-```
+Run `TPL=/path/to/tpl ./tools/test.sh` from the repository root.  The
+runner executes `actors`, `toplevel`, and `parallel` through
+`run_test_group/1` in fresh Trealla processes, then runs the WebSocket vector
+tests in a fourth process.  Fresh processes are intentional: detached-thread
+cleanup and mailbox state must not leak between layers.
 
 Each test predicate prints a one-line status message and succeeds on
 pass, fails (or throws) on failure.  Tests are grouped:
@@ -75,6 +71,27 @@ pass, fails (or throws) on failure.  Tests are grouped:
 
 :- use_module(toplevel_actors).
 :- use_module(parallel).
+
+
+                /*******************************
+                *        TEST GROUPS           *
+                *******************************/
+
+%!  run_test_group(+Group) is det.
+%
+%   Run one isolation-safe group.  tools/test.sh invokes each group in a
+%   fresh Trealla process so completed detached actors, delayed messages, or
+%   protocol state from one layer cannot affect another layer's tests.
+
+run_test_group(actors) :-
+    t1, t2, t3, t4, t5, t6, t7,
+    t19, t20, t21, t23, t24, t25, t26,
+    t31, t32, t33.
+run_test_group(toplevel) :-
+    t11, t12, t13, t14, t15, t16, t17, t18,
+    t22, t27, t28, t29.
+run_test_group(parallel) :-
+    t8, t9, t10, t30.
 
 
                 /*******************************
@@ -444,7 +461,11 @@ t25 :-
 %   Mirrors SWI plunit `actors:actors3_register_2`.
 
 t26 :-
-    spawn((repeat, fail), Pid, [monitor(true), link(false)]),
+    % This test is about registration cleanup, not asynchronous interruption
+    % of a CPU-bound goal.  A mailbox wait gives the actor an unambiguous
+    % blocking point for exit/2.  The separate t29 test covers interruption
+    % of a runaway goal through toplevel_abort/1.
+    spawn(receive({never -> true}), Pid, [monitor(true), link(false)]),
     register(test_w, Pid),
     whereis(test_w, Pid2),
     Pid2 == Pid,

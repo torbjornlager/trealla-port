@@ -67,7 +67,7 @@ Current workaround: see the deferred-message and parent bookkeeping in
 
 ### FR-003: Provide a supported HTTP-to-WebSocket upgrade handoff
 
-**Status:** Needs minimization  
+**Status:** Needs minimization
 **Priority:** Medium
 
 The standard HTTP server path writes ordinary HTTP response headers and closes
@@ -259,6 +259,36 @@ use far fewer actor round trips and are unaffected.  Rerun on v3.12.6 and the
 latest upstream build, capture the smallest failing iteration count and stack
 trace, and confirm whether this is the same defect as BUG-006 or a separate
 threading/GC issue.
+
+### BUG-008: `thread_signal/2` intermittently fails to interrupt a CPU-bound thread
+
+**Status:** Needs minimization
+**Priority:** High
+
+On Trealla v3.12.6 for macOS arm64, an actor running `(repeat, fail)` does not
+reliably process an `exit/2` implemented with `thread_signal/2`. In 30 fresh
+process runs of the former registration-cleanup test, 22 delivered the
+expected `down/3` message and 8 remained blocked for more than three seconds.
+
+The application-level shape is:
+
+```prolog
+spawn((repeat, fail), Pid, [monitor(true), link(false)]),
+exit(Pid, reason),
+receive({down(Pid, _, reason) -> true}).
+```
+
+The registration test was changed to use an actor blocked in `receive/1`,
+because that test is intended to verify automatic name cleanup rather than
+preemptive interruption. `toplevel_abort/1` remains the functional coverage
+for interrupting a running goal.
+
+`thread_cancel/1` is not a viable fallback in this configuration: a direct
+50-process probe that recorded the desired exit reason and then cancelled the
+actor exited with status 139 in all 50 processes. Both observations need
+standalone reproducers against the latest upstream commit before filing; they
+may be related to BUG-007 or to Trealla's current task/thread cancellation
+work.
 
 ## Compatibility gaps worth tracking, but not yet bug reports
 

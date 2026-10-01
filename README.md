@@ -35,6 +35,32 @@ v2.99.6 and v2.99.12; t22 requires
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
 canonical SWI plunit suite in `simple-node/tests.pl`:
 
+Run the isolated unit groups with:
+
+```sh
+TPL=/path/to/tpl ./tools/test.sh
+```
+
+To create a pinned repository-local Trealla v3.12.6 build without replacing a
+system installation:
+
+```sh
+./tools/build-trealla.sh
+TPL="$PWD/.build/trealla-v3.12.6/tpl" ./tools/test.sh all
+```
+
+The helper disables TLS in this test build; the automated matrix uses plain
+loopback HTTP and WebSocket connections. Production TLS behavior must be
+tested with an SSL-enabled build or, preferably for now, behind a terminating
+proxy.
+
+The runner rejects executables that report `trealla(0,0,0,[])`, applies a
+hard timeout to every fresh process, and keeps actor, toplevel, parallel, and
+WebSocket state isolated. Run the bidirectional Trealla/SWI WebSocket and
+protocol matrix with `./tools/test.sh interop`, or everything with
+`./tools/test.sh all`. Set `SWIPL`, `TEST_TIMEOUT`, or `TEST_PORT_BASE` to
+override their defaults.
+
 | #  | Test                                       | Status |
 |----|--------------------------------------------|--------|
 |  1 | basic `receive` pattern match              | ok     |
