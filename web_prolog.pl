@@ -36,7 +36,9 @@ meta-calls, asserted clauses, and source-bearing spawn options pass through
 the configured policy. Execution/idle time, actor count, page size, and text
 input ceilings are enforced independently. HTTP/WebSocket authentication,
 browser WebSocket origin policy, and per-connection actor ownership are
-enforced by the node boundary. Persistent token administration,
+enforced by the node boundary. Per-principal request rates, concurrent HTTP
+calls, and WebSocket-owned actor counts are governed independently.
+Persistent token administration,
 inference/stack ceilings, and OS-level containment remain necessary.
 */
 
@@ -47,6 +49,7 @@ inference/stack ceilings, and OS-level containment remain necessary.
 :- use_module(profile_policy).
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
+:- use_module(governance_policy).
 :- use_module(toplevel_actors).
 :- use_module(node).
 :- use_module(websocket).
@@ -114,27 +117,31 @@ web_prolog_handler(Profile, WS, '/ws') :-
     web_prolog_handler(Profile, blacklist, WS, '/ws').
 
 web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
+    ( node:current_connection_governance(Principal, Identity) -> true
+    ; Principal = principal(local, [admin]), Identity = local
+    ),
     thread_self(Reader),
-    spawn(relay_start(WS), Relay, [link(false)]),
+    spawn(relay_start(WS, Principal, Identity), Relay, [link(false)]),
     setup_call_cleanup(
         true,
-        read_loop(WS, Relay, Reader, Profile, Sandbox),
+        read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity),
         close_connection(Relay)
     ).
 
-read_loop(WS, Relay, Reader, Profile, Sandbox) :-
+read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
     ws_receive(WS, Frame),
     ( Frame = text(Text) ->
         catch(( check_ws_frame_size(Text),
-                dispatch_text(Text, Relay, Reader, Profile, Sandbox) ), Error,
+                dispatch_text(Text, Relay, Reader, Profile, Sandbox,
+                              Principal, Identity) ), Error,
               Relay ! protocol_error(Error)),
-        read_loop(WS, Relay, Reader, Profile, Sandbox)
+        read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity)
     ; Frame = close(Code, Reason) ->
         Relay ! '$peer_close'(Code, Reason, Reader),
         thread_get_message(Reader, '$peer_closed'(Relay))
     ; Frame == end_of_file ->
         true
-    ; read_loop(WS, Relay, Reader, Profile, Sandbox)
+    ; read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity)
     ).
 
 close_connection(Relay) :-
@@ -179,11 +186,19 @@ web_prolog_receive(Connection, JSON) :-
                  *          DISPATCH             *
                  *******************************/
 
-dispatch_text(Text, Relay, Reader, Profile, Sandbox) :-
+dispatch_text(Text, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
     json_atom(JSON, Text),
     json_atom_field(JSON, command, Command),
+    enforce_ws_command_rate_limit(Principal, Identity, Command),
+    enforce_spawn_rate_limit(Command, Principal, Identity),
     profile_check_command(Profile, Command),
     dispatch(Command, JSON, Relay, Reader, Profile, Sandbox).
+
+enforce_spawn_rate_limit(Command, Principal, Identity) :-
+    ( Command == toplevel_spawn
+    -> enforce_session_spawn_rate_limit(Principal, Identity)
+    ; true
+    ).
 
 dispatch(transport_hello, JSON, Relay, Reader, Profile, Sandbox) :- !,
     json_integer_default(JSON, version, 1, Version),
@@ -202,7 +217,7 @@ dispatch(toplevel_spawn, JSON, Relay, _, Profile, Sandbox) :- !,
     spawn_io_options(JSON, Relay, Options1, Options),
     thread_self(Reader),
     Relay ! '$toplevel_spawn'(Options, Reader),
-    thread_get_message(Reader, '$spawned'(_WirePid)).
+    await_relay_spawn(Reader).
 dispatch(toplevel_call, JSON, Relay, _, Profile, Sandbox) :- !,
     json_text_field(JSON, goal, GoalText),
     json_text_default(JSON, options, '[]', OptionsText),
@@ -238,7 +253,14 @@ dispatch(spawn, JSON, Relay, Reader, Profile, Sandbox) :- !,
     safe_spawn_options(PreparedOptions, Options1),
     spawn_io_options(JSON, Relay, Options1, Options),
     Relay ! '$spawn'(GuardedGoal, Options, Reader),
-    thread_get_message(Reader, '$spawned'(_Pid)).
+    await_relay_spawn(Reader).
+
+await_relay_spawn(Reader) :-
+    thread_get_message(Reader, Reply),
+    ( Reply = '$spawned'(_) -> true
+    ; Reply = '$spawn_failed'(Error) -> throw(Error)
+    ; throw(error(unexpected_relay_reply(Reply), web_prolog_handler/2))
+    ).
 dispatch(send, JSON, Relay, _, _, _) :- !,
     Relay ! '$ws_command'(send, JSON).
 dispatch(monitor, JSON, Relay, _, _, _) :- !,
@@ -338,10 +360,11 @@ send_to_target(actor(Pid), Message) :-
                  *           RELAY               *
                  *******************************/
 
-relay_start(WS) :-
+relay_start(WS, Principal, Identity) :-
     relay_set_actors([]),
     relay_set_monitors([]),
     relay_set_halts([]),
+    relay_set_governance(Principal, Identity),
     relay_loop(WS).
 
 relay_loop(WS) :-
@@ -359,6 +382,7 @@ relay_message(_, '$ws_close') :- !,
     self(Relay),
     close_browser_io(Relay),
     relay_actors(Actors),
+    forget_ws_actor_owners(Actors),
     stop_relay_actors(Actors),
     relay_clear_state.
 relay_message(WS, '$transport_hello'(Version, IoAck, Profile, Sandbox, Reader)) :- !,
@@ -385,18 +409,37 @@ relay_message(WS, '$toplevel_call'(JSON, Goal, Options0)) :- !,
         send_event(WS, error(Error))).
 relay_message(WS, '$toplevel_spawn'(Options, Reader)) :- !,
     self(Relay),
-    toplevel_spawn(RuntimePid, [target(Relay),link(false),monitor(true)|Options]),
-    fresh_wire_pid(WirePid),
-    relay_add_actor(WirePid, RuntimePid, session),
-    thread_send_message(Reader, '$spawned'(WirePid)),
-    send_event(WS, spawned(WirePid)).
+    catch(
+        ( relay_reserve_ws_actor(Reservation),
+          catch(toplevel_spawn(RuntimePid,
+                               [target(Relay),link(false),monitor(true)|Options]),
+                SpawnError,
+                ( release_capacity_reservation(Reservation),
+                  throw(SpawnError) )),
+          commit_ws_actor_capacity(Reservation, RuntimePid),
+          fresh_wire_pid(WirePid),
+          relay_add_actor(WirePid, RuntimePid, session),
+          thread_send_message(Reader, '$spawned'(WirePid)),
+          send_event(WS, spawned(WirePid))
+        ),
+        Error,
+        thread_send_message(Reader, '$spawn_failed'(Error))).
 relay_message(WS, '$spawn'(Goal, Options, Reader)) :- !,
-    spawn(web_prolog:run_spawn_goal(Goal), RuntimePid,
-          ['$entry_context'(caller),link(false),monitor(true)|Options]),
-    fresh_wire_pid(WirePid),
-    relay_add_actor(WirePid, RuntimePid, actor),
-    thread_send_message(Reader, '$spawned'(WirePid)),
-    send_event(WS, spawned(WirePid)).
+    catch(
+        ( relay_reserve_ws_actor(Reservation),
+          catch(spawn(web_prolog:run_spawn_goal(Goal), RuntimePid,
+                      ['$entry_context'(caller),link(false),monitor(true)|Options]),
+                SpawnError,
+                ( release_capacity_reservation(Reservation),
+                  throw(SpawnError) )),
+          commit_ws_actor_capacity(Reservation, RuntimePid),
+          fresh_wire_pid(WirePid),
+          relay_add_actor(WirePid, RuntimePid, actor),
+          thread_send_message(Reader, '$spawned'(WirePid)),
+          send_event(WS, spawned(WirePid))
+        ),
+        Error,
+        thread_send_message(Reader, '$spawn_failed'(Error))).
 
 % Calling a conjunction received as data through the module-qualified actor
 % trampoline makes current Trealla try to resolve ','/2 after its first arm.
@@ -443,7 +486,8 @@ relay_message(WS, down(RuntimePid, _DefaultRef, Reason)) :- !,
             send_event(WS, halted(HaltWirePid, true))
         ; true
         ),
-        relay_remove_actor(WirePid)
+        relay_remove_actor(WirePid),
+        forget_ws_actor_owner(RuntimePid)
     ; true
     ).
 relay_message(WS, protocol_error(Error)) :- !,
@@ -573,10 +617,23 @@ relay_state_key(Kind, Key) :-
     thread_self(Relay),
     format(atom(Key), '$web_prolog_~w_~w', [Kind, Relay]).
 
+relay_set_governance(Principal, Identity) :-
+    relay_state_key(governance, Key),
+    bb_put(Key, governance(Principal, Identity)).
+
+relay_governance(Principal, Identity) :-
+    relay_state_key(governance, Key),
+    bb_get(Key, governance(Principal, Identity)).
+
+relay_reserve_ws_actor(Reservation) :-
+    relay_governance(Principal, Identity),
+    reserve_ws_actor_capacity(Principal, Identity, Reservation).
+
 relay_clear_state :-
     relay_delete_state(actors),
     relay_delete_state(monitors),
-    relay_delete_state(halts).
+    relay_delete_state(halts),
+    relay_delete_state(governance).
 
 relay_delete_state(Kind) :-
     relay_state_key(Kind, Key),

@@ -19,6 +19,7 @@
 
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_open)).
 :- use_module(library(http/websocket)).
 :- use_module(library(http/json)).
 
@@ -112,6 +113,7 @@ protocol_client_test(Port) :-
     format('SWI Web Prolog protocol client test: ok~n').
 
 private_ownership_client_test(Port) :-
+    private_http_rate_test(Port),
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
     ( catch(http_open_websocket(URL, Unauthenticated, []), _, fail)
     -> catch(ws_close(Unauthenticated, 1000, done), _, true), fail
@@ -133,11 +135,41 @@ private_ownership_client_test(Port) :-
                    goal:"true", options:"[]"}),
     receive_type(Stranger, "error", Denied),
     sub_string(Denied.data, _, _, _, "permission_error"),
+    send_json(Stranger,
+              json{command:"toplevel_spawn", options:"[session(true)]"}),
+    receive_type(Stranger, "error", AtCapacity),
+    sub_string(AtCapacity.data, _, _, _, "resource_limit_exceeded"),
     send_json(Owner, json{command:"toplevel_halt", pid:Pid}),
     receive_type(Owner, "halted", _),
+    send_json(Stranger,
+              json{command:"toplevel_spawn", options:"[session(true)]"}),
+    receive_type(Stranger, "spawned", Replacement),
+    ReplacementPid = Replacement.pid,
+    send_json(Stranger,
+              json{command:"toplevel_halt", pid:ReplacementPid}),
+    receive_type(Stranger, "halted", _),
     ws_close(Stranger, 1000, done),
     ws_close(Owner, 1000, done),
     format('SWI private authentication and connection ownership test: ok~n').
+
+private_http_rate_test(Port) :-
+    format(atom(URL), 'http://127.0.0.1:~w/call?goal=true', [Port]),
+    setup_call_cleanup(
+        http_open(URL, Anonymous, [status_code(AnonymousStatus)]),
+        read_string(Anonymous, _, _),
+        close(Anonymous)),
+    AnonymousStatus == 401,
+    Auth = request_header('Authorization'='Bearer interop-secret'),
+    setup_call_cleanup(
+        http_open(URL, First, [Auth,status_code(FirstStatus)]),
+        read_string(First, _, _),
+        close(First)),
+    FirstStatus == 200,
+    setup_call_cleanup(
+        http_open(URL, Limited, [Auth,status_code(LimitedStatus)]),
+        read_string(Limited, _, _),
+        close(Limited)),
+    LimitedStatus == 429.
 
 browser_io_client_test(Port) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),

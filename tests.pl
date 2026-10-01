@@ -9,10 +9,9 @@ ship with a unit-test framework (plunit is absent).
 ## Running {#tests-running}
 
 Run `TPL=/path/to/tpl ./tools/test.sh` from the repository root.  The
-runner executes `actors`, `toplevel`, `parallel`, `isolation`, `profiles`, and
-`sandbox` through
-`run_test_group/1` in fresh Trealla processes, then runs the WebSocket vector
-tests in another process.  Fresh processes are intentional: detached-thread
+runner executes every unit-test group through `run_test_group/1` in fresh
+Trealla processes, then runs the WebSocket vector
+tests in another process. Fresh processes are intentional: detached-thread
 cleanup and mailbox state must not leak between layers.
 
 Each test predicate prints a one-line status message and succeeds on
@@ -118,6 +117,14 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t66 trusted node headers work only across the private-network boundary
   - t67 development mode grants execution only to direct loopback peers
   - t68 WebSocket origins allow native, same-origin, and configured clients
+
+## Tests: per-principal governance (t69-t73)
+
+  - t69 rate and concurrency options normalize
+  - t70 rate buckets are principal-scoped and privileged transports are exempt
+  - t71 anonymous HTTP and WebSocket identities do not share one global bucket
+  - t72 in-flight call capacity is atomic and released by cleanup
+  - t73 WebSocket actor capacity is released when ownership ends
 */
 
 :- use_module(toplevel_actors).
@@ -127,6 +134,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
 :- use_module(auth_policy).
+:- use_module(governance_policy).
 :- use_module(node).
 
 
@@ -161,6 +169,9 @@ run_test_group(resources) :-
 run_test_group(auth) :-
     t63, t64, t65, t66, t67, t68,
     reset_auth_policy.
+run_test_group(governance) :-
+    t69, t70, t71, t72, t73,
+    reset_governance_policy.
 
 
                 /*******************************
@@ -1051,6 +1062,65 @@ t68 :-
         [origin-'https://evil.example',host-'node.example:3060'])),
     format("68. WebSocket origin policy ok~n").
 
+
+                /*******************************
+                * GOVERNANCE (t69-t73)         *
+                *******************************/
+
+t69 :-
+    configure_governance_policy(
+        [rate_window_seconds(10),max_call_requests_per_window(2),
+         max_session_spawns_per_window(3),max_ws_commands_per_window(4),
+         max_inflight_calls(5),max_ws_actors_per_principal(unlimited)],
+        governance_policy(10,2,3,4,5,unlimited)),
+    format("69. governance option normalization ok~n").
+
+t70 :-
+    configure_governance_policy([max_call_requests_per_window(1)], _),
+    User = principal(alice, [execute]),
+    enforce_call_request_rate_limit(User, alice),
+    caught_rate_limit(enforce_call_request_rate_limit(User, alice),
+                      alice, call_requests),
+    enforce_call_request_rate_limit(User, bob),
+    Admin = principal(root, [admin]),
+    enforce_call_request_rate_limit(Admin, root),
+    enforce_call_request_rate_limit(Admin, root),
+    format("70. principal rate buckets and exemption ok~n").
+
+t71 :-
+    Anonymous = anonymous([public_read,execute]),
+    quota_identity(Anonymous, '192.0.2.1':1000, http, HTTP1),
+    quota_identity(Anonymous, '192.0.2.1':2000, http, HTTP1),
+    quota_identity(Anonymous, '192.0.2.2':1000, http, HTTP2),
+    HTTP1 \== HTTP2,
+    quota_identity(Anonymous, ignored, websocket, WS1),
+    quota_identity(Anonymous, ignored, websocket, WS2),
+    WS1 \== WS2,
+    format("71. anonymous quota identities ok~n").
+
+t72 :-
+    configure_governance_policy([max_inflight_calls(1)], _),
+    User = principal(alice, [execute]),
+    caught_capacity(
+        with_inflight_call_limit(
+            User, alice,
+            with_inflight_call_limit(User, alice, true)),
+        alice, inflight_calls),
+    with_inflight_call_limit(User, alice, true),
+    format("72. in-flight capacity cleanup ok~n").
+
+t73 :-
+    configure_governance_policy([max_ws_actors_per_principal(1)], _),
+    User = principal(alice, [execute]),
+    reserve_ws_actor_capacity(User, alice, First),
+    commit_ws_actor_capacity(First, fake_pid_1),
+    caught_capacity(reserve_ws_actor_capacity(User, alice, _),
+                    alice, ws_actors),
+    forget_ws_actor_owner(fake_pid_1),
+    reserve_ws_actor_capacity(User, alice, Second),
+    release_capacity_reservation(Second),
+    format("73. WebSocket actor capacity cleanup ok~n").
+
 caught_resource(Goal, Category) :-
     catch((Goal, fail),
           error(resource_error(Resource), _),
@@ -1062,6 +1132,16 @@ resource_category(input_size(_,_,_), input_size).
 caught_authentication(Goal, Route) :-
     catch((Goal, fail),
           error(authentication_required(Route), _),
+          true).
+
+caught_rate_limit(Goal, Identity, Resource) :-
+    catch((Goal, fail),
+          error(rate_limit_exceeded(Identity, Resource, _, _), _),
+          true).
+
+caught_capacity(Goal, Identity, Resource) :-
+    catch((Goal, fail),
+          error(resource_limit_exceeded(Identity, Resource, _), _),
           true).
 
 caught_origin(Goal) :-

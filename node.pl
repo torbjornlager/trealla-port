@@ -106,12 +106,15 @@ Accepted HTTP and WebSocket connections run in independent detached threads.
 :- use_module(actors).
 :- use_module(profile_policy).
 :- use_module(auth_policy).
+:- use_module(governance_policy).
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
 :- use_module(websocket).
 
 :- meta_predicate(node(+, 2)).
 :- meta_predicate(node(+, 2, +)).
+
+:- dynamic connection_governance/3.
 
 
                 /*******************************
@@ -227,6 +230,10 @@ node(Port, WebSocketHandler) :-
 %   Options include `profile(Profile)`, `sandbox(Mode)`, `auth(Mode)`,
 %   `principal(Id, Capabilities)`, `bearer_token(Id, Token, Capabilities)`,
 %   `ws_allowed_origins(Origins)`, `relations(Patterns)`,
+%   `rate_window_seconds(Seconds)`, `max_call_requests_per_window(Count)`,
+%   `max_session_spawns_per_window(Count)`,
+%   `max_ws_commands_per_window(Count)`, `max_inflight_calls(Count)`,
+%   `max_ws_actors_per_principal(Count)`,
 %   `time_limit(Seconds)`, `idle_limit(Seconds)`, `max_actors(Count)`,
 %   `max_solutions(Count)`, `max_term_text_bytes(Bytes)`,
 %   `max_source_text_bytes(Bytes)`, `max_ws_frame_bytes(Bytes)`, `ssl(true)`,
@@ -246,6 +253,7 @@ node_server(Port, WebSocketHandler, Options) :-
     normalize_relation_patterns(RelationPatterns0, RelationPatterns),
     configure_auth_policy(Options, AuthPolicy),
     AuthPolicy = auth_config(AuthMode, _, _, _, _, _, _, _),
+    configure_governance_policy(Options, _GovernancePolicy),
     configure_resource_policy(Options, _ResourcePolicy),
     node_socket_options(Options, SocketOptions),
     option(websocket_options(WebSocketOptions0), Options, []),
@@ -326,13 +334,24 @@ handle_call_route(C, Path, Ver, Peer, Headers,
             require_route_access(Principal, call),
             profile_check_route(Profile, call) ), RouteError, true),
     ( var(RouteError)
-    -> effective_profile_for_route(Profile, call, EffectiveProfile),
-       catch(handle_call(C, Path, Ver, EffectiveProfile, Sandbox,
-                         RelationPatterns),
-             Error,
-             reply_answer(C, Ver, prolog, error(Error)))
+    -> quota_identity(Principal, Peer, http, Identity),
+       catch(handle_governed_call(C, Path, Ver, Principal, Identity,
+                                  Profile, Sandbox, RelationPatterns),
+             GovernanceError,
+             reply_governance_denied(C, Ver, GovernanceError))
     ;  reply_policy_denied(C, Ver, RouteError)
     ).
+
+handle_governed_call(C, Path, Ver, Principal, Identity,
+                     Profile, Sandbox, RelationPatterns) :-
+    enforce_call_request_rate_limit(Principal, Identity),
+    effective_profile_for_route(Profile, call, EffectiveProfile),
+    with_inflight_call_limit(
+        Principal, Identity,
+        catch(handle_call(C, Path, Ver, EffectiveProfile, Sandbox,
+                          RelationPatterns),
+              Error,
+              reply_answer(C, Ver, prolog, error(Error)))).
 
 handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
                 WebSocketOptions, Profile, PathAtom) :-
@@ -341,10 +360,27 @@ handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
             require_route_access(Principal, ws),
             profile_check_route(Profile, ws) ), Error, true),
     ( var(Error)
-    -> ws_accept(C, Headers, WebSocket, WebSocketOptions),
-       call(WebSocketHandler, WebSocket, PathAtom)
+    -> quota_identity(Principal, Peer, websocket, Identity),
+       setup_call_cleanup(
+           set_connection_governance(Principal, Identity),
+           ( ws_accept(C, Headers, WebSocket, WebSocketOptions),
+             call(WebSocketHandler, WebSocket, PathAtom) ),
+           clear_connection_governance)
     ; reply_policy_denied(C, Ver, Error)
     ).
+
+set_connection_governance(Principal, Identity) :-
+    thread_self(Thread),
+    retractall(connection_governance(Thread, _, _)),
+    assertz(connection_governance(Thread, Principal, Identity)).
+
+clear_connection_governance :-
+    thread_self(Thread),
+    retractall(connection_governance(Thread, _, _)).
+
+current_connection_governance(Principal, Identity) :-
+    thread_self(Thread),
+    connection_governance(Thread, Principal, Identity), !.
 
 reply_policy_denied(C, Ver, Error) :-
     Error = error(authentication_required(_), _), !,
@@ -354,6 +390,25 @@ reply_policy_denied(C, Ver, Error) :-
                ['WWW-Authenticate'-'Bearer realm="web-prolog"']).
 reply_policy_denied(C, Ver, Error) :-
     reply_profile_denied(C, Ver, Error).
+
+reply_governance_denied(C, Ver,
+                        error(rate_limit_exceeded(Id, Resource, Limit, Window),
+                              Context)) :- !,
+    Error = error(rate_limit_exceeded(Id, Resource, Limit, Window), Context),
+    format(atom(Body), '~q.\n', [Error]),
+    format(atom(RetryAfter), '~w', [Window]),
+    http_reply(C, Ver, 429, 'Too Many Requests',
+               'text/plain; charset=UTF-8', Body,
+               ['Retry-After'-RetryAfter]).
+reply_governance_denied(C, Ver,
+                        error(resource_limit_exceeded(Id, Resource, Limit),
+                              Context)) :- !,
+    Error = error(resource_limit_exceeded(Id, Resource, Limit), Context),
+    format(atom(Body), '~q.\n', [Error]),
+    http_reply(C, Ver, 429, 'Too Many Requests',
+               'text/plain; charset=UTF-8', Body).
+reply_governance_denied(C, Ver, Error) :-
+    reply_answer(C, Ver, prolog, error(Error)).
 
 reply_profile_denied(C, Ver, Error) :-
     format(atom(Body), '~q.\n', [error(Error)]),

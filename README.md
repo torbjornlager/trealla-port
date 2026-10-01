@@ -13,6 +13,7 @@ The port lives alongside this report:
 | `toplevel_actors.pl`  | Shell-style PTCP for paged goal execution           |
 | `node.pl`             | HTTP server exposing `/call` for remote queries     |
 | `auth_policy.pl`      | Authentication, authorization, and WS origin policy |
+| `governance_policy.pl` | Per-principal rate and concurrency governance      |
 | `rpc.pl`              | HTTP client wrapper (`rpc/2,3`) over `/call`        |
 | `websocket.pl`        | Native RFC 6455 WebSocket client/server transport   |
 | `web_prolog.pl`       | Trinity-compatible version-1 actor protocol         |
@@ -30,7 +31,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 68 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 73 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
@@ -102,6 +103,7 @@ override their defaults.
 | 47–56 | sandbox and public source policy        | ok |
 | 57–62 | resource governance                     | ok |
 | 63–68 | authentication and WebSocket origin policy | ok |
+| 69–73 | per-principal rate and concurrency governance | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -357,6 +359,31 @@ their normalized origin must appear in `ws_allowed_origins/1`. This prevents
 an unrelated web page from driving the actor endpoint even when the node is
 otherwise open.
 
+Per-principal abuse controls are configured independently. Defaults match the
+initial Trinity policy:
+
+```prolog
+?- web_prolog_node(3060,
+       [ rate_window_seconds(60),
+         max_call_requests_per_window(500),
+         max_session_spawns_per_window(100),
+         max_ws_commands_per_window(1000),
+         max_inflight_calls(4),
+         max_ws_actors_per_principal(16)
+       ]).
+```
+
+Counts are shared by all connections authenticated as the same principal.
+`admin` and `internal_transport` principals are exempt from these
+per-principal limits, but remain subject to the node's absolute resource
+ceilings. Anonymous HTTP callers are bucketed by their immediate peer address;
+anonymous WebSockets get separate connection identities. Consequently a
+reverse proxy should authenticate callers and provide a trusted principal
+header if distinct end-user quotas are required. Limits accept `unlimited` as
+an explicit opt-out. Rate violations return HTTP 429 (or a WebSocket `error`
+event), while actor capacity is reclaimed when the actor exits or its owning
+connection closes.
+
 The optional `transport_welcome` event advertises the configured profile and
 sandbox in additive `profile` and `sandbox` fields. Authentication is enforced
 before an HTTP call or WebSocket upgrade. These Prolog-level checks are defense
@@ -410,10 +437,11 @@ sessions. Published services are the deliberate exception: their names form a
 separate explicitly published routing surface.
 
 The native layer now has profile, sandbox, resource, authentication, origin,
-and connection-ownership enforcement. It does not yet port Trinity's complete
-token administration, audit/rate-limit infrastructure, or full node-controller
-routing table. Do not expose goal execution directly to an untrusted network
-without TLS and OS-level containment.
+per-principal rate/concurrency, and connection-ownership enforcement. It does
+not yet port Trinity's complete token administration, audit/metrics
+infrastructure, or full node-controller routing table. Do not expose goal
+execution directly to an untrusted network without TLS and OS-level
+containment.
 
 ### Persistent remote nodes
 
@@ -614,9 +642,10 @@ X = a ; X = b ; X = c.
   now include execution-profile enforcement and native Trealla blacklist and
   whitelist sandbox modes plus wall-time, idle, actor-count, page-size, and
   textual-input ceilings, authentication, WebSocket origin checks, and
-  connection ownership. Persistent hashed token administration, audit/rate
-  limiting, and the deployment boundary still need to be ported. `src_uri/1`
-  remains disabled pending an explicit fetch-origin policy.
+  connection ownership, plus per-principal rate and concurrency limits.
+  Persistent hashed token administration, audit/metrics, and the deployment
+  boundary still need to be ported. `src_uri/1` remains disabled pending an
+  explicit fetch-origin policy.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.
 
