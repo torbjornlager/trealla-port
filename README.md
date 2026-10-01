@@ -804,6 +804,8 @@ the defaults can be replaced with explicit `header/2` options.
   by one on backtracking, with automatic page fetching when the node
   reports `More=true`
 - `limit(N)` option to control page size
+- `src_text/1`, `src_list/1`, `src_predicates/1`, and `src_uri/1` options
+  are materialized into the remote call's source payload
 - Remaining `http_open/3` options such as `timeout/1` and
   `request_header/1` are passed through to the transport
 

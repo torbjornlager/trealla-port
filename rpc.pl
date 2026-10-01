@@ -60,6 +60,8 @@ is fetched automatically on backtracking.
 
 
 :- use_module(library(http)).
+:- use_module(actors, [self/1]).
+:- use_module(isolation, [actor_source_module/2,load_options_text/3]).
 
 
                 /*******************************
@@ -160,6 +162,9 @@ base_path_prefix(BasePath, Prefix) :-
 %       The HTTP library parses `https://` when Trealla is built with TLS;
 %       hostname verification remains subject to BUG-005 in
 %       `UPSTREAM_REPORTS.md`.
+%     - src_text(+Text), src_list(+Terms), src_predicates(+PIs), src_uri(+URI)
+%       Materialize application code locally and send it as the request's
+%       src_text payload. src_uri fetching remains subject to source_policy.
 %
 %   The goal's free variables are collected with term_variables/2 and
 %   wrapped in a `v(...)` template.  Both goal and template are
@@ -176,7 +181,16 @@ rpc(URI, Goal, Options) :-
     format(atom(GoalAtom),     "(~q)", [Goal]),
     format(atom(TemplateAtom), "(~q)", [Template]),
     option(limit(Limit), Options, 10000000000),
-    rpc_page(Template, 0, Limit, GoalAtom, TemplateAtom, URI, Options).
+    rpc_source_module(SourceModule),
+    load_options_text(SourceModule, Options, LoadText),
+    rpc_page(Template, 0, Limit, GoalAtom, TemplateAtom, URI, Options,
+             LoadText).
+
+rpc_source_module(Module) :-
+    self(Pid),
+    actor_source_module(Pid, Module),
+    !.
+rpc_source_module(user).
 
 
 %!  rpc_page(+Template, +Offset, +Limit, +GoalAtom, +TemplateAtom,
@@ -187,20 +201,27 @@ rpc(URI, Goal, Options) :-
 %   next page (if More=true) by recursing with Offset incremented by
 %   Limit.
 
-rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options) :-
+rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options,
+         LoadText) :-
     url_encode(GoalAtom,     GoalEnc),
     url_encode(TemplateAtom, TemplEnc),
     strip_trailing_slash(BaseURI, RootURI),
-    format(atom(URL),
+    format(atom(URL0),
            '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog',
            [RootURI, GoalEnc, TemplEnc, Offset, Limit]),
+    rpc_source_url(URL0, LoadText, URL),
     rpc_http_options(Options, HTTPOptions),
     once(http_open(URL, S, HTTPOptions)),
     setup_call_cleanup(true, getline(S, BodyChars), close(S)),
     atom_chars(BodyAtom, BodyChars),
     read_term_from_atom(BodyAtom, Answer, []),
     rpc_answer(Answer, Template, Offset, Limit,
-               GoalAtom, TemplateAtom, BaseURI, Options).
+               GoalAtom, TemplateAtom, BaseURI, Options, LoadText).
+
+rpc_source_url(URL, '', URL) :- !.
+rpc_source_url(URL0, LoadText, URL) :-
+    url_encode(LoadText, Encoded),
+    format(atom(URL), '~w&src_text=~w', [URL0, Encoded]).
 
 strip_trailing_slash(URI, Root) :-
     atom_concat(Root0, '/', URI), !,
@@ -209,6 +230,14 @@ strip_trailing_slash(URI, URI).
 
 rpc_http_options([], []).
 rpc_http_options([limit(_)|Options], HTTPOptions) :- !,
+    rpc_http_options(Options, HTTPOptions).
+rpc_http_options([src_text(_)|Options], HTTPOptions) :- !,
+    rpc_http_options(Options, HTTPOptions).
+rpc_http_options([src_list(_)|Options], HTTPOptions) :- !,
+    rpc_http_options(Options, HTTPOptions).
+rpc_http_options([src_predicates(_)|Options], HTTPOptions) :- !,
+    rpc_http_options(Options, HTTPOptions).
+rpc_http_options([src_uri(_)|Options], HTTPOptions) :- !,
     rpc_http_options(Options, HTTPOptions).
 rpc_http_options([Option|Options], [Option|HTTPOptions]) :-
     rpc_http_options(Options, HTTPOptions).
@@ -226,15 +255,15 @@ rpc_http_options([Option|Options], [Option|HTTPOptions]) :-
 %     - `error(Error)` -- re-throw Error.
 
 rpc_answer(success(Slice, true), Template, Offset, Limit,
-           GoalAtom, TemplateAtom, BaseURI, Options) :- !,
+           GoalAtom, TemplateAtom, BaseURI, Options, LoadText) :- !,
     (   member(Template, Slice)
     ;   NewOffset is Offset + Limit,
         rpc_page(Template, NewOffset, Limit,
-                 GoalAtom, TemplateAtom, BaseURI, Options)
+                 GoalAtom, TemplateAtom, BaseURI, Options, LoadText)
     ).
-rpc_answer(success(Slice, false), Template, _, _, _, _, _, _) :-
+rpc_answer(success(Slice, false), Template, _, _, _, _, _, _, _) :-
     member(Template, Slice).
-rpc_answer(failure, _, _, _, _, _, _, _) :-
+rpc_answer(failure, _, _, _, _, _, _, _, _) :-
     fail.
-rpc_answer(error(Error), _, _, _, _, _, _, _) :-
+rpc_answer(error(Error), _, _, _, _, _, _, _, _) :-
     throw(Error).

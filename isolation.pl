@@ -7,7 +7,8 @@
          actor_module/2,           % +Pid, -Module
          actor_source_module/2,    % +Pid, -Module
          execution_goal/2,         % +Goal, -QualifiedGoal
-         rewrite_source_options/3  % +Options, +SourceModule, -Options
+         rewrite_source_options/3, % +Options, +SourceModule, -Options
+         load_options_text/3       % +SourceModule, +Options, -Text
        ]).
 
 /** <module> Private source namespaces for Trealla actors
@@ -156,6 +157,62 @@ rewrite_source_options([src_predicates(PIs)|Options], Module0,
     rewrite_source_options(Options, Module0, Rewritten).
 rewrite_source_options([Option|Options], Module, [Option|Rewritten]) :-
     rewrite_source_options(Options, Module, Rewritten).
+
+%!  load_options_text(+SourceModule, +Options, -Text) is det.
+%
+%   Materialize RPC src_* options into the single src_text query parameter
+%   understood by Web Prolog's HTTP endpoint.  This mirrors the SWI client:
+%   list and predicate sources are serialized locally, while src_uri is
+%   fetched under the node's configured source policy before being shipped.
+
+load_options_text(Module, Options, Text) :-
+    load_option_parts(Options, Module, Parts),
+    append_source_parts(Parts, '', Text).
+
+load_option_parts([], _, []).
+load_option_parts([Option|Options], Module, Parts) :-
+    ( load_option_text(Option, Module, Text)
+    -> Parts = [Text|Rest]
+    ; Parts = Rest
+    ),
+    load_option_parts(Options, Module, Rest).
+
+load_option_text(src_text(Text0), _, Text) :- !,
+    source_text_atom(Text0, Text).
+load_option_text(src_list(Terms), _, Text) :- !,
+    source_terms_text(Terms, Text).
+load_option_text(src_predicates(PIs), Module, Text) :- !,
+    rewrite_source_options([src_predicates(PIs)], Module, [src_list(Terms)]),
+    source_terms_text(Terms, Text).
+load_option_text(src_uri(URI), _, Text) :- !,
+    fetch_source_uri(URI, Text).
+
+source_text_atom(Text, Text) :- atom(Text), !.
+source_text_atom(Text, Atom) :- string(Text), !, atom_string(Atom, Text).
+source_text_atom(Text, Atom) :- is_list(Text), !,
+    ( Text = [C|_], integer(C) -> atom_codes(Atom, Text)
+    ; atom_chars(Atom, Text)
+    ).
+source_text_atom(Text, _) :-
+    throw(error(type_error(text, Text), src_text/1)).
+
+source_terms_text(Terms, Text) :-
+    must_be(list, Terms),
+    source_terms_text_(Terms, '', Text).
+
+source_terms_text_([], Text, Text).
+source_terms_text_([Term|Terms], Acc, Text) :-
+    format(atom(Line), '~q.~n', [Term]),
+    atom_concat(Acc, Line, Next),
+    source_terms_text_(Terms, Next, Text).
+
+append_source_parts([], Text, Text).
+append_source_parts([Part|Parts], Acc, Text) :-
+    ( Acc == '' -> Next = Part
+    ; Part == '' -> Next = Acc
+    ; atom_concat(Acc, '\n', Prefix), atom_concat(Prefix, Part, Next)
+    ),
+    append_source_parts(Parts, Next, Text).
 
 source_module(Module, user) :- var(Module), !.
 source_module(Module, Module).

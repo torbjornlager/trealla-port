@@ -1045,6 +1045,7 @@ collect_terminal_lines(N, [Text|Texts]) :-
 %
 %   Every private actor module imports the stateless RPC client, and the
 %   sandbox admits rpc/2-3 as data-shipping operations just as SWI does.
+%   Source options are combined into the src_text payload used by /call.
 
 t107 :-
     sandbox_prepare_goal(whitelist, isobase, actor_context,
@@ -1053,7 +1054,14 @@ t107 :-
     Prepared = rpc('https://example.test', member(_, [a,b,c])),
     isolation:execution_goal(rpc(URL, Goal), Qualified),
     Qualified = rpc:rpc(URL, Goal),
-    format("107. private sessions expose sandboxed rpc/2-3 ok~n").
+    isolation:load_options_text(
+        user,
+        [src_list([p(a),p(b)]),src_text('q(c).')],
+        SourceText),
+    sub_atom(SourceText, _, _, _, 'p(a).'),
+    sub_atom(SourceText, _, _, _, 'p(b).'),
+    sub_atom(SourceText, _, _, _, 'q(c).'),
+    format("107. private sessions expose sandboxed rpc source options ok~n").
 
 
                 /*******************************
