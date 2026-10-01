@@ -91,7 +91,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t45 RELATION permits only advertised patterns and conjunctions
   - t46 source-bearing spawn options obey profile policy
 
-## Tests: sandbox and public source policy (t47-t56, t119)
+## Tests: sandbox and public source policy (t47-t56, t119-t120)
 
   - t47 sandbox modes and compatibility aliases normalize
   - t48 dangerous goals are denied while actor `writeln/1` is redirected
@@ -104,6 +104,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t55 producer exceptions return to the HTTP worker instead of deadlocking
   - t56 the portable abolish/2 form stays scoped to the actor module
   - t119 sandboxed remote spawn requires an exact operator allowlist entry
+  - t120 `between/3` is available to queries and submitted user programs
 
 ## Tests: resource governance (t57-t62)
 
@@ -214,7 +215,7 @@ run_test_group(isolation) :-
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
-    t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119,
+    t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119, t120,
     reset_source_policy.
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62, t110,
@@ -1494,6 +1495,21 @@ t119 :-
         blacklist, actor, actor_context, true,
         [node('https://n3.elfenbenstornet.se')], _, _)),
     format("119. sandbox remote-spawn origin allowlist ok~n").
+
+t120 :-
+    sandbox_prepare_goal(whitelist, isobase, user,
+                         between(1, 3, QueryValue), QueryGoal),
+    findall(QueryValue, call(QueryGoal), [1,2,3]),
+    self(Me),
+    Source = 'between_values(Values) :- findall(X, between(2, 4, X), Values).',
+    Goal0 = (between_values(Values), Me ! between_values(Values)),
+    sandbox_prepare_spawn(whitelist, actor, actor_context, Goal0,
+                          [src_text(Source)], Goal, Options0),
+    append(Options0, [link(false)], Options),
+    spawn(Goal, _, Options),
+    receive({between_values(ProgramValues) -> true}),
+    ProgramValues == [2,3,4],
+    format("120. between/3 is available to sandboxed user code ok~n").
 
 
                 /*******************************
