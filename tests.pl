@@ -205,7 +205,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -936,6 +936,38 @@ t103 :-
     Values == [[high, high2, low, low2]],
     exit(Pid, test_complete),
     format("103. guarded source receive and timeout callback ok~n").
+
+%!  t104 is det.
+%
+%   A sandbox-rewritten nested spawn must retain its sandbox_policy module
+%   qualification when a source-bearing session executes the query in its
+%   private module.
+
+t104 :-
+    sandbox_prepare_options(whitelist, actor, actor_context,
+                            [src_text('tutorial_loaded.')], SourceOptions),
+    self(Me),
+    toplevel_spawn(Pid, [target(Me), session(true)|SourceOptions]),
+    sandbox_prepare_spawn(whitelist, actor, actor_context,
+                          (self(Self), register(shell, Self)), [],
+                          RegisterGoal, RegisterOptions),
+    toplevel_call(Pid, RegisterGoal,
+                  [template(Self), target(Me)|RegisterOptions]),
+    receive({ success(Pid, [_], false) -> true }),
+    Send =.. [!, shell, goodbye],
+    Spawn0 =.. [spawn, Send],
+    sandbox_prepare_spawn(whitelist, actor, actor_context,
+                          Spawn0, [], SpawnGoal, SpawnOptions),
+    toplevel_call(Pid, SpawnGoal, [target(Me)|SpawnOptions]),
+    receive({ success(Pid, _, false) -> true }),
+    Receive0 = receive({goodbye -> true}, [timeout(0)]),
+    sandbox_prepare_spawn(whitelist, actor, actor_context,
+                          Receive0, [], ReceiveGoal, ReceiveOptions),
+    toplevel_call(Pid, ReceiveGoal, [target(Me)|ReceiveOptions]),
+    receive({ success(Pid, _, false) -> true }),
+    unregister(shell),
+    exit(Pid, test_complete),
+    format("104. sandbox nested spawn keeps runtime module ok~n").
 
 
                 /*******************************

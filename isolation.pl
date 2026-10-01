@@ -83,7 +83,11 @@ execution_goal(Goal, Qualified) :-
     bb_get('$actor_has_source', true),
     bb_get('$actor_source_module', Module),
     !,
-    Qualified = Module:Goal.
+    % Calling the goal through the private module's trampoline preserves any
+    % explicit module qualification introduced by the sandbox rewriter.
+    % Trealla otherwise lets the outer Module:Goal qualification override a
+    % nested sandbox_policy:sandbox_spawn(...) qualification.
+    Qualified = Module:'$actor_call'(Goal).
 execution_goal(Goal, Goal).
 
 
