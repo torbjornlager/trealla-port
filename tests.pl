@@ -125,6 +125,15 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t71 anonymous HTTP and WebSocket identities do not share one global bucket
   - t72 in-flight call capacity is atomic and released by cleanup
   - t73 WebSocket actor capacity is released when ownership ends
+
+## Tests: observability (t74-t79)
+
+  - t74 observability options normalize
+  - t75 request counters and bounded event retention work
+  - t76 policy rejections are classified
+  - t77 activity start/end state is reclaimed
+  - t78 governance usage and the protected runtime payload are renderable
+  - t79 Prometheus output and rotating JSONL audit logging work
 */
 
 :- use_module(toplevel_actors).
@@ -135,6 +144,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 :- use_module(resource_policy).
 :- use_module(auth_policy).
 :- use_module(governance_policy).
+:- use_module(observability).
 :- use_module(node).
 
 
@@ -171,6 +181,10 @@ run_test_group(auth) :-
     reset_auth_policy.
 run_test_group(governance) :-
     t69, t70, t71, t72, t73,
+    reset_governance_policy.
+run_test_group(observability) :-
+    t74, t75, t76, t77, t78, t79,
+    reset_observability,
     reset_governance_policy.
 
 
@@ -1120,6 +1134,92 @@ t73 :-
     reserve_ws_actor_capacity(User, alice, Second),
     release_capacity_reservation(Second),
     format("73. WebSocket actor capacity cleanup ok~n").
+
+
+                /*******************************
+                * OBSERVABILITY (t74-t79)      *
+                *******************************/
+
+t74 :-
+    configure_observability(
+        [log_capacity(7),audit_log_file(off),max_audit_log_bytes(unlimited),
+         max_audit_log_backups(2)],
+        observability_config(7,off,unlimited,2)),
+    configure_observability(
+        [interaction_log_file(off),max_interaction_log_bytes(99),
+         max_interaction_log_backups(3)],
+        observability_config(500,off,99,3)),
+    format("74. observability option normalization ok~n").
+
+t75 :-
+    configure_observability([log_capacity(2)], _),
+    User = principal(alice, [execute]),
+    observe_request(User, http, call, true),
+    ( observe_request(User, http, call, fail) -> fail ; true ),
+    catch(observe_request(User, http, call,
+                          throw(error(test_error, observability_test))),
+          error(test_error, observability_test), true),
+    current_observability_snapshot(
+        observability_snapshot(_, Counters, _, Events)),
+    memberchk(requests_total-3, Counters),
+    memberchk(errors_total-1, Counters),
+    length(Events, 2),
+    format("75. request counters and bounded retention ok~n").
+
+t76 :-
+    configure_observability([], _),
+    User = principal(alice, [execute]),
+    Error = error(rate_limit_exceeded(alice,call_requests,1,60), test),
+    observe_rejection(User, http, call, Error),
+    current_observability_snapshot(
+        observability_snapshot(_, Counters, _, [Event])),
+    memberchk(rejections_total-1, Counters),
+    memberchk(rejection(rate_limit)-1, Counters),
+    Event = event(_,_,rejection,denied,alice,http,call,0,_),
+    format("76. rejection classification ok~n").
+
+t77 :-
+    configure_observability([], _),
+    User = principal(alice, [execute]),
+    observe_activity_start(ws_connection, fake_connection, User, websocket),
+    current_observability_snapshot(
+        observability_snapshot(_,_,[activity(ws_connection,fake_connection,
+                                              alice,websocket,_)],_)),
+    observe_activity_end(ws_connection, fake_connection, normal),
+    current_observability_snapshot(observability_snapshot(_,_,[],_)),
+    format("77. activity lifecycle observability ok~n").
+
+t78 :-
+    configure_governance_policy([max_call_requests_per_window(2)], _),
+    configure_observability([], _),
+    User = principal(alice, [execute]),
+    enforce_call_request_rate_limit(User, alice),
+    current_governance_usage(governance_usage(Rates, _)),
+    memberchk(rate(call_request,alice,1,2), Rates),
+    node_runtime_json(JSON),
+    atom_chars(JSON, JSONChars), phrase(json:json_chars(_), JSONChars),
+    sub_atom(JSON, _, _, _, '"governance"'),
+    sub_atom(JSON, _, _, _, '"activity_summary"'),
+    sub_atom(JSON, _, _, _, '"rate_limits"'),
+    format("78. governance runtime payload ok~n").
+
+t79 :-
+    actors:make_ref(Ref),
+    format(atom(File), '/tmp/trealla-port-audit-~w.jsonl', [Ref]),
+    format(atom(Backup), '~w.1', [File]),
+    setup_call_cleanup(
+        configure_observability(
+            [audit_log_file(File),max_audit_log_bytes(1),
+             max_audit_log_backups(1)], _),
+        ( User = principal(alice, [execute]),
+          observe_request(User, http, call, true),
+          observe_request(User, http, call, true),
+          exists_file(File), exists_file(Backup),
+          node_metrics_text(Metrics),
+          sub_atom(Metrics, _, _, _, 'web_prolog_requests_total 2') ),
+        ( ( exists_file(File) -> delete_file(File) ; true ),
+          ( exists_file(Backup) -> delete_file(Backup) ; true ) )),
+    format("79. metrics and rotating JSONL audit log ok~n").
 
 caught_resource(Goal, Category) :-
     catch((Goal, fail),

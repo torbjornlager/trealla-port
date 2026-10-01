@@ -107,6 +107,7 @@ Accepted HTTP and WebSocket connections run in independent detached threads.
 :- use_module(profile_policy).
 :- use_module(auth_policy).
 :- use_module(governance_policy).
+:- use_module(observability).
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
 :- use_module(websocket).
@@ -234,6 +235,10 @@ node(Port, WebSocketHandler) :-
 %   `max_session_spawns_per_window(Count)`,
 %   `max_ws_commands_per_window(Count)`, `max_inflight_calls(Count)`,
 %   `max_ws_actors_per_principal(Count)`,
+%   `log_capacity(Count)`, `audit_log_file(File)`,
+%   `max_audit_log_bytes(Bytes)`, `max_audit_log_backups(Count)`,
+%   (the last three also accept their SWI names `interaction_log_file/1`,
+%   `max_interaction_log_bytes/1`, and `max_interaction_log_backups/1`),
 %   `time_limit(Seconds)`, `idle_limit(Seconds)`, `max_actors(Count)`,
 %   `max_solutions(Count)`, `max_term_text_bytes(Bytes)`,
 %   `max_source_text_bytes(Bytes)`, `max_ws_frame_bytes(Bytes)`, `ssl(true)`,
@@ -255,6 +260,7 @@ node_server(Port, WebSocketHandler, Options) :-
     AuthPolicy = auth_config(AuthMode, _, _, _, _, _, _, _),
     configure_governance_policy(Options, _GovernancePolicy),
     configure_resource_policy(Options, _ResourcePolicy),
+    configure_observability(Options, _ObservabilityPolicy),
     node_socket_options(Options, SocketOptions),
     option(websocket_options(WebSocketOptions0), Options, []),
     resource_websocket_options(WebSocketOptions0, WebSocketOptions),
@@ -324,6 +330,12 @@ handle_connection(C, Peer, WebSocketHandler, WebSocketOptions,
     ; Method == get, PathAtom == '/ws', WebSocketHandler \== none
     -> handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
                        WebSocketOptions, Profile, PathAtom)
+    ; Method == get, PathAtom == '/metrics'
+    -> node_metrics_text(Metrics),
+       http_reply(C, Ver, 200, 'OK',
+                  'text/plain; version=0.0.4; charset=UTF-8', Metrics)
+    ; Method == get, PathAtom == '/admin/runtime'
+    -> handle_admin_runtime(C, Ver, Peer, Headers)
     ;  http_reply(C, Ver, 404, 'Not Found',
                   'text/plain', 'Not found\n')
     ).
@@ -335,11 +347,14 @@ handle_call_route(C, Path, Ver, Peer, Headers,
             profile_check_route(Profile, call) ), RouteError, true),
     ( var(RouteError)
     -> quota_identity(Principal, Peer, http, Identity),
-       catch(handle_governed_call(C, Path, Ver, Principal, Identity,
-                                  Profile, Sandbox, RelationPatterns),
+       catch(observe_request(
+                 Principal, http, call,
+                 handle_governed_call(C, Path, Ver, Principal, Identity,
+                                      Profile, Sandbox, RelationPatterns)),
              GovernanceError,
              reply_governance_denied(C, Ver, GovernanceError))
-    ;  reply_policy_denied(C, Ver, RouteError)
+    ;  observe_rejection(Principal, http, call, RouteError),
+       reply_policy_denied(C, Ver, RouteError)
     ).
 
 handle_governed_call(C, Path, Ver, Principal, Identity,
@@ -348,10 +363,8 @@ handle_governed_call(C, Path, Ver, Principal, Identity,
     effective_profile_for_route(Profile, call, EffectiveProfile),
     with_inflight_call_limit(
         Principal, Identity,
-        catch(handle_call(C, Path, Ver, EffectiveProfile, Sandbox,
-                          RelationPatterns),
-              Error,
-              reply_answer(C, Ver, prolog, error(Error)))).
+        handle_call(C, Path, Ver, EffectiveProfile, Sandbox,
+                    RelationPatterns)).
 
 handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
                 WebSocketOptions, Profile, PathAtom) :-
@@ -366,8 +379,41 @@ handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
            ( ws_accept(C, Headers, WebSocket, WebSocketOptions),
              call(WebSocketHandler, WebSocket, PathAtom) ),
            clear_connection_governance)
-    ; reply_policy_denied(C, Ver, Error)
+    ; audit_principal(Principal, AuditPrincipal),
+      observe_rejection(AuditPrincipal, websocket, connect, Error),
+      reply_policy_denied(C, Ver, Error)
     ).
+
+audit_principal(Principal, Principal) :- nonvar(Principal), !.
+audit_principal(_, anonymous([])).
+
+handle_admin_runtime(C, Ver, Peer, Headers) :-
+    request_principal(Peer, Headers, Principal),
+    catch(require_admin_access(Principal), Error, true),
+    ( var(Error)
+    -> catch(observe_request(Principal, http, admin_runtime,
+                             reply_admin_runtime(C, Ver)),
+             RuntimeError,
+             reply_answer(C, Ver, prolog, error(RuntimeError)))
+    ; observe_rejection(Principal, http, admin_runtime, Error),
+      reply_policy_denied(C, Ver, Error)
+    ).
+
+require_admin_access(Principal) :-
+    ( principal_has_capability(Principal, admin) -> true
+    ; Principal = anonymous(_)
+    -> throw(error(authentication_required(admin_runtime),
+                   context(node:handle_admin_runtime/4,
+                           'admin runtime requires authentication')))
+    ; principal_id(Principal, Id),
+      throw(error(authorization_error(Id, admin),
+                  context(node:handle_admin_runtime/4,
+                          'principal lacks the admin capability')))
+    ).
+
+reply_admin_runtime(C, Ver) :-
+    node_runtime_json(JSON),
+    http_reply(C, Ver, 200, 'OK', 'application/json; charset=UTF-8', JSON).
 
 set_connection_governance(Principal, Identity) :-
     thread_self(Thread),

@@ -114,6 +114,7 @@ protocol_client_test(Port) :-
 
 private_ownership_client_test(Port) :-
     private_http_rate_test(Port),
+    private_observability_test(Port),
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
     ( catch(http_open_websocket(URL, Unauthenticated, []), _, fail)
     -> catch(ws_close(Unauthenticated, 1000, done), _, true), fail
@@ -170,6 +171,33 @@ private_http_rate_test(Port) :-
         read_string(Limited, _, _),
         close(Limited)),
     LimitedStatus == 429.
+
+private_observability_test(Port) :-
+    format(atom(MetricsURL), 'http://127.0.0.1:~w/metrics', [Port]),
+    setup_call_cleanup(
+        http_open(MetricsURL, Metrics, [status_code(MetricsStatus)]),
+        read_string(Metrics, _, MetricsText),
+        close(Metrics)),
+    MetricsStatus == 200,
+    sub_string(MetricsText, _, _, _, "web_prolog_requests_total"),
+    format(atom(RuntimeURL), 'http://127.0.0.1:~w/admin/runtime', [Port]),
+    UserAuth = request_header('Authorization'='Bearer interop-secret'),
+    setup_call_cleanup(
+        http_open(RuntimeURL, Denied, [UserAuth,status_code(DeniedStatus)]),
+        read_string(Denied, _, _),
+        close(Denied)),
+    DeniedStatus == 403,
+    AdminAuth = request_header('Authorization'='Bearer admin-secret'),
+    setup_call_cleanup(
+        http_open(RuntimeURL, Runtime, [AdminAuth,status_code(RuntimeStatus)]),
+        read_string(Runtime, _, RuntimeText),
+        close(Runtime)),
+    RuntimeStatus == 200,
+    atom_json_dict(RuntimeText, RuntimeJSON, []),
+    _ = RuntimeJSON.governance,
+    _ = RuntimeJSON.activity_summary,
+    _ = RuntimeJSON.rate_limits,
+    _ = RuntimeJSON.recent_events.
 
 browser_io_client_test(Port) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),

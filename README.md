@@ -14,6 +14,7 @@ The port lives alongside this report:
 | `node.pl`             | HTTP server exposing `/call` for remote queries     |
 | `auth_policy.pl`      | Authentication, authorization, and WS origin policy |
 | `governance_policy.pl` | Per-principal rate and concurrency governance      |
+| `observability.pl`    | Audit events, activity tracking, and metrics       |
 | `rpc.pl`              | HTTP client wrapper (`rpc/2,3`) over `/call`        |
 | `websocket.pl`        | Native RFC 6455 WebSocket client/server transport   |
 | `web_prolog.pl`       | Trinity-compatible version-1 actor protocol         |
@@ -31,7 +32,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 73 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 79 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
@@ -104,6 +105,7 @@ override their defaults.
 | 57–62 | resource governance                     | ok |
 | 63–68 | authentication and WebSocket origin policy | ok |
 | 69–73 | per-principal rate and concurrency governance | ok |
+| 74–79 | audit, runtime usage, and metrics observability | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -384,6 +386,39 @@ an explicit opt-out. Rate violations return HTTP 429 (or a WebSocket `error`
 event), while actor capacity is reclaimed when the actor exits or its owning
 connection closes.
 
+Operational observability is available on two additional HTTP routes:
+
+- `GET /metrics` returns aggregate Prometheus text exposition without
+  authentication. It deliberately excludes principal identities and event
+  contents.
+- `GET /admin/runtime` returns JSON containing current counters, detailed
+  per-principal rate/capacity usage, active connection and actor counts, and
+  the bounded recent audit-event window. It requires an authenticated
+  principal with the `admin` capability.
+
+The in-memory audit window defaults to 500 events. An optional append-only,
+rotating JSONL audit file can be enabled at startup:
+
+```prolog
+?- web_prolog_node(3060,
+       [ log_capacity(500),
+         audit_log_file('logs/node-audit.jsonl'),
+         max_audit_log_bytes(10485760),
+         max_audit_log_backups(5)
+       ]).
+```
+
+The audit file's parent directory must already exist. Set
+`max_audit_log_bytes(unlimited)` to disable rotation or leave
+`audit_log_file/1` unset to disable durable logging. Audit records contain
+principal identity, transport, operation, outcome, duration, and normalized
+errors; goals, source text, headers, tokens, and actor-message payloads are
+not recorded.
+
+For startup-option portability, the SWI names `interaction_log_file/1`,
+`max_interaction_log_bytes/1`, and `max_interaction_log_backups/1` are accepted
+as aliases for the corresponding `audit_*` options.
+
 The optional `transport_welcome` event advertises the configured profile and
 sandbox in additive `profile` and `sandbox` fields. Authentication is enforced
 before an HTTP call or WebSocket upgrade. These Prolog-level checks are defense
@@ -437,9 +472,9 @@ sessions. Published services are the deliberate exception: their names form a
 separate explicitly published routing surface.
 
 The native layer now has profile, sandbox, resource, authentication, origin,
-per-principal rate/concurrency, and connection-ownership enforcement. It does
-not yet port Trinity's complete token administration, audit/metrics
-infrastructure, or full node-controller routing table. Do not expose goal
+per-principal rate/concurrency, connection-ownership enforcement, aggregate
+metrics, and bounded audit logging. It does not yet port Trinity's complete
+token administration or full node-controller routing table. Do not expose goal
 execution directly to an untrusted network without TLS and OS-level
 containment.
 
@@ -643,8 +678,8 @@ X = a ; X = b ; X = c.
   whitelist sandbox modes plus wall-time, idle, actor-count, page-size, and
   textual-input ceilings, authentication, WebSocket origin checks, and
   connection ownership, plus per-principal rate and concurrency limits.
-  Persistent hashed token administration, audit/metrics, and the deployment
-  boundary still need to be ported. `src_uri/1` remains disabled pending an
+  Persistent hashed token administration and the deployment boundary still
+  need to be ported. `src_uri/1` remains disabled pending an
   explicit fetch-origin policy.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.

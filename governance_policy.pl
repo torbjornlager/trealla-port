@@ -4,6 +4,7 @@
     [ configure_governance_policy/2,
       reset_governance_policy/0,
       current_governance_policy/1,
+      current_governance_usage/1,
       quota_identity/4,
       enforce_call_request_rate_limit/2,
       enforce_session_spawn_rate_limit/2,
@@ -55,6 +56,41 @@ current_governance_policy(Policy) :-
     active_governance_policy(Policy), !.
 current_governance_policy(Policy) :-
     default_governance_policy(Policy).
+
+%! current_governance_usage(-Usage) is det.
+%
+%  Return a point-in-time administrative view of the current fixed-window
+%  counters and concurrency ownership.  Unlike `/metrics`, this contains
+%  principal identities and must only be exposed through an admin boundary.
+
+current_governance_usage(governance_usage(Rates, Capacities)) :-
+    current_governance_policy(Policy),
+    Policy = governance_policy(Window,_,_,_,_,_),
+    get_time(Now), WindowId is floor(Now / Window),
+    with_mutex('$node_governance',
+               governance_usage_locked(WindowId, Policy, Rates, Capacities)).
+
+governance_usage_locked(WindowId, Policy, Rates, Capacities) :-
+    retract_old_windows(WindowId),
+    findall(rate(Kind, Identity, Count, Limit),
+            ( rate_bucket(Kind, Identity, WindowId, Count),
+              rate_spec(Kind, Policy, Limit, _) ),
+            Rates),
+    findall(Kind-Identity,
+            ( capacity_reservation(Kind, Identity, _, _)
+            ; capacity_resource(Kind, Identity, _) ),
+            Keys0),
+    sort(Keys0, Keys),
+    governance_capacity_usage(Keys, Policy, Capacities).
+
+governance_capacity_usage([], _, []).
+governance_capacity_usage([Kind-Identity|Keys], Policy,
+                          [capacity(Kind,Identity,Reserved,Active,Limit)|Usage]) :-
+    findall(Token, capacity_reservation(Kind, Identity, Token, _), Reservations),
+    findall(Pid, capacity_resource(Kind, Identity, Pid), Resources),
+    length(Reservations, Reserved), length(Resources, Active),
+    capacity_spec(Kind, Policy, Limit, _),
+    governance_capacity_usage(Keys, Policy, Usage).
 
 configure_governance_policy(Options, Policy) :-
     default_governance_policy(

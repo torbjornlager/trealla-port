@@ -106,6 +106,7 @@ run_unit() {
     run_tpl_goal "resource governance" "run_test_group(resources)"
     run_tpl_goal "authentication and origin policy" "run_test_group(auth)"
     run_tpl_goal "per-principal governance" "run_test_group(governance)"
+    run_tpl_goal "audit and metrics observability" "run_test_group(observability)"
     run_with_timeout "WebSocket and protocol vectors" \
         "$TPL" -g "consult('$ROOT/websocket_tests.pl'),(websocket_tests->halt;halt(1))"
 }
@@ -211,7 +212,7 @@ run_interop() {
     stop_background "$trealla_protocol_pid"
 
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_private_port,[auth(private),bearer_token(interop,'interop-secret',[execute]),max_call_requests_per_window(1),max_ws_actors_per_principal(1)])"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_private_port,[auth(private),bearer_token(interop,'interop-secret',[execute]),bearer_token(observer,'admin-secret',[admin]),max_call_requests_per_window(1),max_ws_actors_per_principal(1)])"
     trealla_private_pid=$STARTED_PID
     sleep 0.2
     kill -0 "$trealla_private_pid" 2>/dev/null || fail "private Trealla protocol node did not start on port $trealla_private_port"

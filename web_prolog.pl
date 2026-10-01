@@ -50,6 +50,7 @@ inference/stack ceilings, and OS-level containment remain necessary.
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
 :- use_module(governance_policy).
+:- use_module(observability).
 :- use_module(toplevel_actors).
 :- use_module(node).
 :- use_module(websocket).
@@ -123,9 +124,10 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
     thread_self(Reader),
     spawn(relay_start(WS, Principal, Identity), Relay, [link(false)]),
     setup_call_cleanup(
-        true,
+        observe_activity_start(ws_connection, Reader, Principal, websocket),
         read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity),
-        close_connection(Relay)
+        ( close_connection(Relay),
+          observe_activity_end(ws_connection, Reader, disconnected) )
     ).
 
 read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
@@ -189,6 +191,12 @@ web_prolog_receive(Connection, JSON) :-
 dispatch_text(Text, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
     json_atom(JSON, Text),
     json_atom_field(JSON, command, Command),
+    observe_request(Principal, websocket, Command,
+                    dispatch_governed(Command, JSON, Relay, Reader,
+                                      Profile, Sandbox, Principal, Identity)).
+
+dispatch_governed(Command, JSON, Relay, Reader, Profile, Sandbox,
+                  Principal, Identity) :-
     enforce_ws_command_rate_limit(Principal, Identity, Command),
     enforce_spawn_rate_limit(Command, Principal, Identity),
     profile_check_command(Profile, Command),
@@ -383,6 +391,7 @@ relay_message(_, '$ws_close') :- !,
     close_browser_io(Relay),
     relay_actors(Actors),
     forget_ws_actor_owners(Actors),
+    observe_relay_actor_ends(Actors, connection_closed),
     stop_relay_actors(Actors),
     relay_clear_state.
 relay_message(WS, '$transport_hello'(Version, IoAck, Profile, Sandbox, Reader)) :- !,
@@ -419,6 +428,7 @@ relay_message(WS, '$toplevel_spawn'(Options, Reader)) :- !,
           commit_ws_actor_capacity(Reservation, RuntimePid),
           fresh_wire_pid(WirePid),
           relay_add_actor(WirePid, RuntimePid, session),
+          relay_observe_actor_start(session, RuntimePid),
           thread_send_message(Reader, '$spawned'(WirePid)),
           send_event(WS, spawned(WirePid))
         ),
@@ -435,6 +445,7 @@ relay_message(WS, '$spawn'(Goal, Options, Reader)) :- !,
           commit_ws_actor_capacity(Reservation, RuntimePid),
           fresh_wire_pid(WirePid),
           relay_add_actor(WirePid, RuntimePid, actor),
+          relay_observe_actor_start(actor, RuntimePid),
           thread_send_message(Reader, '$spawned'(WirePid)),
           send_event(WS, spawned(WirePid))
         ),
@@ -477,7 +488,7 @@ relay_message(WS, '$io_request'(JSON)) :- !,
     ),
     send_event(WS, io_reply(RequestId, Status)).
 relay_message(WS, down(RuntimePid, _DefaultRef, Reason)) :- !,
-    ( relay_actor(WirePid, RuntimePid, _) ->
+    ( relay_actor(WirePid, RuntimePid, ActorKind) ->
         relay_take_monitors(RuntimePid, Refs),
         ( Refs == [] -> send_event(WS, down(WirePid, WirePid, Reason))
         ; send_down_events(WS, WirePid, Refs, Reason)
@@ -487,7 +498,9 @@ relay_message(WS, down(RuntimePid, _DefaultRef, Reason)) :- !,
         ; true
         ),
         relay_remove_actor(WirePid),
-        forget_ws_actor_owner(RuntimePid)
+        forget_ws_actor_owner(RuntimePid),
+        actor_activity_kind(ActorKind, ActivityKind),
+        observe_activity_end(ActivityKind, RuntimePid, Reason)
     ; true
     ).
 relay_message(WS, protocol_error(Error)) :- !,
@@ -628,6 +641,20 @@ relay_governance(Principal, Identity) :-
 relay_reserve_ws_actor(Reservation) :-
     relay_governance(Principal, Identity),
     reserve_ws_actor_capacity(Principal, Identity, Reservation).
+
+relay_observe_actor_start(ActorKind, RuntimePid) :-
+    relay_governance(Principal, _),
+    actor_activity_kind(ActorKind, ActivityKind),
+    observe_activity_start(ActivityKind, RuntimePid, Principal, websocket).
+
+actor_activity_kind(session, isotope_session).
+actor_activity_kind(actor, ws_actor).
+
+observe_relay_actor_ends([], _).
+observe_relay_actor_ends([actor(_,RuntimePid,ActorKind)|Actors], Reason) :-
+    actor_activity_kind(ActorKind, ActivityKind),
+    observe_activity_end(ActivityKind, RuntimePid, Reason),
+    observe_relay_actor_ends(Actors, Reason).
 
 relay_clear_state :-
     relay_delete_state(actors),
