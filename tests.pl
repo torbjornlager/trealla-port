@@ -81,6 +81,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t40 actor termination removes loaded clauses and namespace bookkeeping
   - t41 source-preparation errors propagate without retaining a namespace
   - t114 node-wide shared source is visible, with local predicate shadowing
+  - t116 private actor modules expose the complete toplevel actor API
 
 ## Tests: execution profiles (t42-t46)
 
@@ -208,7 +209,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109, t114.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109, t114, t116.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -860,6 +861,27 @@ scoped_actor_probe(Parent) :-
     Child ! stop,
     receive({down(Child, Child, true) -> true},
             [timeout(1),on_timeout(fail)]).
+
+%!  t116 is det.
+%
+%   Goals running in an actor's private module can use the public toplevel
+%   actor API, including source-bearing nested sessions and synchronous halt.
+
+t116 :-
+    self(Me),
+    toplevel_spawn(Outer, [target(Me),session(true),link(false)]),
+    Goal = ( toplevel_spawn(Child,
+                            [session(true),monitor(true),
+                             src_list([p(a),p(b)])]),
+             toplevel_halt(Child, true)
+           ),
+    toplevel_call(Outer, Goal,
+                  [template(Child),target(Me),limit(1)]),
+    receive({success(Outer, [ChildPid], false) -> true},
+            [timeout(2),on_timeout(fail)]),
+    integer(ChildPid),
+    toplevel_halt(Outer, true),
+    format("116. private actor toplevel API surface ok~n").
 
 
                 /*******************************

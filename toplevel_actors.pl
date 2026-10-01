@@ -33,6 +33,8 @@
          toplevel_call/3,        % +Pid, :Goal, +Options
          toplevel_next/1,        % +Pid
          toplevel_next/2,        % +Pid, +Options
+         toplevel_halt/1,        % +Pid
+         toplevel_halt/2,        % +Pid, -Reply
          toplevel_stop/1,        % +Pid
          toplevel_abort/1,       % +Pid
 
@@ -413,6 +415,25 @@ toplevel_next(Pid) :-
 
 toplevel_next(Pid, Options) :-
     Pid ! '$next'(Options).
+
+
+%!  toplevel_halt(+Pid) is det.
+%!  toplevel_halt(+Pid, -Reply) is det.
+%
+%   Terminate a toplevel from any protocol state.  The two-argument form
+%   waits for termination and retains the SWI API's historical `true` reply.
+
+toplevel_halt(Pid) :-
+    exit(Pid, true).
+
+toplevel_halt(Pid, true) :-
+    setup_call_cleanup(
+        monitor(Pid, Ref),
+        ( toplevel_halt(Pid),
+          receive({down(Pid, Ref, _) -> true})
+        ),
+        demonitor(Ref, [flush])
+    ).
 
 
 %!  toplevel_stop(+Pid) is det.

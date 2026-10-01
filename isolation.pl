@@ -44,6 +44,9 @@ policy before actor creation.
 actors_library_file(ActorsFile) :-
     absolute_file_name('actors.pl', ActorsFile, []).
 
+toplevel_library_file(ToplevelFile) :-
+    absolute_file_name('toplevel_actors.pl', ToplevelFile, []).
+
 sandbox_library_file(SandboxFile) :-
     absolute_file_name('sandbox_policy.pl', SandboxFile, []).
 
@@ -354,17 +357,21 @@ fresh_bootstrap_file(Id, File) :-
 
 write_bootstrap(File, Module) :-
     actors_library_file(ActorsFile),
+    toplevel_library_file(ToplevelFile),
     sandbox_library_file(SandboxFile),
     rpc_library_file(RpcFile),
     setup_call_cleanup(
         open(File, write, Out),
-        write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile),
+        write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
+                         SandboxFile, RpcFile),
         close(Out)).
 
-write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile) :-
+write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
+                 SandboxFile, RpcFile) :-
     format(Out, '%% SPDX-License-Identifier: MIT~n', []),
     format(Out, ':- module(~q, [\'$actor_load\'/1, \'$actor_load_shared\'/1, \'$actor_call\'/1, \'$actor_copy_predicates\'/2, \'$actor_cleanup\'/0]).~n', [Module]),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
+    format(Out, ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
     format(Out, ':- use_module(~q, [rpc/2,rpc/3]).~n', [RpcFile]),
     format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_format/2,sandbox_sleep/1,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     format(Out, ':- dynamic \'$actor_source_pi\'/1.~n', []),

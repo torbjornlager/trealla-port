@@ -795,6 +795,7 @@ actor_safe_pi(actors/1).
 actor_safe_pi(toplevel_spawn/1). actor_safe_pi(toplevel_spawn/2).
 actor_safe_pi(toplevel_call/2). actor_safe_pi(toplevel_call/3).
 actor_safe_pi(toplevel_next/1). actor_safe_pi(toplevel_next/2).
+actor_safe_pi(toplevel_halt/1). actor_safe_pi(toplevel_halt/2).
 actor_safe_pi(toplevel_stop/1). actor_safe_pi(toplevel_abort/1).
 actor_safe_pi(parallel/1). actor_safe_pi(first_solution/2). actor_safe_pi(first_solution/3).
 

@@ -136,6 +136,7 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 113 | live `actors/1` snapshots exclude non-actor runtime threads | ok |
 | 114 | shared database visibility and actor-local shadowing | ok |
 | 115 | connection-scoped `actors/1` hides relays and other shells | ok |
+| 116 | private actor modules expose the toplevel actor API | ok |
 | 104 | sandboxed nested spawn retains its runtime module in source sessions | ok |
 | 105 | nested `src_predicates/1` copies source from its private parent session | ok |
 
@@ -774,6 +775,7 @@ the defaults can be replaced with explicit `header/2` options.
 - `toplevel_call/2-3` — run a goal inside the PTCP; answer arrives as
   `success(Pid,Slice,More)`, `failure(Pid)`, or `error(Pid,Error)`
 - `toplevel_next/1-2` — request the next batch of solutions
+- `toplevel_halt/1-2` — terminate a PTCP, optionally waiting for termination
 - `toplevel_stop/1` — discard remaining solutions; return PTCP to idle
 - `toplevel_abort/1` — abort a running goal; restart PTCP in idle state
 - `offset/2` — skip the first N solutions of a goal (re-exported from
