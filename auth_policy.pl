@@ -25,15 +25,16 @@ loopback peer.  Bearer credentials can be supplied at startup with
 `bearer_token(Id, Token, Capabilities)`; plaintext tokens are retained only
 in memory and are never sent over the protocol or written by this module.
 
-Trusted identity headers follow Trinity's security boundary: they are
-honoured only from loopback or a private-network TCP peer.  In particular,
-an `X-Web-Prolog-User: node:...` identity may claim `internal_transport` for
-native node-to-node connections on such a network.
+Forwarded identity and scheme headers are honoured only when the immediate
+TCP peer matches the node's explicit `trusted_proxy_ranges/1` policy. In
+particular, an `X-Web-Prolog-User: node:...` identity may claim
+`internal_transport` only across that configured boundary.
 */
 
 :- dynamic auth_configuration/1.
 
 :- use_module(node_tokens, [verify_bearer_token/2]).
+:- use_module(ip_policy, [peer_is_trusted_proxy/1]).
 
 default_auth_configuration(
     auth_config(open, dev, [execute], [], [], [], [], http)).
@@ -189,7 +190,7 @@ take_word([C|Cs], [], [C|Cs]) :- code_space(C), !.
 take_word([C|Cs], [C|Word], Rest) :- take_word(Cs, Word, Rest).
 
 header_principal(Peer, Headers, Principals, DefaultCaps, Principal) :-
-    peer_is_private(Peer),
+    peer_is_trusted_proxy(Peer),
     header_first(Headers,
                  ['x-web-prolog-user', 'x-web-prolog-principal',
                   'x-authenticated-user'], Id0),
@@ -279,7 +280,7 @@ ws_origin_allowed(Peer, Headers, Origin) :-
     Origin == HostOrigin.
 
 request_scheme(Peer, Headers, Scheme) :-
-    peer_is_private(Peer),
+    peer_is_trusted_proxy(Peer),
     memberchk('x-forwarded-proto'-Proto0, Headers), !,
     text_atom(Proto0, Proto), downcase_atom_codes(Proto, Scheme).
 request_scheme(_, _, Scheme) :-
@@ -303,20 +304,6 @@ peer_is_loopback(ip(127, 0, 0, 1)).
 peer_is_loopback(ip(0, 0, 0, 0, 0, 0, 0, 1)).
 peer_is_loopback(Host) :-
     text_atom(Host, Atom), memberchk(Atom, ['127.0.0.1', '::1', localhost]).
-
-peer_is_private(Peer) :- peer_is_loopback(Peer), !.
-peer_is_private(Host:_) :- !, peer_is_private(Host).
-peer_is_private(ip(10, _, _, _)).
-peer_is_private(ip(172, B, _, _)) :- B >= 16, B =< 31.
-peer_is_private(ip(192, 168, _, _)).
-peer_is_private(Host) :-
-    text_atom(Host, Atom),
-    ( atom_concat('10.', _, Atom)
-    ; atom_concat('192.168.', _, Atom)
-    ; atom_concat('172.', Tail, Atom),
-      atomic_list_concat([BAtom|_], '.', Tail),
-      atom_number(BAtom, B), B >= 16, B =< 31
-    ).
 
 text_atom(Value, Value) :- atom(Value), !.
 text_atom(Value, Atom) :- is_list(Value), !, atom_chars(Atom, Value).

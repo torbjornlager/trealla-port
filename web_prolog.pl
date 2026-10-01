@@ -51,6 +51,7 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- use_module(resource_policy).
 :- use_module(governance_policy).
 :- use_module(observability).
+:- use_module(ip_policy, [record_ip_offense_address/1]).
 :- use_module(toplevel_actors).
 :- use_module(node).
 :- use_module(websocket).
@@ -136,7 +137,7 @@ read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
         catch(( check_ws_frame_size(Text),
                 dispatch_text(Text, Relay, Reader, Profile, Sandbox,
                               Principal, Identity) ), Error,
-              Relay ! protocol_error(Error)),
+              ( note_ws_ip_offense(Error), Relay ! protocol_error(Error) )),
         read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity)
     ; Frame = close(Code, Reason) ->
         Relay ! '$peer_close'(Code, Reason, Reader),
@@ -149,6 +150,13 @@ read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
 close_connection(Relay) :-
     close_browser_io(Relay),
     Relay ! '$ws_close'.
+
+note_ws_ip_offense(error(rate_limit_exceeded(_,_,_,_), _)) :- !,
+    ( node:current_connection_client_ip(ClientIP)
+    -> catch(record_ip_offense_address(ClientIP), _, true)
+    ; true
+    ).
+note_ws_ip_offense(_).
 
 
                  /*******************************

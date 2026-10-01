@@ -24,6 +24,15 @@ TEST_PORT_BASE=${TEST_PORT_BASE:-39760}
 MODE=${1:-unit}
 BACKGROUND_PIDS=""
 
+# A repository-local Trealla build is not installed under its compiled
+# system prefix. Pair it with the library directory beside the executable;
+# otherwise it can silently load an older system-wide standard library.
+TPL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$TPL")" 2>/dev/null && pwd || true)
+if [ -n "$TPL_DIRECTORY" ] && [ -d "$TPL_DIRECTORY/library" ]; then
+    TPL_LIBRARY_PATH=$TPL_DIRECTORY/library
+    export TPL_LIBRARY_PATH
+fi
+
 fail() {
     printf '%s\n' "ERROR: $*" >&2
     exit 1
@@ -109,6 +118,7 @@ run_unit() {
     run_tpl_goal "audit and metrics observability" "run_test_group(observability)"
     run_tpl_goal "persistent bearer-token lifecycle" "run_test_group(tokens)"
     run_tpl_goal "controlled source URI policy" "run_test_group(source_policy)"
+    run_tpl_goal "IP/CIDR and trusted-proxy policy" "run_test_group(ip_policy)"
     run_with_timeout "WebSocket and protocol vectors" \
         "$TPL" -g "consult('$ROOT/websocket_tests.pl'),(websocket_tests->halt;halt(1))"
 }
@@ -151,8 +161,9 @@ run_interop() {
     trealla_remote_port=$((TEST_PORT_BASE + 5))
     trealla_private_port=$((TEST_PORT_BASE + 6))
     source_port=$((TEST_PORT_BASE + 7))
+    ip_policy_port=$((TEST_PORT_BASE + 8))
 
-    for candidate_port in "$echo_port" "$reverse_port" "$swi_protocol_port" "$trealla_protocol_port" "$trealla_remote_port" "$trealla_private_port" "$source_port"; do
+    for candidate_port in "$echo_port" "$reverse_port" "$swi_protocol_port" "$trealla_protocol_port" "$trealla_remote_port" "$trealla_private_port" "$source_port" "$ip_policy_port"; do
         if nc -z 127.0.0.1 "$candidate_port" >/dev/null 2>&1; then
             fail "interoperability port $candidate_port is already in use; set TEST_PORT_BASE"
         fi
@@ -232,6 +243,16 @@ run_interop() {
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "private_ownership_client_test($trealla_private_port),halt"
     stop_background "$trealla_private_pid"
+
+    start_background "$TPL" -g \
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($ip_policy_port,[trusted_proxy_ranges(['127.0.0.0/8']),ip_blocklist(['198.51.100.0/24']),max_call_requests_per_window(1),auto_ban_threshold(2),auto_ban_window_seconds(60),auto_ban_seconds(60)])"
+    trealla_ip_policy_pid=$STARTED_PID
+    sleep 0.2
+    kill -0 "$trealla_ip_policy_pid" 2>/dev/null || fail "IP-policy Trealla node did not start on port $ip_policy_port"
+    run_with_timeout "SWI client -> Trealla IP gate and auto-ban" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "ip_policy_client_test($ip_policy_port),halt"
+    stop_background "$trealla_ip_policy_pid"
 }
 
 case "$MODE" in

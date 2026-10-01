@@ -18,6 +18,7 @@ The port lives alongside this report:
 | `node_tokens.pl`      | Hashed bearer issuance, revocation, and persistence |
 | `crypto_portable.pl`  | OS randomness and portable SHA-256 fallback        |
 | `source_policy.pl`    | Allowlisted, bounded `src_uri/1` fetching           |
+| `ip_policy.pl`        | Client IP/CIDR, trusted-proxy, and auto-ban policy  |
 | `rpc.pl`              | HTTP client wrapper (`rpc/2,3`) over `/call`        |
 | `websocket.pl`        | Native RFC 6455 WebSocket client/server transport   |
 | `web_prolog.pl`       | Trinity-compatible version-1 actor protocol         |
@@ -35,7 +36,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 88 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 92 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
@@ -62,7 +63,10 @@ proxy.
 
 The runner rejects executables that report `trealla(0,0,0,[])`, applies a
 hard timeout to every fresh process, and keeps actor, toplevel, parallel, and
-WebSocket state isolated. Run the bidirectional Trealla/SWI WebSocket and
+WebSocket state isolated. When the executable has a sibling `library/`
+directory, the runner pins that directory too, preventing a local build from
+silently loading an older system-wide Trealla library. Run the bidirectional
+Trealla/SWI WebSocket and
 protocol matrix with `./tools/test.sh interop`, or everything with
 `./tools/test.sh all`. Set `SWIPL`, `TEST_TIMEOUT`, or `TEST_PORT_BASE` to
 override their defaults.
@@ -111,6 +115,7 @@ override their defaults.
 | 74–79 | audit, runtime usage, and metrics observability | ok |
 | 80–84 | persistent bearer-token lifecycle       | ok |
 | 85–88 | controlled source-URI policy             | ok |
+| 89–92 | IP/CIDR and trusted-proxy policy          | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -408,11 +413,39 @@ For reverse-proxy and node-to-node deployments, `principal(Id, Capabilities)`
 and `authenticated_default_capabilities(Capabilities)` configure trusted
 identity-header policy. `X-Web-Prolog-User` and
 `X-Web-Prolog-Capabilities` are honoured only when the immediate TCP peer is
-loopback or on a private network; operators must ensure that boundary is a
-header-stripping trusted proxy or trusted node network. The distribution
-client's existing `node:trealla`/`internal_transport` headers therefore work
-between private-network Trealla and SWI nodes without changing the wire
-protocol.
+listed explicitly in `trusted_proxy_ranges/1`. Operators must ensure each
+listed peer is a header-stripping authenticating proxy or trusted node. The
+distribution client's existing `node:trealla`/`internal_transport` headers
+work without changing the wire protocol once the receiving node trusts the
+sending node's address range.
+
+Incoming execution routes also have an independent IP policy. Both lists are
+empty by default, which preserves open behavior. The blocklist takes
+precedence; when the allowlist is non-empty, every address outside it is
+denied. CIDR matching is available for IPv4, while IPv4 and IPv6 may both be
+matched exactly:
+
+```prolog
+?- web_prolog_node(3060,
+       [ ip_allowlist(['10.0.0.0/8', '192.168.0.0/16']),
+         ip_blocklist(['10.23.4.9']),
+         trusted_proxy_ranges(['127.0.0.0/8']),
+         auto_ban_threshold(5),
+         auto_ban_window_seconds(60),
+         auto_ban_seconds(900)
+       ]).
+```
+
+`X-Forwarded-For` and `X-Forwarded-Proto` are ignored unless the immediate
+peer matches `trusted_proxy_ranges/1`; the rightmost forwarded address is
+used. Repeated HTTP or WebSocket rate-limit violations can trigger a temporary
+ban. Explicitly allowlisted clients are exempt from automatic bans. Metrics
+remain public, but the IP gate covers `/call` and the `/ws` upgrade.
+
+The node binds to the IPv4 wildcard `0.0.0.0` by default. This avoids a
+Trealla v3.12.6 peer-address bug on dual-stack IPv6 wildcard listeners
+(BUG-013 in `UPSTREAM_REPORTS.md`). Use `bind_address(Address)` to restrict
+the listener to a specific IPv4 interface.
 
 WebSocket requests without an `Origin` header remain available to native
 clients. Browser requests must be same-origin with the request `Host`, or
@@ -437,13 +470,13 @@ initial Trinity policy:
 Counts are shared by all connections authenticated as the same principal.
 `admin` and `internal_transport` principals are exempt from these
 per-principal limits, but remain subject to the node's absolute resource
-ceilings. Anonymous HTTP callers are bucketed by their immediate peer address;
+ceilings. Anonymous HTTP callers are bucketed by their resolved client address;
 anonymous WebSockets get separate connection identities. Consequently a
-reverse proxy should authenticate callers and provide a trusted principal
-header if distinct end-user quotas are required. Limits accept `unlimited` as
-an explicit opt-out. Rate violations return HTTP 429 (or a WebSocket `error`
-event), while actor capacity is reclaimed when the actor exits or its owning
-connection closes.
+reverse proxy should be explicitly trusted so forwarded client addresses are
+available, and should authenticate callers when stable principal quotas are
+required. Limits accept `unlimited` as an explicit opt-out. Rate violations
+return HTTP 429 (or a WebSocket `error` event), while actor capacity is
+reclaimed when the actor exits or its owning connection closes.
 
 Operational observability is available on two additional HTTP routes:
 
@@ -648,8 +681,9 @@ is terminal and reconnection deliberately does not resurrect their old PIDs.
 
 The outbound connection identifies itself with protocol version 1 plus the
 Trinity node headers `X-Web-Prolog-User` and
-`X-Web-Prolog-Capabilities`.  The defaults are intended for trusted private
-node networks and can be replaced with explicit `header/2` options.
+`X-Web-Prolog-Capabilities`. The receiving node must explicitly include the
+sending peer in `trusted_proxy_ranges/1` before those headers grant authority;
+the defaults can be replaced with explicit `header/2` options.
 
 ## What is supported
 
@@ -736,7 +770,8 @@ X = a ; X = b ; X = c.
   now include execution-profile enforcement and native Trealla blacklist and
   whitelist sandbox modes plus wall-time, idle, actor-count, page-size, and
   textual-input ceilings, authentication, WebSocket origin checks, and
-  connection ownership, plus per-principal rate and concurrency limits.
+  connection ownership, plus per-principal rate/concurrency and IP/CIDR
+  access limits with explicit trusted-proxy handling.
   The deployment boundary still needs to be finalized. `src_uri/1` now has an
   exact-origin, redirect-aware, size- and time-bounded fetch policy, but DNS/IP
   egress controls remain a deployment responsibility.

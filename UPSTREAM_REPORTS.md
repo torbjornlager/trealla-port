@@ -454,6 +454,39 @@ Current workaround: `crypto_portable.pl` reads `/dev/urandom` directly for
 bearer-token ids and secrets. Token issuance fails rather than falling back to
 `crypto_n_random_bytes/2` when the OS source is unavailable.
 
+### BUG-013: An IPv6 wildcard listener reports IPv4 peers as `0.0.0.0`
+
+**Status:** Ready
+**Priority:** High for access-control servers
+
+On macOS with Trealla v3.12.6, a server opened on the wildcard address may
+select an IPv6 listening socket. An IPv4 client can connect through the
+dual-stack listener, but `socket_server_accept/4` reports its peer as
+`0.0.0.0` rather than the client's address.
+
+Minimal server (run `curl http://127.0.0.1:39999/` in another shell):
+
+```sh
+tpl -g "use_module(library(sockets)),socket_server_open(39999,S,[]),socket_server_accept(S,Peer,C,[]),writeq(Peer),nl,close(C),socket_server_close(S),halt"
+```
+
+Observed peer begins with `0.0.0.0`; expected is `127.0.0.1`.
+
+The underlying `tpl_accept()` currently allocates `struct sockaddr_in` and
+passes it to `accept()` even when the listening socket is IPv6. It then calls
+`inet_ntop(AF_INET, ...)` unconditionally. An IPv4-mapped IPv6 peer is
+therefore decoded using the wrong address family.
+
+Impact: IP allowlists, blocklists, trusted-proxy checks, per-client quotas,
+and audit attribution cannot safely use the reported peer address.
+
+Desired behavior: accept into `sockaddr_storage`, inspect `ss_family`, and
+format either the IPv4 or IPv6 address accordingly.
+
+Current workaround: the Trealla node binds explicitly to the IPv4 wildcard
+`0.0.0.0` by default. This makes the reported IPv4 peer reliable, at the cost
+of not accepting IPv6 connections on that listener.
+
 ## Compatibility gaps worth tracking, but not yet bug reports
 
 These missing facilities increase porting work but need a clearer upstream

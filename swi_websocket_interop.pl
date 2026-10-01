@@ -12,6 +12,7 @@
             protocol_client_test/1,
             source_server/1,
             source_uri_client_test/2,
+            ip_policy_client_test/1,
             private_ownership_client_test/1,
             browser_io_client_test/1,
             browser_distributed_io_client_test/2,
@@ -177,6 +178,23 @@ source_uri_client_test(Port, SourcePort) :-
     event_data_contains(OversizeDenied, input_size),
     ws_close(WS, 1000, done),
     format('SWI client -> Trealla allowlisted src_uri test: ok~n').
+
+ip_policy_client_test(Port) :-
+    format(atom(URL), 'http://127.0.0.1:~w/call?goal=true', [Port]),
+    forwarded_http_status(URL, '198.51.100.8', 403),
+    forwarded_http_status(URL, '203.0.113.9', 200),
+    forwarded_http_status(URL, '203.0.113.9', 429),
+    forwarded_http_status(URL, '203.0.113.9', 429),
+    forwarded_http_status(URL, '203.0.113.9', 403),
+    format('SWI client -> Trealla IP gate and auto-ban test: ok~n').
+
+forwarded_http_status(URL, ClientIP, Expected) :-
+    Header = request_header('X-Forwarded-For'=ClientIP),
+    setup_call_cleanup(
+        http_open(URL, Stream, [Header,status_code(Status)]),
+        read_string(Stream, _, _),
+        close(Stream)),
+    Status == Expected.
 
 private_ownership_client_test(Port) :-
     private_http_rate_test(Port),

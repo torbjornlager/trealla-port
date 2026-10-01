@@ -125,6 +125,13 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t87 relative redirects are resolved without weakening origin checks
   - t88 unverified HTTPS requires an explicit operator opt-in
 
+## Tests: IP/CIDR and trusted-proxy policy (t89-t92)
+
+  - t89 IPv4 CIDRs and exact IP addresses match and validate
+  - t90 forwarded client addresses require an explicitly trusted proxy
+  - t91 allowlist, blocklist, and precedence are enforced
+  - t92 repeated rate-limit offenses trigger and clear a temporary ban
+
 ## Tests: per-principal governance (t69-t73)
 
   - t69 rate and concurrency options normalize
@@ -164,6 +171,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 :- use_module(node_tokens).
 :- use_module(node).
 :- use_module(source_policy).
+:- use_module(ip_policy).
 
 
                 /*******************************
@@ -196,7 +204,8 @@ run_test_group(resources) :-
     reset_resource_policy.
 run_test_group(auth) :-
     t63, t64, t65, t66, t67, t68,
-    reset_auth_policy.
+    reset_auth_policy,
+    reset_ip_policy.
 run_test_group(governance) :-
     t69, t70, t71, t72, t73,
     reset_governance_policy.
@@ -212,6 +221,9 @@ run_test_group(tokens) :-
 run_test_group(source_policy) :-
     t85, t86, t87, t88,
     reset_source_policy.
+run_test_group(ip_policy) :-
+    t89, t90, t91, t92,
+    reset_ip_policy.
 
 
                 /*******************************
@@ -1070,6 +1082,7 @@ t65 :-
 t66 :-
     Headers = ['x-web-prolog-user'-'node:trealla',
                'x-web-prolog-capabilities'-'execute,internal_transport'],
+    configure_ip_policy([trusted_proxy_ranges(['192.168.0.0/16'])], _),
     configure_auth_policy([auth(private)], _),
     request_principal('192.168.1.20':42000, Headers, Trusted),
     principal_id(Trusted, 'node:trealla'),
@@ -1366,6 +1379,62 @@ t88 :-
         source_policy([origin(https,'example.com',443)],2,1,true)),
     format("88. HTTPS source opt-in policy ok~n").
 
+
+                /*******************************
+                *   IP / CIDR POLICY (89-92)  *
+                *******************************/
+
+t89 :-
+    ip_matches('192.168.4.9', '192.168.0.0/16'),
+    ip_matches('203.0.113.7', '0.0.0.0/0'),
+    \+ ip_matches('192.169.0.1', '192.168.0.0/16'),
+    ip_matches('2001:db8::1', '2001:db8::1'),
+    valid_ip_pattern('10.0.0.0/8'),
+    valid_ip_pattern('::1'),
+    caught_ip_domain(
+        configure_ip_policy([ip_blocklist(['999.0.0.1'])], _),
+        ip_blocklist),
+    format("89. IP and IPv4 CIDR matching ok~n").
+
+t90 :-
+    configure_ip_policy([trusted_proxy_ranges(['10.0.0.0/8'])], _),
+    Headers = ['x-forwarded-for'-'198.51.100.4, 203.0.113.9'],
+    client_ip('198.51.100.20':4000, Headers, '198.51.100.20'),
+    client_ip('10.2.3.4':4000, Headers, '203.0.113.9'),
+    \+ peer_is_trusted_proxy('192.168.1.2':4000),
+    configure_auth_policy([], _),
+    ProxyHeaders = [origin-'https://node.example',host-'node.example',
+                    'x-forwarded-proto'-https],
+    ws_require_allowed_origin('10.2.3.4':4000, ProxyHeaders),
+    caught_origin(ws_require_allowed_origin(
+        '192.168.1.2':4000, ProxyHeaders)),
+    format("90. explicit trusted-proxy client resolution ok~n").
+
+t91 :-
+    configure_ip_policy(
+        [ip_allowlist(['203.0.113.0/24']),
+         ip_blocklist(['203.0.113.9'])], _),
+    require_ip_access('203.0.113.8':4000, [], '203.0.113.8'),
+    caught_ip_access(require_ip_access('203.0.113.9':4000, [], _),
+                     '203.0.113.9'),
+    caught_ip_access(require_ip_access('198.51.100.1':4000, [], _),
+                     '198.51.100.1'),
+    format("91. IP allowlist and blocklist precedence ok~n").
+
+t92 :-
+    configure_ip_policy(
+        [auto_ban_threshold(2),auto_ban_window_seconds(60),
+         auto_ban_seconds(60)], _),
+    record_ip_offense_address('198.51.100.7'),
+    \+ ip_temp_banned('198.51.100.7'),
+    record_ip_offense_address('198.51.100.7'),
+    ip_temp_banned('198.51.100.7'),
+    caught_ip_access(require_ip_access('198.51.100.7':4000, [], _),
+                     '198.51.100.7'),
+    clear_ip_bans,
+    \+ ip_temp_banned('198.51.100.7'),
+    format("92. rate-offense temporary IP ban ok~n").
+
 read_test_file(File, Text) :-
     setup_call_cleanup(open(File, read, Stream, [type(binary)]),
                        read_test_bytes(Stream, Bytes), close(Stream)),
@@ -1423,6 +1492,16 @@ caught_source_permission(Goal, Object) :-
 caught_source_domain(Goal, Domain) :-
     catch((Goal, fail),
           error(domain_error(Domain, _), _),
+          true).
+
+caught_ip_domain(Goal, Domain) :-
+    catch((Goal, fail),
+          error(domain_error(Domain, _), _),
+          true).
+
+caught_ip_access(Goal, IP) :-
+    catch((Goal, fail),
+          error(permission_error(access, client_ip, IP), _),
           true).
 
 caught_profile_violation(Goal, Profile, Subject) :-

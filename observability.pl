@@ -32,6 +32,7 @@ runtime snapshot does, and is intended only for the authenticated admin route.
               [current_governance_policy/1,current_governance_usage/1]).
 :- use_module(resource_policy, [current_resource_policy/1]).
 :- use_module(node_tokens, [token_count/1,current_tokens_file/1]).
+:- use_module(ip_policy, [current_ip_policy/1,current_ip_usage/1]).
 
 :- meta_predicate observe_request(+, +, +, 0).
 
@@ -197,6 +198,7 @@ rejection_reason(error(profile_violation(_, _), _), profile) :- !.
 rejection_reason(error(rate_limit_exceeded(_,_,_,_), _), rate_limit) :- !.
 rejection_reason(error(resource_limit_exceeded(_,_,_), _), resource) :- !.
 rejection_reason(error(resource_error(_), _), resource) :- !.
+rejection_reason(error(permission_error(access, client_ip, _), _), ip_policy) :- !.
 rejection_reason(error(permission_error(_, sandboxed, _), _), sandbox) :- !.
 rejection_reason(error(permission_error(_, sandboxed_directive, _), _), sandbox) :- !.
 rejection_reason(_, other).
@@ -356,7 +358,7 @@ rejection_metric_lines(Counters, [Help,Type|Samples]) :-
     Type = '# TYPE web_prolog_rejections_total counter',
     rejection_reasons(Reasons), rejection_samples(Reasons, Counters, Samples).
 
-rejection_reasons([auth,profile,sandbox,rate_limit,resource,other]).
+rejection_reasons([auth,profile,sandbox,rate_limit,resource,ip_policy,other]).
 rejection_samples([], _, []).
 rejection_samples([Reason|Reasons], Counters, [Sample|Samples]) :-
     counter_from(Counters, rejection(Reason), Count),
@@ -378,6 +380,8 @@ node_runtime_json(JSONAtom) :-
     recent_error_count(Events, RecentErrors),
     current_governance_policy(GovernancePolicy),
     current_resource_policy(ResourcePolicy),
+    current_ip_policy(IPPolicy),
+    current_ip_usage(IPUsage),
     current_governance_usage(GovernanceUsage),
     token_count(TokenCount),
     ( current_tokens_file(TokenFile)
@@ -392,6 +396,8 @@ node_runtime_json(JSONAtom) :-
     activities_json(ws_actor, Activities, ActorsJSON),
     term_text(GovernancePolicy, GovernanceText),
     term_text(ResourcePolicy, ResourceText),
+    term_text(IPPolicy, IPPolicyText),
+    term_text(IPUsage, IPUsageText),
     json_object([active_sessions-number(Sessions),
                  active_ws_connections-number(WSConnections),
                  active_ws_actors-number(WSActors),
@@ -406,6 +412,8 @@ node_runtime_json(JSONAtom) :-
         active_ws_actors-number(WSActors), retained_events-number(Retained),
         governance_policy-string_atom(GovernanceText),
         resource_policy-string_atom(ResourceText),
+        ip_policy-string_atom(IPPolicyText),
+        ip_usage-string_atom(IPUsageText),
         token_count-number(TokenCount),
         tokens_persistent-boolean(TokensPersistent),
         tokens_file-TokenStoreJSON,

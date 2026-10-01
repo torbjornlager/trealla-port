@@ -113,12 +113,13 @@ Accepted HTTP and WebSocket connections run in independent detached threads.
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
 :- use_module(source_policy).
+:- use_module(ip_policy).
 :- use_module(websocket).
 
 :- meta_predicate(node(+, 2)).
 :- meta_predicate(node(+, 2, +)).
 
-:- dynamic connection_governance/3.
+:- dynamic connection_governance/4.
 
 
                 /*******************************
@@ -248,6 +249,10 @@ node(Port, WebSocketHandler) :-
 %   `max_source_text_bytes(Bytes)`, `max_ws_frame_bytes(Bytes)`, `ssl(true)`,
 %   `load_uri_allowed_origins(Origins)`, `source_fetch_timeout(Seconds)`,
 %   `max_source_redirects(Count)`, `allow_unverified_https(Boolean)`,
+%   `ip_blocklist(Patterns)`, `ip_allowlist(Patterns)`,
+%   `trusted_proxy_ranges(Patterns)`, `auto_ban_threshold(Count)`,
+%   `auto_ban_window_seconds(Seconds)`, `auto_ban_seconds(Seconds)`,
+%   `bind_address(Address)` (default `'0.0.0.0'`),
 %   `keyfile(File)`, `certfile(File)`, and `websocket_options(Options)` (for
 %   example subprotocol negotiation).  Defaults are `profile(workbench)` and
 %   `sandbox(blacklist)`.
@@ -263,6 +268,7 @@ node_server(Port, WebSocketHandler, Options) :-
     option(relations(RelationPatterns0), Options, []),
     normalize_relation_patterns(RelationPatterns0, RelationPatterns),
     configure_token_store(Options),
+    configure_ip_policy(Options, _IPPolicy),
     configure_auth_policy(Options, AuthPolicy),
     AuthPolicy = auth_config(AuthMode, _, _, _, _, _, _, _),
     configure_governance_policy(Options, _GovernancePolicy),
@@ -272,11 +278,19 @@ node_server(Port, WebSocketHandler, Options) :-
     node_socket_options(Options, SocketOptions),
     option(websocket_options(WebSocketOptions0), Options, []),
     resource_websocket_options(WebSocketOptions0, WebSocketOptions),
-    socket_server_open(Port, S, SocketOptions),
+    option(bind_address(BindAddress0), Options, '0.0.0.0'),
+    node_bind_address(BindAddress0, BindAddress),
+    socket_server_open(BindAddress:Port, S, SocketOptions),
     format("Node listening on port ~w (profile ~w, sandbox ~w, auth ~w)~n",
            [Port, Profile, Sandbox, AuthMode]),
     node_loop(S, WebSocketHandler, WebSocketOptions,
               Profile, Sandbox, RelationPatterns).
+
+node_bind_address(Address, Address) :- atom(Address), Address \== '', !.
+node_bind_address(Address, Atom) :-
+    is_list(Address), atom_chars(Atom, Address), Atom \== '', !.
+node_bind_address(Address, _) :-
+    throw(error(domain_error(bind_address, Address), node:node/3)).
 
 node_socket_options(Options, SocketOptions) :-
     node_copy_option(ssl, Options, [], O1),
@@ -296,9 +310,10 @@ node_copy_option(Name, Options, Input, Output) :-
 
 node_loop(S, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
           RelationPatterns) :-
-    ( catch(socket_server_accept(S, Peer, C, [type(binary)]), Error,
+    ( catch(socket_server_accept(S, ReportedPeer, C, [type(binary)]), Error,
             ( format(user_error, "node: accept error: ~q~n", [Error]), fail ))
-    -> ( catch(thread_create(node_serve(C, Peer, WebSocketHandler, WebSocketOptions,
+    -> node_connection_peer(C, ReportedPeer, Peer),
+       ( catch(thread_create(node_serve(C, Peer, WebSocketHandler, WebSocketOptions,
                                        Profile, Sandbox, RelationPatterns), _,
                              [detached(true)]),
                ThreadError,
@@ -310,6 +325,14 @@ node_loop(S, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
     ),
     node_loop(S, WebSocketHandler, WebSocketOptions,
               Profile, Sandbox, RelationPatterns).
+
+% Older installed library(sockets) releases returned the accepted stream in
+% the Client argument.  The v3.12 runtime already records the actual peer on
+% that stream, so recover it directly and retain the public result as a
+% fallback.  Binding the listener to IPv4 avoids BUG-013's IPv6-family decode.
+node_connection_peer(Stream, _Reported, Address:Port) :-
+    catch('$peer_addr'(Stream, Address, Port), _, fail), !.
+node_connection_peer(_, Reported, Reported).
 
 node_serve(C, Peer, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
            RelationPatterns) :-
@@ -352,18 +375,21 @@ handle_connection(C, Peer, WebSocketHandler, WebSocketOptions,
 
 handle_call_route(C, Path, Ver, Peer, Headers,
                   Profile, Sandbox, RelationPatterns) :-
-    catch(( request_principal(Peer, Headers, Principal),
+    catch(( require_ip_access(Peer, Headers, ClientIP),
+            request_principal(Peer, Headers, Principal),
             require_route_access(Principal, call),
             profile_check_route(Profile, call) ), RouteError, true),
     ( var(RouteError)
-    -> quota_identity(Principal, Peer, http, Identity),
+    -> quota_identity(Principal, ClientIP, http, Identity),
        catch(observe_request(
                  Principal, http, call,
                  handle_governed_call(C, Path, Ver, Principal, Identity,
                                       Profile, Sandbox, RelationPatterns)),
              GovernanceError,
-             reply_governance_denied(C, Ver, GovernanceError))
-    ;  observe_rejection(Principal, http, call, RouteError),
+             ( note_ip_governance_offense(Peer, Headers, GovernanceError),
+               reply_governance_denied(C, Ver, GovernanceError) ))
+    ;  audit_principal(Principal, AuditPrincipal),
+       observe_rejection(AuditPrincipal, http, call, RouteError),
        reply_policy_denied(C, Ver, RouteError)
     ).
 
@@ -378,14 +404,15 @@ handle_governed_call(C, Path, Ver, Principal, Identity,
 
 handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
                 WebSocketOptions, Profile, PathAtom) :-
-    catch(( ws_require_allowed_origin(Peer, Headers),
+    catch(( require_ip_access(Peer, Headers, ClientIP),
+            ws_require_allowed_origin(Peer, Headers),
             request_principal(Peer, Headers, Principal),
             require_route_access(Principal, ws),
             profile_check_route(Profile, ws) ), Error, true),
     ( var(Error)
     -> quota_identity(Principal, Peer, websocket, Identity),
        setup_call_cleanup(
-           set_connection_governance(Principal, Identity),
+           set_connection_governance(Principal, Identity, ClientIP),
            ( ws_accept(C, Headers, WebSocket, WebSocketOptions),
              call(WebSocketHandler, WebSocket, PathAtom) ),
            clear_connection_governance)
@@ -565,18 +592,27 @@ reply_admin_error(C, Ver, Error) :-
     http_reply(C, Ver, 400, 'Bad Request',
                'text/plain; charset=UTF-8', Body).
 
-set_connection_governance(Principal, Identity) :-
+set_connection_governance(Principal, Identity, ClientIP) :-
     thread_self(Thread),
-    retractall(connection_governance(Thread, _, _)),
-    assertz(connection_governance(Thread, Principal, Identity)).
+    retractall(connection_governance(Thread, _, _, _)),
+    assertz(connection_governance(Thread, Principal, Identity, ClientIP)).
 
 clear_connection_governance :-
     thread_self(Thread),
-    retractall(connection_governance(Thread, _, _)).
+    retractall(connection_governance(Thread, _, _, _)).
 
 current_connection_governance(Principal, Identity) :-
     thread_self(Thread),
-    connection_governance(Thread, Principal, Identity), !.
+    connection_governance(Thread, Principal, Identity, _), !.
+
+current_connection_client_ip(ClientIP) :-
+    thread_self(Thread),
+    connection_governance(Thread, _, _, ClientIP), !.
+
+note_ip_governance_offense(Peer, Headers,
+                           error(rate_limit_exceeded(_,_,_,_), _)) :- !,
+    catch(record_ip_offense(Peer, Headers), _, true).
+note_ip_governance_offense(_, _, _).
 
 reply_policy_denied(C, Ver, Error) :-
     Error = error(authentication_required(_), _), !,
