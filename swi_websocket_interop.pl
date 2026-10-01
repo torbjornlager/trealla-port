@@ -17,6 +17,7 @@
             private_ownership_client_test/1,
             browser_io_client_test/1,
             nested_toplevel_binding_test/1,
+            nested_toplevel_binding_test/2,
             browser_distributed_io_client_test/2,
             trinity_service_node/2,
             trinity_terminal_client_test/3
@@ -495,7 +496,10 @@ browser_io_client_test(Port) :-
 
 nested_toplevel_binding_test(Port) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
-    http_open_websocket(URL, WS, []),
+    nested_toplevel_binding_test(URL, []).
+
+nested_toplevel_binding_test(URL, OpenOptions) :-
+    http_open_websocket(URL, WS, OpenOptions),
     send_json(WS, json{command:"transport_hello", version:1,
                        browser_pids:true, io_ack:true}),
     receive_type(WS, "transport_welcome", _Welcome),
