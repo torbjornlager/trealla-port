@@ -93,15 +93,16 @@ run_tpl_goal() {
     test_label=$1
     test_goal=$2
     run_with_timeout "$test_label" \
-        "$TPL" -g "consult('$ROOT/tests.pl'),$test_goal,halt"
+        "$TPL" -g "consult('$ROOT/tests.pl'),($test_goal->halt;halt(1))"
 }
 
 run_unit() {
     run_tpl_goal "actors" "run_test_group(actors)"
     run_tpl_goal "toplevel actors" "run_test_group(toplevel)"
     run_tpl_goal "parallel behaviours" "run_test_group(parallel)"
+    run_tpl_goal "private source isolation" "run_test_group(isolation)"
     run_with_timeout "WebSocket and protocol vectors" \
-        "$TPL" -g "consult('$ROOT/websocket_tests.pl'),websocket_tests,halt"
+        "$TPL" -g "consult('$ROOT/websocket_tests.pl'),(websocket_tests->halt;halt(1))"
 }
 
 wait_for_port() {
@@ -195,6 +196,8 @@ run_interop() {
     trealla_remote_pid=$STARTED_PID
     sleep 0.2
     kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
+    run_with_timeout "Trealla distributed source isolation" \
+        "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(distribution_source_isolation_test($trealla_remote_port)->halt;halt(1))"
     run_with_timeout "SWI browser terminal -> remote Trealla actor" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "browser_distributed_io_client_test($trealla_protocol_port,'http://127.0.0.1:$trealla_remote_port'),halt"

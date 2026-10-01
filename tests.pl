@@ -9,7 +9,7 @@ ship with a unit-test framework (plunit is absent).
 ## Running {#tests-running}
 
 Run `TPL=/path/to/tpl ./tools/test.sh` from the repository root.  The
-runner executes `actors`, `toplevel`, and `parallel` through
+runner executes `actors`, `toplevel`, `parallel`, and `isolation` through
 `run_test_group/1` in fresh Trealla processes, then runs the WebSocket vector
 tests in a fourth process.  Fresh processes are intentional: detached-thread
 cleanup and mailbox state must not leak between layers.
@@ -67,6 +67,17 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t31 descendants inherit a terminal target
   - t32 stream-originated terminal output keeps its provenance
   - t33 concurrent make_ref/1 calls produce distinct references
+
+## Tests: private source namespaces (t34-t41)
+
+  - t34 `src_text/1` loads an actor-private predicate
+  - t35 `src_list/1` loads actor-private terms
+  - t36 operator directives affect following source text
+  - t37 `src_predicates/1` copies predicates from the caller
+  - t38 conflicting private definitions do not cross-talk
+  - t39 a toplevel evaluates calls in its private namespace
+  - t40 actor termination removes loaded clauses and namespace bookkeeping
+  - t41 source-preparation errors propagate without retaining a namespace
 */
 
 :- use_module(toplevel_actors).
@@ -92,6 +103,8 @@ run_test_group(toplevel) :-
     t22, t27, t28, t29.
 run_test_group(parallel) :-
     t8, t9, t10, t30.
+run_test_group(isolation) :-
+    t34, t35, t36, t37, t38, t39, t40, t41.
 
 
                 /*******************************
@@ -589,6 +602,94 @@ t33 :-
     sort(Refs, Unique),
     length(Unique, 50),
     format("33. concurrent unique refs ok~n").
+
+
+                /*******************************
+                *    SOURCE ISOLATION (34-41) *
+                *******************************/
+
+copied_source_value(copied).
+
+t34 :-
+    self(Me),
+    spawn((private_value(X), Me ! isolated_text(X)), _,
+          [src_text('private_value(text).'), link(false)]),
+    receive({isolated_text(Value) -> true}),
+    Value == text,
+    format("34. src_text private predicate ok~n").
+
+t35 :-
+    self(Me),
+    spawn((listed_value(X), phrase(private_word, [hello]),
+           Me ! isolated_list(X)), _,
+          [src_list([listed_value(list), (private_word --> [hello])]),
+           link(false)]),
+    receive({isolated_list(Value) -> true}),
+    Value == list,
+    format("35. src_list private predicate ok~n").
+
+t36 :-
+    self(Me),
+    Source = ':- op(500, xfx, joins). joined(X) :- X = left joins right.',
+    spawn((joined(X), Me ! isolated_operator(X)), _,
+          [src_text(Source), link(false)]),
+    receive({isolated_operator(Value) -> true}),
+    Value == joins(left, right),
+    format("36. source operator directive ok~n").
+
+t37 :-
+    self(Me),
+    spawn((copied_source_value(X), Me ! isolated_copy(X)), _,
+          [src_predicates([copied_source_value/1]), link(false)]),
+    receive({isolated_copy(Value) -> true}),
+    Value == copied,
+    format("37. src_predicates copy ok~n").
+
+t38 :-
+    self(Me),
+    spawn((private_value(X), Me ! isolated_peer(one, X)), _,
+          [src_text('private_value(first).'), link(false)]),
+    spawn((private_value(X), Me ! isolated_peer(two, X)), _,
+          [src_text('private_value(second).'), link(false)]),
+    receive({isolated_peer(one, First) -> true}),
+    receive({isolated_peer(two, Second) -> true}),
+    First == first,
+    Second == second,
+    format("38. private namespaces do not cross-talk ok~n").
+
+t39 :-
+    self(Me),
+    toplevel_spawn(Pid, [target(Me), src_text('top_value(private).')]),
+    toplevel_call(Pid, top_value(X), [template(X)]),
+    receive({success(Pid, Values, false) -> true}),
+    Values == [private],
+    format("39. toplevel private source ok~n").
+
+t40 :-
+    self(Me),
+    spawn((cleanup_value(_), Me ! cleanup_ready, receive({stop -> true})),
+          Pid,
+          [src_text('cleanup_value(present).'), monitor(true), link(false)]),
+    receive({cleanup_ready -> true}),
+    isolation:actor_module(Pid, Module),
+    Pid ! stop,
+    receive({down(Pid, Pid, true) -> true}),
+    \+ isolation:actor_module(Pid, _),
+    Goal = Module:cleanup_value(_),
+    catch((call(Goal) -> Loaded = true ; Loaded = false), _, Loaded = false),
+    Loaded == false,
+    format("40. source namespace cleanup ok~n").
+
+t41 :-
+    findall(P-M, isolation:actor_module(P, M), Before),
+    catch(spawn(true, _Pid,
+                [src_list([(:- module(forbidden_source_module, []))]),
+                 link(false)]),
+          Error, true),
+    nonvar(Error),
+    findall(P-M, isolation:actor_module(P, M), After),
+    Before == After,
+    format("41. source preparation error cleanup ok~n").
 
 spawn_ref_makers(0, _) :- !.
 spawn_ref_makers(N, Target) :-

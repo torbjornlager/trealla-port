@@ -125,6 +125,25 @@ holding a mutex.  Thus it is not relying on randomness alone for uniqueness.
 The same application-level check-and-retry approach is a viable Trealla
 workaround and does not require a new opaque-reference primitive.
 
+### FR-006: Expose temporary-module lifecycle operations
+
+**Status:** Needs design
+**Priority:** Medium
+
+Actor source isolation needs a fresh module for each actor and deterministic
+destruction when that actor terminates. Trealla can create modules while
+loading a file, but its public Prolog API has no equivalent of SWI-Prolog's
+`in_temporary_module/3` or a supported module-destruction predicate.
+
+Desired behavior: a scoped temporary-module operation, or explicit supported
+create/delete operations, that remove the module's predicates, operators,
+imports, and module-table entry after use.
+
+Current workaround: the Trealla port gives every actor a unique module,
+retracts all dynamically loaded user clauses on termination, and deletes its
+bootstrap file. The empty bootstrap module necessarily remains in the module
+table until process exit.
+
 ## Bug reports
 
 ### BUG-001: Abrupt in-process WebSocket teardown can crash Trealla
@@ -161,7 +180,7 @@ harness boundary.
 
 ### BUG-002: `thread_detach/1` hangs inside a thread's `at_exit` hook
 
-**Status:** Needs minimization  
+**Status:** Needs minimization
 **Priority:** High
 
 Calling `thread_detach/1` from the terminating thread's `at_exit` hook does not
@@ -176,7 +195,7 @@ A standalone two-predicate reproducer should be prepared before filing.
 
 ### BUG-003: `thread_property/2` reports `status(running)` inside `at_exit`
 
-**Status:** Needs minimization  
+**Status:** Needs minimization
 **Priority:** Medium
 
 Inside a terminating thread's `at_exit` hook, querying its status still yields
@@ -307,6 +326,24 @@ Current workaround: `web_prolog:run_spawn_goal/1` walks conjunctions
 structurally and calls their leaves.  The browser-to-remote-node terminal
 interoperability test exercises this path.  Reduce that path to a standalone
 module/thread reproducer before filing upstream.
+
+### BUG-010: `listing(Module:PI)` lists the calling module instead
+
+**Status:** Needs minimization
+**Priority:** Medium
+
+Trealla v3.12.6 accepts a module-qualified predicate indicator in
+`listing/1`, but appears to discard the resolved module and enumerate the
+calling module's predicate database. This prevents `src_predicates/1` from
+serializing a private static predicate in another source module. Direct
+`clause/2` access is not a substitute because Trealla rejects access to such
+static private predicates.
+
+Current workaround: the isolation layer temporarily installs a uniquely
+named helper in the source module, invokes unqualified `listing/1` from that
+helper with output redirected to a temporary file, reads the terms back, and
+removes the helper. Access is serialized because `listing/1` has no explicit
+stream argument.
 
 ## Compatibility gaps worth tracking, but not yet bug reports
 

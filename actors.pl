@@ -42,12 +42,8 @@ on top of the ISO Prolog `thread_*` primitives.  Processes (*actors*)
 are lightweight, share no mutable state, and communicate exclusively
 by asynchronous message passing.
 
-The library is deliberately small.  Compared with a more complete
-Erlang-on-Prolog implementation, it omits:
-
-  - *Goal isolation*: there is no `load_*` option to sandbox a spawned
-    goal; spawned code runs in the caller's module space.
-  - *Distribution by itself*: loading `distribution.pl` installs routing
+The library is deliberately small.  Distribution remains optional: loading
+`distribution.pl` installs routing
     hooks for remote `spawn/3`, `(!)/2`, `exit/2`, and monitor operations.
 
 What it does provide:
@@ -64,6 +60,8 @@ What it does provide:
     node-wide names that distribution peers may address
   - exit/1, exit/2 for terminating processes with a reason
   - terminal_output/1,2 with an inherited per-actor terminal target
+  - private source namespaces through `src_text/1`, `src_list/1`, and
+    `src_predicates/1` spawn options
 
 ## Mailboxes {#actors-mailboxes}
 
@@ -142,6 +140,8 @@ Reply = hello.
 :- meta_predicate(spawn(0, -, +)).
 :- meta_predicate(receive(:, +)).
 
+:- use_module(isolation).
+
 :- multifile
     hook_spawn/3,
     hook_send/2,
@@ -177,6 +177,9 @@ Reply = hello.
 %     - node(+URL)
 %       When `distribution.pl` is loaded and URL is not `localhost`, spawn
 %       the actor on that Web Prolog node and return a canonical `Pid@URL`.
+%     - src_text(+Text), src_list(+Terms), src_predicates(+PIs)
+%       Load source into a fresh namespace private to the actor.  Predicate
+%       indicators are copied from the spawning goal's source module.
 
 :- dynamic(link/2).
 
@@ -190,13 +193,20 @@ spawn(Goal, Pid, Options) :-
     hook_spawn(Goal, Pid, Options),
     !.
 spawn(Goal, Pid, Options0) :-
-    inherit_spawn_io_target(Options0, Options),
+    strip_module(Goal, GoalModule, _),
+    isolation:rewrite_source_options(Options0, GoalModule, Options1),
+    inherit_spawn_io_target(Options1, Options),
     thread_self(Self),
-    thread_create(start(Self, Pid, Goal, Options), Pid, [
+    thread_create(start(Self, Pid, GoalModule, Goal, Options), Pid, [
         detached(true),
         at_exit(stop(Pid, Self))
     ]),
-    thread_get_message(initialized(Pid)).
+    thread_get_message('$actor_started'(Pid, StartResult)),
+    ( StartResult == ok
+    -> true
+    ; StartResult = error(Error),
+      throw(Error)
+    ).
 
 inherit_spawn_io_target(Options, Options) :-
     ( memberchk(io_target(_), Options) ; memberchk(target(_), Options) ),
@@ -208,7 +218,7 @@ inherit_spawn_io_target(Options, Options).
 
 
 
-%!  start(+Parent, +Pid, :Goal, +Options) is det.
+%!  start(+Parent, +Pid, +GoalModule, :Goal, +Options) is det.
 %
 %   Internal entry point for a newly created actor thread.  Sets up
 %   any link/monitor, signals the parent that initialisation is
@@ -218,7 +228,7 @@ inherit_spawn_io_target(Options, Options).
 %   making the usual SWI approach of reading the status in stop/2
 %   unreliable.
 
-start(Parent, Pid, Goal, Options) :-
+start(Parent, Pid, GoalModule, Goal, Options) :-
     set_parent(Parent),
     set_spawn_io_target(Parent, Options),
     option(link(Link), Options, true),
@@ -231,12 +241,17 @@ start(Parent, Pid, Goal, Options) :-
     ->  assertz(monitor(Parent, Pid, Pid))
     ;   true
     ),
-    thread_send_message(Parent, initialized(Pid)),
+    catch(isolation:prepare_actor(Pid, GoalModule, Options, Module),
+          PrepError, true),
+    ( nonvar(PrepError)
+    -> thread_send_message(Parent, '$actor_started'(Pid, error(PrepError))),
+       assertz(exit_reason(Pid, exception(PrepError)))
+    ; thread_send_message(Parent, '$actor_started'(Pid, ok)),
     % Record outcome explicitly: Trealla's thread_property/2 still
     % reports status(running) inside the at_exit hook, so we can't
     % read the outcome from it the way SWI does.
     catch(
-        ( call(Goal)
+        ( isolation:run_actor_goal(Module, Goal, Options)
         ->  assertz(exit_reason(Pid, true))
         ;   assertz(exit_reason(Pid, false))
         ),
@@ -245,6 +260,7 @@ start(Parent, Pid, Goal, Options) :-
         ->  true                % exit/1 already asserted the reason
         ;   assertz(exit_reason(Pid, exception(E)))
         )
+    )
     ).
 
 set_spawn_io_target(_Parent, Options) :-
@@ -273,6 +289,7 @@ stop(Pid, Parent) :-
     retractall(link(Parent, Pid)),
     retractall(registered(_Name, Pid)),
     retractall(registered_service(_Name, Pid)),
+    isolation:cleanup_actor(Pid),
     forall(retract(link(Pid, ChildPid)),
            exit(ChildPid, linked)),
     forall(hook_stop(Pid), true),

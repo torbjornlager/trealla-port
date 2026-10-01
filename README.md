@@ -405,6 +405,8 @@ node networks and can be replaced with explicit `header/2` options.
 ### actors.pl
 
 - `spawn/1-3` with `monitor(Bool)` and `link(Bool)` options
+- Per-actor source namespaces with `src_text(Text)`, `src_list(Terms)`, and
+  `src_predicates(PIs)`; the same options work across Trealla distribution
 - `self/1`, `(!)/2`
 - `receive/1-2` with patterns, guards (`Pattern if Guard -> Body`),
   `timeout(0)` polling, and positive `timeout(T)` deadlines
@@ -432,6 +434,8 @@ node networks and can be replaced with explicit `header/2` options.
 - `toplevel_next/2` with `limit(NewLimit)` — mid-stream limit change
   is now honoured (Trealla v2.99.6+), via a mutable `count/1` cell
   driven by `nb_setarg/3`
+- Spawn-time private sources through the same `src_text/1`, `src_list/1`, and
+  `src_predicates/1` options as ordinary actors
 
 ### node.pl
 
@@ -476,9 +480,9 @@ fully supported.)
 
 ### web_prolog.pl
 
-- Core version-1 wire compatibility is implemented; Trinity's security,
-  resource-governance, source-loading, and full distributed-routing layers
-  remain to be ported.
+- Core version-1 wire compatibility and source-bearing actor/toplevel spawns
+  are implemented; Trinity's security and resource-governance layers remain
+  to be ported. `src_uri/1` is not yet supported.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.
 
@@ -568,6 +572,16 @@ These predicates exist in the canonical `simple-node/actors.pl`
 but were missing from the very first Trealla port. They are now
 implemented here on top of the per-thread parent pointer described
 in delta #1.
+
+#### 5. Private modules are emptied rather than destroyed
+
+Trealla has no public temporary-module destruction operation. `isolation.pl`
+creates a unique module for each actor, dynamically installs source clauses,
+and retracts those clauses when the actor terminates. The empty bootstrap
+module remains in Trealla's module table until process exit. `src_predicates/1`
+also needs a serialized `listing/1` workaround because module-qualified
+listing does not currently inspect the requested module (tracked in
+[UPSTREAM_REPORTS.md](UPSTREAM_REPORTS.md)).
 
 ### `toplevel_actors.pl`
 

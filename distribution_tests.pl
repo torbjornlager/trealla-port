@@ -42,6 +42,37 @@ distribution_actor_test(Port) :-
     remote_node_close(Node),
     format('Trealla distributed actor test: ok~n').
 
+remote_copied_value(remote_copy).
+
+distribution_source_isolation_test(Port) :-
+    distribution_url(Port, URL),
+    remote_node_open(URL, Node),
+    remote_spawn(Node,
+                 (remote_text_value(X), output(source_actor(X))),
+                 ActorPid,
+                 [src_text('remote_text_value(remote_text).')]),
+    receive({output(ActorPid, source_actor(remote_text)) -> true},
+            [timeout(5),on_timeout(fail)]),
+    receive({down(ActorPid, _, true) -> true},
+            [timeout(5),on_timeout(fail)]),
+    remote_spawn(Node,
+                 (remote_copied_value(X), output(source_copy(X))),
+                 CopyPid,
+                 [src_predicates([remote_copied_value/1])]),
+    receive({output(CopyPid, source_copy(remote_copy)) -> true},
+            [timeout(5),on_timeout(fail)]),
+    receive({down(CopyPid, _, true) -> true},
+            [timeout(5),on_timeout(fail)]),
+    remote_toplevel_spawn(Node, TopPid,
+                          [src_list([remote_top_value(remote_top)])]),
+    remote_toplevel_call(Node, TopPid, remote_top_value(Y), [template(Y)]),
+    receive({success(TopPid, [remote_top], false) -> true},
+            [timeout(5),on_timeout(fail)]),
+    receive({down(TopPid, _, true) -> true},
+            [timeout(5),on_timeout(fail)]),
+    remote_node_close(Node),
+    format('Distributed source isolation test: ok~n').
+
 distribution_actor_return_test(Port) :-
     distribution_url(Port, URL),
     remote_node_open(URL, Node),

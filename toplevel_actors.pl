@@ -105,6 +105,9 @@ loop that handles `'$next'(Options)` messages.
 
 
 :- use_module(actors).
+:- use_module(isolation).
+
+:- meta_predicate(toplevel_spawn(-, :)).
 
 
 
@@ -140,11 +143,14 @@ loop that handles `'$next'(Options)` messages.
 toplevel_spawn(Pid) :-
     toplevel_spawn(Pid, []).
 
-toplevel_spawn(Pid, Options) :-
+toplevel_spawn(Pid, Options0) :-
+    strip_module(Options0, SourceModule, Options1),
+    isolation:rewrite_source_options(Options1, SourceModule, Options),
     self(Self),
     option(target(Target), Options, Self),
     option(session(Continue), Options, false),
-    spawn(session(Pid, Target, Continue), Pid, Options).
+    spawn(session(Pid, Target, Continue), Pid,
+          ['$entry_context'(caller)|Options]).
 
 
                 /*******************************
@@ -177,7 +183,8 @@ state_1(Pid, Target0, Continue) :-
             option(offset(Offset),     Options, 0),
             option(limit(Limit0),      Options, 1000000000),
             option(target(Target1),    Options, Target0),
-            run_call(Pid, Goal, Template, Offset, Limit0, Target1)
+            isolation:execution_goal(Goal, ExecutionGoal),
+            run_call(Pid, ExecutionGoal, Template, Offset, Limit0, Target1)
         }),
     (   Continue == false
     ->  true

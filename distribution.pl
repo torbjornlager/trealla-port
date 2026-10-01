@@ -39,6 +39,7 @@ no Logtalk or foreign code.
 :- op(200, xfx, @).
 
 :- use_module(actors).
+:- use_module(isolation).
 :- use_module(websocket).
 :- use_module(web_prolog).
 :- use_module(library(uuid)).
@@ -161,8 +162,9 @@ remote_spawn(Node, Goal0, RemotePid, Options0) :-
 remote_spawn_mode(Node, Goal0, RemotePid, Options0, Mode) :-
     Node = remote_node(URL, _Reader, Writer),
     self(Target),
-    strip_module(Goal0, _, Goal0Plain),
-    exclude(local_spawn_option, Options0, Options),
+    strip_module(Goal0, SourceModule, Goal0Plain),
+    isolation:rewrite_source_options(Options0, SourceModule, Options1),
+    exclude(local_spawn_option, Options1, Options),
     portable_term_for_writer(Writer, Goal0Plain-Options,
                              Goal-PortableOptions),
     term_wire_atom(Goal, GoalText),
@@ -178,6 +180,7 @@ local_spawn_option(link(_)).
 local_spawn_option(monitor(_)).
 local_spawn_option(node(_)).
 local_spawn_option(io_target(_)).
+local_spawn_option('$entry_context'(_)).
 
 %! remote_send(+Node, +RemotePid, +Message) is det.
 
@@ -226,15 +229,19 @@ remote_demonitor(Node, Ref) :-
 
 %! remote_toplevel_spawn(+Node, -RemotePid, +Options) is det.
 
+:- meta_predicate(remote_toplevel_spawn(+, -, :)).
+
 remote_toplevel_spawn(Node, RemotePid, Options0) :-
+    strip_module(Options0, SourceModule, Options1),
     Node = remote_node(URL, _Reader, Writer),
     self(Target),
-    exclude(local_spawn_option, Options0, Options),
+    isolation:rewrite_source_options(Options1, SourceModule, Options2),
+    exclude(local_spawn_option, Options2, Options),
     term_wire_atom(Options, OptionsText),
     add_inherited_io_fields([command-string_atom(toplevel_spawn),
                              options-string_atom(OptionsText)], Fields),
     web_prolog:object(Fields, JSON),
-    spawn_request(Writer, URL, explicit, Options0, Target, JSON, RemotePid).
+    spawn_request(Writer, URL, explicit, Options1, Target, JSON, RemotePid).
 
 %! remote_toplevel_call(+Node, +RemotePid, :Goal, +Options) is det.
 

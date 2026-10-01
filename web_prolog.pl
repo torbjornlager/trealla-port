@@ -36,6 +36,7 @@ resource quotas, or a source-code sandbox.
 :- use_module(library(dcgs)).
 :- use_module(library(json)).
 :- use_module(actors).
+:- use_module(isolation).
 :- use_module(toplevel_actors).
 :- use_module(node).
 :- use_module(websocket).
@@ -352,7 +353,7 @@ relay_message(WS, '$toplevel_spawn'(Options, Reader)) :- !,
     send_event(WS, spawned(WirePid)).
 relay_message(WS, '$spawn'(Goal, Options, Reader)) :- !,
     spawn(web_prolog:run_spawn_goal(Goal), RuntimePid,
-          [link(false),monitor(true)|Options]),
+          ['$entry_context'(caller),link(false),monitor(true)|Options]),
     fresh_wire_pid(WirePid),
     relay_add_actor(WirePid, RuntimePid, actor),
     thread_send_message(Reader, '$spawned'(WirePid)),
@@ -366,7 +367,8 @@ run_spawn_goal((Left, Right)) :- !,
     run_spawn_goal(Left),
     run_spawn_goal(Right).
 run_spawn_goal(Goal) :-
-    call(Goal).
+    isolation:execution_goal(Goal, ExecutionGoal),
+    call(ExecutionGoal).
 relay_message(WS, '$browser_message'(Target, Message)) :- !,
     send_event(WS, actor_message(Target, Message)).
 relay_message(WS, '$browser_io_request'(RequestId, Message)) :- !,
