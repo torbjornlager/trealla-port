@@ -985,7 +985,7 @@ t105 :-
     sandbox_prepare_spawn(whitelist, actor, actor_context,
                           Spawn0, [], SpawnGoal, SpawnOptions),
     toplevel_call(Session, SpawnGoal,
-                  [template(Child), target(Me)|SpawnOptions]),
+                  [limit(1), template(Child), target(Me)|SpawnOptions]),
     receive({ success(Session, [Child], false) -> true
             ; error(Session, Error) -> throw(Error)
             }, [timeout(1), on_timeout(throw(t105_spawn_timeout))]),

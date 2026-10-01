@@ -604,7 +604,8 @@ sandbox_spawn(Mode, Profile, Module, _AppPIs, Goal0, Pid, Options0) :-
     isolation:rewrite_source_options(Options0, RuntimeModule, Options1),
     sandbox_prepare_spawn(Mode, Profile, Module, Goal0, Options1,
                           Goal, Options),
-    actors:spawn(Goal, Pid, Options).
+    actors:spawn(Goal, Pid, Options),
+    !.
 
 sandbox_toplevel_call(Mode, Profile, Module, AppPIs, Pid, Goal0, Options) :-
     profile_check_goal(Profile, Goal0),
