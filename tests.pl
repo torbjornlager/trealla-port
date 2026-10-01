@@ -198,7 +198,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 run_test_group(actors) :-
     t1, t2, t3, t4, t5, t6, t7,
     t19, t20, t21, t23, t24, t25, t26,
-    t31, t32, t33.
+    t31, t32, t33, t98.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
     t22, t27, t28, t29.
@@ -253,6 +253,16 @@ t1 :-
     Me ! hello,
     receive({hello -> true}),
     format("1. basic receive ok~n").
+
+%!  t98 is det.
+%
+%   self/1 must expose exactly one answer even when Trealla's underlying
+%   thread_self/1 leaves a choicepoint.
+
+t98 :-
+    findall(Pid, self(Pid), Pids),
+    Pids = [_],
+    format("98. deterministic self ok~n").
 
 %!  t2 is det.
 %

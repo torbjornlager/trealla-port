@@ -59,6 +59,7 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- op(200, xfx, @).
 
 :- multifile actors:hook_send/2.
+:- multifile actors:hook_exit/2.
 :- multifile hook_io_request/2.
 :- multifile hook_terminal_delivery/2.
 :- multifile hook_close_browser_io/1.
@@ -67,10 +68,16 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- dynamic browser_io_enabled/1.
 :- dynamic browser_io_pending/3.
 :- dynamic browser_io_prompt/3.
+:- dynamic browser_actor_capability/3.
 
 :- catch(mutex_create(_, [alias('$browser_terminal_io')]),
          error(permission_error(create, mutex,
                                 '$browser_terminal_io'), _),
+         true).
+
+:- catch(mutex_create(_, [alias('$browser_actor_capabilities')]),
+         error(permission_error(create, mutex,
+                                '$browser_actor_capabilities'), _),
          true).
 
 protocol_version(1).
@@ -528,8 +535,10 @@ relay_message(WS, Event) :-
     wire_event(Relay, Event, WireEvent),
     send_event(WS, WireEvent).
 
-wire_event(Relay, success(RuntimePid, Rows, More), success(WirePid, Rows, More)) :- !,
-    runtime_connection_pid(Relay, RuntimePid, WirePid).
+wire_event(Relay, success(RuntimePid, Rows0, More),
+           success(WirePid, Rows, More)) :- !,
+    runtime_connection_pid(Relay, RuntimePid, WirePid),
+    export_browser_pids(Rows0, Relay, Rows).
 wire_event(Relay, failure(RuntimePid), failure(WirePid)) :- !,
     runtime_connection_pid(Relay, RuntimePid, WirePid).
 wire_event(Relay, error(RuntimePid, Error), error(WirePid, Error)) :- !,
@@ -557,8 +566,9 @@ runtime_connection_pid(_, RuntimePid, _) :-
 
 fresh_wire_pid(WirePid) :-
     repeat,
-    random_between(10000000, 99999999, Candidate),
+    random_between(1000000000, 9999999999, Candidate),
     \+ relay_actor(Candidate, _, _),
+    \+ browser_actor_capability(_, Candidate, _),
     !,
     WirePid = Candidate.
 
@@ -575,12 +585,18 @@ relay_actor(WirePid, RuntimePid, Kind) :-
 
 relay_add_actor(WirePid, RuntimePid, Kind) :-
     relay_actors(Actors),
-    relay_set_actors([actor(WirePid, RuntimePid, Kind)|Actors]).
+    relay_set_actors([actor(WirePid, RuntimePid, Kind)|Actors]),
+    thread_self(Relay),
+    with_mutex('$browser_actor_capabilities',
+               assertz(browser_actor_capability(Relay, WirePid, RuntimePid))).
 
 relay_remove_actor(WirePid) :-
     relay_actors(Actors),
     exclude(wire_actor(WirePid), Actors, Rest),
-    relay_set_actors(Rest).
+    relay_set_actors(Rest),
+    thread_self(Relay),
+    with_mutex('$browser_actor_capabilities',
+               retractall(browser_actor_capability(Relay, WirePid, _))).
 
 wire_actor(WirePid, actor(WirePid, _, _)).
 
@@ -670,6 +686,9 @@ observe_relay_actor_ends([actor(_,RuntimePid,ActorKind)|Actors], Reason) :-
     observe_relay_actor_ends(Actors, Reason).
 
 relay_clear_state :-
+    thread_self(Relay),
+    with_mutex('$browser_actor_capabilities',
+               retractall(browser_actor_capability(Relay, _, _))),
     relay_delete_state(actors),
     relay_delete_state(monitors),
     relay_delete_state(halts),
@@ -762,6 +781,22 @@ event_json(Event, JSON) :-
 actors:hook_send('$web_prolog_endpoint'(Relay, Id), Message) :-
     catch(thread_property(Relay, status(running)), _, fail),
     Relay ! '$browser_message'(Id@localhost, Message).
+
+actors:hook_send(WirePid, Message) :-
+    integer(WirePid),
+    WirePid >= 1000000000,
+    WirePid =< 9999999999,
+    with_mutex('$browser_actor_capabilities',
+               browser_actor_capability(_, WirePid, RuntimePid)),
+    actors:actor_send(RuntimePid, Message).
+
+actors:hook_exit(WirePid, Reason) :-
+    integer(WirePid),
+    WirePid >= 1000000000,
+    WirePid =< 9999999999,
+    with_mutex('$browser_actor_capabilities',
+               browser_actor_capability(_, WirePid, RuntimePid)),
+    actors:exit(RuntimePid, Reason).
 
 actors:hook_send('$browser_io'(Relay), Message) :-
     !,
@@ -856,6 +891,25 @@ wake_browser_io_requests([]).
 wake_browser_io_requests([ReplyQueue|ReplyQueues]) :-
     catch(thread_send_message(ReplyQueue, connection_closed), _, true),
     wake_browser_io_requests(ReplyQueues).
+
+export_browser_pids(Term0, _Relay, WirePid) :-
+    nonvar(Term0),
+    relay_actor(WirePid, Term0, _),
+    !.
+export_browser_pids(Term, _, Term) :- var(Term), !.
+export_browser_pids(Term, _, Term) :- atomic(Term), !.
+export_browser_pids(Term0, Relay, Term) :-
+    functor(Term0, Name, Arity),
+    functor(Term, Name, Arity),
+    export_browser_pid_args(1, Arity, Relay, Term0, Term).
+
+export_browser_pid_args(Index, Arity, _, _, _) :- Index > Arity, !.
+export_browser_pid_args(Index, Arity, Relay, Term0, Term) :-
+    arg(Index, Term0, Arg0),
+    export_browser_pids(Arg0, Relay, Arg),
+    arg(Index, Term, Arg),
+    Next is Index + 1,
+    export_browser_pid_args(Next, Arity, Relay, Term0, Term).
 
 import_browser_pids(Term0, Relay, Term) :-
     ( browser_wire_pid(Term0, Id) ->

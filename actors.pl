@@ -344,7 +344,8 @@ down_reason(_, noproc).
 %   Unify Pid with the calling actor's own identifier (its thread ID).
 
 self(Self) :-
-    thread_self(Self).
+    thread_self(Self),
+    !.
 
 
 %!  monitor(+PidOrName, -Ref) is det.

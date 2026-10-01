@@ -20,6 +20,7 @@ websocket_tests :-
     close_vector,
     web_prolog_json_vector,
     web_prolog_binding_json_vector,
+    web_prolog_pid_binding_vector,
     profile_advertisement_vector,
     web_prolog_variable_sharing_vector,
     web_prolog_named_binding_vector,
@@ -53,6 +54,19 @@ web_prolog_binding_json_vector :-
         JSON),
     web_prolog:json_atom(JSON, Text),
     Text == '{"type":"success","pid":7,"data":[{"Xs":"[b,c]"},{"Xs":"[a,b,c]","Ys":"[]"}],"more":false}'.
+
+web_prolog_pid_binding_vector :-
+    RuntimePid = '$thread'(39),
+    WirePid = 1234567890,
+    web_prolog:relay_set_actors([actor(WirePid, RuntimePid, session)]),
+    web_prolog:wire_event(
+        ignored,
+        success(RuntimePid, [json_bindings(['Self'=RuntimePid])], false),
+        Event),
+    web_prolog:event_json(Event, JSON),
+    web_prolog:json_atom(JSON, Text),
+    web_prolog:relay_set_actors([]),
+    Text == '{"type":"success","pid":1234567890,"data":[{"Self":"1234567890"}],"more":false}'.
 
 profile_advertisement_vector :-
     web_prolog:event_json(transport_welcome(1, actor, blacklist), JSON),

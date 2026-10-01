@@ -38,7 +38,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 97 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 98 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
@@ -128,6 +128,8 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 85–88, 93–94 | controlled source-URI and egress policy | ok |
 | 89–92 | IP/CIDR and trusted-proxy policy          | ok |
 | 95 | bounded node shutdown and connection cleanup   | ok |
+| 96–97 | operational routes and RPC paging           | ok |
+| 98 | deterministic `self/1`                         | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
