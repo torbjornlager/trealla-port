@@ -402,6 +402,8 @@ browser_io_client_test(Port) :-
                        request_id:LaterRequest.request_id, status:"ok"}),
     receive_type(WS, "success", LastPage),
     LastPage.more == false,
+    LastPage.data = [LastRow],
+    get_dict('Self', LastRow, "Self"),
     send_json(WS, json{command:"toplevel_call", pid:Pid,
                        goal:"input(browser_prompt,X)",
                        options:"[template(X)]"}),

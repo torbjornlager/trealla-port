@@ -20,6 +20,7 @@ websocket_tests :-
     close_vector,
     web_prolog_json_vector,
     web_prolog_binding_json_vector,
+    named_variable_json_vectors,
     web_prolog_pid_binding_vector,
     profile_advertisement_vector,
     web_prolog_variable_sharing_vector,
@@ -54,6 +55,16 @@ web_prolog_binding_json_vector :-
         JSON),
     web_prolog:json_atom(JSON, Text),
     Text == '{"type":"success","pid":7,"data":[{"Xs":"[b,c]"},{"Xs":"[a,b,c]","Ys":"[]"}],"more":false}'.
+
+named_variable_json_vectors :-
+    Bindings = ['X'=Shared,'Y'=Shared,'Term'=f(Shared, _Anonymous)],
+    web_prolog:event_json(
+        success(7, [json_bindings(Bindings)], false), WebSocketJSON),
+    web_prolog:json_atom(WebSocketJSON, WebSocketText),
+    WebSocketText == '{"type":"success","pid":7,"data":[{"X":"X","Y":"X","Term":"f(X,_)"}],"more":false}',
+    node:answer_json(success([json_bindings(Bindings)], false), HTTPJSON),
+    web_prolog:json_atom(HTTPJSON, HTTPText),
+    HTTPText == '{"type":"success","data":[{"X":"X","Y":"X","Term":"f(X,_)"}],"more":false}'.
 
 web_prolog_pid_binding_vector :-
     RuntimePid = '$thread'(39),

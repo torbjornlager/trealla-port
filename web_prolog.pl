@@ -952,11 +952,37 @@ answer_rows_json([Term|Rows], [string(Chars)|JSONRows]) :-
     term_wire_atom(Term, Atom), atom_chars(Atom, Chars),
     answer_rows_json(Rows, JSONRows).
 
-binding_json_fields([], []).
-binding_json_fields([Name=Value|Bindings],
-                    [Name-string_atom(Text)|Fields]) :-
-    term_wire_atom(Value, Text),
-    binding_json_fields(Bindings, Fields).
+binding_json_fields(Bindings, Fields) :-
+    binding_json_fields_(Bindings, Bindings, Fields).
+
+binding_json_fields_([], _, []).
+binding_json_fields_([Name=Value|Bindings], VarNames,
+                     [Name-string_atom(Text)|Fields]) :-
+    named_term_wire_atom(Value, VarNames, Text),
+    binding_json_fields_(Bindings, VarNames, Fields).
+
+named_term_wire_atom(Term, NamedVars, Atom) :-
+    % Match SWI's binding serializer: retain query-variable names and render
+    % variables introduced only inside an answer term as anonymous.
+    term_variables(Term, Variables),
+    anonymous_variable_names(Variables, NamedVars, AnonymousVars),
+    append(NamedVars, AnonymousVars, VariableNames),
+    with_output_to(atom(Atom),
+                   write_term(Term, [quoted(true),
+                                     variable_names(VariableNames)])).
+
+anonymous_variable_names([], _, []).
+anonymous_variable_names([Var|Vars], NamedVars, Names) :-
+    ( named_variable(Var, NamedVars)
+    -> Names = Rest
+    ; Names = ['_'=Var|Rest]
+    ),
+    anonymous_variable_names(Vars, NamedVars, Rest).
+
+named_variable(Var, [_Name=Value|_]) :-
+    var(Value), Var == Value, !.
+named_variable(Var, [_|Bindings]) :-
+    named_variable(Var, Bindings).
 
 object(Fields, pairs(Pairs)) :- fields_pairs(Fields, Pairs).
 
