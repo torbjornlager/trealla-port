@@ -205,7 +205,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -914,6 +914,28 @@ t102 :-
     receive({ success(Pid, [wait_hello], false) -> true }),
     exit(Pid, test_complete),
     format("102. receive body keeps private source module ok~n").
+
+%!  t103 is det.
+%
+%   Parse the actor `if` operator in submitted source and preserve the private
+%   source module for an on_timeout/1 callback.
+
+t103 :-
+    Source = 'important(Messages) :- receive({Priority-Message if Priority > 10 -> Messages = [Message|MoreMessages], important(MoreMessages)}, [timeout(0), on_timeout(normal(Messages))]).\nnormal(Messages) :- receive({_-Message -> Messages = [Message|MoreMessages], normal(MoreMessages)}, [timeout(0), on_timeout(Messages = [])]).',
+    sandbox_prepare_spawn(blacklist, actor, actor_context, true,
+                          [src_text(Source)], _, SourceOptions),
+    self(Me),
+    toplevel_spawn(Pid, [target(Me), session(true)|SourceOptions]),
+    Pid ! (5-low),
+    Pid ! (20-high),
+    Pid ! (4-low2),
+    Pid ! (30-high2),
+    toplevel_call(Pid, important(Messages),
+                  [template(Messages), target(Me)]),
+    receive({ success(Pid, Values, false) -> true }),
+    Values == [[high, high2, low, low2]],
+    exit(Pid, test_complete),
+    format("103. guarded source receive and timeout callback ok~n").
 
 
                 /*******************************

@@ -49,6 +49,13 @@ still required for an internet-facing node.
 :- use_module(resource_policy).
 :- use_module(source_policy).
 
+% Source text is parsed in this module before it is installed in an actor's
+% private module.  Keep the public actor syntax available at that boundary;
+% Trealla does not implicitly import these operators from actors.pl here.
+:- op(800,  xfx, !).
+:- op(200,  xfx, @).
+:- op(1000, xfy, if).
+
 
                  /*******************************
                  *            MODES              *

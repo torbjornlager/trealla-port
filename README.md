@@ -38,7 +38,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 101 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 103 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12). Tests t23-t30 mirror behaviours from the
 canonical SWI plunit suite in `simple-node/tests.pl`:
 
@@ -132,6 +132,7 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 100 | paging suspends before next-solution side effects | ok |
 | 101 | `flush/0` routes drained messages to the inherited terminal | ok |
 | 102 | `receive/1` bodies retain their private source module | ok |
+| 103 | submitted guarded receives and timeout callbacks retain actor syntax/module | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
