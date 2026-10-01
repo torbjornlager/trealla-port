@@ -616,6 +616,39 @@ plain list without blocking for terminal acknowledgements, then emits the
 collected messages in a second pass. The SWI-to-Trealla browser interoperability
 test verifies two acknowledged outputs in order.
 
+### BUG-017: Dynamically asserted calls to an imported meta-predicate lose the caller module
+
+**Status:** Needs minimization
+**Priority:** High
+
+An actor-private module dynamically asserts a clause whose body calls the
+imported `actors:receive/1` meta-predicate. Trealla v3.12.6 qualifies the
+receive closure as belonging to `actors`, rather than to the private module
+where the clause was asserted. An unqualified predicate called from the
+selected receive body is consequently looked up in `actors` and raises
+`existence_error(procedure, ...)`, even though that predicate exists in the
+private source module.
+
+The application-level reproducer is the selective-receive tutorial:
+
+```prolog
+wait_hello :-
+    receive({hello -> writeln('Got hello.'), wait_goodbye}).
+
+wait_goodbye :-
+    receive({goodbye -> writeln('Got goodbye.')}).
+```
+
+Calling `wait_hello/0` after queueing `goodbye` and then `hello` prints the
+first line and formerly failed at `wait_goodbye/0`. The equivalent statically
+compiled SWI implementation retains the source module.
+
+Current workaround: the isolation loader rewrites `receive/1,2` in submitted
+source before assertion. It explicitly qualifies the receive clause set and
+each executable receive-body leaf with the fresh actor module. Regression test
+102 exercises the complete tutorial sequence, including deferred-message
+selection.
+
 ## Compatibility gaps worth tracking, but not yet bug reports
 
 These missing facilities increase porting work but need a clearer upstream
