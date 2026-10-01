@@ -230,7 +230,7 @@ run_test_group(tokens) :-
     clear_tokens_file,
     reset_auth_policy.
 run_test_group(source_policy) :-
-    t85, t86, t87, t88, t93, t94,
+    t85, t86, t87, t88, t93, t94, t108,
     reset_source_policy.
 run_test_group(ip_policy) :-
     t89, t90, t91, t92,
@@ -1685,6 +1685,19 @@ t94 :-
             [load_uri_allowed_ip_ranges(['999.1.2.3'])], _),
         load_uri_allowed_ip_ranges),
     format("94. resolved and pinned source destination policy ok~n").
+
+t108 :-
+    configure_source_policy(
+        [load_uri_allowed_origins(['https://n2.example.test']),
+         load_uri_origin_aliases(
+             ['https://n2.example.test=http://wp_n2:3052'])], _),
+    source_policy:source_origin_alias(
+        https, 'n2.example.test', 443, http, wp_n2, 3052),
+    caught_source_domain(
+        configure_source_policy(
+            [load_uri_origin_aliases(['not-an-alias'])], _),
+        load_uri_origin_alias),
+    format("108. explicit source-origin alias policy ok~n").
 
 
                 /*******************************

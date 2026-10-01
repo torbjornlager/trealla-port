@@ -39,12 +39,14 @@ runtime limitation.
 :- use_module(ip_policy, [ip_matches/2,peer_ip/2,valid_ip_pattern/1]).
 
 :- dynamic active_source_policy/1.
+:- dynamic source_origin_alias/6.
 
 default_source_policy(source_policy([], 10, 5, false, public)).
 
 reset_source_policy :-
     default_source_policy(Policy),
     retractall(active_source_policy(_)),
+    retractall(source_origin_alias(_,_,_,_,_,_)),
     assertz(active_source_policy(Policy)).
 
 current_source_policy(Policy) :- active_source_policy(Policy), !.
@@ -60,11 +62,41 @@ configure_source_policy(Options, Policy) :-
     nonnegative_integer(max_source_redirects, Redirects0, Redirects),
     option(allow_unverified_https(Unverified0), Options, false),
     boolean_option(allow_unverified_https, Unverified0, Unverified),
+    option(load_uri_origin_aliases(Aliases0), Options, []),
+    must_be(list, Aliases0),
+    normalize_source_aliases(Aliases0, Aliases),
     source_address_policy(Options, AddressPolicy),
     Policy = source_policy(Origins, Timeout, Redirects, Unverified,
                            AddressPolicy),
     retractall(active_source_policy(_)),
+    retractall(source_origin_alias(_,_,_,_,_,_)),
+    assert_source_aliases(Aliases),
     assertz(active_source_policy(Policy)).
+
+normalize_source_aliases([], []).
+normalize_source_aliases([Spec|Specs], [Alias|Aliases]) :-
+    source_alias_pair(Spec, Origin0, Endpoint0),
+    normalize_source_origin(Origin0, origin(Scheme, Host, Port)),
+    normalize_source_origin(Endpoint0,
+                            origin(EndpointScheme, EndpointHost, EndpointPort)),
+    Alias = source_origin_alias(Scheme, Host, Port,
+                                EndpointScheme, EndpointHost, EndpointPort),
+    normalize_source_aliases(Specs, Aliases).
+
+source_alias_pair(Origin=Endpoint, Origin, Endpoint) :- !.
+source_alias_pair(Spec, Origin, Endpoint) :-
+    atom(Spec),
+    atomic_list_concat([Origin,Endpoint], '=', Spec),
+    Origin \== '', Endpoint \== '',
+    !.
+source_alias_pair(Spec, _, _) :-
+    throw(error(domain_error(load_uri_origin_alias, Spec),
+                source_policy:configure_source_policy/2)).
+
+assert_source_aliases([]).
+assert_source_aliases([Alias|Aliases]) :-
+    assertz(Alias),
+    assert_source_aliases(Aliases).
 
 positive_number(_, Value, Value) :- number(Value), Value > 0, !.
 positive_number(Name, Value, _) :-
@@ -151,10 +183,13 @@ fetch_source_uri_(URI, Origins, Redirects, AllowUnverifiedHTTPS,
                   AddressPolicy, Bytes) :-
     parse_http_uri(URI, Scheme, Host, Port, Path),
     require_allowed_origin(URI, Scheme, Host, Port, Origins),
-    require_supported_tls(URI, Scheme, AllowUnverifiedHTTPS),
     resolve_source_host(URI, Host, Address),
     require_source_address(URI, Address, AddressPolicy),
-    open_source_connection(Scheme, Host, Address, Port, Stream),
+    source_connection_route(URI, Scheme, Host, Port, Address,
+                            ConnectScheme, ConnectAddress, ConnectPort),
+    require_supported_tls(URI, ConnectScheme, AllowUnverifiedHTTPS),
+    open_source_connection(ConnectScheme, Host, ConnectAddress, ConnectPort,
+                           Stream),
     catch(( send_source_request(Stream, Host, Port, Path),
             read_status(Stream, Status),
             read_headers(Stream, Headers),
@@ -163,6 +198,23 @@ fetch_source_uri_(URI, Origins, Redirects, AllowUnverifiedHTTPS,
                             Bytes) ),
           Error, ( catch(close(Stream), _, true), throw(Error) )),
     catch(close(Stream), _, true).
+
+% An origin alias is an explicit operator-controlled route from a public
+% source origin to a trusted internal HTTP endpoint.  It is useful when a
+% local TLS-terminating proxy already authenticates the public service and
+% Trealla cannot preserve the original SNI while connecting to a pinned IP.
+% The original origin and resolved public address are still policy-checked;
+% only the final connection target is replaced.
+source_connection_route(_, Scheme, Host, Port, _,
+                        ConnectScheme, ConnectAddress, ConnectPort) :-
+    source_origin_alias(Scheme, Host, Port,
+                        ConnectScheme, ConnectHost, ConnectPort),
+    !,
+    format(atom(Endpoint), '~w://~w:~w',
+           [ConnectScheme,ConnectHost,ConnectPort]),
+    resolve_source_host(Endpoint, ConnectHost, ConnectAddress).
+source_connection_route(_, Scheme, _, Port, Address,
+                        Scheme, Address, Port).
 
 source_response(Status, Headers, Stream, URI, Origins, Redirects,
                 AllowUnverifiedHTTPS, AddressPolicy, Bytes) :-
@@ -345,6 +397,10 @@ valid_host(URI, Host) :-
 host_code(Code) :- Code >= 0'a, Code =< 0'z, !.
 host_code(Code) :- Code >= 0'0, Code =< 0'9, !.
 host_code(0'-). host_code(0'.).
+% Docker Compose service aliases may contain an underscore. Public source
+% hosts still have to resolve to an address admitted by the egress policy;
+% this extension primarily permits explicit operator-controlled aliases.
+host_code(0'_).
 
 safe_uri_component(URI, Atom) :-
     atom_codes(Atom, Codes),

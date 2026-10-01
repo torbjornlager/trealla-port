@@ -17,6 +17,13 @@ Trealla v3.12.6 does not verify client-side TLS hostnames completely
 (UPSTREAM_REPORTS.md BUG-005), so production egress policy remains an
 important independent boundary.
 
+`WP_LOAD_URI_ORIGINS` enables exact public `src_uri/1` origins. Optional
+`WP_LOAD_URI_ORIGIN_ALIASES` entries have the form
+`https://public.example=http://trusted-service:port`; after validating the
+public origin and resolved address, the fetch uses that explicit internal
+endpoint while retaining the public Host header. This is intended for a
+trusted deployment network behind its TLS terminator, not as a general proxy.
+
 ## Local smoke test
 
 Run the complete build and proxy test:

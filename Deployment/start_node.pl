@@ -51,6 +51,7 @@ deployment_options(Port, Options) :-
     env_csv('WP_IP_ALLOWLIST', IPAllowlist),
     env_csv('WP_IP_BLOCKLIST', IPBlocklist),
     env_csv('WP_LOAD_URI_ORIGINS', SourceOrigins),
+    env_csv('WP_LOAD_URI_ORIGIN_ALIASES', SourceAliases),
     env_csv_default('WP_TUTORIAL_SECTIONS', [actor], TutorialSections),
     env_integer('WP_TIME_LIMIT', 10, TimeLimit), positive(time_limit, TimeLimit),
     env_integer('WP_IDLE_LIMIT', 120, IdleLimit), positive(idle_limit, IdleLimit),
@@ -95,7 +96,8 @@ deployment_options(Port, Options) :-
     optional_list(trusted_proxy_ranges, TrustedProxies, O1, O2),
     optional_list(ip_allowlist, IPAllowlist, O2, O3),
     optional_list(ip_blocklist, IPBlocklist, O3, O4),
-    optional_list(load_uri_allowed_origins, SourceOrigins, O4, Options).
+    optional_list(load_uri_allowed_origins, SourceOrigins, O4, O5),
+    optional_list(load_uri_origin_aliases, SourceAliases, O5, Options).
 
 validate_options(Options) :-
     memberchk(profile(Profile), Options), normalize_profile(Profile, _),
