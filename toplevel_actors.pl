@@ -128,7 +128,8 @@ goal choicepoint after optionally changing the page limit.
 %       Actor that should receive answer, output, and prompt messages.
 %       Default: the calling process.
 %     - time_limit(+SecondsOrInfinite)
-%       Wall-time ceiling for a call, including suspended result pages.
+%       Wall-time ceiling for each active computation slice. The timer is
+%       suspended while a result page waits for the next protocol command.
 %       The node-owner ceiling may only be tightened by this option.
 %     - idle_limit(+SecondsOrInfinite)
 %       Maximum wait in the idle and paging states. The node-owner ceiling
@@ -235,16 +236,28 @@ run_call(Pid, Goal, Template, Offset, Limit0, Target1,
           functor(PageState, count, 1),
           arg(1, PageState, 0),
           bb_put('$ptcp_page_values', []),
-          create_resource_timer(TimeLimit, Timer),
+          bb_put('$ptcp_resource_timer', none),
+          arm_call_timer(TimeLimit),
           drive(Pid, Goal, Template, Offset, PageCount, PageState, Target,
-                IdleLimit),
-          disarm_resource_timer(Timer)
+                TimeLimit, IdleLimit),
+          disarm_call_timer
         ),
         Error0,
-        ( ( nonvar(Timer) -> disarm_resource_timer(Timer) ; true ),
+        ( disarm_call_timer,
           normalize_resource_exception(Error0, Error),
           handle_error(Pid, Target, Target1, Error) )),
     !.
+
+arm_call_timer(TimeLimit) :-
+    create_resource_timer(TimeLimit, Timer),
+    bb_put('$ptcp_resource_timer', Timer).
+
+disarm_call_timer :-
+    ( bb_get('$ptcp_resource_timer', Timer) -> true ; Timer = none ),
+    ( Timer == none -> true
+    ; disarm_resource_timer(Timer),
+      bb_put('$ptcp_resource_timer', none)
+    ).
 
 handle_error(_Pid, _Target, _Orig, '$abort_goal') :- !,
     throw('$abort_goal').
@@ -263,20 +276,20 @@ handle_error(Pid, Target, Orig, Error) :-
 %
 %   Step through Goal one solution at a time. call_cleanup/2 binds Det on a
 %   deterministic final solution, so a full final page can be reported
-%   without probing the next solution. When Det remains unbound, page/4
+%   without probing the next solution. When Det remains unbound, page/5
 %   suspends before backtracking into Goal.
 
 drive(Pid, Goal, Template, Offset, PageCount, PageState, Target,
-      IdleLimit) :-
+      TimeLimit, IdleLimit) :-
     ( call_cleanup(offset(Offset, Goal), Det = true),
       drive_solution(Pid, Template, Det, PageCount, PageState, Target,
-                     IdleLimit)
+                     TimeLimit, IdleLimit)
     ; drive_exhausted(Pid, PageState, Target)
     ),
     !.
 
 drive_solution(Pid, Template, Det, PageCount, PageState, Target,
-               IdleLimit) :-
+               TimeLimit, IdleLimit) :-
     copy_term(Template, Value),
     page_add(PageState, Value, Got),
     arg(1, PageCount, Limit),
@@ -285,8 +298,9 @@ drive_solution(Pid, Template, Det, PageCount, PageState, Target,
        arg(1, Target, Out),
        ( nonvar(Det)
        -> Out ! success(Pid, Slice, false)
-       ;  Out ! success(Pid, Slice, true),
-          page(PageCount, PageState, Target, IdleLimit)
+       ;  disarm_call_timer,
+          Out ! success(Pid, Slice, true),
+          page(PageCount, PageState, Target, TimeLimit, IdleLimit)
        )
     ; nonvar(Det)
     -> page_values(PageState, Slice),
@@ -324,14 +338,15 @@ clear_page(PageState) :-
 %   command.  On `'$next'(Options)` apply any `limit(NewN)` or
 %   `target(NewT)` updates to the mutable cells via nb_setarg/3,
 %   clear the page and fail to backtrack into Goal for the next solution.
-%   On `'$stop'` succeed deterministically; drive/8 then cuts the lingering
+%   On `'$stop'` succeed deterministically; drive/9 then cuts the lingering
 %   goal choicepoint.
 
-page(PageCount, PageState, Target, IdleLimit) :-
+page(PageCount, PageState, Target, TimeLimit, IdleLimit) :-
     receive_with_idle_limit({
         '$next'(Options) ->
             apply_next(Options, PageCount, Target),
             clear_page(PageState),
+            arm_call_timer(TimeLimit),
             fail ;
         '$stop' ->
             true

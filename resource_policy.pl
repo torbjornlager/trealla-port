@@ -30,7 +30,8 @@ Trealla v3.12.6 has neither `call_with_inference_limit/3` nor a supported
 `stack_limit/1` thread option.  Those SWI ceilings therefore remain deployment
 and upstream-runtime concerns; they are not silently approximated here. Its
 public time-limit wrapper also commits to one solution, so pageable calls use
-the reusable internal alarm and count suspended paging time against the call.
+the reusable internal alarm for each active computation slice and cancel it
+while waiting for the next page command.
 */
 
 :- use_module(library(error)).

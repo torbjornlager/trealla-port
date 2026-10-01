@@ -211,7 +211,7 @@ run_test_group(profiles) :-
 run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56.
 run_test_group(resources) :-
-    t57, t58, t59, t60, t61, t62,
+    t57, t58, t59, t60, t61, t62, t110,
     reset_resource_policy.
 run_test_group(auth) :-
     t63, t64, t65, t66, t67, t68,
@@ -1358,6 +1358,37 @@ t62 :-
     receive({down(Pid, Pid, true) -> true},
             [timeout(2),on_timeout(fail)]),
     format("62. PTCP idle reclamation ok~n").
+
+%!  t110 is det.
+%
+%   The execution alarm must be suspended while a pageable query waits in
+%   state s3.  Otherwise a user pausing before requesting the next page gets
+%   Trealla's internal time_limit_exceeded from inside thread_get_message/3.
+
+t110 :-
+    configure_resource_policy([time_limit(0.05),idle_limit(0.3)], _),
+    self(Me),
+    toplevel_spawn(Pid,
+                   [target(Me),session(true),monitor(true),link(false)]),
+    toplevel_call(Pid, member(X,[a,b]), [template(X),limit(1)]),
+    receive({success(Pid, [a], true) -> true},
+            [timeout(1),on_timeout(fail)]),
+    sleep(0.12),
+    toplevel_next(Pid),
+    receive({success(Pid, [b], false) -> true},
+            [timeout(1),on_timeout(fail)]),
+    toplevel_call(Pid, member(Y,[c,d]), [template(Y),limit(1)]),
+    receive({success(Pid, [c], true) -> true},
+            [timeout(1),on_timeout(fail)]),
+    receive({down(Pid, Pid, true) -> true},
+            [timeout(1),on_timeout(fail)]),
+    configure_resource_policy([time_limit(0.05),idle_limit(1)], _),
+    node:compute_answer(member(H,[t110a,t110b]), H, 0, 1,
+                        success([t110a], true)),
+    sleep(0.12),
+    node:compute_answer(member(I,[t110a,t110b]), I, 1, 1,
+                        success([t110b], false)),
+    format("110. paging suspends execution timers and retains idle limit ok~n").
 
 
                 /*******************************

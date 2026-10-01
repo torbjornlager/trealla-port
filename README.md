@@ -38,7 +38,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 109 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 110 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12). Tests t23-t30 mirror behaviours from the
 canonical SWI plunit suite in `simple-node/tests.pl`:
 
@@ -397,9 +397,10 @@ goals/templates, source options, and WebSocket payloads are checked before
 parsing or loading, and the node clamps the WebSocket transport's own payload
 limit as well.
 
-Trealla's reusable timer currently spans a PTCP call including time suspended
-between result pages; the separate idle ceiling can be lower. Trealla v3.12.6
-does not expose SWI-equivalent inference or per-thread stack ceilings, so
+PTCP and HTTP-producer execution timers are disarmed while a result page waits
+for its continuation and rearmed when computation resumes; the separate PTCP
+idle ceiling governs that suspended state. Trealla v3.12.6 does not expose
+SWI-equivalent inference or per-thread stack ceilings, so
 process memory/CPU containment remains the deployment boundary for those
 resources.
 
@@ -820,8 +821,8 @@ X = a ; X = b ; X = c.
 
 - Mid-enumeration `limit(N)` and `target(P)` changes are supported. Because
   Trealla's public `call_with_time_limit/2` commits to the first solution, the
-  port uses a reusable runtime timer around the complete pageable call;
-  `time_limit/1` therefore includes time suspended between pages.
+  port uses reusable runtime timers for each active computation slice and
+  suspends them while a result page waits for `next`.
 
 ### web_prolog.pl
 

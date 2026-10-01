@@ -1352,23 +1352,45 @@ compute_answer(Goal, Template, Offset, Limit, Answer) :-
 run_goal_producer(Goal, Template) :-
     current_resource_policy(Policy),
     policy_time_limit(Policy, TimeLimit),
+    bb_put('$http_resource_timer', none),
     setup_call_cleanup(
-        create_resource_timer(TimeLimit, Timer),
+        arm_http_timer(TimeLimit),
         catch(
         (   call(Goal),
-            receive({
-                '$request'(C) -> C ! sol(Template)
-                ; '$stop'     -> throw('$prod_stop')
-            }),
+            producer_solution_wait(Template, TimeLimit),
             fail                        % backtrack for next solution
-        ;   receive({
-                '$request'(C) -> C ! eos
-                ; '$stop'     -> throw('$prod_stop')
-            })
+        ;   producer_eos_wait
         ),
         '$prod_stop',
         true),
-        disarm_resource_timer(Timer)).
+        disarm_http_timer).
+
+producer_solution_wait(Template, TimeLimit) :-
+    disarm_http_timer,
+    receive({
+        '$request'(C) ->
+            C ! sol(Template),
+            arm_http_timer(TimeLimit)
+        ; '$stop' -> throw('$prod_stop')
+    }).
+
+producer_eos_wait :-
+    disarm_http_timer,
+    receive({
+        '$request'(C) -> C ! eos
+        ; '$stop' -> throw('$prod_stop')
+    }).
+
+arm_http_timer(TimeLimit) :-
+    create_resource_timer(TimeLimit, Timer),
+    bb_put('$http_resource_timer', Timer).
+
+disarm_http_timer :-
+    ( bb_get('$http_resource_timer', Timer) -> true ; Timer = none ),
+    ( Timer == none -> true
+    ; disarm_resource_timer(Timer),
+      bb_put('$http_resource_timer', none)
+    ).
 
 % Execute a producer while preserving exceptions as a reply to the next
 % outstanding page request.  Public sandbox runtime guards can reject a goal

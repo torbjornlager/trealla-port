@@ -441,9 +441,11 @@ Expected for compatibility with the SWI interface is `Xs = [a,b]`, with the
 timer applying while each resumed branch executes.
 
 Current workaround: the PTCP and HTTP producer paths use Trealla's internal
-reusable `$alarm` primitive around the complete pageable call. This preserves
-choicepoints, but means the wall-time ceiling also runs while a result page is
-suspended awaiting the client.
+reusable `$alarm` primitive. The PTCP cancels its alarm while a result page is
+suspended awaiting the client, as does the HTTP producer while it waits for a
+continuation request. Each creates a fresh alarm immediately before resuming
+its choicepoint. This preserves choicepoints without charging client think-time
+to the execution limit.
 
 ### BUG-012: `crypto_n_random_bytes/2` repeats predictable output across processes
 
