@@ -201,7 +201,7 @@ run_test_group(actors) :-
     t31, t32, t33, t98.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
-    t22, t27, t28, t29, t99.
+    t22, t27, t28, t29, t99, t100.
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
@@ -497,6 +497,30 @@ t99 :-
     receive({ success(Pid, [Self], false) -> true }),
     Self == Pid,
     format("99. exact-page self/1 is deterministic ok~n").
+
+%!  t100 is det.
+%
+%   Paging must suspend before executing the next solution. This preserves
+%   the observable order of side effects across a page boundary.
+
+t100 :-
+    drain_test_mailbox,
+    self(Me),
+    toplevel_spawn(Pid, [target(Me)]),
+    Goal = (self(Self); terminal_output(hello, [target(Me)])),
+    toplevel_call(Pid, Goal, [template(Self), limit(1)]),
+    receive({ First -> true }),
+    First = success(Pid, [Pid], true),
+    toplevel_next(Pid),
+    receive({ Second -> true }),
+    Second = terminal_output(Pid, hello),
+    receive({ Third -> true }),
+    Third = success(Pid, [Unbound], false),
+    var(Unbound),
+    format("100. paging does not execute the next solution early~n").
+
+drain_test_mailbox :-
+    receive({ _ -> drain_test_mailbox }, [timeout(0)]).
 
 
                 /*******************************

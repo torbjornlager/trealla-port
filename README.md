@@ -38,10 +38,8 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 98 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
-v2.99.6 and v2.99.12; t22 requires
-`findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
-pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
+All 99 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+v2.99.6 and v2.99.12). Tests t23-t30 mirror behaviours from the
 canonical SWI plunit suite in `simple-node/tests.pl`:
 
 Run the isolated unit groups with:
@@ -130,7 +128,8 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 95 | bounded node shutdown and connection cleanup   | ok |
 | 96–97 | operational routes and RPC paging           | ok |
 | 98 | deterministic ten-digit logical `self/1` and spawn identity | ok |
-| 99 | exact-page lookahead (`limit(1)` without false continuation) | ok |
+| 99 | deterministic exact page (`limit(1)` without false continuation) | ok |
+| 100 | paging suspends before next-solution side effects | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -764,8 +763,9 @@ the defaults can be replaced with explicit `header/2` options.
 - `offset/2` — skip the first N solutions of a goal (re-exported from
   Trealla's built-in for convenience)
 - `toplevel_next/2` with `limit(NewLimit)` — mid-stream limit change
-  is now honoured (Trealla v2.99.6+), via a mutable `count/1` cell
-  driven by `nb_setarg/3`
+  is honoured via a mutable `count/1` cell driven by `nb_setarg/3`
+- Exact-page exhaustion uses `call_cleanup/2` determinism on the original
+  goal, matching SWI without an N+1 lookahead or premature side effects
 - Spawn-time private sources through the same `src_text/1`, `src_list/1`, and
   `src_predicates/1` options as ordinary actors
 
@@ -934,17 +934,16 @@ listing does not currently inspect the requested module (tracked in
 
 ### `toplevel_actors.pl`
 
-#### 1. Mutable `count(N)` cell must share a catch frame with `findnsols/4`
+#### 1. Exact paging uses goal determinism, not `findnsols/4` lookahead
 
-The SWI implementation can build the `count/1` cell at the top of
-the state machine and mutate it from any nested predicate.  In
-Trealla v2.99.6, `findnsols(count(N), ...)` and `nb_setarg(1, count, ...)`
-work together only when the `count/1` cell is constructed in the
-*same* catch frame as the `findnsols/4` call (a heap-context
-quirk).  The port therefore consolidates the entire paged
-enumeration into a single `run_call/6` predicate that allocates
-`Count`, runs `findnsols/4`, and performs `nb_setarg/3` (in
-`page/2`) all inside one `catch/3`.
+Trealla's `findnsols/4` retains a choicepoint for an exact-size final batch,
+so its own determinism cannot distinguish that batch from one with more
+answers. The PTCP instead wraps the original goal in `call_cleanup/2`, whose
+cleanup marker is bound before a deterministic final solution is returned.
+This matches the SWI implementation's observable semantics: the actor pauses
+at a full non-final page without executing the next solution or its side
+effects. A thread-local reversed accumulator holds copied page values, while
+mutable integer cells support mid-stream limit and target changes.
 
 ### `node.pl`
 
@@ -1008,14 +1007,10 @@ The actor/RPC modules are ported and exercised through Trealla v3.12.6
 - **`actors.pl`** — feature-complete, including positive `receive`
   timeouts via the native `thread_get_message/3` `timeout(Float)`
   option.
-- **`toplevel_actors.pl`** — paged enumeration uses Trealla's
-  built-in lazy `findnsols/4`.  As of v2.99.6 the mid-enumeration
-  `limit(N)` / `target(P)` change is supported via a mutable
-  `count/1` cell driven by `nb_setarg/3`, matching the SWI
-  semantics.  v2.99.12 revised how `findnsols/4` embeds the
-  `count(N)` cells into its instruction sequence (issue #1026), but
-  the port requires no code changes: the same-catch-frame
-  arrangement in `run_call/6` continues to work correctly.
+- **`toplevel_actors.pl`** — paged enumeration uses `call_cleanup/2` around
+  the original goal to detect its deterministic final solution without an
+  N+1 probe. Mid-enumeration `limit(N)` / `target(P)` changes use mutable
+  cells and match the SWI observable semantics.
 - **`node.pl`** — concurrent HTTP/WebSocket server, `format=prolog` only for
   the legacy `/call` route.
   The producer-actor cache works particularly cleanly thanks to

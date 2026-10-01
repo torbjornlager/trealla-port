@@ -71,34 +71,24 @@ A toplevel actor cycles through three states:
     attaches the Pid.
   - **s3** -- waiting for `'$next'(Options)` (next batch) or `'$stop'`
     (discard remaining solutions).  On `'$next'` it backtracks into
-    findnsols to fetch the next slice.  On `'$stop'` it returns to s1
+    the goal to fetch the next slice.  On `'$stop'` it returns to s1
     (session mode) or exits.
 
-## Paging {#toplevel-findnsols}
+## Paging {#toplevel-paging}
 
-findnsols/4 (a Trealla built-in) is lazy and non-deterministic:
-each backtrack delivers the next batch of N solutions. Combined
-with offset/2 this drives the `/call?offset=N&limit=M` paging
-protocol cleanly.
-
-The first argument is a `count(N)` cell rather than a bare
-integer, which makes the limit mutable via nb_setarg/3 between
-batches.  This is how toplevel_next/2's `limit(NewLimit)` option
-takes effect mid-enumeration -- the count cell is shared between
-findnsols/4 (which re-reads it on every retry) and the receive
-loop that handles `'$next'(Options)` messages.
+The goal itself is wrapped in `call_cleanup/2`. Trealla binds the cleanup
+marker before returning a deterministic final solution, just as SWI does.
+The actor can therefore mark an exact-size final page `More=false` without
+speculatively executing a solution from the next page. Solutions are copied
+into a mutable page accumulator, and `toplevel_next/2` resumes the original
+goal choicepoint after optionally changing the page limit.
 
 ## Trealla port notes {#toplevel-trealla}
 
-  - findnsols/4, offset/2 and nb_setarg/3 are all Trealla built-ins
-    (nb_setarg/3 since v2.99.2, findnsols/4's count(N) form since
-    v2.99.6+); no shims needed.
-  - The mutable `count/1` and `target/1` cells must be constructed
-    inside the same catch frame as the findnsols/4 call and the
-    nb_setarg/3 mutations -- otherwise the mutations do not
-    propagate to findnsols/4's internal counter under Trealla's
-    heap rules.  This is why all paging logic in this module lives
-    inside a single catch in run_call/6.
+  - call_cleanup/2, offset/2 and nb_setarg/3 are Trealla built-ins.
+  - Mutable `count/1` and `target/1` cells are constructed inside the same
+    catch frame as goal execution. Page values use thread-local blackboard
+    storage because Trealla's nb_setarg/3 accepts integer values only.
 
 @author Torbjorn Lager
 */
@@ -226,11 +216,8 @@ receive_with_idle_limit(Clauses, IdleLimit) :-
 
 %!  run_call(+Pid, +Goal, +Template, +Offset, +Limit0, +Target1) is det.
 %
-%   Drive the paged enumeration of Goal.  Builds the mutable
-%   `count/1` and `target/1` cells inside the catch frame so that
-%   findnsols/4 and the nb_setarg/3 mutations performed in page/2
-%   share the same heap context -- without that, the mutations do
-%   not propagate to findnsols/4's internal counter.
+%   Drive the paged enumeration of Goal. Builds mutable `count/1`,
+%   `target/1`, and page-count cells inside the catch frame.
 %
 %   `'$abort_goal'` is re-thrown unchanged so that session/3's outer
 %   catch can restart the actor in state s1.  All other exceptions
@@ -243,14 +230,13 @@ run_call(Pid, Goal, Template, Offset, Limit0, Target1,
           % from a compound-literal cell used by an earlier actor thread.
           functor(PageCount, count, 1),
           arg(1, PageCount, Limit0),
-          FetchLimit is Limit0 + 1,
-          functor(FetchCount, count, 1),
-          arg(1, FetchCount, FetchLimit),
-          bb_put('$ptcp_lookahead', []),
           functor(Target, target, 1),
           arg(1, Target, Target1),
+          functor(PageState, count, 1),
+          arg(1, PageState, 0),
+          bb_put('$ptcp_page_values', []),
           create_resource_timer(TimeLimit, Timer),
-          drive(Pid, Goal, Template, Offset, PageCount, FetchCount, Target,
+          drive(Pid, Goal, Template, Offset, PageCount, PageState, Target,
                 IdleLimit),
           disarm_resource_timer(Timer)
         ),
@@ -272,81 +258,80 @@ handle_error(Pid, Target, Orig, Error) :-
     Out ! error(Pid, Error).
 
 
-%!  drive(+Pid, +Goal, +Template, +Offset, +PageCount, +FetchCount,
+%!  drive(+Pid, +Goal, +Template, +Offset, +PageCount, +PageState,
 %!        +Target, +IdleLimit) is det.
 %
-%   Step through successive findnsols/4 slices.  After every slice
-%   we read the *current* limit from Count and target from Target,
-%   so any mid-stream nb_setarg/3 mutations performed by page/2 in
-%   response to a previous `'$next'(Options)` are honoured before
-%   the next slice is computed and sent.
-%
-%   Fetch one solution beyond the requested first page. This lookahead is
-%   essential when Limit=1: a full page does not itself prove that another
-%   answer exists. The extra answer is retained in thread-local state while
-%   the underlying findnsols/4 choicepoint is suspended. Later pages fetch
-%   Limit new answers, prepend the retained one, and retain at most one new
-%   lookahead answer.
-%
-%   When findnsols/4 has no solutions at all on the first call it
-%   fails outright; the second clause handles this by sending a
-%   single `failure(Pid)`.
+%   Step through Goal one solution at a time. call_cleanup/2 binds Det on a
+%   deterministic final solution, so a full final page can be reported
+%   without probing the next solution. When Det remains unbound, page/4
+%   suspends before backtracking into Goal.
 
-drive(Pid, Goal, Template, Offset, PageCount, FetchCount, Target,
+drive(Pid, Goal, Template, Offset, PageCount, PageState, Target,
       IdleLimit) :-
-    ( findnsols(FetchCount, Template, offset(Offset, Goal), Batch)
-    ; Batch = '$exhausted'
+    ( call_cleanup(offset(Offset, Goal), Det = true),
+      drive_solution(Pid, Template, Det, PageCount, PageState, Target,
+                     IdleLimit)
+    ; drive_exhausted(Pid, PageState, Target)
     ),
-    drive_batch(Pid, Batch, PageCount, FetchCount, Target, IdleLimit),
     !.
 
-drive_batch(Pid, '$exhausted', _PageCount, _FetchCount, Target,
-            _IdleLimit) :-
-    !,
-    carry_values(Retained),
-    arg(1, Target, Out),
-    ( Retained == [] -> Out ! failure(Pid)
-    ; Out ! success(Pid, Retained, false)
-    ).
-drive_batch(Pid, Batch, PageCount, FetchCount, Target, IdleLimit) :-
-    carry_values(Retained),
-    append(Retained, Batch, Combined),
+drive_solution(Pid, Template, Det, PageCount, PageState, Target,
+               IdleLimit) :-
+    copy_term(Template, Value),
+    page_add(PageState, Value, Got),
     arg(1, PageCount, Limit),
-    split_page(Limit, Combined, Slice, Rest),
-    arg(1, Target, Out),
-    ( Rest == []
-    -> Out ! success(Pid, Slice, false)
-    ; Rest = [Lookahead],
-      bb_put('$ptcp_lookahead', [Lookahead]),
-      Out ! success(Pid, Slice, true),
-      page(PageCount, FetchCount, Target, IdleLimit)
+    ( Got >= Limit
+    -> page_values(PageState, Slice),
+       arg(1, Target, Out),
+       ( nonvar(Det)
+       -> Out ! success(Pid, Slice, false)
+       ;  Out ! success(Pid, Slice, true),
+          page(PageCount, PageState, Target, IdleLimit)
+       )
+    ; nonvar(Det)
+    -> page_values(PageState, Slice),
+       arg(1, Target, Out),
+       Out ! success(Pid, Slice, false)
+    ; fail
     ).
 
-split_page(0, Rest, [], Rest) :- !.
-split_page(_, [], [], []) :- !.
-split_page(N, [X|Xs], [X|Page], Rest) :-
-    Next is N - 1,
-    split_page(Next, Xs, Page, Rest).
+drive_exhausted(Pid, PageState, Target) :-
+    arg(1, PageState, Got),
+    arg(1, Target, Out),
+    ( Got =:= 0 -> Out ! failure(Pid)
+    ; page_values(PageState, Slice), Out ! success(Pid, Slice, false)
+    ).
 
-carry_values(Values) :-
-    ( bb_get('$ptcp_lookahead', Values) -> true ; Values = [] ).
+page_add(PageState, Value, Count) :-
+    bb_get('$ptcp_page_values', Rev0),
+    arg(1, PageState, Count0),
+    Count is Count0 + 1,
+    bb_put('$ptcp_page_values', [Value|Rev0]),
+    nb_setarg(1, PageState, Count).
+
+page_values(_PageState, Values) :-
+    bb_get('$ptcp_page_values', Reversed),
+    reverse(Reversed, Values).
+
+clear_page(PageState) :-
+    bb_put('$ptcp_page_values', []),
+    nb_setarg(1, PageState, 0).
 
 
-%!  page(+PageCount, +FetchCount, +Target, +IdleLimit) is semidet.
+%!  page(+PageCount, +PageState, +Target, +IdleLimit) is semidet.
 %
 %   State s3: after a More=true slice, wait for the next protocol
 %   command.  On `'$next'(Options)` apply any `limit(NewN)` or
 %   `target(NewT)` updates to the mutable cells via nb_setarg/3,
-%   then fail to backtrack into findnsols/4 for the next batch.
-%   On `'$stop'` succeed deterministically; the caller (drive/6)
-%   cuts the lingering findnsols choicepoint.
+%   clear the page and fail to backtrack into Goal for the next solution.
+%   On `'$stop'` succeed deterministically; drive/8 then cuts the lingering
+%   goal choicepoint.
 
-page(PageCount, FetchCount, Target, IdleLimit) :-
+page(PageCount, PageState, Target, IdleLimit) :-
     receive_with_idle_limit({
         '$next'(Options) ->
             apply_next(Options, PageCount, Target),
-            arg(1, PageCount, NextFetch),
-            nb_setarg(1, FetchCount, NextFetch),
+            clear_page(PageState),
             fail ;
         '$stop' ->
             true
@@ -403,8 +388,7 @@ toplevel_call(Pid, Goal0, Options) :-
 %
 %     - limit(+N)
 %       Change the per-page limit from this batch onwards.  Applied
-%       via nb_setarg/3 on the mutable `count/1` cell shared with
-%       findnsols/4 (requires Trealla v2.99.6+).
+%       via nb_setarg/3 on the mutable `count/1` cell.
 %     - target(+Pid)
 %       Switch the answer target from this batch onwards.
 
