@@ -285,19 +285,31 @@ Desired behavior: secure defaults plus explicit CA/trust-store and hostname
 verification controls, with verification enabled for ordinary `wss://` and
 `https://` clients.
 
-### BUG-006: `findnsols(count(N), ...)` observes mutations only in the same catch frame
+### BUG-006: Mutable compound cells can retain an argument from an earlier thread
 
 **Status:** Retest and minimize  
 **Priority:** Medium
 
 In the versions used while building the port, a `count/1` cell passed to
 `findnsols/4` did not reliably observe `nb_setarg/3` updates made through a
-nested predicate when the cell crossed a `catch/3` frame.  Allocating the cell,
+nested predicate when the cell crossed a `catch/3` frame. Allocating the cell,
 calling `findnsols/4`, and mutating it inside one `catch/3` made mid-stream page
 size changes work.
 
-Current workaround: `toplevel_actors:run_call/6` deliberately keeps the
-complete paged enumeration and mutable `count/1` cell in one catch frame.
+A second v3.12.6 symptom appeared when two WebSocket sessions ran in sequence.
+The code created a fresh mutable answer target with
+`Target = target(Target1)` inside `run_call/8`. The second PTCP received and
+printed its new `Target1`, but after its goal resumed from acknowledged browser
+I/O, `arg(1, Target, Out)` returned the first PTCP's target. Its success event
+was therefore sent to the closed first connection. Constructing the cell
+explicitly with `functor(Target, target, 1), arg(1, Target, Target1)` avoids the
+cross-thread retention. The same defensive construction is now used for the
+mutable `count/1` cell.
+
+Current workaround: `toplevel_actors:run_call/8` deliberately keeps the
+complete paged enumeration and both mutable cells in one catch frame, and
+constructs those cells with `functor/3` plus `arg/3` rather than unification
+with a compound literal.
 
 This area changed around Trealla v2.99.12 and has been associated in the
 project notes with upstream issue #1026.  Confirm the exact current behavior

@@ -34,8 +34,10 @@ Node startup accepts Trinity-compatible execution profiles and native Trealla
 `off`, `blacklist`, and `whitelist` sandbox modes. Public goals, opaque
 meta-calls, asserted clauses, and source-bearing spawn options pass through
 the configured policy. Execution/idle time, actor count, page size, and text
-input ceilings are enforced independently. Authentication, general origin
-policy, inference/stack ceilings, and OS-level containment remain necessary.
+input ceilings are enforced independently. HTTP/WebSocket authentication,
+browser WebSocket origin policy, and per-connection actor ownership are
+enforced by the node boundary. Persistent token administration,
+inference/stack ceilings, and OS-level containment remain necessary.
 */
 
 :- use_module(library(dcgs)).
@@ -337,9 +339,9 @@ send_to_target(actor(Pid), Message) :-
                  *******************************/
 
 relay_start(WS) :-
-    bb_put('$web_prolog_actors', []),
-    bb_put('$web_prolog_monitors', []),
-    bb_put('$web_prolog_halts', []),
+    relay_set_actors([]),
+    relay_set_monitors([]),
+    relay_set_halts([]),
     relay_loop(WS).
 
 relay_loop(WS) :-
@@ -358,9 +360,7 @@ relay_message(_, '$ws_close') :- !,
     close_browser_io(Relay),
     relay_actors(Actors),
     stop_relay_actors(Actors),
-    bb_put('$web_prolog_actors', []),
-    bb_put('$web_prolog_monitors', []),
-    bb_put('$web_prolog_halts', []).
+    relay_clear_state.
 relay_message(WS, '$transport_hello'(Version, IoAck, Profile, Sandbox, Reader)) :- !,
     self(Relay),
     set_browser_io_enabled(Relay, IoAck),
@@ -493,19 +493,24 @@ fresh_wire_pid(WirePid) :-
     WirePid = Candidate.
 
 relay_actors(Actors) :-
-    ( bb_get('$web_prolog_actors', Actors) -> true ; Actors = [] ).
+    relay_state_key(actors, Key),
+    ( bb_get(Key, Actors) -> true ; Actors = [] ).
+
+relay_set_actors(Actors) :-
+    relay_state_key(actors, Key),
+    bb_put(Key, Actors).
 
 relay_actor(WirePid, RuntimePid, Kind) :-
     relay_actors(Actors), memberchk(actor(WirePid, RuntimePid, Kind), Actors).
 
 relay_add_actor(WirePid, RuntimePid, Kind) :-
     relay_actors(Actors),
-    bb_put('$web_prolog_actors', [actor(WirePid, RuntimePid, Kind)|Actors]).
+    relay_set_actors([actor(WirePid, RuntimePid, Kind)|Actors]).
 
 relay_remove_actor(WirePid) :-
     relay_actors(Actors),
     exclude(wire_actor(WirePid), Actors, Rest),
-    bb_put('$web_prolog_actors', Rest).
+    relay_set_actors(Rest).
 
 wire_actor(WirePid, actor(WirePid, _, _)).
 
@@ -515,25 +520,30 @@ stop_relay_actors([actor(_, RuntimePid, _)|Actors]) :-
     stop_relay_actors(Actors).
 
 relay_monitors(Monitors) :-
-    ( bb_get('$web_prolog_monitors', Monitors) -> true ; Monitors = [] ).
+    relay_state_key(monitors, Key),
+    ( bb_get(Key, Monitors) -> true ; Monitors = [] ).
+
+relay_set_monitors(Monitors) :-
+    relay_state_key(monitors, Key),
+    bb_put(Key, Monitors).
 
 relay_add_monitor(RuntimePid, Ref) :-
     relay_monitors(Monitors),
     ( memberchk(monitor(RuntimePid, Ref), Monitors) -> true
-    ; bb_put('$web_prolog_monitors', [monitor(RuntimePid, Ref)|Monitors])
+    ; relay_set_monitors([monitor(RuntimePid, Ref)|Monitors])
     ).
 
 relay_remove_monitor(Ref) :-
     relay_monitors(Monitors),
     exclude(monitor_ref(Ref), Monitors, Rest),
-    bb_put('$web_prolog_monitors', Rest).
+    relay_set_monitors(Rest).
 
 monitor_ref(Ref, monitor(_, Ref)).
 
 relay_take_monitors(RuntimePid, Refs) :-
     relay_monitors(Monitors),
     take_runtime_monitors(Monitors, RuntimePid, Refs, Rest),
-    bb_put('$web_prolog_monitors', Rest).
+    relay_set_monitors(Rest).
 
 take_runtime_monitors([], _, [], []).
 take_runtime_monitors([monitor(RuntimePid, Ref)|Monitors], RuntimePid,
@@ -543,13 +553,34 @@ take_runtime_monitors([Monitor|Monitors], RuntimePid, Refs, [Monitor|Rest]) :-
     take_runtime_monitors(Monitors, RuntimePid, Refs, Rest).
 
 relay_add_halt(RuntimePid, WirePid) :-
-    ( bb_get('$web_prolog_halts', Halts) -> true ; Halts = [] ),
-    bb_put('$web_prolog_halts', [halt(RuntimePid, WirePid)|Halts]).
+    relay_halts(Halts),
+    relay_set_halts([halt(RuntimePid, WirePid)|Halts]).
 
 relay_take_halt(RuntimePid, WirePid) :-
-    bb_get('$web_prolog_halts', Halts),
+    relay_halts(Halts),
     select(halt(RuntimePid, WirePid), Halts, Rest), !,
-    bb_put('$web_prolog_halts', Rest).
+    relay_set_halts(Rest).
+
+relay_halts(Halts) :-
+    relay_state_key(halts, Key),
+    ( bb_get(Key, Halts) -> true ; Halts = [] ).
+
+relay_set_halts(Halts) :-
+    relay_state_key(halts, Key),
+    bb_put(Key, Halts).
+
+relay_state_key(Kind, Key) :-
+    thread_self(Relay),
+    format(atom(Key), '$web_prolog_~w_~w', [Kind, Relay]).
+
+relay_clear_state :-
+    relay_delete_state(actors),
+    relay_delete_state(monitors),
+    relay_delete_state(halts).
+
+relay_delete_state(Kind) :-
+    relay_state_key(Kind, Key),
+    ( bb_delete(Key, _) -> true ; true ).
 
 send_down_events(_, _, [], _).
 send_down_events(WS, Pid, [Ref|Refs], Reason) :-

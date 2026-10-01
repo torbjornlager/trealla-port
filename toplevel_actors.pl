@@ -239,8 +239,12 @@ receive_with_idle_limit(Clauses, IdleLimit) :-
 run_call(Pid, Goal, Template, Offset, Limit0, Target1,
          TimeLimit, IdleLimit) :-
     catch(
-        ( Count  = count(Limit0),
-          Target = target(Target1),
+        ( % Explicit construction avoids Trealla v3.12.6 retaining an argument
+          % from a compound-literal cell used by an earlier actor thread.
+          functor(Count, count, 1),
+          arg(1, Count, Limit0),
+          functor(Target, target, 1),
+          arg(1, Target, Target1),
           create_resource_timer(TimeLimit, Timer),
           drive(Pid, Goal, Template, Offset, Count, Target, IdleLimit),
           disarm_resource_timer(Timer)

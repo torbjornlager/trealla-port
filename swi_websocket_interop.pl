@@ -10,6 +10,7 @@
             concurrent_client_test/3,
             protocol_server/1,
             protocol_client_test/1,
+            private_ownership_client_test/1,
             browser_io_client_test/1,
             browser_distributed_io_client_test/2,
             trinity_service_node/2,
@@ -109,6 +110,34 @@ protocol_client_test(Port) :-
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
     format('SWI Web Prolog protocol client test: ok~n').
+
+private_ownership_client_test(Port) :-
+    format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
+    ( catch(http_open_websocket(URL, Unauthenticated, []), _, fail)
+    -> catch(ws_close(Unauthenticated, 1000, done), _, true), fail
+    ; true
+    ),
+    Auth = [request_header('Authorization'='Bearer interop-secret')],
+    http_open_websocket(URL, Owner, Auth),
+    http_open_websocket(URL, Stranger, Auth),
+    send_json(Owner, json{command:"transport_hello", version:1}),
+    receive_type(Owner, "transport_welcome", _),
+    send_json(Stranger, json{command:"transport_hello", version:1}),
+    receive_type(Stranger, "transport_welcome", _),
+    send_json(Owner,
+              json{command:"toplevel_spawn", options:"[session(true)]"}),
+    receive_type(Owner, "spawned", Spawned),
+    Pid = Spawned.pid,
+    send_json(Stranger,
+              json{command:"toplevel_call", pid:Pid,
+                   goal:"true", options:"[]"}),
+    receive_type(Stranger, "error", Denied),
+    sub_string(Denied.data, _, _, _, "permission_error"),
+    send_json(Owner, json{command:"toplevel_halt", pid:Pid}),
+    receive_type(Owner, "halted", _),
+    ws_close(Stranger, 1000, done),
+    ws_close(Owner, 1000, done),
+    format('SWI private authentication and connection ownership test: ok~n').
 
 browser_io_client_test(Port) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),

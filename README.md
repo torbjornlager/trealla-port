@@ -12,6 +12,7 @@ The port lives alongside this report:
 | `actors.pl`           | Actor runtime, local names, and published services  |
 | `toplevel_actors.pl`  | Shell-style PTCP for paged goal execution           |
 | `node.pl`             | HTTP server exposing `/call` for remote queries     |
+| `auth_policy.pl`      | Authentication, authorization, and WS origin policy |
 | `rpc.pl`              | HTTP client wrapper (`rpc/2,3`) over `/call`        |
 | `websocket.pl`        | Native RFC 6455 WebSocket client/server transport   |
 | `web_prolog.pl`       | Trinity-compatible version-1 actor protocol         |
@@ -29,7 +30,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 33 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 68 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
@@ -100,6 +101,7 @@ override their defaults.
 | 42–46 | execution-profile enforcement           | ok |
 | 47–56 | sandbox and public source policy        | ok |
 | 57–62 | resource governance                     | ok |
+| 63–68 | authentication and WebSocket origin policy | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -314,10 +316,52 @@ does not expose SWI-equivalent inference or per-thread stack ceilings, so
 process memory/CPU containment remains the deployment boundary for those
 resources.
 
+Authentication is configured independently of profiles and sandboxing.  Open
+mode remains the compatibility default; private mode requires an authenticated
+principal for both `/call` and `/ws`; development mode grants its development
+principal only to a direct loopback TCP peer:
+
+```prolog
+?- web_prolog_node(3060,
+       [ auth(private),
+         bearer_token(alice, 'replace-with-a-secret', [execute]),
+         ws_allowed_origins(['https://portal.example.org'])
+       ]).
+```
+
+The static `bearer_token(Id, Token, Capabilities)` form is an initial native
+credential mechanism. Tokens are kept as plaintext in process memory, so they
+must be high-entropy secrets, passed only over TLS, and supplied without
+exposing them in shell history or logs. This does not yet replace Trinity's
+full hashed, persistent token-issuance and revocation lifecycle. A bearer can
+also be used by the explicit distribution API:
+
+```prolog
+?- remote_node_open('wss://node.example.org/ws', Node,
+       [header('Authorization', 'Bearer replace-with-a-secret')]).
+```
+
+For reverse-proxy and node-to-node deployments, `principal(Id, Capabilities)`
+and `authenticated_default_capabilities(Capabilities)` configure trusted
+identity-header policy. `X-Web-Prolog-User` and
+`X-Web-Prolog-Capabilities` are honoured only when the immediate TCP peer is
+loopback or on a private network; operators must ensure that boundary is a
+header-stripping trusted proxy or trusted node network. The distribution
+client's existing `node:trealla`/`internal_transport` headers therefore work
+between private-network Trealla and SWI nodes without changing the wire
+protocol.
+
+WebSocket requests without an `Origin` header remain available to native
+clients. Browser requests must be same-origin with the request `Host`, or
+their normalized origin must appear in `ws_allowed_origins/1`. This prevents
+an unrelated web page from driving the actor endpoint even when the node is
+otherwise open.
+
 The optional `transport_welcome` event advertises the configured profile and
-sandbox in additive `profile` and `sandbox` fields. These Prolog-level checks
-are defense in depth, not a host security boundary: public deployment still
-requires authentication and OS/container isolation.
+sandbox in additive `profile` and `sandbox` fields. Authentication is enforced
+before an HTTP call or WebSocket upgrade. These Prolog-level checks are defense
+in depth, not a host security boundary: public deployment still requires TLS,
+careful identity configuration, and OS/container isolation.
 
 Protocol version 1 uses one JSON object per text frame.  The port accepts the
 core actor commands `spawn`, `send`, `monitor`, `demonitor`, and `exit`, plus
@@ -359,11 +403,17 @@ protocol even though current Trealla thread handles are opaque terms.  A
 dedicated relay actor is the only WebSocket writer, while the connection
 reader remains free to accept `next`, `stop`, and `abort` during execution.
 Actors and sessions owned by a connection are terminated when it closes.
+Every PID-bearing control command also resolves the PID through that
+connection's relay, so a second authenticated connection cannot send to,
+monitor, exit, stop, abort, respond to, or halt another connection's actors or
+sessions. Published services are the deliberate exception: their names form a
+separate explicitly published routing surface.
 
-The current protocol layer does not yet port Trinity's origin/authentication
-policy, resource quotas, or full node-controller routing table. Do not expose
-its goal execution endpoint directly to an untrusted network without those
-layers and OS-level containment.
+The native layer now has profile, sandbox, resource, authentication, origin,
+and connection-ownership enforcement. It does not yet port Trinity's complete
+token administration, audit/rate-limit infrastructure, or full node-controller
+routing table. Do not expose goal execution directly to an untrusted network
+without TLS and OS-level containment.
 
 ### Persistent remote nodes
 
@@ -563,9 +613,10 @@ X = a ; X = b ; X = c.
 - Core version-1 wire compatibility and source-bearing actor/toplevel spawns
   now include execution-profile enforcement and native Trealla blacklist and
   whitelist sandbox modes plus wall-time, idle, actor-count, page-size, and
-  textual-input ceilings. Authentication and the deployment boundary still
-  need to be ported. `src_uri/1` remains disabled pending an explicit
-  fetch-origin policy.
+  textual-input ceilings, authentication, WebSocket origin checks, and
+  connection ownership. Persistent hashed token administration, audit/rate
+  limiting, and the deployment boundary still need to be ported. `src_uri/1`
+  remains disabled pending an explicit fetch-origin policy.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.
 

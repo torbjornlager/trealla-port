@@ -304,20 +304,13 @@ peer_is_private(ip(10, _, _, _)).
 peer_is_private(ip(172, B, _, _)) :- B >= 16, B =< 31.
 peer_is_private(ip(192, 168, _, _)).
 peer_is_private(Host) :-
-    text_atom(Host, Atom), atom_codes(Atom, Codes),
-    ( prefix_codes("10.", Codes)
-    ; prefix_codes("192.168.", Codes)
-    ; prefix_codes("172.", Codes),
-      append("172.", Tail, Codes), take_word_until_dot(Tail, BCodes),
-      number_codes(B, BCodes), B >= 16, B =< 31
+    text_atom(Host, Atom),
+    ( atom_concat('10.', _, Atom)
+    ; atom_concat('192.168.', _, Atom)
+    ; atom_concat('172.', Tail, Atom),
+      atomic_list_concat([BAtom|_], '.', Tail),
+      atom_number(BAtom, B), B >= 16, B =< 31
     ).
-
-take_word_until_dot([], []).
-take_word_until_dot([0'.|_], []) :- !.
-take_word_until_dot([C|Cs], [C|Word]) :- take_word_until_dot(Cs, Word).
-
-prefix_codes([], _).
-prefix_codes([C|Cs], [C|Rest]) :- prefix_codes(Cs, Rest).
 
 text_atom(Value, Value) :- atom(Value), !.
 text_atom(Value, Atom) :- is_list(Value), !, atom_chars(Atom, Value).

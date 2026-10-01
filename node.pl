@@ -105,6 +105,7 @@ Accepted HTTP and WebSocket connections run in independent detached threads.
 :- use_module(library(sockets)).
 :- use_module(actors).
 :- use_module(profile_policy).
+:- use_module(auth_policy).
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
 :- use_module(websocket).
@@ -223,7 +224,9 @@ node(Port, WebSocketHandler) :-
 
 %!  node(+Port, :WebSocketHandler, +Options) is det.
 %
-%   Options include `profile(Profile)`, `sandbox(Mode)`, `relations(Patterns)`,
+%   Options include `profile(Profile)`, `sandbox(Mode)`, `auth(Mode)`,
+%   `principal(Id, Capabilities)`, `bearer_token(Id, Token, Capabilities)`,
+%   `ws_allowed_origins(Origins)`, `relations(Patterns)`,
 %   `time_limit(Seconds)`, `idle_limit(Seconds)`, `max_actors(Count)`,
 %   `max_solutions(Count)`, `max_term_text_bytes(Bytes)`,
 %   `max_source_text_bytes(Bytes)`, `max_ws_frame_bytes(Bytes)`, `ssl(true)`,
@@ -241,13 +244,15 @@ node_server(Port, WebSocketHandler, Options) :-
     normalize_sandbox_mode(Sandbox0, Sandbox),
     option(relations(RelationPatterns0), Options, []),
     normalize_relation_patterns(RelationPatterns0, RelationPatterns),
+    configure_auth_policy(Options, AuthPolicy),
+    AuthPolicy = auth_config(AuthMode, _, _, _, _, _, _, _),
     configure_resource_policy(Options, _ResourcePolicy),
     node_socket_options(Options, SocketOptions),
     option(websocket_options(WebSocketOptions0), Options, []),
     resource_websocket_options(WebSocketOptions0, WebSocketOptions),
     socket_server_open(Port, S, SocketOptions),
-    format("Node listening on port ~w (profile ~w, sandbox ~w)~n",
-           [Port, Profile, Sandbox]),
+    format("Node listening on port ~w (profile ~w, sandbox ~w, auth ~w)~n",
+           [Port, Profile, Sandbox, AuthMode]),
     node_loop(S, WebSocketHandler, WebSocketOptions,
               Profile, Sandbox, RelationPatterns).
 
@@ -269,9 +274,9 @@ node_copy_option(Name, Options, Input, Output) :-
 
 node_loop(S, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
           RelationPatterns) :-
-    ( catch(socket_server_accept(S, _, C, [type(binary)]), Error,
+    ( catch(socket_server_accept(S, Peer, C, [type(binary)]), Error,
             ( format(user_error, "node: accept error: ~q~n", [Error]), fail ))
-    -> ( catch(thread_create(node_serve(C, WebSocketHandler, WebSocketOptions,
+    -> ( catch(thread_create(node_serve(C, Peer, WebSocketHandler, WebSocketOptions,
                                        Profile, Sandbox, RelationPatterns), _,
                              [detached(true)]),
                ThreadError,
@@ -284,9 +289,9 @@ node_loop(S, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
     node_loop(S, WebSocketHandler, WebSocketOptions,
               Profile, Sandbox, RelationPatterns).
 
-node_serve(C, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
+node_serve(C, Peer, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
            RelationPatterns) :-
-    catch(handle_connection(C, WebSocketHandler, WebSocketOptions,
+    catch(handle_connection(C, Peer, WebSocketHandler, WebSocketOptions,
                             Profile, Sandbox, RelationPatterns), Error,
           format(user_error, "node: error handling request: ~q~n", [Error])),
     catch(close(C), _, true).
@@ -297,7 +302,7 @@ node_serve(C, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
 %   Dispatch `/call` as ordinary HTTP and `/ws` as an RFC 6455 socket
 %   handoff. Other paths receive a 404 response.
 
-handle_connection(C, WebSocketHandler, WebSocketOptions,
+handle_connection(C, Peer, WebSocketHandler, WebSocketOptions,
                   Profile, Sandbox, RelationPatterns) :-
     node_http_request(C, Method, Path, Ver, Headers),
     ( split(Path, '?', PathPart, _)
@@ -306,31 +311,49 @@ handle_connection(C, WebSocketHandler, WebSocketOptions,
     ),
     atom_chars(PathAtom, PathPart),
     ( Method == get, PathAtom == '/call'
-    -> handle_call_route(C, Path, Ver, Profile, Sandbox, RelationPatterns)
+    -> handle_call_route(C, Path, Ver, Peer, Headers,
+                         Profile, Sandbox, RelationPatterns)
     ; Method == get, PathAtom == '/ws', WebSocketHandler \== none
-    -> ( catch(profile_check_route(Profile, ws), Error,
-               reply_profile_denied(C, Ver, Error))
-       -> ( var(Error)
-          -> ws_accept(C, Headers, WebSocket, WebSocketOptions),
-             call(WebSocketHandler, WebSocket, PathAtom)
-          ;  true
-          )
-       ; true
-       )
+    -> handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
+                       WebSocketOptions, Profile, PathAtom)
     ;  http_reply(C, Ver, 404, 'Not Found',
                   'text/plain', 'Not found\n')
     ).
 
-handle_call_route(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
-    catch(profile_check_route(Profile, call), RouteError, true),
+handle_call_route(C, Path, Ver, Peer, Headers,
+                  Profile, Sandbox, RelationPatterns) :-
+    catch(( request_principal(Peer, Headers, Principal),
+            require_route_access(Principal, call),
+            profile_check_route(Profile, call) ), RouteError, true),
     ( var(RouteError)
     -> effective_profile_for_route(Profile, call, EffectiveProfile),
        catch(handle_call(C, Path, Ver, EffectiveProfile, Sandbox,
                          RelationPatterns),
              Error,
              reply_answer(C, Ver, prolog, error(Error)))
-    ;  reply_profile_denied(C, Ver, RouteError)
+    ;  reply_policy_denied(C, Ver, RouteError)
     ).
+
+handle_ws_route(C, Ver, Peer, Headers, WebSocketHandler,
+                WebSocketOptions, Profile, PathAtom) :-
+    catch(( ws_require_allowed_origin(Peer, Headers),
+            request_principal(Peer, Headers, Principal),
+            require_route_access(Principal, ws),
+            profile_check_route(Profile, ws) ), Error, true),
+    ( var(Error)
+    -> ws_accept(C, Headers, WebSocket, WebSocketOptions),
+       call(WebSocketHandler, WebSocket, PathAtom)
+    ; reply_policy_denied(C, Ver, Error)
+    ).
+
+reply_policy_denied(C, Ver, Error) :-
+    Error = error(authentication_required(_), _), !,
+    format(atom(Body), '~q.\n', [error(Error)]),
+    http_reply(C, Ver, 401, 'Unauthorized',
+               'text/plain; charset=UTF-8', Body,
+               ['WWW-Authenticate'-'Bearer realm="web-prolog"']).
+reply_policy_denied(C, Ver, Error) :-
+    reply_profile_denied(C, Ver, Error).
 
 reply_profile_denied(C, Ver, Error) :-
     format(atom(Body), '~q.\n', [error(Error)]),
@@ -456,14 +479,24 @@ param(Key, Params, Val, Default) :-
 %   would produce list notation in the response.
 
 http_reply(C, Ver, Code, Status, CType, Body) :-
+    http_reply(C, Ver, Code, Status, CType, Body, []).
+
+http_reply(C, Ver, Code, Status, CType, Body, ExtraHeaders) :-
     atom_codes(Body, BodyCodes), node_utf8_encode(BodyCodes, BodyBytes),
     length(BodyBytes, Length),
+    http_extra_headers(ExtraHeaders, ExtraHeaderText),
     format(atom(Header),
-           'HTTP/~w ~w ~w\r\nContent-Type: ~w\r\nContent-Length: ~w\r\nConnection: close\r\n\r\n',
-           [Ver, Code, Status, CType, Length]),
+           'HTTP/~w ~w ~w\r\nContent-Type: ~w\r\nContent-Length: ~w\r\n~wConnection: close\r\n\r\n',
+           [Ver, Code, Status, CType, Length, ExtraHeaderText]),
     atom_codes(Header, HeaderBytes),
     node_write_bytes(C, HeaderBytes), node_write_bytes(C, BodyBytes),
     flush_output(C).
+
+http_extra_headers([], '').
+http_extra_headers([Name-Value|Headers], Text) :-
+    format(atom(Line), '~w: ~w\r\n', [Name, Value]),
+    http_extra_headers(Headers, Rest),
+    atom_concat(Line, Rest, Text).
 
 node_write_bytes(_, []).
 node_write_bytes(Stream, [B|Bs]) :-

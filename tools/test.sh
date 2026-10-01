@@ -104,6 +104,7 @@ run_unit() {
     run_tpl_goal "execution profile policy" "run_test_group(profiles)"
     run_tpl_goal "sandbox and public source policy" "run_test_group(sandbox)"
     run_tpl_goal "resource governance" "run_test_group(resources)"
+    run_tpl_goal "authentication and origin policy" "run_test_group(auth)"
     run_with_timeout "WebSocket and protocol vectors" \
         "$TPL" -g "consult('$ROOT/websocket_tests.pl'),(websocket_tests->halt;halt(1))"
 }
@@ -144,8 +145,9 @@ run_interop() {
     swi_protocol_port=$((TEST_PORT_BASE + 3))
     trealla_protocol_port=$((TEST_PORT_BASE + 4))
     trealla_remote_port=$((TEST_PORT_BASE + 5))
+    trealla_private_port=$((TEST_PORT_BASE + 6))
 
-    for candidate_port in "$echo_port" "$reverse_port" "$swi_protocol_port" "$trealla_protocol_port" "$trealla_remote_port"; do
+    for candidate_port in "$echo_port" "$reverse_port" "$swi_protocol_port" "$trealla_protocol_port" "$trealla_remote_port" "$trealla_private_port"; do
         if nc -z 127.0.0.1 "$candidate_port" >/dev/null 2>&1; then
             fail "interoperability port $candidate_port is already in use; set TEST_PORT_BASE"
         fi
@@ -206,6 +208,16 @@ run_interop() {
         -g "browser_distributed_io_client_test($trealla_protocol_port,'http://127.0.0.1:$trealla_remote_port'),halt"
     stop_background "$trealla_remote_pid"
     stop_background "$trealla_protocol_pid"
+
+    start_background "$TPL" -g \
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_private_port,[auth(private),bearer_token(interop,'interop-secret',[execute])])"
+    trealla_private_pid=$STARTED_PID
+    sleep 0.2
+    kill -0 "$trealla_private_pid" 2>/dev/null || fail "private Trealla protocol node did not start on port $trealla_private_port"
+    run_with_timeout "SWI auth and ownership -> private Trealla node" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "private_ownership_client_test($trealla_private_port),halt"
+    stop_background "$trealla_private_pid"
 }
 
 case "$MODE" in

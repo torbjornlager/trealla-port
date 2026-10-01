@@ -109,6 +109,15 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t60 the HTTP solution producer reports execution-time exhaustion
   - t61 PTCP execution timeout returns an error and preserves the session
   - t62 PTCP idle timeout reclaims an inactive session normally
+
+## Tests: authentication and origin policy (t63-t68)
+
+  - t63 authentication modes and compatibility aliases normalize
+  - t64 private mode rejects an anonymous execution request
+  - t65 a configured bearer token authenticates its principal
+  - t66 trusted node headers work only across the private-network boundary
+  - t67 development mode grants execution only to direct loopback peers
+  - t68 WebSocket origins allow native, same-origin, and configured clients
 */
 
 :- use_module(toplevel_actors).
@@ -117,6 +126,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 :- use_module(profile_policy).
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
+:- use_module(auth_policy).
 :- use_module(node).
 
 
@@ -148,6 +158,9 @@ run_test_group(sandbox) :-
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62,
     reset_resource_policy.
+run_test_group(auth) :-
+    t63, t64, t65, t66, t67, t68,
+    reset_auth_policy.
 
 
                 /*******************************
@@ -969,6 +982,75 @@ t62 :-
             [timeout(2),on_timeout(fail)]),
     format("62. PTCP idle reclamation ok~n").
 
+
+                /*******************************
+                * AUTHENTICATION (t63-t68)     *
+                *******************************/
+
+t63 :-
+    normalize_auth_mode(off, open),
+    normalize_auth_mode(public, open),
+    normalize_auth_mode(development, dev),
+    normalize_auth_mode(private, private),
+    configure_auth_policy([], _),
+    current_auth_mode(open),
+    format("63. authentication mode normalization ok~n").
+
+t64 :-
+    configure_auth_policy([auth(private)], _),
+    request_principal('203.0.113.8':42000, [], Principal),
+    Principal = anonymous([public_read]),
+    caught_authentication(require_route_access(Principal, call), call),
+    format("64. private anonymous execution denied ok~n").
+
+t65 :-
+    configure_auth_policy(
+        [auth(private), bearer_token(alice, 'correct horse', [execute])], _),
+    request_principal('203.0.113.8':42000,
+                      [authorization-'Bearer correct horse'], Principal),
+    principal_id(Principal, alice),
+    principal_has_capability(Principal, execute),
+    require_route_access(Principal, ws),
+    request_principal('203.0.113.8':42000,
+                      [authorization-'Bearer wrong'], Anonymous),
+    caught_authentication(require_route_access(Anonymous, ws), ws),
+    format("65. bearer principal authentication ok~n").
+
+t66 :-
+    Headers = ['x-web-prolog-user'-'node:trealla',
+               'x-web-prolog-capabilities'-'execute,internal_transport'],
+    configure_auth_policy([auth(private)], _),
+    request_principal('192.168.1.20':42000, Headers, Trusted),
+    principal_id(Trusted, 'node:trealla'),
+    principal_has_capability(Trusted, internal_transport),
+    require_route_access(Trusted, ws),
+    request_principal('203.0.113.8':42000, Headers, Untrusted),
+    caught_authentication(require_route_access(Untrusted, ws), ws),
+    format("66. trusted transport header boundary ok~n").
+
+t67 :-
+    configure_auth_policy([auth(dev)], _),
+    request_principal('127.0.0.1':42000, [], Local),
+    principal_id(Local, dev),
+    require_route_access(Local, call),
+    request_principal('203.0.113.8':42000, [], Remote),
+    caught_authentication(require_route_access(Remote, call), call),
+    format("67. loopback-only development authentication ok~n").
+
+t68 :-
+    configure_auth_policy(
+        [ws_allowed_origins(['https://portal.example'])], _),
+    ws_require_allowed_origin('203.0.113.8':42000, []),
+    ws_require_allowed_origin('203.0.113.8':42000,
+                              [origin-'http://node.example:3060',
+                               host-'node.example:3060']),
+    ws_require_allowed_origin('203.0.113.8':42000,
+                              [origin-'HTTPS://PORTAL.EXAMPLE/']),
+    caught_origin(ws_require_allowed_origin(
+        '203.0.113.8':42000,
+        [origin-'https://evil.example',host-'node.example:3060'])),
+    format("68. WebSocket origin policy ok~n").
+
 caught_resource(Goal, Category) :-
     catch((Goal, fail),
           error(resource_error(Resource), _),
@@ -976,6 +1058,16 @@ caught_resource(Goal, Category) :-
 
 resource_category(actors, actors).
 resource_category(input_size(_,_,_), input_size).
+
+caught_authentication(Goal, Route) :-
+    catch((Goal, fail),
+          error(authentication_required(Route), _),
+          true).
+
+caught_origin(Goal) :-
+    catch((Goal, fail),
+          error(permission_error(open, websocket_origin, _), _),
+          true).
 
 caught_sandbox(Goal) :-
     catch((Goal, fail),
