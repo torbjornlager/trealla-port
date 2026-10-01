@@ -90,7 +90,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 ## Tests: sandbox and public source policy (t47-t56)
 
   - t47 sandbox modes and compatibility aliases normalize
-  - t48 dangerous direct, nested, qualified, and receive-body goals are denied
+  - t48 dangerous goals are denied while actor `writeln/1` is redirected
   - t49 unsafe source options, directives, and clause heads are denied
   - t50 checked source still loads and executes in a private actor namespace
   - t51 runtime-constructed meta-calls are guarded
@@ -924,6 +924,12 @@ t47 :-
     format("47. sandbox mode normalization ok~n").
 
 t48 :-
+    sandbox_prepare_goal(blacklist, actor, user, writeln(hello), OutputGoal),
+    OutputGoal = actors:terminal_output(hello, [source(io)]),
+    sandbox_prepare_goal(whitelist, actor, user, writeln(hello), WhiteOutputGoal),
+    WhiteOutputGoal = actors:terminal_output(hello, [source(io)]),
+    caught_sandbox(sandbox_prepare_goal(blacklist, actor, user,
+                                        writeln(user_output, hello), _)),
     caught_sandbox(sandbox_prepare_goal(blacklist, actor, user,
                                         open(secret, read, _), _)),
     caught_sandbox(sandbox_prepare_goal(blacklist, actor, user,

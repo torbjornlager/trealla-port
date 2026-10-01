@@ -374,7 +374,7 @@ browser_io_client_test(Port) :-
     receive_type(WS, "spawned", Spawned),
     Pid = Spawned.pid,
     send_json(WS, json{command:"toplevel_call", pid:Pid,
-                       goal:"terminal_output(hello)",
+                       goal:"writeln(hello)",
                        options:"[]"}),
     receive_type(WS, "io_request", Request),
     Request.event.type == "output",

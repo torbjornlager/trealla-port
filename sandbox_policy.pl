@@ -456,6 +456,10 @@ rewrite_goal(_, _, _, _, Goal, Goal).
 
 rewrite_goal_(Mode, Profile, Module, AppPIs, Var,
               sandbox_policy:sandbox_call(Mode,Profile,Module,AppPIs,Var)) :- var(Var).
+% Match the SWI actor I/O prelude without requiring Trealla to redefine a
+% built-in predicate.  The stream-specific writeln/2 remains forbidden.
+rewrite_goal_(_M,_P,_C,_A,writeln(Term),
+              actors:terminal_output(Term,[source(io)])).
 rewrite_goal_(M,P,C,A,(X0,Y0),(X,Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
 rewrite_goal_(M,P,C,A,(X0;Y0),(X;Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
 rewrite_goal_(M,P,C,A,(X0->Y0),(X->Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
@@ -626,7 +630,7 @@ forbidden_pi(put_code/1,stream_io). forbidden_pi(put_code/2,stream_io).
 forbidden_pi(read/1,stream_io). forbidden_pi(read/2,stream_io).
 forbidden_pi(read_term/2,stream_io). forbidden_pi(read_term/3,stream_io).
 forbidden_pi(write/1,stream_io). forbidden_pi(write/2,stream_io).
-forbidden_pi(writeln/1,stream_io). forbidden_pi(writeln/2,stream_io).
+forbidden_pi(writeln/2,stream_io).
 forbidden_pi(writeq/1,stream_io). forbidden_pi(writeq/2,stream_io).
 forbidden_pi(write_term/2,stream_io). forbidden_pi(write_term/3,stream_io).
 forbidden_pi(format/1,stream_io). forbidden_pi(format/2,stream_io). forbidden_pi(format/3,stream_io).
@@ -698,6 +702,7 @@ actor_safe_pi(receive/1). actor_safe_pi(receive/2). actor_safe_pi(monitor/2).
 actor_safe_pi(demonitor/1). actor_safe_pi(demonitor/2). actor_safe_pi(exit/1).
 actor_safe_pi(exit/2). actor_safe_pi(register/2). actor_safe_pi(whereis/2).
 actor_safe_pi(unregister/1). actor_safe_pi(output/1). actor_safe_pi(output/2).
+actor_safe_pi(writeln/1).
 actor_safe_pi(input/2). actor_safe_pi(input/3). actor_safe_pi(respond/2).
 actor_safe_pi(make_ref/1). actor_safe_pi(flush/0).
 actor_safe_pi(toplevel_spawn/1). actor_safe_pi(toplevel_spawn/2).
