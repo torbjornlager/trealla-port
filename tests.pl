@@ -201,7 +201,7 @@ run_test_group(actors) :-
     t31, t32, t33, t98.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
-    t22, t27, t28, t29.
+    t22, t27, t28, t29, t99.
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
@@ -483,6 +483,20 @@ t18 :-
     toplevel_call(Pid, between(4,6,N2), [template(N2)]),
     receive({ success(Pid, [4,5,6], false) -> true }),
     format("18. session multi-call ok~n").
+
+%!  t99 is det.
+%
+%   An exact one-solution page must not advertise a continuation merely
+%   because its length equals limit(1). The child's self/1 identity is also
+%   the PID returned by toplevel_spawn/2.
+
+t99 :-
+    self(Me),
+    toplevel_spawn(Pid, [target(Me)]),
+    toplevel_call(Pid, self(Self), [template(Self), limit(1)]),
+    receive({ success(Pid, [Self], false) -> true }),
+    Self == Pid,
+    format("99. exact-page self/1 is deterministic ok~n").
 
 
                 /*******************************

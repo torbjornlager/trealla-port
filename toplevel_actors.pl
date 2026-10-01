@@ -241,12 +241,17 @@ run_call(Pid, Goal, Template, Offset, Limit0, Target1,
     catch(
         ( % Explicit construction avoids Trealla v3.12.6 retaining an argument
           % from a compound-literal cell used by an earlier actor thread.
-          functor(Count, count, 1),
-          arg(1, Count, Limit0),
+          functor(PageCount, count, 1),
+          arg(1, PageCount, Limit0),
+          FetchLimit is Limit0 + 1,
+          functor(FetchCount, count, 1),
+          arg(1, FetchCount, FetchLimit),
+          bb_put('$ptcp_lookahead', []),
           functor(Target, target, 1),
           arg(1, Target, Target1),
           create_resource_timer(TimeLimit, Timer),
-          drive(Pid, Goal, Template, Offset, Count, Target, IdleLimit),
+          drive(Pid, Goal, Template, Offset, PageCount, FetchCount, Target,
+                IdleLimit),
           disarm_resource_timer(Timer)
         ),
         Error0,
@@ -267,7 +272,8 @@ handle_error(Pid, Target, Orig, Error) :-
     Out ! error(Pid, Error).
 
 
-%!  drive(+Pid, +Goal, +Template, +Offset, +Count, +Target) is det.
+%!  drive(+Pid, +Goal, +Template, +Offset, +PageCount, +FetchCount,
+%!        +Target, +IdleLimit) is det.
 %
 %   Step through successive findnsols/4 slices.  After every slice
 %   we read the *current* limit from Count and target from Target,
@@ -275,32 +281,58 @@ handle_error(Pid, Target, Orig, Error) :-
 %   response to a previous `'$next'(Options)` are honoured before
 %   the next slice is computed and sent.
 %
-%   The More flag is set by comparing slice length against the
-%   current limit: Got =:= Limit means a full page (More=true,
-%   suspend in page/2), Got < Limit means the goal was exhausted
-%   within this batch (More=false, terminate).
+%   Fetch one solution beyond the requested first page. This lookahead is
+%   essential when Limit=1: a full page does not itself prove that another
+%   answer exists. The extra answer is retained in thread-local state while
+%   the underlying findnsols/4 choicepoint is suspended. Later pages fetch
+%   Limit new answers, prepend the retained one, and retain at most one new
+%   lookahead answer.
 %
 %   When findnsols/4 has no solutions at all on the first call it
 %   fails outright; the second clause handles this by sending a
 %   single `failure(Pid)`.
 
-drive(Pid, Goal, Template, Offset, Count, Target, IdleLimit) :-
-    findnsols(Count, Template, offset(Offset, Goal), Slice),
+drive(Pid, Goal, Template, Offset, PageCount, FetchCount, Target,
+      IdleLimit) :-
+    ( findnsols(FetchCount, Template, offset(Offset, Goal), Batch)
+    ; Batch = '$exhausted'
+    ),
+    drive_batch(Pid, Batch, PageCount, FetchCount, Target, IdleLimit),
+    !.
+
+drive_batch(Pid, '$exhausted', _PageCount, _FetchCount, Target,
+            _IdleLimit) :-
+    !,
+    carry_values(Retained),
     arg(1, Target, Out),
-    arg(1, Count, Lim),
-    length(Slice, Got),
-    (   Got =:= Lim
-    ->  Out ! success(Pid, Slice, true),
-        page(Count, Target, IdleLimit),
-        !                       % '$stop' -- cut findnsols choicepoint
-    ;   Out ! success(Pid, Slice, false), !
+    ( Retained == [] -> Out ! failure(Pid)
+    ; Out ! success(Pid, Retained, false)
     ).
-drive(Pid, _Goal, _Template, _Offset, _Count, Target, _IdleLimit) :-
+drive_batch(Pid, Batch, PageCount, FetchCount, Target, IdleLimit) :-
+    carry_values(Retained),
+    append(Retained, Batch, Combined),
+    arg(1, PageCount, Limit),
+    split_page(Limit, Combined, Slice, Rest),
     arg(1, Target, Out),
-    Out ! failure(Pid).
+    ( Rest == []
+    -> Out ! success(Pid, Slice, false)
+    ; Rest = [Lookahead],
+      bb_put('$ptcp_lookahead', [Lookahead]),
+      Out ! success(Pid, Slice, true),
+      page(PageCount, FetchCount, Target, IdleLimit)
+    ).
+
+split_page(0, Rest, [], Rest) :- !.
+split_page(_, [], [], []) :- !.
+split_page(N, [X|Xs], [X|Page], Rest) :-
+    Next is N - 1,
+    split_page(Next, Xs, Page, Rest).
+
+carry_values(Values) :-
+    ( bb_get('$ptcp_lookahead', Values) -> true ; Values = [] ).
 
 
-%!  page(+Count, +Target) is semidet.
+%!  page(+PageCount, +FetchCount, +Target, +IdleLimit) is semidet.
 %
 %   State s3: after a More=true slice, wait for the next protocol
 %   command.  On `'$next'(Options)` apply any `limit(NewN)` or
@@ -309,10 +341,12 @@ drive(Pid, _Goal, _Template, _Offset, _Count, Target, _IdleLimit) :-
 %   On `'$stop'` succeed deterministically; the caller (drive/6)
 %   cuts the lingering findnsols choicepoint.
 
-page(Count, Target, IdleLimit) :-
+page(PageCount, FetchCount, Target, IdleLimit) :-
     receive_with_idle_limit({
         '$next'(Options) ->
-            apply_next(Options, Count, Target),
+            apply_next(Options, PageCount, Target),
+            arg(1, PageCount, NextFetch),
+            nb_setarg(1, FetchCount, NextFetch),
             fail ;
         '$stop' ->
             true

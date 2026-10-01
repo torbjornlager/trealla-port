@@ -162,7 +162,7 @@ protocol_client_test(Port) :-
     get_dict('Ys', Split3, "[]"),
     SplitAppend.more == false,
     send_json(WS, json{command:"toplevel_call", pid:Pid,
-                       goal:"self(Self)", options:"[limit(10)]"}),
+                       goal:"self(Self)", options:"[limit(1)]"}),
     receive_json(WS, SelfAnswer),
     SelfAnswer.data = [SelfRow],
     get_dict('Self', SelfRow, SelfText),

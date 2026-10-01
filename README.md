@@ -130,6 +130,7 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 95 | bounded node shutdown and connection cleanup   | ok |
 | 96–97 | operational routes and RPC paging           | ok |
 | 98 | deterministic ten-digit logical `self/1` and spawn identity | ok |
+| 99 | exact-page lookahead (`limit(1)` without false continuation) | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
