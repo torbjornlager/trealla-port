@@ -181,7 +181,10 @@ check_text_size(Field, Text, Limit) :-
 
 text_codes(Text, Codes) :- atom(Text), !, atom_codes(Text, Codes).
 text_codes(Text, Codes) :- string(Text), !, string_codes(Text, Codes).
-text_codes(Text, Text) :- is_list(Text), !.
+text_codes(Text, Codes) :- is_list(Text), !,
+    ( Text = [C|_], integer(C) -> Codes = Text
+    ; atom_chars(Atom, Text), atom_codes(Atom, Codes)
+    ).
 text_codes(Text, _) :- throw(error(type_error(text, Text), resource_policy)).
 
 utf8_size([], 0).

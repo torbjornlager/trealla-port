@@ -1467,6 +1467,7 @@ t58 :-
          max_ws_frame_bytes(6)], _),
     check_term_text_size(goal, 'abcd'),
     caught_resource(check_term_text_size(goal, 'abcde'), input_size),
+    check_source_options_size([src_text(['1','2','\n','3'])]),
     caught_resource(check_source_options_size([src_text('123456789')]),
                     input_size),
     caught_resource(check_ws_frame_size('1234567'), input_size),

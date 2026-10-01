@@ -27,6 +27,7 @@ websocket_tests :-
     profile_advertisement_vector,
     web_prolog_variable_sharing_vector,
     web_prolog_named_binding_vector,
+    multiline_quoted_source_vector,
     browser_io_state_vectors,
     format('WebSocket unit tests: ok~n').
 
@@ -112,6 +113,26 @@ web_prolog_named_binding_vector :-
     Bindings = ['Xs'=TemplateXs,'Ys'=TemplateYs],
     GoalXs == TemplateXs,
     GoalYs == TemplateYs.
+
+multiline_quoted_source_vector :-
+    format(atom(GoalText),
+           'spawn(local_value(X),_,[src_text("~nlocal_value(ok).~n")])',
+           []),
+    web_prolog:read_goal_options(GoalText, '[]', Goal, _Options),
+    Goal = spawn(local_value(_), _, [src_text(Source)]),
+    quoted_source_atom(Source, SourceAtom),
+    sub_atom(SourceAtom, _, _, _, '\n'),
+    read_term_from_atom(SourceAtom, local_value(ok), []),
+    format(atom(CommentGoal), '% ignored "~nX = "~nvalue~n"', []),
+    web_prolog:read_goal_options(CommentGoal, '[]', (_ = Quoted), _),
+    quoted_source_atom(Quoted, QuotedAtom),
+    QuotedAtom == '\nvalue\n'.
+
+quoted_source_atom(Source, Source) :- atom(Source), !.
+quoted_source_atom(Source, Atom) :-
+    ( Source = [C|_], integer(C) -> atom_codes(Atom, Source)
+    ; atom_chars(Atom, Source)
+    ).
 
 browser_io_state_vectors :-
     message_queue_create(ReplyQueue),

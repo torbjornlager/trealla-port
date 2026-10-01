@@ -604,6 +604,11 @@ parsing `goal` and `options` together:
  "goal":"member(X,[a,b,c])", "options":"[template(X),limit(2)]"}
 ```
 
+At this boundary, physical newlines inside quoted atoms and strings are
+translated to equivalent `\n` escapes before Trealla reads the term. This
+preserves SWI-compatible multiline `src_text/1` examples without changing
+newlines used merely to lay out a query.
+
 Trealla allocates stable ten-digit logical actor PIDs and keeps a private
 logical-PID-to-thread registry. The same PID is returned by `spawn/2`, by
 the child actor's `self/1`, and on the WebSocket wire; opaque Trealla thread

@@ -1109,7 +1109,8 @@ json_pid_field(JSON, Key, Pid) :-
 json_term_field(JSON, Key, Term) :-
     json_text_field(JSON, Key, Text),
     check_term_text_size(Key, Text),
-    read_term_from_atom(Text, Term, []).
+    normalize_wire_quoted_newlines(Text, Normalized),
+    read_term_from_atom(Normalized, Term, []).
 
 json_term_default(JSON, Key, Default, Term) :-
     ( json_term_field(JSON, Key, Found) -> Term = Found ; Term = Default ).
@@ -1117,18 +1118,80 @@ json_term_default(JSON, Key, Default, Term) :-
 json_options(JSON, Options) :-
     json_text_default(JSON, options, '[]', Text),
     check_term_text_size(options, Text),
-    read_term_from_atom(Text, Options, []),
+    normalize_wire_quoted_newlines(Text, Normalized),
+    read_term_from_atom(Normalized, Options, []),
     must_be(list, Options).
 
 read_goal_options(GoalText, OptionsText, Goal, Options) :-
     check_term_text_size(goal, GoalText),
     check_term_text_size(options, OptionsText),
-    format(atom(Text), '(~w)-(~w)', [GoalText, OptionsText]),
+    normalize_wire_quoted_newlines(GoalText, NormalizedGoal),
+    normalize_wire_quoted_newlines(OptionsText, NormalizedOptions),
+    format(atom(Text), '(~w)-(~w)', [NormalizedGoal, NormalizedOptions]),
     read_term_from_atom(Text, Goal-Options0, [variable_names(Bindings0)]),
     must_be(list, Options0),
     named_bindings(Bindings0, Bindings),
     exclude(template_option, Options0, CallOptions),
     Options = [template(json_bindings(Bindings))|CallOptions].
+
+% SWI accepts physical line breaks inside quoted atoms and strings.  Trealla
+% v3.12.6 reports unterminated_quoted_atom instead, although it accepts the
+% equivalent \n escape.  Normalize only quoted regions at the protocol
+% boundary; comments, character-code syntax, and ordinary multiline layout
+% remain byte-for-byte unchanged.
+normalize_wire_quoted_newlines(Text, Normalized) :-
+    atom_codes(Text, Codes),
+    normalize_wire_codes(Codes, plain, NormalizedCodes),
+    atom_codes(Normalized, NormalizedCodes).
+
+normalize_wire_codes([], _, []).
+normalize_wire_codes([0'%|Codes], plain, [0'%|Normalized]) :- !,
+    normalize_wire_codes(Codes, line_comment, Normalized).
+normalize_wire_codes([0'/,0'*|Codes], plain, [0'/,0'*|Normalized]) :- !,
+    normalize_wire_codes(Codes, block_comment, Normalized).
+normalize_wire_codes([48,39,92,C|Codes], plain,
+                     [48,39,92,C|Normalized]) :- !,
+    normalize_wire_codes(Codes, plain, Normalized).
+normalize_wire_codes([48,39,C|Codes], plain,
+                     [48,39,C|Normalized]) :- !,
+    normalize_wire_codes(Codes, plain, Normalized).
+normalize_wire_codes([Quote|Codes], plain, [Quote|Normalized]) :-
+    wire_quote(Quote), !,
+    normalize_wire_codes(Codes, quoted(Quote), Normalized).
+normalize_wire_codes([C|Codes], plain, [C|Normalized]) :-
+    normalize_wire_codes(Codes, plain, Normalized).
+normalize_wire_codes([13,10|Codes], line_comment, [13,10|Normalized]) :- !,
+    normalize_wire_codes(Codes, plain, Normalized).
+normalize_wire_codes([C|Codes], line_comment, [C|Normalized]) :-
+    ( C =:= 10 ; C =:= 13 ), !,
+    normalize_wire_codes(Codes, plain, Normalized).
+normalize_wire_codes([C|Codes], line_comment, [C|Normalized]) :-
+    normalize_wire_codes(Codes, line_comment, Normalized).
+normalize_wire_codes([0'*,0'/|Codes], block_comment, [0'*,0'/|Normalized]) :- !,
+    normalize_wire_codes(Codes, plain, Normalized).
+normalize_wire_codes([C|Codes], block_comment, [C|Normalized]) :-
+    normalize_wire_codes(Codes, block_comment, Normalized).
+normalize_wire_codes([92,C|Codes], quoted(Quote),
+                     [92,C|Normalized]) :- !,
+    normalize_wire_codes(Codes, quoted(Quote), Normalized).
+normalize_wire_codes([Quote,Quote|Codes], quoted(Quote),
+                     [Quote,Quote|Normalized]) :- !,
+    normalize_wire_codes(Codes, quoted(Quote), Normalized).
+normalize_wire_codes([Quote|Codes], quoted(Quote), [Quote|Normalized]) :- !,
+    normalize_wire_codes(Codes, plain, Normalized).
+normalize_wire_codes([13,10|Codes], quoted(Quote),
+                     [92,110|Normalized]) :- !,
+    normalize_wire_codes(Codes, quoted(Quote), Normalized).
+normalize_wire_codes([C|Codes], quoted(Quote),
+                     [92,110|Normalized]) :-
+    ( C =:= 10 ; C =:= 13 ), !,
+    normalize_wire_codes(Codes, quoted(Quote), Normalized).
+normalize_wire_codes([C|Codes], quoted(Quote), [C|Normalized]) :-
+    normalize_wire_codes(Codes, quoted(Quote), Normalized).
+
+wire_quote(39).
+wire_quote(34).
+wire_quote(96).
 
 template_option(template(_)).
 
