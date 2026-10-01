@@ -20,6 +20,7 @@
             nested_toplevel_binding_test/2,
             promise_yield_client_test/1,
             promise_yield_client_test/3,
+            remote_spawn_echo_client_test/3,
             browser_distributed_io_client_test/2,
             trinity_service_node/2,
             trinity_terminal_client_test/3
@@ -576,6 +577,39 @@ promise_yield_client_test(URL, OpenOptions, RemoteURL) :-
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
     format('SWI promise/yield -> Trealla protocol node test: ok~n').
+
+remote_spawn_echo_client_test(URL, OpenOptions, RemoteURL) :-
+    http_open_websocket(URL, WS, OpenOptions),
+    send_json(WS, json{command:"transport_hello", version:1,
+                       browser_pids:true, io_ack:true}),
+    receive_type(WS, "transport_welcome", _Welcome),
+    send_json(WS, json{command:"toplevel_spawn",
+                       options:"[session(true)]"}),
+    receive_type(WS, "spawned", Spawned),
+    Shell = Spawned.pid,
+    Source = "echo_actor :- receive({echo(From,Msg) -> From ! echo(Msg), echo_actor; stop -> true}).",
+    format(string(SpawnGoal),
+           "spawn(echo_actor,Pid,[node(~q),monitor(true),src_text(~q)]),register(remote_echo_actor,Pid)",
+           [RemoteURL,Source]),
+    send_json(WS, json{command:"toplevel_call", pid:Shell,
+                       goal:SpawnGoal, options:"[limit(1)]"}),
+    receive_type(WS, "success", SpawnSuccess),
+    SpawnSuccess.data = [SpawnRow],
+    get_dict('Pid', SpawnRow, _RemotePid),
+    EchoGoal = "whereis(remote_echo_actor,Pid),self(Self),Pid ! echo(Self,hello),receive({echo(Msg)->true},[timeout(10),on_timeout(fail)])",
+    send_json(WS, json{command:"toplevel_call", pid:Shell,
+                       goal:EchoGoal, options:"[limit(1)]"}),
+    receive_type(WS, "success", EchoSuccess),
+    EchoSuccess.data = [EchoRow],
+    get_dict('Msg', EchoRow, "hello"),
+    CleanupGoal = "whereis(remote_echo_actor,Pid),unregister(remote_echo_actor),Pid ! stop,receive({down(Pid,_,true)->true},[timeout(10),on_timeout(fail)])",
+    send_json(WS, json{command:"toplevel_call", pid:Shell,
+                       goal:CleanupGoal, options:"[limit(1)]"}),
+    receive_type(WS, "success", _CleanupSuccess),
+    send_json(WS, json{command:"toplevel_halt", pid:Shell}),
+    receive_type(WS, "halted", _Halted),
+    ws_close(WS, 1000, done),
+    format('SWI browser -> Trealla sandboxed remote spawn test: ok~n').
 
 browser_distributed_io_client_test(Port, RemoteURL) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),

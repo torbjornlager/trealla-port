@@ -91,7 +91,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t45 RELATION permits only advertised patterns and conjunctions
   - t46 source-bearing spawn options obey profile policy
 
-## Tests: sandbox and public source policy (t47-t56)
+## Tests: sandbox and public source policy (t47-t56, t119)
 
   - t47 sandbox modes and compatibility aliases normalize
   - t48 dangerous goals are denied while actor `writeln/1` is redirected
@@ -103,6 +103,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t54 runtime-constructed asserted clauses are checked before mutation
   - t55 producer exceptions return to the HTTP worker instead of deadlocking
   - t56 the portable abolish/2 form stays scoped to the actor module
+  - t119 sandboxed remote spawn requires an exact operator allowlist entry
 
 ## Tests: resource governance (t57-t62)
 
@@ -213,7 +214,8 @@ run_test_group(isolation) :-
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
-    t47, t48, t49, t50, t51, t52, t53, t54, t55, t56.
+    t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119,
+    reset_source_policy.
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62, t110,
     reset_resource_policy.
@@ -1480,6 +1482,18 @@ t56 :-
     caught_sandbox(sandbox_prepare_goal(
         blacklist, isotope, user, abolish('$actor_call', 1), _)),
     format("56. scoped portable abolish/2 ok~n").
+
+t119 :-
+    configure_source_policy(
+        [load_uri_allowed_origins(['https://n4.elfenbenstornet.se'])], _),
+    sandbox_prepare_spawn(
+        blacklist, actor, actor_context, true,
+        [node('https://n4.elfenbenstornet.se')],
+        true, [node('https://n4.elfenbenstornet.se')]),
+    caught_sandbox(sandbox_prepare_spawn(
+        blacklist, actor, actor_context, true,
+        [node('https://n3.elfenbenstornet.se')], _, _)),
+    format("119. sandbox remote-spawn origin allowlist ok~n").
 
 
                 /*******************************

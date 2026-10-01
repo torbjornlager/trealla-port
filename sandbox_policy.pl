@@ -482,14 +482,17 @@ reserved_source_name(sandbox_abolish).
 
 check_spawn_options([]).
 check_spawn_options([node(Node)|Options]) :-
-    loopback_node_url(Node),
+    allowed_spawn_node_url(Node),
     !,
     check_spawn_options(Options).
 check_spawn_options([node(Node)|_]) :- !,
     throw(error(permission_error(option, sandboxed, node(Node)),
                 context(sandbox_policy:sandbox_prepare_spawn/7,
-                        'server-side remote spawn is disabled for public code'))).
+                        'remote spawn destination is not allowlisted'))).
 check_spawn_options([_|Options]) :- check_spawn_options(Options).
+
+allowed_spawn_node_url(Node) :- loopback_node_url(Node), !.
+allowed_spawn_node_url(Node) :- source_origin_allowed(Node).
 
 loopback_node_url(Node0) :-
     source_text_atom(Node0, Node),

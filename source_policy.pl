@@ -8,6 +8,7 @@
       resolve_source_options/2,
       fetch_source_uri/2,
       normalize_source_origin/2,
+      source_origin_allowed/1,
       resolve_redirect_uri/3,
       resolve_source_host/3,
       source_address_allowed/2
@@ -261,6 +262,11 @@ normalize_source_origin(Origin0, origin(Scheme, Host, Port)) :-
                   context(source_policy:normalize_source_origin/2,
                           'an allowed origin must not contain a path, query, or fragment')))
     ).
+
+source_origin_allowed(Origin0) :-
+    catch(normalize_source_origin(Origin0, Origin), _, fail),
+    current_source_policy(source_policy(Origins, _, _, _, _)),
+    memberchk(Origin, Origins).
 
 require_allowed_origin(URI, Scheme, Host, Port, Origins) :-
     ( memberchk(origin(Scheme, Host, Port), Origins) -> true
