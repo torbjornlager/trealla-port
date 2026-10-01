@@ -10,6 +10,8 @@
             concurrent_client_test/3,
             protocol_server/1,
             protocol_client_test/1,
+            source_server/1,
+            source_uri_client_test/2,
             private_ownership_client_test/1,
             browser_io_client_test/1,
             browser_distributed_io_client_test/2,
@@ -29,6 +31,12 @@
 :- http_handler(root(actor),
                 http_upgrade_to_websocket(protocol_connection, []),
                 [spawn([])]).
+:- http_handler(root('source.pl'), source_file, []).
+:- http_handler(root('source-redirect.pl'), source_redirect, []).
+:- http_handler(root('source-cross-origin.pl'), source_cross_origin, []).
+:- http_handler(root('source-oversize.pl'), source_oversize, []).
+
+:- dynamic source_fixture_port/1.
 
 server(Port) :-
     http_server(http_dispatch, [port(Port)]),
@@ -39,6 +47,29 @@ protocol_server(Port) :-
     http_server(http_dispatch, [port(Port)]),
     thread_get_message(stop),
     http_stop_server(Port, []).
+
+source_server(Port) :-
+    retractall(source_fixture_port(_)),
+    asserta(source_fixture_port(Port)),
+    http_server(http_dispatch, [port(Port)]),
+    thread_get_message(stop),
+    http_stop_server(Port, []).
+
+source_file(_Request) :-
+    format('Content-type: text/x-prolog; charset=UTF-8~n~n'),
+    format("uri_value('hållå €').~n").
+
+source_redirect(Request) :-
+    http_redirect(see_other, root('source.pl'), Request).
+
+source_cross_origin(Request) :-
+    source_fixture_port(Port),
+    format(atom(Location), 'http://localhost:~w/source.pl', [Port]),
+    http_redirect(see_other, Location, Request).
+
+source_oversize(_Request) :-
+    format('Content-type: text/x-prolog; charset=UTF-8~n~n'),
+    forall(between(1, 256, _), put_char(x)).
 
 trinity_service_node(Port, NodeFile) :-
     use_module(NodeFile),
@@ -111,6 +142,41 @@ protocol_client_test(Port) :-
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
     format('SWI Web Prolog protocol client test: ok~n').
+
+source_uri_client_test(Port, SourcePort) :-
+    format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
+    format(atom(SourceURL),
+           'http://127.0.0.1:~w/source-redirect.pl', [SourcePort]),
+    format(string(SpawnOptions), '[session(true),src_uri(~q)]', [SourceURL]),
+    http_open_websocket(URL, WS, []),
+    send_json(WS, json{command:"transport_hello", version:1}),
+    receive_type(WS, "transport_welcome", _),
+    send_json(WS, json{command:"toplevel_spawn", options:SpawnOptions}),
+    receive_type(WS, "spawned", Spawned),
+    Pid = Spawned.pid,
+    send_json(WS, json{command:"toplevel_call", pid:Pid,
+                       goal:"uri_value(X)", options:"[template(X)]"}),
+    receive_type(WS, "success", Success),
+    Success.data = [SourceValue],
+    atom_codes(SourceValue, SourceCodes),
+    % Protocol values are quoted Prolog text; the outer 39s are apostrophes.
+    SourceCodes == [39,104,229,108,108,229,32,8364,39],
+    send_json(WS, json{command:"toplevel_halt", pid:Pid}),
+    receive_type(WS, "halted", _),
+    format(atom(CrossURL),
+           'http://127.0.0.1:~w/source-cross-origin.pl', [SourcePort]),
+    format(string(CrossOptions), '[src_uri(~q)]', [CrossURL]),
+    send_json(WS, json{command:"toplevel_spawn", options:CrossOptions}),
+    receive_type(WS, "error", CrossOriginDenied),
+    event_data_contains(CrossOriginDenied, source_origin),
+    format(atom(OversizeURL),
+           'http://127.0.0.1:~w/source-oversize.pl', [SourcePort]),
+    format(string(OversizeOptions), '[src_uri(~q)]', [OversizeURL]),
+    send_json(WS, json{command:"toplevel_spawn", options:OversizeOptions}),
+    receive_type(WS, "error", OversizeDenied),
+    event_data_contains(OversizeDenied, input_size),
+    ws_close(WS, 1000, done),
+    format('SWI client -> Trealla allowlisted src_uri test: ok~n').
 
 private_ownership_client_test(Port) :-
     private_http_rate_test(Port),
@@ -338,6 +404,11 @@ receive_json(WS, Dict) :-
 receive_type(WS, Type, Dict) :-
     receive_json(WS, Event),
     ( Event.type == Type -> Dict = Event ; receive_type(WS, Type, Dict) ).
+
+event_data_contains(Event, Needle) :-
+    Data0 = Event.data,
+    ( string(Data0) -> atom_string(Data, Data0) ; Data = Data0 ),
+    sub_atom(Data, _, _, _, Needle).
 
 echo(WebSocket) :-
     ws_receive(WebSocket, Message),

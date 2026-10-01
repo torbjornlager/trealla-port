@@ -47,6 +47,7 @@ still required for an internet-facing node.
 :- use_module(profile_policy).
 :- use_module(isolation).
 :- use_module(resource_policy).
+:- use_module(source_policy).
 
 
                  /*******************************
@@ -88,10 +89,11 @@ sandbox_prepare_spawn(Mode0, Profile, Module, Goal0, Options0,
                       Goal, Options) :-
     normalize_sandbox_mode(Mode0, Mode),
     must_be(list, Options0),
-    check_source_options_size(Options0),
     profile_check_spawn_options(Profile, Options0),
-    ( Mode == off -> Goal = Goal0, Options = Options0
-    ; prepare_source_options(Mode, Profile, Options0, Options, AppPIs),
+    resolve_source_options(Options0, ResolvedOptions),
+    check_source_options_size(ResolvedOptions),
+    ( Mode == off -> Goal = Goal0, Options = ResolvedOptions
+    ; prepare_source_options(Mode, Profile, ResolvedOptions, Options, AppPIs),
       check_spawn_options(Options0),
       profile_check_goal(Profile, Goal0),
       sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal0),
@@ -101,10 +103,11 @@ sandbox_prepare_spawn(Mode0, Profile, Module, Goal0, Options0,
 sandbox_prepare_options(Mode0, Profile, _Module, Options0, Options) :-
     normalize_sandbox_mode(Mode0, Mode),
     must_be(list, Options0),
-    check_source_options_size(Options0),
     profile_check_spawn_options(Profile, Options0),
-    ( Mode == off -> Options = Options0
-    ; prepare_source_options(Mode, Profile, Options0, Options, _),
+    resolve_source_options(Options0, ResolvedOptions),
+    check_source_options_size(ResolvedOptions),
+    ( Mode == off -> Options = ResolvedOptions
+    ; prepare_source_options(Mode, Profile, ResolvedOptions, Options, _),
       check_spawn_options(Options0)
     ).
 
@@ -311,9 +314,8 @@ materialize_source_options([Option|Options0], Options, Terms) :-
     ; Option = src_list(Here)
     -> must_be(list, Here), Options = Rest
     ; Option = src_uri(URI)
-    -> throw(error(permission_error(load, source_uri, URI),
-                   context(sandbox_policy:sandbox_prepare_options/5,
-                           'src_uri/1 remains disabled pending fetch-origin policy')))
+    -> throw(error(domain_error(resolved_source_option, src_uri(URI)),
+                   sandbox_policy:sandbox_prepare_options/5))
     ; Option = src_predicates(PIs)
     -> throw(error(permission_error(copy, server_predicates, PIs),
                    context(sandbox_policy:sandbox_prepare_options/5,

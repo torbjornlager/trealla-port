@@ -118,6 +118,13 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t67 development mode grants execution only to direct loopback peers
   - t68 WebSocket origins allow native, same-origin, and configured clients
 
+## Tests: controlled source URI policy (t85-t88)
+
+  - t85 remote source loading is denied by default
+  - t86 source origins are normalized and validated exactly
+  - t87 relative redirects are resolved without weakening origin checks
+  - t88 unverified HTTPS requires an explicit operator opt-in
+
 ## Tests: per-principal governance (t69-t73)
 
   - t69 rate and concurrency options normalize
@@ -156,6 +163,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 :- use_module(crypto_portable).
 :- use_module(node_tokens).
 :- use_module(node).
+:- use_module(source_policy).
 
 
                 /*******************************
@@ -201,6 +209,9 @@ run_test_group(tokens) :-
     clear_all_tokens,
     clear_tokens_file,
     reset_auth_policy.
+run_test_group(source_policy) :-
+    t85, t86, t87, t88,
+    reset_source_policy.
 
 
                 /*******************************
@@ -1304,6 +1315,57 @@ t84 :-
     require_route_access(Principal, call),
     format("84. managed bearer authentication ok~n").
 
+
+                /*******************************
+                *   SOURCE URI POLICY (85-88) *
+                *******************************/
+
+t85 :-
+    reset_source_policy,
+    caught_source_permission(
+        fetch_source_uri('http://127.0.0.1:9/source.pl', _), source_uri),
+    format("85. remote source loading defaults to denied ok~n").
+
+t86 :-
+    normalize_source_origin('HTTP://Example.COM',
+                            origin(http,'example.com',80)),
+    normalize_source_origin('https://Example.COM:8443/',
+                            origin(https,'example.com',8443)),
+    caught_source_domain(
+        normalize_source_origin('http://example.com/not-an-origin', _),
+        source_origin),
+    caught_source_domain(
+        normalize_source_origin('http://example.com?query=not-origin', _),
+        source_origin),
+    configure_source_policy(
+        [load_uri_allowed_origins(['http://example.com'])],
+        source_policy([origin(http,'example.com',80)],10,5,false)),
+    format("86. source origin normalization ok~n").
+
+t87 :-
+    resolve_redirect_uri('http://example.com/a/b/source.pl', '../next.pl',
+                         'http://example.com/a/b/../next.pl'),
+    resolve_redirect_uri('http://example.com/a/source.pl', '/safe.pl',
+                         'http://example.com/safe.pl'),
+    resolve_redirect_uri('https://example.com/a', '//cdn.example/x.pl',
+                         'https://cdn.example/x.pl'),
+    resolve_redirect_uri('http://example.com/a/source.pl?old=1', '?new=2',
+                         'http://example.com/a/source.pl?new=2'),
+    format("87. source redirect resolution ok~n").
+
+t88 :-
+    configure_source_policy(
+        [load_uri_allowed_origins(['https://example.com'])], _),
+    caught_source_permission(
+        fetch_source_uri('https://example.com/source.pl', _),
+        unverified_https_source),
+    configure_source_policy(
+        [load_uri_allowed_origins(['https://example.com']),
+         allow_unverified_https(true),source_fetch_timeout(2),
+         max_source_redirects(1)],
+        source_policy([origin(https,'example.com',443)],2,1,true)),
+    format("88. HTTPS source opt-in policy ok~n").
+
 read_test_file(File, Text) :-
     setup_call_cleanup(open(File, read, Stream, [type(binary)]),
                        read_test_bytes(Stream, Bytes), close(Stream)),
@@ -1351,6 +1413,16 @@ caught_sandbox(Goal) :-
 caught_permission(Goal) :-
     catch((Goal, fail),
           error(permission_error(_, _, _), _),
+          true).
+
+caught_source_permission(Goal, Object) :-
+    catch((Goal, fail),
+          error(permission_error(load, Object, _), _),
+          true).
+
+caught_source_domain(Goal, Domain) :-
+    catch((Goal, fail),
+          error(domain_error(Domain, _), _),
           true).
 
 caught_profile_violation(Goal, Profile, Subject) :-

@@ -108,6 +108,7 @@ run_unit() {
     run_tpl_goal "per-principal governance" "run_test_group(governance)"
     run_tpl_goal "audit and metrics observability" "run_test_group(observability)"
     run_tpl_goal "persistent bearer-token lifecycle" "run_test_group(tokens)"
+    run_tpl_goal "controlled source URI policy" "run_test_group(source_policy)"
     run_with_timeout "WebSocket and protocol vectors" \
         "$TPL" -g "consult('$ROOT/websocket_tests.pl'),(websocket_tests->halt;halt(1))"
 }
@@ -149,8 +150,9 @@ run_interop() {
     trealla_protocol_port=$((TEST_PORT_BASE + 4))
     trealla_remote_port=$((TEST_PORT_BASE + 5))
     trealla_private_port=$((TEST_PORT_BASE + 6))
+    source_port=$((TEST_PORT_BASE + 7))
 
-    for candidate_port in "$echo_port" "$reverse_port" "$swi_protocol_port" "$trealla_protocol_port" "$trealla_remote_port" "$trealla_private_port"; do
+    for candidate_port in "$echo_port" "$reverse_port" "$swi_protocol_port" "$trealla_protocol_port" "$trealla_remote_port" "$trealla_private_port" "$source_port"; do
         if nc -z 127.0.0.1 "$candidate_port" >/dev/null 2>&1; then
             fail "interoperability port $candidate_port is already in use; set TEST_PORT_BASE"
         fi
@@ -185,8 +187,13 @@ run_interop() {
         "$TPL" -g "consult('$ROOT/websocket_tests.pl'),trealla_protocol_client_test($swi_protocol_port),halt"
     stop_background "$swi_protocol_pid"
 
+    start_background "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "source_server($source_port)"
+    source_server_pid=$STARTED_PID
+    wait_for_port "$source_port" || fail "SWI source fixture did not start on port $source_port"
+
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_protocol_port)"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_protocol_port,[load_uri_allowed_origins(['http://127.0.0.1:$source_port']),max_source_text_bytes(128)])"
     trealla_protocol_pid=$STARTED_PID
     # The native node treats a bare TCP readiness probe as a malformed HTTP
     # request and logs unexpected_eof. Avoid adding noise to successful runs.
@@ -195,6 +202,9 @@ run_interop() {
     run_with_timeout "SWI client -> Trealla protocol node" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "protocol_client_test($trealla_protocol_port),halt"
+    run_with_timeout "SWI client -> Trealla allowlisted source URI" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "source_uri_client_test($trealla_protocol_port,$source_port),halt"
     run_with_timeout "SWI browser terminal -> Trealla protocol node" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "browser_io_client_test($trealla_protocol_port),halt"
@@ -211,6 +221,7 @@ run_interop() {
         -g "browser_distributed_io_client_test($trealla_protocol_port,'http://127.0.0.1:$trealla_remote_port'),halt"
     stop_background "$trealla_remote_pid"
     stop_background "$trealla_protocol_pid"
+    stop_background "$source_server_pid"
 
     start_background "$TPL" -g \
         "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_private_port,[auth(private),bearer_token(interop,'interop-secret',[execute]),bearer_token(observer,'admin-secret',[admin]),max_call_requests_per_window(1),max_ws_actors_per_principal(1)])"

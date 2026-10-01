@@ -112,6 +112,7 @@ Accepted HTTP and WebSocket connections run in independent detached threads.
 :- use_module(node_tokens).
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
+:- use_module(source_policy).
 :- use_module(websocket).
 
 :- meta_predicate(node(+, 2)).
@@ -245,6 +246,8 @@ node(Port, WebSocketHandler) :-
 %   `time_limit(Seconds)`, `idle_limit(Seconds)`, `max_actors(Count)`,
 %   `max_solutions(Count)`, `max_term_text_bytes(Bytes)`,
 %   `max_source_text_bytes(Bytes)`, `max_ws_frame_bytes(Bytes)`, `ssl(true)`,
+%   `load_uri_allowed_origins(Origins)`, `source_fetch_timeout(Seconds)`,
+%   `max_source_redirects(Count)`, `allow_unverified_https(Boolean)`,
 %   `keyfile(File)`, `certfile(File)`, and `websocket_options(Options)` (for
 %   example subprotocol negotiation).  Defaults are `profile(workbench)` and
 %   `sandbox(blacklist)`.
@@ -264,6 +267,7 @@ node_server(Port, WebSocketHandler, Options) :-
     AuthPolicy = auth_config(AuthMode, _, _, _, _, _, _, _),
     configure_governance_policy(Options, _GovernancePolicy),
     configure_resource_policy(Options, _ResourcePolicy),
+    configure_source_policy(Options, _SourcePolicy),
     configure_observability(Options, _ObservabilityPolicy),
     node_socket_options(Options, SocketOptions),
     option(websocket_options(WebSocketOptions0), Options, []),

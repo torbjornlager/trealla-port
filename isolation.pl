@@ -22,10 +22,12 @@ Prolog.  Cleanup therefore retracts every dynamically installed source
 predicate and deletes the short-lived bootstrap file.  The now-empty module
 record remains in Trealla's module table until process exit.
 
-`src_uri/1` is intentionally not implemented in this tranche.
+`src_uri/1` is resolved to inline source by the node's controlled source
+policy before actor creation.
 */
 
 :- use_module(library(error)).
+:- use_module(source_policy).
 
 :- dynamic actor_namespace/2.
 
@@ -118,6 +120,11 @@ text_source(Text) :- string(Text), !.
 text_source(Text) :- is_list(Text).
 
 rewrite_source_options([], _, []).
+rewrite_source_options([src_uri(URI)|Options], Module,
+                       [src_text(Text)|Rewritten]) :-
+    !,
+    fetch_source_uri(URI, Text),
+    rewrite_source_options(Options, Module, Rewritten).
 rewrite_source_options([src_predicates(PIs)|Options], Module0,
                        [src_list(Terms)|Rewritten]) :-
     !,

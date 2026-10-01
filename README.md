@@ -17,6 +17,7 @@ The port lives alongside this report:
 | `observability.pl`    | Audit events, activity tracking, and metrics       |
 | `node_tokens.pl`      | Hashed bearer issuance, revocation, and persistence |
 | `crypto_portable.pl`  | OS randomness and portable SHA-256 fallback        |
+| `source_policy.pl`    | Allowlisted, bounded `src_uri/1` fetching           |
 | `rpc.pl`              | HTTP client wrapper (`rpc/2,3`) over `/call`        |
 | `websocket.pl`        | Native RFC 6455 WebSocket client/server transport   |
 | `web_prolog.pl`       | Trinity-compatible version-1 actor protocol         |
@@ -34,7 +35,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 84 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 88 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
@@ -109,6 +110,7 @@ override their defaults.
 | 69–73 | per-principal rate and concurrency governance | ok |
 | 74–79 | audit, runtime usage, and metrics observability | ok |
 | 80–84 | persistent bearer-token lifecycle       | ok |
+| 85–88 | controlled source-URI policy             | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -292,9 +294,36 @@ Public `src_text/1` and `src_list/1` inputs are parsed, checked, rewritten, and
 then loaded as actor-private terms. Unsafe directives, qualified/reserved
 clause heads, and source-level expansion hooks are rejected. Direct public
 `src_predicates/1` must be materialized by the sending node, as the Trealla
-distribution layer does. `src_uri/1` remains disabled until fetch limits,
-redirect handling, and an origin allowlist are implemented. Nested remote
-spawn is currently restricted to loopback node URLs in sandbox mode.
+distribution layer does. `src_uri/1` is denied by default and becomes
+available only when the operator configures an exact origin allowlist. Nested
+remote spawn is currently restricted to loopback node URLs in sandbox mode.
+
+Remote source uses the same profile and sandbox validation as inline source:
+the response is fetched first, parsed into terms, checked and rewritten, and
+only then installed in the actor-private namespace. Every redirect target is
+checked before connecting, response bodies are streamed under
+`max_source_text_bytes/1`, and URI, response-header, redirect-count, and
+wall-time limits are independent of the remote server. Only absolute HTTP(S)
+source URIs are accepted; local files and credentials in URI authorities are
+not.
+
+```prolog
+?- web_prolog_node(3060,
+       [ load_uri_allowed_origins(
+             ['http://127.0.0.1:8080',
+              'https://source.example.org']),
+         source_fetch_timeout(10),
+         max_source_redirects(5)
+       ]).
+```
+
+Trealla v3.12.6 does not verify TLS host names. For that reason HTTPS source
+fetching fails even for an allowlisted origin unless the operator also sets
+`allow_unverified_https(true)`. That switch acknowledges the limitation; it
+does not provide server authentication. A hostname-verifying reverse proxy is
+the recommended deployment boundary. The origin policy trusts operator-chosen
+host names and does not itself pin resolved IP addresses, so network egress
+policy remains important where DNS rebinding is in scope.
 
 Public nodes also install resource ceilings. They are configured with these
 startup options (defaults shown):
@@ -708,9 +737,9 @@ X = a ; X = b ; X = c.
   whitelist sandbox modes plus wall-time, idle, actor-count, page-size, and
   textual-input ceilings, authentication, WebSocket origin checks, and
   connection ownership, plus per-principal rate and concurrency limits.
-  The deployment boundary still needs to be finalized. `src_uri/1` remains
-  disabled pending an
-  explicit fetch-origin policy.
+  The deployment boundary still needs to be finalized. `src_uri/1` now has an
+  exact-origin, redirect-aware, size- and time-bounded fetch policy, but DNS/IP
+  egress controls remain a deployment responsibility.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.
 
