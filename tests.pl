@@ -205,7 +205,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -1040,6 +1040,20 @@ collect_terminal_lines(N, [Text|Texts]) :-
             [timeout(1), on_timeout(throw(t106_output_timeout(N)))]),
     Next is N - 1,
     collect_terminal_lines(Next, Texts).
+
+%!  t107 is det.
+%
+%   Every private actor module imports the stateless RPC client, and the
+%   sandbox admits rpc/2-3 as data-shipping operations just as SWI does.
+
+t107 :-
+    sandbox_prepare_goal(whitelist, isobase, actor_context,
+                         rpc('https://example.test', member(_, [a,b,c])),
+                         Prepared),
+    Prepared = rpc('https://example.test', member(_, [a,b,c])),
+    isolation:execution_goal(rpc(URL, Goal), Qualified),
+    Qualified = rpc:rpc(URL, Goal),
+    format("107. private sessions expose sandboxed rpc/2-3 ok~n").
 
 
                 /*******************************

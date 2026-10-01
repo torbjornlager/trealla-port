@@ -7,12 +7,12 @@ ARG TREALLA_VERSION=v3.12.6
 FROM debian:bookworm-slim AS trealla-build
 ARG TREALLA_VERSION
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates git make gcc libc6-dev \
+    && apt-get install -y --no-install-recommends ca-certificates git make gcc libc6-dev libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 RUN git clone --depth 1 --branch "$TREALLA_VERSION" \
       https://github.com/trealla-prolog/trealla.git trealla \
-    && make -C trealla -j"$(nproc)" NOSSL=1 NOFFI=1 NOTTY=1
+    && make -C trealla -j"$(nproc)" NOFFI=1 NOTTY=1
 
 FROM debian:bookworm-slim
 ARG TREALLA_VERSION
@@ -22,7 +22,7 @@ LABEL org.opencontainers.image.title="Trealla Web Prolog node" \
       org.opencontainers.image.licenses="MIT"
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates libssl3 \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 10001 webprolog \
     && useradd --uid 10001 --gid webprolog --create-home webprolog \

@@ -754,6 +754,9 @@ safe_pi(bagof/3). safe_pi(setof/3). safe_pi(time/1).
 safe_pi(assert/1). safe_pi(assert/2). safe_pi(asserta/1). safe_pi(asserta/2).
 safe_pi(assertz/1). safe_pi(assertz/2). safe_pi(retract/1). safe_pi(retractall/1).
 safe_pi(abolish/1). safe_pi(abolish/2).
+% Like SWI Web Prolog, treat the shipped goal as data here.  The destination
+% node applies its own profile and sandbox policy when proving it.
+safe_pi(rpc/2). safe_pi(rpc/3).
 
 actor_safe_pi(self/1). actor_safe_pi(spawn/1). actor_safe_pi(spawn/2). actor_safe_pi(spawn/3).
 actor_safe_pi(send/2). actor_safe_pi(send/3). actor_safe_pi(! / 2).

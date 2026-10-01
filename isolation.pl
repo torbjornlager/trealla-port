@@ -43,6 +43,9 @@ actors_library_file(ActorsFile) :-
 sandbox_library_file(SandboxFile) :-
     absolute_file_name('sandbox_policy.pl', SandboxFile, []).
 
+rpc_library_file(RpcFile) :-
+    absolute_file_name('rpc.pl', RpcFile, []).
+
 
                 /*******************************
                 *       PUBLIC OPERATIONS      *
@@ -87,6 +90,14 @@ actor_module(Pid, Module) :-
 actor_source_module(Pid, Module) :-
     actor_source_namespace(Pid, Module).
 
+execution_goal(Goal, Qualified) :-
+    Goal = rpc(URI, RemoteGoal),
+    !,
+    Qualified = rpc:rpc(URI, RemoteGoal).
+execution_goal(Goal, Qualified) :-
+    Goal = rpc(URI, RemoteGoal, Options),
+    !,
+    Qualified = rpc:rpc(URI, RemoteGoal, Options).
 execution_goal(Goal, Qualified) :-
     actors:self(Pid),
     actor_source_namespace(Pid, Module),
@@ -240,15 +251,17 @@ fresh_bootstrap_file(Id, File) :-
 write_bootstrap(File, Module) :-
     actors_library_file(ActorsFile),
     sandbox_library_file(SandboxFile),
+    rpc_library_file(RpcFile),
     setup_call_cleanup(
         open(File, write, Out),
-        write_bootstrap_(Out, Module, ActorsFile, SandboxFile),
+        write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile),
         close(Out)).
 
-write_bootstrap_(Out, Module, ActorsFile, SandboxFile) :-
+write_bootstrap_(Out, Module, ActorsFile, SandboxFile, RpcFile) :-
     format(Out, '%% SPDX-License-Identifier: MIT~n', []),
     format(Out, ':- module(~q, [\'$actor_load\'/1, \'$actor_call\'/1, \'$actor_copy_predicates\'/2, \'$actor_cleanup\'/0]).~n', [Module]),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
+    format(Out, ':- use_module(~q, [rpc/2,rpc/3]).~n', [RpcFile]),
     format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_format/2,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     format(Out, ':- dynamic \'$actor_source_pi\'/1.~n', []),
     format(Out, '\'$actor_load\'([]).~n', []),
@@ -300,6 +313,11 @@ write_bootstrap_(Out, Module, ActorsFile, SandboxFile) :-
     format(Out, '\'$actor_expanded\'((Head :- Body)) :- !, \'$actor_remember\'(Head), assertz((Head :- Body)).~n', []),
     format(Out, '\'$actor_expanded\'(Head) :- \'$actor_remember\'(Head), assertz(Head).~n', []),
     format(Out, '\'$actor_remember\'(Head) :- callable(Head), functor(Head, Name, Arity), PI = Name/Arity, ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ).~n', []),
+    % Trealla does not preserve imports when an arbitrary term is passed
+    % through call/1 here.  Route the flat Web Prolog RPC surface explicitly,
+    % matching the actor_api re-export used by the SWI implementation.
+    format(Out, '\'$actor_call\'(rpc(URI,Goal)) :- !, rpc:rpc(URI,Goal).~n', []),
+    format(Out, '\'$actor_call\'(rpc(URI,Goal,Options)) :- !, rpc:rpc(URI,Goal,Options).~n', []),
     format(Out, '\'$actor_call\'(Goal) :- call(Goal).~n', []),
     format(Out, '\'$actor_copy_predicates\'([], []).~n', []),
     format(Out, '\'$actor_copy_predicates\'([Name/Arity|PIs], Terms) :- \'$actor_source_pi\'(Name/Arity), !, functor(Head,Name,Arity), findall(Term, (clause(Head,Body0), \'$actor_strip_source_module\'(Body0,Body), \'$actor_clause_term\'(Head,Body,Term)), Here), \'$actor_copy_predicates\'(PIs,Rest), append(Here,Rest,Terms).~n', []),

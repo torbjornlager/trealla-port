@@ -11,6 +11,12 @@ so an authenticated browser can use the normal WebSocket protocol without
 custom authorization headers. Starting that backend still requires the
 explicit `WP_ACK_PUBLIC=yes` set in `compose.yaml`. Do not publish port 3060.
 
+The deployment image builds Trealla with OpenSSL so actor code can use
+`rpc/2-3` with HTTPS Web Prolog nodes. Caddy still terminates inbound TLS.
+Trealla v3.12.6 does not verify client-side TLS hostnames completely
+(UPSTREAM_REPORTS.md BUG-005), so production egress policy remains an
+important independent boundary.
+
 ## Local smoke test
 
 Run the complete build and proxy test:
