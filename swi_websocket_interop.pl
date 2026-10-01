@@ -453,6 +453,16 @@ browser_io_client_test_(URL, OpenOptions, ExpectedPort) :-
     receive_type(WS, "success", FormatSuccess),
     FormatSuccess.more == false,
     send_json(WS, json{command:"toplevel_call", pid:Pid,
+                       goal:"writeln(before_fail),writeln(second_before_fail),sleep(0.05),fail",
+                       options:"[]"}),
+    receive_type(WS, "io_request", BeforeFailRequest),
+    BeforeFailRequest.event.data == "before_fail",
+    acknowledge_browser_output(WS, BeforeFailRequest),
+    receive_type(WS, "io_request", SecondBeforeFailRequest),
+    SecondBeforeFailRequest.event.data == "second_before_fail",
+    acknowledge_browser_output(WS, SecondBeforeFailRequest),
+    receive_type(WS, "failure", _BeforeFailFailure),
+    send_json(WS, json{command:"toplevel_call", pid:Pid,
                        goal:"self(Self);writeln(later)",
                        options:"[template(Self),limit(1)]"}),
     receive_json(WS, FirstPage),
@@ -590,10 +600,36 @@ promise_yield_client_test(URL, OpenOptions, RemoteURL) :-
     Completed.data = [CompletedRow],
     get_dict('Late', CompletedRow, LateText),
     sub_string(LateText, 0, _, _, "success("),
+    format(string(PollGoal),
+           "promise(~q,(sleep(0.7),X=polled),PollRef),repeat,yield(PollRef,PollAnswer,[timeout(0.15),on_timeout(PollAnswer=timeout)]),(PollAnswer==timeout->writeln('Still waiting...'),writeln('working...'),sleep(0.05),fail;!)",
+           [RemoteURL]),
+    send_json(WS, json{command:"toplevel_call", pid:Shell,
+                       goal:PollGoal, options:"[limit(1)]"}),
+    receive_promise_poll_result(WS, 0, WaitCount, PollSuccess),
+    WaitCount >= 2,
+    PollSuccess.data = [PollRow],
+    get_dict('PollAnswer', PollRow, PollAnswerText),
+    sub_string(PollAnswerText, 0, _, _, "success("),
     send_json(WS, json{command:"toplevel_halt", pid:Shell}),
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
     format('SWI promise/yield -> Trealla protocol node test: ok~n').
+
+receive_promise_poll_result(WS, Wait0, Wait, Success) :-
+    receive_json(WS, Event),
+    ( Event.type == "io_request" ->
+        acknowledge_browser_output(WS, Event),
+        ( Event.event.data == "Still waiting..." -> Wait1 is Wait0 + 1
+        ; Wait1 = Wait0
+        ),
+        receive_promise_poll_result(WS, Wait1, Wait, Success)
+    ; Event.type == "success" ->
+        Wait = Wait0,
+        Success = Event
+    ; Event.type == "error" ->
+        throw(error(promise_poll_error(Event.data), _))
+    ; receive_promise_poll_result(WS, Wait0, Wait, Success)
+    ).
 
 remote_spawn_echo_client_test(URL, OpenOptions, RemoteURL) :-
     http_open_websocket(URL, WS, OpenOptions),

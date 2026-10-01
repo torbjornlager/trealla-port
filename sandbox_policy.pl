@@ -472,6 +472,7 @@ reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_toplevel_call).
 reserved_source_name(sandbox_format).
 reserved_source_name(sandbox_sleep).
+reserved_source_name(sandbox_builtin_call).
 reserved_source_name(sandbox_clause).
 reserved_source_name(sandbox_assert).
 reserved_source_name(sandbox_asserta).
@@ -855,6 +856,12 @@ sandbox_format(Format, Args) :-
 
 sandbox_sleep(Seconds) :-
     sleep(Seconds).
+
+% Execute a pre-validated primitive in this module, where Trealla exposes its
+% built-ins reliably. Short-lived private modules cannot resolve every native
+% predicate from a compound meta-call.
+sandbox_builtin_call(Goal) :-
+    call(Goal).
 
 % Read clauses from the current actor's submitted program only.  In
 % particular, do not expose the bootstrap predicates, imported libraries, or

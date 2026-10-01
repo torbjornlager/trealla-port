@@ -167,6 +167,16 @@ execution_goal(Goal, Qualified) :-
     !,
     Qualified = rpc:yield(Reference, Answer, Options).
 execution_goal(Goal, Qualified) :-
+    Goal = (promise(URI, RemoteGoal, Reference),
+            repeat,
+            yield(Reference, Answer, Options),
+            ((Answer == Timeout) -> Then ; !)),
+    actors:self(Pid),
+    actor_source_namespace(Pid, Module),
+    !,
+    Qualified = rpc:promise_poll(URI, RemoteGoal, Reference, Answer,
+                                 Options, Timeout, Module, Then).
+execution_goal(Goal, Qualified) :-
     actors:self(Pid),
     actor_source_namespace(Pid, Module),
     !,
@@ -178,30 +188,119 @@ execution_goal(Goal, Qualified) :-
     Qualified = isolation:run_actor_query(Module, Goal).
 execution_goal(Goal, Goal).
 
-run_actor_query(Module, (Left, Right)) :- !,
-    run_actor_query(Module, Left),
-    run_actor_query(Module, Right).
-run_actor_query(Module, (Left ; Right)) :- !,
-    ( run_actor_query(Module, Left)
-    ; run_actor_query(Module, Right)
-    ).
-run_actor_query(Module, (If -> Then)) :- !,
-    ( run_actor_query(Module, If)
-    -> run_actor_query(Module, Then)
-    ).
-run_actor_query(Module, (\+ Goal)) :- !,
-    \+ run_actor_query(Module, Goal).
-run_actor_query(Module, receive(Clauses0)) :- !,
+run_actor_query(Module, Goal0) :-
+    actor_query_goal(Module, Goal0, Goal),
+    call(Goal).
+
+% Preserve native Prolog control scope while preparing receive calls for the
+% actor's private module. Interpreting ';'/2 recursively would run the Else
+% branch after a successful If whose Then later failed. Native control terms
+% and primitives stay in one call/1 scope, so !/0 can prune repeat/0.
+actor_query_goal(Module, (Left0, Right0), (Left, Right)) :- !,
+    actor_query_goal(Module, Left0, Left),
+    actor_query_goal(Module, Right0, Right).
+actor_query_goal(Module, (((Left == Right) -> Then0) ; Else0),
+                 ((isolation:actor_identical(Left, Right), Then) ;
+                  (isolation:actor_not_identical(Left, Right), Else))) :- !,
+    actor_query_goal(Module, Then0, Then),
+    actor_query_goal(Module, Else0, Else).
+actor_query_goal(Module, ((If0 -> Then0) ; Else0),
+                 (isolation:actor_if_choice(If, Choice),
+                  ((Choice = then, Then) ; (Choice = else, Else)))) :- !,
+    actor_query_goal(Module, If0, If),
+    actor_query_goal(Module, Then0, Then),
+    actor_query_goal(Module, Else0, Else).
+actor_query_goal(Module, (Left0 ; Right0), (Left ; Right)) :- !,
+    actor_query_goal(Module, Left0, Left),
+    actor_query_goal(Module, Right0, Right).
+actor_query_goal(Module, (If0 -> Then0), (If -> Then)) :- !,
+    actor_query_goal(Module, If0, If),
+    actor_query_goal(Module, Then0, Then).
+actor_query_goal(Module, (\+ Goal0), (\+ Goal)) :- !,
+    actor_query_goal(Module, Goal0, Goal).
+actor_query_goal(_, !, !) :- !.
+actor_query_goal(Module, receive(Clauses0),
+                 actors:receive_qualified(Qualified, [])) :- !,
     call_in_module(Module, '$actor_qualify_receive'(Clauses0, Clauses)),
-    Qualified = Module:Clauses,
-    actors:receive_qualified(Qualified, []).
-run_actor_query(Module, receive(Clauses0, Options0)) :- !,
+    Qualified = Module:Clauses.
+actor_query_goal(Module, receive(Clauses0, Options0),
+                 actors:receive_qualified(Qualified, Options)) :- !,
     call_in_module(Module, '$actor_qualify_receive'(Clauses0, Clauses)),
     call_in_module(Module, '$actor_qualify_receive_options'(Options0, Options)),
-    Qualified = Module:Clauses,
-    actors:receive_qualified(Qualified, Options).
-run_actor_query(Module, Goal) :-
+    Qualified = Module:Clauses.
+actor_query_goal(_, rpc(URI, Goal), rpc:rpc(URI, Goal)) :- !.
+actor_query_goal(_, rpc(URI, Goal, Options),
+                 rpc:rpc(URI, Goal, Options)) :- !.
+actor_query_goal(_, promise(URI, Goal, Reference),
+                 rpc:promise(URI, Goal, Reference)) :- !.
+actor_query_goal(_, promise(URI, Goal, Reference, Options),
+                 rpc:promise(URI, Goal, Reference, Options)) :- !.
+actor_query_goal(_, promise_cleanup(Reference),
+                 rpc:promise_cleanup(Reference)) :- !.
+actor_query_goal(_, yield(Reference, Answer),
+                 rpc:yield(Reference, Answer)) :- !.
+actor_query_goal(_, yield(Reference, Answer, Options),
+                 rpc:yield(Reference, Answer, Options)) :- !.
+actor_query_goal(_, (Left == Right),
+                 isolation:actor_identical(Left, Right)) :- !.
+actor_query_goal(_, true, true) :- !.
+actor_query_goal(_, fail, fail) :- !.
+actor_query_goal(_, repeat, repeat) :- !.
+actor_query_goal(_, Goal, sandbox_policy:sandbox_builtin_call(Goal)) :-
+    nonvar(Goal),
+    functor(Goal, Name, Arity),
+    actor_direct_builtin_pi(Name/Arity),
+    !.
+actor_query_goal(Module, Goal, isolation:call_actor_leaf(Module, Goal)).
+
+call_actor_leaf(Module, Goal) :-
     call_in_module(Module, '$actor_call'(Goal)).
+
+actor_identical(Left, Right) :-
+    Left == Right.
+
+actor_not_identical(Left, Right) :-
+    Left \== Right.
+
+actor_if_choice(Condition, then) :-
+    call(Condition),
+    !.
+actor_if_choice(_, else).
+
+actor_direct_builtin_pi((=)/2). actor_direct_builtin_pi((\=)/2).
+actor_direct_builtin_pi((==)/2). actor_direct_builtin_pi((\==)/2).
+actor_direct_builtin_pi(true/0). actor_direct_builtin_pi(fail/0).
+actor_direct_builtin_pi(repeat/0).
+actor_direct_builtin_pi((@<)/2). actor_direct_builtin_pi((@=<)/2).
+actor_direct_builtin_pi((@>)/2). actor_direct_builtin_pi((@>=)/2).
+actor_direct_builtin_pi(compare/3). actor_direct_builtin_pi(var/1).
+actor_direct_builtin_pi(nonvar/1). actor_direct_builtin_pi(atom/1).
+actor_direct_builtin_pi(integer/1). actor_direct_builtin_pi(float/1).
+actor_direct_builtin_pi(number/1). actor_direct_builtin_pi(atomic/1).
+actor_direct_builtin_pi(compound/1). actor_direct_builtin_pi(callable/1).
+actor_direct_builtin_pi(ground/1). actor_direct_builtin_pi(acyclic_term/1).
+actor_direct_builtin_pi(functor/3). actor_direct_builtin_pi(arg/3).
+actor_direct_builtin_pi((=..)/2). actor_direct_builtin_pi(copy_term/2).
+actor_direct_builtin_pi(numbervars/3). actor_direct_builtin_pi(term_variables/2).
+actor_direct_builtin_pi(term_hash/2). actor_direct_builtin_pi((is)/2).
+actor_direct_builtin_pi((=:=)/2). actor_direct_builtin_pi((=\=)/2).
+actor_direct_builtin_pi((<)/2). actor_direct_builtin_pi((=<)/2).
+actor_direct_builtin_pi((>)/2). actor_direct_builtin_pi((>=)/2).
+actor_direct_builtin_pi(between/3). actor_direct_builtin_pi(succ/2).
+actor_direct_builtin_pi(length/2). actor_direct_builtin_pi(member/2).
+actor_direct_builtin_pi(memberchk/2). actor_direct_builtin_pi(append/3).
+actor_direct_builtin_pi(reverse/2). actor_direct_builtin_pi(select/3).
+actor_direct_builtin_pi(nth0/3). actor_direct_builtin_pi(nth1/3).
+actor_direct_builtin_pi(sort/2). actor_direct_builtin_pi(msort/2).
+actor_direct_builtin_pi(keysort/2). actor_direct_builtin_pi(atom_length/2).
+actor_direct_builtin_pi(atom_concat/3). actor_direct_builtin_pi(sub_atom/5).
+actor_direct_builtin_pi(atom_chars/2). actor_direct_builtin_pi(atom_codes/2).
+actor_direct_builtin_pi(char_code/2). actor_direct_builtin_pi(number_chars/2).
+actor_direct_builtin_pi(number_codes/2). actor_direct_builtin_pi(atom_number/2).
+actor_direct_builtin_pi(atomic_list_concat/2).
+actor_direct_builtin_pi(atomic_list_concat/3).
+actor_direct_builtin_pi(read_term_from_atom/3).
+actor_direct_builtin_pi(random_between/3).
 
 
                 /*******************************

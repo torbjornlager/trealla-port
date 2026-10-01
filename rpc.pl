@@ -396,3 +396,28 @@ yield_wait(Timeout, Queue, Message) :-
         Message = Message0
     ; Message = '$promise_timeout'
     ).
+
+% Trealla does not propagate bindings reliably when yield/3 is nested in a
+% dynamically reconstructed private-module control term. Keep this standard
+% promise polling idiom in one compiled predicate so timeout bindings are
+% local to an iteration and the eventual answer reaches the caller.
+promise_poll(URI, RemoteGoal, Reference, Answer, Options0, TimeoutValue,
+             Module, TimeoutGoal) :-
+    promise_poll_options(Options0, Answer, TimeoutValue, Options),
+    promise(URI, RemoteGoal, Reference),
+    repeat,
+    yield(Reference, PollAnswer, Options),
+    ( var(PollAnswer) ->
+        isolation:run_actor_query(Module, TimeoutGoal)
+    ; Answer = PollAnswer,
+      !
+    ).
+
+promise_poll_options([], _, _, []).
+promise_poll_options([on_timeout(Answer = TimeoutValue)|Options0],
+                     Answer, TimeoutValue,
+                     [on_timeout(true)|Options]) :- !,
+    promise_poll_options(Options0, Answer, TimeoutValue, Options).
+promise_poll_options([Option|Options0], Answer, TimeoutValue,
+                     [Option|Options]) :-
+    promise_poll_options(Options0, Answer, TimeoutValue, Options).

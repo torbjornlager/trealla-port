@@ -82,6 +82,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t41 source-preparation errors propagate without retaining a namespace
   - t114 node-wide shared source is visible, with local predicate shadowing
   - t116 private actor modules expose the complete toplevel actor API
+  - t121 private-session if-then-else preserves committed failure semantics
 
 ## Tests: execution profiles (t42-t46)
 
@@ -211,7 +212,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109, t114, t116, t117.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109, t114, t116, t117, t121.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -922,6 +923,27 @@ t117 :-
     toplevel_halt(Child, true),
     toplevel_halt(Shell, true),
     format("117. nested toplevel receive binding is isolated ok~n").
+
+t121 :-
+    self(Me),
+    toplevel_spawn(Session, [target(Me),session(true),link(false)]),
+    toplevel_call(Session, (true -> fail ; true), [target(Me)]),
+    receive({failure(Session) -> true},
+            [timeout(1),on_timeout(fail)]),
+    toplevel_call(Session, (fail -> fail ; true), [target(Me)]),
+    receive({success(Session, [_], false) -> true},
+            [timeout(1),on_timeout(fail)]),
+    toplevel_call(Session,
+                  (Bound = timeout, (Bound == timeout -> fail ; true)),
+                  [target(Me)]),
+    receive({failure(Session) -> true},
+            [timeout(1),on_timeout(fail)]),
+    toplevel_call(Session, (member(X, [a,b]), !),
+                  [template(X),target(Me),limit(1)]),
+    receive({success(Session, [a], false) -> true},
+            [timeout(1),on_timeout(fail)]),
+    toplevel_halt(Session, true),
+    format("121. private control commitment semantics ok~n").
 
 
                 /*******************************
