@@ -23,7 +23,10 @@ The module implements the core node-to-node vocabulary: `spawn`, `send`,
 `monitor`, `demonitor`, `exit`, `toplevel_spawn`, `toplevel_call`,
 `toplevel_next`, `toplevel_stop`, `toplevel_abort`, `toplevel_halt`,
 `toplevel_respond`, private acknowledged `io_request` terminal delivery, and
-the additive browser `transport_hello` handshake.
+the additive browser `transport_hello` handshake. Browser clients that
+negotiate `io_ack:true` receive terminal output as `io_request` events and
+must answer with `browser_io_reply`; prompt replies are authorized once and
+scoped to the connection that received the prompt.
 
 This first port is intended for trusted peers.  Unlike the Trinity node it
 does not yet implement authentication, origin checks, execution profiles,
@@ -41,8 +44,18 @@ resource quotas, or a source-code sandbox.
 
 :- multifile actors:hook_send/2.
 :- multifile hook_io_request/2.
+:- multifile hook_terminal_delivery/2.
+:- multifile hook_close_browser_io/1.
 
 :- dynamic node_public_url/1.
+:- dynamic browser_io_enabled/1.
+:- dynamic browser_io_pending/3.
+:- dynamic browser_io_prompt/3.
+
+:- catch(mutex_create(_, [alias('$browser_terminal_io')]),
+         error(permission_error(create, mutex,
+                                '$browser_terminal_io'), _),
+         true).
 
 protocol_version(1).
 
@@ -103,6 +116,7 @@ read_loop(WS, Relay, Reader) :-
     ).
 
 close_connection(Relay) :-
+    close_browser_io(Relay),
     Relay ! '$ws_close'.
 
 
@@ -148,16 +162,19 @@ dispatch_text(Text, Relay, Reader) :-
     json_atom_field(JSON, command, Command),
     dispatch(Command, JSON, Relay, Reader).
 
-dispatch(transport_hello, JSON, Relay, _) :- !,
+dispatch(transport_hello, JSON, Relay, Reader) :- !,
     json_integer_default(JSON, version, 1, Version),
-    ( Version =:= 1 -> Relay ! transport_welcome(1)
+    json_boolean_default(JSON, io_ack, false, IoAck),
+    ( Version =:= 1 ->
+        Relay ! '$transport_hello'(Version, IoAck, Reader),
+        thread_get_message(Reader, '$transport_ready'(Relay))
     ; throw(error(domain_error(web_prolog_protocol_version, Version),
                   web_prolog_handler/2))
     ).
 dispatch(toplevel_spawn, JSON, Relay, _) :- !,
     json_options(JSON, Options0),
     safe_spawn_options(Options0, Options1),
-    spawn_io_options(JSON, Options1, Options),
+    spawn_io_options(JSON, Relay, Options1, Options),
     thread_self(Reader),
     Relay ! '$toplevel_spawn'(Options, Reader),
     thread_get_message(Reader, '$spawned'(_WirePid)).
@@ -173,12 +190,20 @@ dispatch(toplevel_halt, JSON, Relay, _) :- !,
     Relay ! '$ws_command'(toplevel_halt, JSON).
 dispatch(toplevel_respond, JSON, Relay, _) :- !,
     Relay ! '$ws_command'(toplevel_respond, JSON).
+dispatch(browser_io_reply, JSON, Relay, _) :- !,
+    json_text_field(JSON, request_id, RequestId),
+    json_text_field(JSON, status, Status),
+    ( memberchk(Status, [ok,error]) ->
+        browser_io_reply(Relay, RequestId, Status)
+    ; throw(error(domain_error(browser_io_status, Status),
+                  web_prolog_handler/2))
+    ).
 dispatch(spawn, JSON, Relay, Reader) :- !,
     json_term_field(JSON, goal, Goal0),
     import_browser_pids(Goal0, Relay, Goal),
     json_options(JSON, Options0),
     safe_spawn_options(Options0, Options1),
-    spawn_io_options(JSON, Options1, Options),
+    spawn_io_options(JSON, Relay, Options1, Options),
     Relay ! '$spawn'(Goal, Options, Reader),
     thread_get_message(Reader, '$spawned'(_Pid)).
 dispatch(send, JSON, Relay, _) :- !,
@@ -222,10 +247,14 @@ relay_command(toplevel_halt, JSON, Relay) :- !,
     relay_add_halt(Pid, WirePid),
     exit(Pid, kill).
 relay_command(toplevel_respond, JSON, Relay) :- !,
-    owned_pid(JSON, Relay, session, WirePid, Pid),
+    json_pid_field(JSON, pid, WirePid),
     json_term_field(JSON, input, Input0),
     import_browser_pids(Input0, Relay, Input),
-    actors:actor_send(Pid, '$input'(Relay, Input)),
+    ( take_browser_prompt(Relay, WirePid, PromptPid) ->
+        actors:actor_send(PromptPid, '$input'(Relay, Input))
+    ; owned_pid(JSON, Relay, session, WirePid, Pid),
+      actors:actor_send(Pid, '$input'(Relay, Input))
+    ),
     Relay ! responded(WirePid).
 relay_command(send, JSON, Relay) :- !,
     send_target(JSON, Relay, Target),
@@ -294,11 +323,18 @@ relay_loop(WS) :-
     }, []).
 
 relay_message(_, '$ws_close') :- !,
+    self(Relay),
+    close_browser_io(Relay),
     relay_actors(Actors),
     stop_relay_actors(Actors),
     bb_put('$web_prolog_actors', []),
     bb_put('$web_prolog_monitors', []),
     bb_put('$web_prolog_halts', []).
+relay_message(WS, '$transport_hello'(Version, IoAck, Reader)) :- !,
+    self(Relay),
+    set_browser_io_enabled(Relay, IoAck),
+    send_event(WS, transport_welcome(Version)),
+    thread_send_message(Reader, '$transport_ready'(Relay)).
 relay_message(WS, '$peer_close'(Code, Reason, Reader)) :- !,
     self(Relay),
     catch(ws_send(WS, close(Code, Reason)), _, true),
@@ -315,13 +351,37 @@ relay_message(WS, '$toplevel_spawn'(Options, Reader)) :- !,
     thread_send_message(Reader, '$spawned'(WirePid)),
     send_event(WS, spawned(WirePid)).
 relay_message(WS, '$spawn'(Goal, Options, Reader)) :- !,
-    spawn(Goal, RuntimePid, [link(false),monitor(true)|Options]),
+    spawn(web_prolog:run_spawn_goal(Goal), RuntimePid,
+          [link(false),monitor(true)|Options]),
     fresh_wire_pid(WirePid),
     relay_add_actor(WirePid, RuntimePid, actor),
     thread_send_message(Reader, '$spawned'(WirePid)),
     send_event(WS, spawned(WirePid)).
+
+% Calling a conjunction received as data through the module-qualified actor
+% trampoline makes current Trealla try to resolve ','/2 after its first arm.
+% Walk conjunctions here so browser spawn goals retain ordinary Prolog control
+% semantics.
+run_spawn_goal((Left, Right)) :- !,
+    run_spawn_goal(Left),
+    run_spawn_goal(Right).
+run_spawn_goal(Goal) :-
+    call(Goal).
 relay_message(WS, '$browser_message'(Target, Message)) :- !,
     send_event(WS, actor_message(Target, Message)).
+relay_message(WS, '$browser_io_request'(RequestId, Message)) :- !,
+    self(Relay),
+    wire_event(Relay, Message, Event),
+    send_event(WS, browser_io_request(RequestId, Event)).
+relay_message(WS, '$browser_terminal'(prompt(RuntimePid, Data))) :- !,
+    self(Relay),
+    browser_source_pid(Relay, RuntimePid, WirePid),
+    remember_browser_prompt(Relay, WirePid, RuntimePid),
+    send_event(WS, prompt(WirePid, Data)).
+relay_message(WS, '$browser_terminal'(Message)) :- !,
+    self(Relay),
+    wire_event(Relay, Message, Event),
+    send_event(WS, Event).
 relay_message(WS, '$io_request'(JSON)) :- !,
     json_text_field(JSON, request_id, RequestId),
     json_text_field(JSON, token, Token),
@@ -347,6 +407,11 @@ relay_message(WS, down(RuntimePid, _DefaultRef, Reason)) :- !,
     ).
 relay_message(WS, protocol_error(Error)) :- !,
     send_event(WS, error(Error)).
+relay_message(WS, prompt(RuntimePid, Data)) :- !,
+    self(Relay),
+    browser_source_pid(Relay, RuntimePid, WirePid),
+    remember_browser_prompt(Relay, WirePid, RuntimePid),
+    send_event(WS, prompt(WirePid, Data)).
 relay_message(WS, Event) :-
     self(Relay),
     wire_event(Relay, Event, WireEvent),
@@ -362,7 +427,17 @@ wire_event(Relay, output(RuntimePid, Data), output(WirePid, Data)) :- !,
     runtime_connection_pid(Relay, RuntimePid, WirePid).
 wire_event(Relay, prompt(RuntimePid, Data), prompt(WirePid, Data)) :- !,
     runtime_connection_pid(Relay, RuntimePid, WirePid).
+wire_event(Relay, terminal_output(RuntimePid, Data), output(WirePid, Data)) :- !,
+    browser_source_pid(Relay, RuntimePid, WirePid).
+wire_event(Relay, terminal_io_output(RuntimePid, Data), output(WirePid, Data)) :- !,
+    browser_source_pid(Relay, RuntimePid, WirePid).
 wire_event(_, Event, Event).
+
+browser_source_pid(_Relay, RuntimePid, WirePid) :-
+    relay_actor(WirePid, RuntimePid, _),
+    !.
+browser_source_pid(_, '$web_prolog_endpoint'(_, Id), Id@localhost) :- !.
+browser_source_pid(_, RuntimePid, RuntimePid).
 
 runtime_connection_pid(_Relay, RuntimePid, WirePid) :-
     relay_actor(WirePid, RuntimePid, _), !.
@@ -496,6 +571,10 @@ event_json(actor_message(Target, Message), JSON) :- !,
 event_json(io_reply(RequestId, Status), JSON) :- !,
     object([type-string_atom(io_reply),request_id-string_atom(RequestId),
             status-string_atom(Status)], JSON).
+event_json(browser_io_request(RequestId, Event), JSON) :- !,
+    event_json(Event, EventJSON),
+    object([type-string_atom(io_request),request_id-string_atom(RequestId),
+            event-EventJSON], JSON).
 event_json(Event, JSON) :-
     term_wire_atom(Event, Data),
     object([type-string_atom(error), data-string_atom(Data)], JSON).
@@ -508,6 +587,100 @@ event_json(Event, JSON) :-
 actors:hook_send('$web_prolog_endpoint'(Relay, Id), Message) :-
     catch(thread_property(Relay, status(running)), _, fail),
     Relay ! '$browser_message'(Id@localhost, Message).
+
+actors:hook_send('$browser_io'(Relay), Message) :-
+    !,
+    browser_terminal_delivery(Relay, Message).
+
+hook_terminal_delivery('$browser_io'(Relay), Message) :-
+    browser_terminal_delivery(Relay, Message).
+
+browser_terminal_delivery(Relay, Message) :-
+    browser_output_message(Message),
+    !,
+    browser_request_id(RequestId),
+    setup_call_cleanup(
+        message_queue_create(ReplyQueue),
+        ( register_browser_io_request(Relay, RequestId, ReplyQueue),
+          Relay ! '$browser_io_request'(RequestId, Message),
+          ( thread_get_message(ReplyQueue, Status, [timeout(30)]) ->
+              browser_io_result(Status)
+          ; browser_io_result(timeout)
+          )
+        ),
+        ( unregister_browser_io_request(Relay, RequestId),
+          catch(message_queue_destroy(ReplyQueue), _, true)
+        )
+    ).
+browser_terminal_delivery(Relay, Message) :-
+    browser_io_is_enabled(Relay),
+    Relay ! '$browser_terminal'(Message).
+
+browser_output_message(terminal_output(_, _)).
+browser_output_message(terminal_io_output(_, _)).
+
+browser_request_id(RequestId) :-
+    make_ref(ref(N)),
+    format(atom(RequestId), 'browser-~w', [N]).
+
+browser_io_result(ok) :- !.
+browser_io_result(Reason) :-
+    throw(error(io_error(write, Reason), terminal_output/2)).
+
+set_browser_io_enabled(Relay, true) :- !,
+    with_mutex('$browser_terminal_io',
+        ( browser_io_enabled(Relay) -> true
+        ; assertz(browser_io_enabled(Relay))
+        )).
+set_browser_io_enabled(Relay, false) :-
+    close_browser_io(Relay).
+
+browser_io_is_enabled(Relay) :-
+    with_mutex('$browser_terminal_io', browser_io_enabled(Relay)).
+
+register_browser_io_request(Relay, RequestId, ReplyQueue) :-
+    with_mutex('$browser_terminal_io',
+        ( browser_io_enabled(Relay) ->
+            assertz(browser_io_pending(Relay, RequestId, ReplyQueue))
+        ; browser_io_result(connection_closed)
+        )).
+
+unregister_browser_io_request(Relay, RequestId) :-
+    with_mutex('$browser_terminal_io',
+               retractall(browser_io_pending(Relay, RequestId, _))).
+
+browser_io_reply(Relay, RequestId, Status) :-
+    with_mutex('$browser_terminal_io',
+        ( retract(browser_io_pending(Relay, RequestId, ReplyQueue)) ->
+            catch(thread_send_message(ReplyQueue, Status), _, true)
+        ; true
+        )).
+
+remember_browser_prompt(Relay, WirePid, RuntimePid) :-
+    with_mutex('$browser_terminal_io',
+        ( retractall(browser_io_prompt(Relay, WirePid, _)),
+          assertz(browser_io_prompt(Relay, WirePid, RuntimePid))
+        )).
+
+take_browser_prompt(Relay, WirePid, RuntimePid) :-
+    with_mutex('$browser_terminal_io',
+               retract(browser_io_prompt(Relay, WirePid, RuntimePid))).
+
+close_browser_io(Relay) :-
+    with_mutex('$browser_terminal_io',
+        ( retractall(browser_io_enabled(Relay)),
+          retractall(browser_io_prompt(Relay, _, _)),
+          findall(ReplyQueue,
+                  retract(browser_io_pending(Relay, _, ReplyQueue)),
+                  ReplyQueues)
+        )),
+    wake_browser_io_requests(ReplyQueues),
+    forall(hook_close_browser_io(Relay), true).
+
+wake_browser_io_requests([]).
+wake_browser_io_requests([ReplyQueue|ReplyQueues]) :-
+    catch(thread_send_message(ReplyQueue, connection_closed), _, true),
+    wake_browser_io_requests(ReplyQueues).
 
 import_browser_pids(Term0, Relay, Term) :-
     ( browser_wire_pid(Term0, Id) ->
@@ -581,6 +754,12 @@ json_integer_field(JSON, Key, Number) :-
 json_integer_default(JSON, Key, Default, Number) :-
     ( json_integer_field(JSON, Key, Found) -> Number = Found ; Number = Default ).
 
+json_boolean_default(JSON, Key, Default, Boolean) :-
+    ( json_field(JSON, Key, boolean(Found)), memberchk(Found, [true,false]) ->
+        Boolean = Found
+    ; Boolean = Default
+    ).
+
 json_pid_field(JSON, Key, Pid) :-
     json_field(JSON, Key, Value),
     ( Value = number(Pid), integer(Pid)
@@ -607,16 +786,19 @@ read_goal_options(GoalText, OptionsText, Goal, Options) :-
 safe_spawn_options(Options0, Options) :-
     exclude(reserved_spawn_option, Options0, Options).
 
-spawn_io_options(JSON, Options0, [io_target(Endpoint)|Options0]) :-
+spawn_io_options(JSON, _Relay, Options0, [io_target(Endpoint)|Options0]) :-
     json_term_field(JSON, io_target, Endpoint),
     valid_io_endpoint(Endpoint),
     !.
-spawn_io_options(JSON, _, _) :-
+spawn_io_options(JSON, _Relay, _, _) :-
     json_field(JSON, io_target, _),
     !,
     throw(error(domain_error(distributed_io_endpoint, io_target),
                 web_prolog_handler/2)).
-spawn_io_options(_, Options, Options).
+spawn_io_options(_, Relay, Options, [io_target('$browser_io'(Relay))|Options]) :-
+    browser_io_is_enabled(Relay),
+    !.
+spawn_io_options(_, Relay, Options, [io_target(Relay)|Options]).
 
 valid_io_endpoint('$io_endpoint'(Token)@HomeNode) :-
     atom(Token), atom(HomeNode).

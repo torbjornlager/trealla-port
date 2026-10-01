@@ -52,6 +52,7 @@ no Logtalk or foreign code.
     actors:hook_stop/1.
 
 :- multifile web_prolog:hook_io_request/2.
+:- multifile web_prolog:hook_close_browser_io/1.
 
 :- dynamic io_endpoint_target/2.
 
@@ -113,7 +114,7 @@ default_header(Name, Value, Options, [header(Name, Value)|Options]).
 %! remote_node_close(+Node) is det.
 
 remote_node_close(Node) :-
-    Node = remote_node(URL, Reader, Writer),
+    Node = remote_node(_URL, Reader, Writer),
     manager_forget_endpoints_if_running(Writer),
     Writer ! '$remote_close',
     ( catch(thread_property(Reader, status(running)), _, fail) ->
@@ -692,8 +693,17 @@ deliver_io_endpoint(Token, Message) :-
     io_protocol_message(Message),
     with_mutex('$distribution_io_endpoints',
                io_endpoint_target(Token, Target)),
+    deliver_terminal_target(Target, Message).
+
+deliver_terminal_target(Target, Message) :-
+    web_prolog:hook_terminal_delivery(Target, Message),
+    !.
+deliver_terminal_target(Target, Message) :-
     catch(thread_property(Target, status(running)), _, fail),
     Target ! Message.
+
+web_prolog:hook_close_browser_io(Relay) :-
+    forget_io_endpoints_for_target('$browser_io'(Relay)).
 
 io_protocol_message(terminal_output(_, _)).
 io_protocol_message(terminal_io_output(_, _)).

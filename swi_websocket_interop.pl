@@ -10,6 +10,8 @@
             concurrent_client_test/3,
             protocol_server/1,
             protocol_client_test/1,
+            browser_io_client_test/1,
+            browser_distributed_io_client_test/2,
             trinity_service_node/2,
             trinity_terminal_client_test/3
           ]).
@@ -107,6 +109,90 @@ protocol_client_test(Port) :-
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
     format('SWI Web Prolog protocol client test: ok~n').
+
+browser_io_client_test(Port) :-
+    format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
+    http_open_websocket(URL, WS, []),
+    send_json(WS, json{command:"transport_hello", version:1,
+                       browser_pids:true, io_ack:true}),
+    receive_json(WS, Welcome),
+    Welcome.type == "transport_welcome",
+    Welcome.io_ack == true,
+    send_json(WS, json{command:"toplevel_spawn",
+                       options:"[session(true)]"}),
+    receive_type(WS, "spawned", Spawned),
+    Pid = Spawned.pid,
+    send_json(WS, json{command:"toplevel_call", pid:Pid,
+                       goal:"terminal_output(hello)",
+                       options:"[]"}),
+    receive_type(WS, "io_request", Request),
+    Request.event.type == "output",
+    Request.event.pid == Pid,
+    Request.event.data == "hello",
+    send_json(WS, json{command:"browser_io_reply",
+                       request_id:Request.request_id, status:"ok"}),
+    receive_type(WS, "success", _Success),
+    send_json(WS, json{command:"toplevel_call", pid:Pid,
+                       goal:"input(browser_prompt,X)",
+                       options:"[template(X)]"}),
+    receive_type(WS, "prompt", Prompt),
+    Prompt.pid == Pid,
+    send_json(WS, json{command:"toplevel_respond", pid:Pid,
+                       input:"browser_answer"}),
+    receive_responded_and_success(WS, false, false),
+    send_json(WS, json{command:"toplevel_halt", pid:Pid}),
+    receive_type(WS, "halted", _Halted),
+    ws_close(WS, 1000, done),
+    format('SWI browser terminal acknowledgement test: ok~n').
+
+browser_distributed_io_client_test(Port, RemoteURL) :-
+    format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
+    http_open_websocket(URL, WS, []),
+    send_json(WS, json{command:"transport_hello", version:1,
+                       browser_pids:true, io_ack:true}),
+    receive_type(WS, "transport_welcome", _Welcome),
+    format(string(OutputGoal),
+           "spawn(terminal_output(remote_hello),_,[node(~q),link(false)])",
+           [RemoteURL]),
+    send_json(WS, json{command:"spawn", goal:OutputGoal, options:"[]"}),
+    receive_type(WS, "spawned", _Spawned),
+    receive_type(WS, "io_request", Output),
+    Output.event.type == "output",
+    Output.event.data == "remote_hello",
+    acknowledge_browser_output(WS, Output),
+    format(string(InputGoal),
+           "spawn(input(remote_prompt,browser_answer),InputPid,[node(~q),link(false),monitor(true)]),receive({down(InputPid,InputPid,true)->true},[timeout(20),on_timeout(fail)]),terminal_output(remote_prompt_answered)",
+           [RemoteURL]),
+    send_json(WS, json{command:"spawn", goal:InputGoal, options:"[]"}),
+    receive_type(WS, "spawned", _InputSpawned),
+    receive_type(WS, "prompt", Prompt),
+    Prompt.data == "remote_prompt",
+    send_json(WS, json{command:"toplevel_respond", pid:Prompt.pid,
+                       input:"browser_answer"}),
+    receive_responded_and_io_request(WS, false, none, Answer),
+    Answer.event.type == "output",
+    Answer.event.data == "remote_prompt_answered",
+    acknowledge_browser_output(WS, Answer),
+    ws_close(WS, 1000, done),
+    format('SWI browser-to-remote-Trealla terminal test: ok~n').
+
+acknowledge_browser_output(WS, Request) :-
+    send_json(WS, json{command:"browser_io_reply",
+                       request_id:Request.request_id, status:"ok"}).
+
+receive_responded_and_io_request(_, true, some(Request), Request) :- !.
+receive_responded_and_io_request(WS, Responded0, Request0, Request) :-
+    receive_json(WS, Event),
+    ( Event.type == "responded" -> Responded = true ; Responded = Responded0 ),
+    ( Event.type == "io_request" -> Request1 = some(Event) ; Request1 = Request0 ),
+    receive_responded_and_io_request(WS, Responded, Request1, Request).
+
+receive_responded_and_success(_, true, true) :- !.
+receive_responded_and_success(WS, Responded0, Success0) :-
+    receive_json(WS, Event),
+    ( Event.type == "responded" -> Responded = true ; Responded = Responded0 ),
+    ( Event.type == "success" -> Success = true ; Success = Success0 ),
+    receive_responded_and_success(WS, Responded, Success).
 
 send_json(WS, Dict) :-
     atom_json_dict(Text, Dict, []), ws_send(WS, text(Text)).

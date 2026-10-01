@@ -20,6 +20,7 @@ websocket_tests :-
     close_vector,
     web_prolog_json_vector,
     web_prolog_variable_sharing_vector,
+    browser_io_state_vectors,
     format('WebSocket unit tests: ok~n').
 
 handshake_vector :-
@@ -46,6 +47,32 @@ web_prolog_variable_sharing_vector :-
     Goal = member(GoalX, _),
     memberchk(template(TemplateX), Options),
     GoalX == TemplateX.
+
+browser_io_state_vectors :-
+    message_queue_create(ReplyQueue),
+    setup_call_cleanup(
+        true,
+        ( web_prolog:set_browser_io_enabled(relay_a, true),
+          web_prolog:register_browser_io_request(relay_a, request_1,
+                                                 ReplyQueue),
+          web_prolog:browser_io_reply(relay_b, request_1, ok),
+          \+ thread_get_message(ReplyQueue, _, [timeout(0)]),
+          web_prolog:browser_io_reply(relay_a, request_1, ok),
+          thread_get_message(ReplyQueue, ok, [timeout(0)]),
+          web_prolog:remember_browser_prompt(relay_a, 41, remote_prompt_pid),
+          \+ web_prolog:take_browser_prompt(relay_b, 41, _),
+          web_prolog:take_browser_prompt(relay_a, 41, remote_prompt_pid),
+          \+ web_prolog:take_browser_prompt(relay_a, 41, _),
+          web_prolog:register_browser_io_request(relay_a, request_2,
+                                                 ReplyQueue),
+          web_prolog:close_browser_io(relay_a),
+          thread_get_message(ReplyQueue, connection_closed, [timeout(0)])
+        ),
+        ( web_prolog:close_browser_io(relay_a),
+          web_prolog:close_browser_io(relay_b),
+          catch(message_queue_destroy(ReplyQueue), _, true)
+        )
+    ).
 
 trealla_client_test(Port) :-
     format(atom(URL), 'ws://127.0.0.1:~w/echo', [Port]),

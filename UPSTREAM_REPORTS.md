@@ -290,6 +290,24 @@ standalone reproducers against the latest upstream commit before filing; they
 may be related to BUG-007 or to Trealla's current task/thread cancellation
 work.
 
+### BUG-009: A module-qualified actor trampoline misexecutes a conjunction
+
+**Status:** Needs minimization
+**Priority:** Medium
+
+On Trealla v3.12.6, a conjunction read from a WebSocket command and passed
+through the actor module's meta-predicate trampoline executes its first arm,
+then can raise `existence_error(procedure, (',')/2)`.  This affected native
+Web Prolog `spawn` commands such as a remote spawn followed by a monitored
+receive.  Direct `call(user:(write(a),write(b)))` succeeds, so the trigger
+appears to involve the combination of a goal read as data, module
+qualification, a meta-predicate, and execution in a new thread.
+
+Current workaround: `web_prolog:run_spawn_goal/1` walks conjunctions
+structurally and calls their leaves.  The browser-to-remote-node terminal
+interoperability test exercises this path.  Reduce that path to a standalone
+module/thread reproducer before filing upstream.
+
 ## Compatibility gaps worth tracking, but not yet bug reports
 
 These missing facilities increase porting work but need a clearer upstream

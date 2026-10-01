@@ -139,8 +139,9 @@ run_interop() {
     reverse_port=$((TEST_PORT_BASE + 2))
     swi_protocol_port=$((TEST_PORT_BASE + 3))
     trealla_protocol_port=$((TEST_PORT_BASE + 4))
+    trealla_remote_port=$((TEST_PORT_BASE + 5))
 
-    for candidate_port in "$echo_port" "$reverse_port" "$swi_protocol_port" "$trealla_protocol_port"; do
+    for candidate_port in "$echo_port" "$reverse_port" "$swi_protocol_port" "$trealla_protocol_port" "$trealla_remote_port"; do
         if nc -z 127.0.0.1 "$candidate_port" >/dev/null 2>&1; then
             fail "interoperability port $candidate_port is already in use; set TEST_PORT_BASE"
         fi
@@ -176,7 +177,7 @@ run_interop() {
     stop_background "$swi_protocol_pid"
 
     start_background "$TPL" -g \
-        "consult('$ROOT/web_prolog.pl'),web_prolog:web_prolog_node($trealla_protocol_port)"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_protocol_port)"
     trealla_protocol_pid=$STARTED_PID
     # The native node treats a bare TCP readiness probe as a malformed HTTP
     # request and logs unexpected_eof. Avoid adding noise to successful runs.
@@ -185,6 +186,19 @@ run_interop() {
     run_with_timeout "SWI client -> Trealla protocol node" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "protocol_client_test($trealla_protocol_port),halt"
+    run_with_timeout "SWI browser terminal -> Trealla protocol node" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "browser_io_client_test($trealla_protocol_port),halt"
+
+    start_background "$TPL" -g \
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port)"
+    trealla_remote_pid=$STARTED_PID
+    sleep 0.2
+    kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
+    run_with_timeout "SWI browser terminal -> remote Trealla actor" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "browser_distributed_io_client_test($trealla_protocol_port,'http://127.0.0.1:$trealla_remote_port'),halt"
+    stop_background "$trealla_remote_pid"
     stop_background "$trealla_protocol_pid"
 }
 

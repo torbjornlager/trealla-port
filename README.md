@@ -249,6 +249,22 @@ node-to-node `io_request` command.  It emits Trinity's
 including connection-scoped browser/local PID capabilities and
 `actor_message` return traffic, plus acknowledged `io_reply` terminal traffic.
 
+A browser that sends `"io_ack":true` in `transport_hello` receives each
+terminal write in an `io_request` envelope.  It accepts the nested `output`
+event into its terminal before replying on the same connection:
+
+```json
+{"type":"io_request", "request_id":"browser-42",
+ "event":{"type":"output", "pid":1, "data":"hello"}}
+{"command":"browser_io_reply", "request_id":"browser-42", "status":"ok"}
+```
+
+The writer remains blocked until that reply.  Prompts retain their ordinary
+`prompt` event shape; the receiving connection gets one authorization to send
+`toplevel_respond` for a remote prompt source.  Closing the connection wakes
+blocked writers with an I/O error and revokes its pending prompt and
+distributed terminal capabilities.
+
 The canonical toplevel call keeps terms in strings and shares variables by
 parsing `goal` and `options` together:
 
@@ -265,8 +281,8 @@ Actors and sessions owned by a connection are terminated when it closes.
 
 The current protocol layer is for trusted peers.  It does not yet port
 Trinity's origin/authentication policy, execution profiles and sandbox,
-resource quotas, source-loading options, distributed terminal
-acknowledgements, or Trinity's full node-controller routing table.
+resource quotas, source-loading options, or Trinity's full node-controller
+routing table.
 Do not expose its
 goal execution endpoint directly to an untrusted network.
 
@@ -470,8 +486,9 @@ fully supported.)
 
 - Node-to-node terminal endpoint inheritance, output acknowledgement, and
   prompt responses are implemented. Browser-terminal second-stage
-  acknowledgement (`browser_io_reply`) and one-shot prompt authorization
-  remain to be ported.
+  acknowledgement (`browser_io_reply`) and connection-scoped, one-shot prompt
+  authorization are also implemented when the browser negotiates
+  `io_ack:true`.
 
 ### rpc.pl
 
