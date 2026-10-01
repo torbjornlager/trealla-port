@@ -213,10 +213,22 @@ check_nested_spawn(whitelist, _Profile, _Module, _AppPIs, _Goal, Options) :-
     throw_sandbox(option, Options, opaque_spawn_options).
 check_nested_spawn(Mode, Profile, Module, AppPIs, Goal, Options) :-
     ( is_list(Options)
-    -> profile_check_spawn_options(Profile, Options), check_spawn_options(Options)
-    ; true
+    -> profile_check_spawn_options(Profile, Options),
+       check_spawn_options(Options),
+       nested_source_predicate_indicators(Options, DeferredPIs),
+       append(AppPIs, DeferredPIs, NestedAppPIs)
+    ; NestedAppPIs = AppPIs
     ),
-    sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal).
+    sandbox_check_goal_(Mode, Profile, Module, NestedAppPIs, Goal).
+
+nested_source_predicate_indicators([], []).
+nested_source_predicate_indicators([src_predicates(PIs)|Options], All) :- !,
+    must_be(list, PIs),
+    maplist(check_declared_pi, PIs),
+    append(PIs, Rest, All),
+    nested_source_predicate_indicators(Options, Rest).
+nested_source_predicate_indicators([_|Options], PIs) :-
+    nested_source_predicate_indicators(Options, PIs).
 
 check_receive(Mode, Profile, Module, AppPIs, Braced, Options) :-
     receive_term(Braced, Clauses),
@@ -432,6 +444,15 @@ reserved_source_name(module).
 reserved_source_name(initialization).
 reserved_source_name(term_expansion).
 reserved_source_name(goal_expansion).
+reserved_source_name(sandbox_call).
+reserved_source_name(sandbox_spawn).
+reserved_source_name(sandbox_toplevel_call).
+reserved_source_name(sandbox_assert).
+reserved_source_name(sandbox_asserta).
+reserved_source_name(sandbox_assertz).
+reserved_source_name(sandbox_retract).
+reserved_source_name(sandbox_retractall).
+reserved_source_name(sandbox_abolish).
 
 check_spawn_options([]).
 check_spawn_options([node(Node)|Options]) :-
@@ -576,7 +597,12 @@ sandbox_abolish(_Mode, _Profile, Module, _AppPIs, Name, Arity) :-
     call(RuntimeModule:abolish(Name/Arity)).
 
 sandbox_spawn(Mode, Profile, Module, _AppPIs, Goal0, Pid, Options0) :-
-    sandbox_prepare_spawn(Mode, Profile, Module, Goal0, Options0,
+    context_module(Module, RuntimeModule),
+    % Nested src_predicates/1 is resolved only at runtime, after the parent
+    % session's submitted source has been installed in its private module.
+    % Materialize it here before the public-source validator sees the option.
+    isolation:rewrite_source_options(Options0, RuntimeModule, Options1),
+    sandbox_prepare_spawn(Mode, Profile, Module, Goal0, Options1,
                           Goal, Options),
     actors:spawn(Goal, Pid, Options).
 

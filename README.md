@@ -38,7 +38,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 104 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 105 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12). Tests t23-t30 mirror behaviours from the
 canonical SWI plunit suite in `simple-node/tests.pl`:
 
@@ -134,6 +134,7 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 102 | `receive/1` bodies retain their private source module | ok |
 | 103 | submitted guarded receives and timeout callbacks retain actor syntax/module | ok |
 | 104 | sandboxed nested spawn retains its runtime module in source sessions | ok |
+| 105 | nested `src_predicates/1` copies source from its private parent session | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.

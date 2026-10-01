@@ -205,7 +205,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -969,6 +969,35 @@ t104 :-
     exit(Pid, test_complete),
     format("104. sandbox nested spawn keeps runtime module ok~n").
 
+%!  t105 is det.
+%
+%   Runtime nested spawn resolves src_predicates/1 against the submitted
+%   program in the source-bearing parent session.
+
+t105 :-
+    Source = 'count_server(Count0) :- receive({count(From) -> Count is Count0 + 1, From ! count(Count), count_server(Count); stop -> true}).',
+    sandbox_prepare_options(whitelist, actor, actor_context,
+                            [src_text(Source)], SourceOptions),
+    self(Me),
+    toplevel_spawn(Session, [target(Me), session(true)|SourceOptions]),
+    Spawn0 = spawn(count_server(0), Child,
+                   [src_predicates([count_server/1]), monitor(true), link(false)]),
+    sandbox_prepare_spawn(whitelist, actor, actor_context,
+                          Spawn0, [], SpawnGoal, SpawnOptions),
+    toplevel_call(Session, SpawnGoal,
+                  [template(Child), target(Me)|SpawnOptions]),
+    receive({ success(Session, [Child], false) -> true
+            ; error(Session, Error) -> throw(Error)
+            }, [timeout(1), on_timeout(throw(t105_spawn_timeout))]),
+    Child ! count(Me),
+    receive({ count(1) -> true
+            ; down(Child, Child, Reason) -> throw(t105_child_down(Reason))
+            },
+            [timeout(1), on_timeout(throw(t105_count_timeout))]),
+    Child ! stop,
+    exit(Session, test_complete),
+    format("105. nested src_predicates copies private session source ok~n").
+
 
                 /*******************************
                 *    PROFILES (t42-t46)       *
@@ -1068,6 +1097,9 @@ t49 :-
     caught_permission(sandbox_prepare_options(
         blacklist, actor, actor_context,
         [src_text(':- initialization(shell(command)).')], _)),
+    caught_permission(sandbox_prepare_options(
+        blacklist, actor, actor_context,
+        [src_text('sandbox_spawn(a,b,c,d,e,f,g).')], _)),
     caught_sandbox(sandbox_prepare_options(
         blacklist, actor, actor_context,
         [src_list([(user:p :- true)])], _)),

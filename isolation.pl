@@ -38,6 +38,9 @@ policy before actor creation.
 actors_library_file(ActorsFile) :-
     absolute_file_name('actors.pl', ActorsFile, []).
 
+sandbox_library_file(SandboxFile) :-
+    absolute_file_name('sandbox_policy.pl', SandboxFile, []).
+
 
                 /*******************************
                 *       PUBLIC OPERATIONS      *
@@ -144,6 +147,12 @@ source_module(Module, Module).
 predicates_to_terms(Module, PIs, Terms) :-
     must_be(list, PIs),
     maplist(valid_source_predicate_indicator, PIs),
+    actor_namespace(_, Module),
+    !,
+    call_in_module(Module, '$actor_copy_predicates'(PIs, Terms)).
+predicates_to_terms(Module, PIs, Terms) :-
+    must_be(list, PIs),
+    maplist(valid_source_predicate_indicator, PIs),
     actors:make_ref(ref(Id)),
     format(atom(HelperName), '$isolation_listing_~w', [Id]),
     HelperHead =.. [HelperName, PI],
@@ -225,15 +234,17 @@ fresh_bootstrap_file(Id, File) :-
 
 write_bootstrap(File, Module) :-
     actors_library_file(ActorsFile),
+    sandbox_library_file(SandboxFile),
     setup_call_cleanup(
         open(File, write, Out),
-        write_bootstrap_(Out, Module, ActorsFile),
+        write_bootstrap_(Out, Module, ActorsFile, SandboxFile),
         close(Out)).
 
-write_bootstrap_(Out, Module, ActorsFile) :-
+write_bootstrap_(Out, Module, ActorsFile, SandboxFile) :-
     format(Out, '%% SPDX-License-Identifier: MIT~n', []),
-    format(Out, ':- module(~q, [\'$actor_load\'/1, \'$actor_call\'/1, \'$actor_cleanup\'/0]).~n', [Module]),
+    format(Out, ':- module(~q, [\'$actor_load\'/1, \'$actor_call\'/1, \'$actor_copy_predicates\'/2, \'$actor_cleanup\'/0]).~n', [Module]),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
+    format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     format(Out, ':- dynamic \'$actor_source_pi\'/1.~n', []),
     format(Out, '\'$actor_load\'([]).~n', []),
     format(Out, '\'$actor_load\'([src_text(Text)|Rest]) :- !, \'$actor_text\'(Text), \'$actor_load\'(Rest).~n', []),
@@ -285,6 +296,17 @@ write_bootstrap_(Out, Module, ActorsFile) :-
     format(Out, '\'$actor_expanded\'(Head) :- \'$actor_remember\'(Head), assertz(Head).~n', []),
     format(Out, '\'$actor_remember\'(Head) :- callable(Head), functor(Head, Name, Arity), PI = Name/Arity, ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ).~n', []),
     format(Out, '\'$actor_call\'(Goal) :- call(Goal).~n', []),
+    format(Out, '\'$actor_copy_predicates\'([], []).~n', []),
+    format(Out, '\'$actor_copy_predicates\'([Name/Arity|PIs], Terms) :- \'$actor_source_pi\'(Name/Arity), !, functor(Head,Name,Arity), findall(Term, (clause(Head,Body0), \'$actor_strip_source_module\'(Body0,Body), \'$actor_clause_term\'(Head,Body,Term)), Here), \'$actor_copy_predicates\'(PIs,Rest), append(Here,Rest,Terms).~n', []),
+    format(Out, '\'$actor_copy_predicates\'([PI|_], _) :- throw(error(existence_error(procedure,PI), src_predicates/1)).~n', []),
+    format(Out, '\'$actor_strip_source_module\'(Term, Term) :- var(Term), !.~n', []),
+    format(Out, '\'$actor_strip_source_module\'(Source:Inner0, Inner) :- Source == ~q, !, \'$actor_strip_source_module\'(Inner0,Inner).~n', [Module]),
+    format(Out, '\'$actor_strip_source_module\'(Term, Term) :- atomic(Term), !.~n', []),
+    format(Out, '\'$actor_strip_source_module\'(Term0, Term) :- Term0 =.. [Functor|Args0], \'$actor_strip_source_args\'(Args0,Args), Term =.. [Functor|Args].~n', []),
+    format(Out, '\'$actor_strip_source_args\'([], []).~n', []),
+    format(Out, '\'$actor_strip_source_args\'([Arg0|Args0], [Arg|Args]) :- \'$actor_strip_source_module\'(Arg0,Arg), \'$actor_strip_source_args\'(Args0,Args).~n', []),
+    format(Out, '\'$actor_clause_term\'(Head, true, Head) :- !.~n', []),
+    format(Out, '\'$actor_clause_term\'(Head, Body, (Head :- Body)).~n', []),
     format(Out, '\'$actor_cleanup\' :- forall(retract(\'$actor_source_pi\'(Name/Arity)), (functor(Head, Name, Arity), retractall(Head))).~n', []).
 
 call_in_module(Module, Goal) :-
