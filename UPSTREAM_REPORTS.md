@@ -21,7 +21,7 @@ Status meanings:
 
 ### FR-001: Allow a module-local definition to replace or shadow a built-in
 
-**Status:** Ready  
+**Status:** Ready
 **Priority:** High
 
 Trealla reserves built-in predicates such as `send/2` as static procedures and
@@ -650,6 +650,29 @@ source before assertion. It explicitly qualifies the receive clause set and
 each executable receive-body leaf with the fresh actor module. Regression test
 102 exercises the complete tutorial sequence, including deferred-message
 selection.
+
+### BUG-018: `format/3` segfaults on the `~p` directive
+
+**Status:** Ready
+**Priority:** High
+
+Trealla v3.12.6 exits with signal 11 when its formatter encounters the SWI
+`~p` print-term directive:
+
+```prolog
+?- format(atom(Text), '~p', [-2]).
+```
+
+The standalone process exits with status 139 and produces no Prolog
+exception. On a Web Prolog node, an otherwise valid actor query can therefore
+drop its WebSocket connection and restart the whole node.
+
+Expected behavior is either support for `~p` or a catchable format error; an
+unsupported directive must not crash the process.
+
+Current workaround: the Trealla actor I/O adapter translates unescaped `~p`
+to Trealla's `~q` before calling native `format/3`. Escaped `~~p` remains
+literal text. Regression test 111 covers the original guarded-receive query.
 
 ## Compatibility gaps worth tracking, but not yet bug reports
 

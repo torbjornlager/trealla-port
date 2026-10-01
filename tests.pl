@@ -201,7 +201,7 @@ run_test_group(actors) :-
     t31, t32, t33, t98.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
-    t22, t27, t28, t29, t99, t100, t101.
+    t22, t27, t28, t29, t99, t100, t101, t111.
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
@@ -1109,6 +1109,30 @@ answer_expert_prompts(Session, N) :-
             }, [timeout(1), on_timeout(throw(t109_prompt_timeout(N)))]),
     Next is N - 1,
     answer_expert_prompts(Session, Next).
+
+t111 :-
+    sandbox_policy:portable_format('~~p', '~~p'),
+    Goal0 = (self(Self),
+             Self ! number(-2),
+             receive({
+                 number(N) if N > 0 ->
+                     format("Positive number: ~p~n", [N]) ;
+                 number(N) if N =< 0 ->
+                     format("Non-positive number: ~p~n", [N])
+             })),
+    sandbox_prepare_spawn(blacklist, actor, actor_context,
+                          Goal0, [], Goal, Options),
+    self(Me),
+    toplevel_spawn(Session, [target(Me),session(true)|Options]),
+    toplevel_call(Session, Goal, [target(Me)]),
+    receive({ terminal_io_output(Session, 'Non-positive number: -2\n') -> true
+            ; error(Session, Error) -> throw(Error)
+            }, [timeout(1),on_timeout(throw(t111_output_timeout))]),
+    receive({ success(Session, _, false) -> true
+            ; error(Session, Error2) -> throw(Error2)
+            }, [timeout(1),on_timeout(throw(t111_success_timeout))]),
+    exit(Session, test_complete),
+    format("111. guarded receive supports SWI ~~p formatting ok~n").
 
 
                 /*******************************

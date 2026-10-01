@@ -796,10 +796,35 @@ reject_format_meta_call(Format) :-
 
 format_text_atom(Format, Atom) :-
     ( atom(Format) -> Atom = Format
-    ; string(Format) -> atom_string(Atom, Format)
+    ; string(Format) -> string_codes(Format, Codes), atom_codes(Atom, Codes)
     ; is_list(Format) -> catch(atom_codes(Atom, Format), _, Atom = '')
     ; Atom = ''
     ).
+
+portable_format(Format, NativeFormat) :-
+    format_codes(Format, Codes),
+    !,
+    replace_print_directives(Codes, NativeCodes),
+    atom_codes(NativeFormat, NativeCodes).
+portable_format(Format, Format).
+
+format_codes(Format, Codes) :- atom(Format), !, atom_codes(Format, Codes).
+format_codes(Format, Codes) :- string(Format), !, string_codes(Format, Codes).
+format_codes(Format, Codes) :- is_list(Format),
+    ( catch(atom_codes(_, Format), _, fail) -> Codes = Format
+    ; catch(atom_chars(Atom, Format), _, fail), atom_codes(Atom, Codes)
+    ).
+
+% Trealla v3.12.6 segfaults on SWI's ~p print directive.  Its ~q directive
+% provides the portable quoted-term rendering needed by actor tutorials.
+% Preserve ~~ as an escaped tilde, so the following p remains literal text.
+replace_print_directives([], []).
+replace_print_directives([0'~,0'~|Codes], [0'~,0'~|Native]) :- !,
+    replace_print_directives(Codes, Native).
+replace_print_directives([0'~,0'p|Codes], [0'~,0'q|Native]) :- !,
+    replace_print_directives(Codes, Native).
+replace_print_directives([Code|Codes], [Code|Native]) :-
+    replace_print_directives(Codes, Native).
 
 % Runtime guard is required even after source validation because Format may be
 % supplied through a variable.  Rendering to an atom prevents access to an
@@ -807,7 +832,8 @@ format_text_atom(Format, Atom) :-
 % I/O prelude.
 sandbox_format(Format, Args) :-
     reject_format_meta_call(Format),
-    format(atom(Text), Format, Args),
+    portable_format(Format, NativeFormat),
+    format(atom(Text), NativeFormat, Args),
     actors:terminal_output(Text, [source(io)]).
 
 % Read clauses from the current actor's submitted program only.  In
