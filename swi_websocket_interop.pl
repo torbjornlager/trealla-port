@@ -18,6 +18,7 @@
             browser_io_client_test/1,
             nested_toplevel_binding_test/1,
             nested_toplevel_binding_test/2,
+            promise_yield_client_test/1,
             browser_distributed_io_client_test/2,
             trinity_service_node/2,
             trinity_terminal_client_test/3
@@ -537,6 +538,38 @@ nested_toplevel_binding_test(URL, OpenOptions) :-
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
     format('SWI nested toplevel receive binding test: ok~n').
+
+promise_yield_client_test(Port) :-
+    format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
+    http_open_websocket(URL, WS, []),
+    send_json(WS, json{command:"transport_hello", version:1,
+                       browser_pids:true, io_ack:true}),
+    receive_type(WS, "transport_welcome", _Welcome),
+    send_json(WS, json{command:"toplevel_spawn",
+                       options:"[session(true),src_list([shell_marker])]"}),
+    receive_type(WS, "spawned", Spawned),
+    Shell = Spawned.pid,
+    format(string(PromiseGoal),
+           "promise('http://127.0.0.1:~w',(sleep(0.15),X=a),Ref,[template(X)]),yield(Ref,Answer,[timeout(0.01),on_timeout(Answer=timeout)])",
+           [Port]),
+    send_json(WS, json{command:"toplevel_call", pid:Shell,
+                       goal:PromiseGoal, options:"[limit(1)]"}),
+    receive_type(WS, "success", TimedOut),
+    TimedOut.data = [TimeoutRow],
+    get_dict('Ref', TimeoutRow, RefText),
+    term_string(Ref, RefText),
+    integer(Ref), Ref >= 1000000000, Ref =< 9999999999,
+    get_dict('Answer', TimeoutRow, "timeout"),
+    format(string(YieldGoal), "yield(~w,Late)", [Ref]),
+    send_json(WS, json{command:"toplevel_call", pid:Shell,
+                       goal:YieldGoal, options:"[limit(1)]"}),
+    receive_type(WS, "success", Completed),
+    Completed.data = [CompletedRow],
+    get_dict('Late', CompletedRow, "success([a],false)"),
+    send_json(WS, json{command:"toplevel_halt", pid:Shell}),
+    receive_type(WS, "halted", _Halted),
+    ws_close(WS, 1000, done),
+    format('SWI promise/yield -> Trealla protocol node test: ok~n').
 
 browser_distributed_io_client_test(Port, RemoteURL) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),

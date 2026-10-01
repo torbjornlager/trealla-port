@@ -2,7 +2,12 @@
 
 :- module(rpc,
        [ rpc/2,                  % +URI, :Goal
-         rpc/3                   % +URI, :Goal, +Options
+         rpc/3,                  % +URI, :Goal, +Options
+         promise/3,              % +URI, :Goal, -Reference
+         promise/4,              % +URI, :Goal, -Reference, +Options
+         promise_cleanup/1,      % +Reference
+         yield/2,                % +Reference, -Answer
+         yield/3                 % +Reference, -Answer, +Options
        ]).
 
 /** <module> RPC -- simple HTTP-based remote Prolog calls
@@ -60,8 +65,16 @@ is fetched automatically on backtracking.
 
 
 :- use_module(library(http)).
-:- use_module(actors, [self/1]).
+:- use_module(actors, [self/1,make_ref/1]).
 :- use_module(isolation, [actor_source_module/2,load_options_text/3]).
+
+:- dynamic promise_queue_store/2.
+
+:- meta_predicate
+    rpc(+, :),
+    rpc(+, :, +),
+    promise(+, :, -),
+    promise(+, :, -, +).
 
 
                 /*******************************
@@ -175,7 +188,8 @@ base_path_prefix(BasePath, Prefix) :-
 rpc(URI, Goal) :-
     rpc(URI, Goal, []).
 
-rpc(URI, Goal, Options) :-
+rpc(URI, Goal0, Options) :-
+    strip_module(Goal0, _, Goal),
     term_variables(Goal, Vars),
     Template =.. [v|Vars],
     format(atom(GoalAtom),     "(~q)", [Goal]),
@@ -231,6 +245,12 @@ strip_trailing_slash(URI, URI).
 rpc_http_options([], []).
 rpc_http_options([limit(_)|Options], HTTPOptions) :- !,
     rpc_http_options(Options, HTTPOptions).
+rpc_http_options([template(_)|Options], HTTPOptions) :- !,
+    rpc_http_options(Options, HTTPOptions).
+rpc_http_options([offset(_)|Options], HTTPOptions) :- !,
+    rpc_http_options(Options, HTTPOptions).
+rpc_http_options([once(_)|Options], HTTPOptions) :- !,
+    rpc_http_options(Options, HTTPOptions).
 rpc_http_options([src_text(_)|Options], HTTPOptions) :- !,
     rpc_http_options(Options, HTTPOptions).
 rpc_http_options([src_list(_)|Options], HTTPOptions) :- !,
@@ -267,3 +287,112 @@ rpc_answer(failure, _, _, _, _, _, _, _, _) :-
     fail.
 rpc_answer(error(Error), _, _, _, _, _, _, _, _) :-
     throw(Error).
+
+
+                /*******************************
+                *       PROMISE AND YIELD      *
+                *******************************/
+
+%!  promise(+URI, :Goal, -Reference) is det.
+%!  promise(+URI, :Goal, -Reference, +Options) is det.
+%
+%   Start one stateless HTTP RPC request in a detached Trealla thread. The
+%   complete protocol answer is placed in a private message queue and can be
+%   collected later with yield/2-3. A timed-out yield deliberately retains
+%   the mapping so a later yield can still collect the answer.
+
+promise(URI, Goal, Reference) :-
+    promise(URI, Goal, Reference, []).
+
+promise(URI, Goal0, Reference, Options) :-
+    strip_module(Goal0, _, Goal),
+    option(template(Template), Options, Goal),
+    option(offset(Offset), Options, 0),
+    option(limit(Limit), Options, 10000000000),
+    integer(Offset), Offset >= 0,
+    integer(Limit), Limit > 0,
+    format(atom(GoalAtom), "(~q)", [Goal]),
+    format(atom(TemplateAtom), "(~q)", [Template]),
+    rpc_source_module(SourceModule),
+    load_options_text(SourceModule, Options, LoadText),
+    rpc_http_options(Options, HTTPOptions),
+    make_ref(Reference),
+    message_queue_create(Queue),
+    assertz(promise_queue_store(Reference, Queue)),
+    thread_create(rpc:promise_worker(URI, GoalAtom, TemplateAtom,
+                                     Offset, Limit, LoadText,
+                                     HTTPOptions, Queue),
+                  _, [detached(true)]),
+    thread_create(rpc:promise_auto_cleanup(Reference, 300),
+                  _, [detached(true)]),
+    !.
+
+promise_worker(URI, GoalAtom, TemplateAtom, Offset, Limit, LoadText,
+               HTTPOptions, Queue) :-
+    catch(rpc_fetch_answer(URI, GoalAtom, TemplateAtom, Offset, Limit,
+                           LoadText, HTTPOptions, Answer),
+          Error,
+          Answer = error(Error)),
+    catch(thread_send_message(Queue, Answer), _, true).
+
+rpc_fetch_answer(BaseURI, GoalAtom, TemplateAtom, Offset, Limit, LoadText,
+                 HTTPOptions, Answer) :-
+    url_encode(GoalAtom, GoalEnc),
+    url_encode(TemplateAtom, TemplateEnc),
+    strip_trailing_slash(BaseURI, RootURI),
+    format(atom(URL0),
+           '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog',
+           [RootURI, GoalEnc, TemplateEnc, Offset, Limit]),
+    rpc_source_url(URL0, LoadText, URL),
+    once(http_open(URL, Stream, HTTPOptions)),
+    setup_call_cleanup(true, getline(Stream, BodyChars), close(Stream)),
+    atom_chars(BodyAtom, BodyChars),
+    read_term_from_atom(BodyAtom, Answer, []).
+
+promise_auto_cleanup(Reference, Seconds) :-
+    sleep(Seconds),
+    retractall(promise_queue_store(Reference, _)).
+
+promise_cleanup(Reference) :-
+    must_be(integer, Reference),
+    retractall(promise_queue_store(Reference, _)).
+
+%!  yield(+Reference, -Answer) is semidet.
+%!  yield(+Reference, -Answer, +Options) is semidet.
+%
+%   Wait for a promise answer. Supported waiting options mirror receive/2:
+%   timeout(+Seconds) and on_timeout(+Goal). A timeout does not consume or
+%   cancel the promise.
+
+yield(Reference, Answer) :-
+    must_be(integer, Reference),
+    promise_queue_store(Reference, Queue),
+    thread_get_message(Queue, Answer),
+    retract(promise_queue_store(Reference, Queue)),
+    !.
+
+yield(Reference, Answer, Options) :-
+    must_be(integer, Reference),
+    must_be(list, Options),
+    ( promise_queue_store(Reference, Queue) ->
+        option(timeout(Timeout), Options, infinite),
+        yield_wait(Timeout, Queue, Message),
+        ( Message = '$promise_timeout' ->
+            option(on_timeout(OnTimeout), Options, true),
+            call(OnTimeout)
+        ; Answer = Message,
+          retract(promise_queue_store(Reference, Queue))
+        )
+    ; option(on_timeout(OnTimeout), Options, true),
+      call(OnTimeout)
+    ),
+    !.
+
+yield_wait(infinite, Queue, Message) :- !,
+    thread_get_message(Queue, Message).
+yield_wait(Timeout, Queue, Message) :-
+    number(Timeout), Timeout >= 0,
+    ( thread_get_message(Queue, Message0, [timeout(Timeout)]) ->
+        Message = Message0
+    ; Message = '$promise_timeout'
+    ).

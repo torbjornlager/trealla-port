@@ -19,7 +19,7 @@ The port lives alongside this report:
 | `crypto_portable.pl`  | OS randomness and portable SHA-256 fallback        |
 | `source_policy.pl`    | Allowlisted, bounded `src_uri/1` fetching           |
 | `ip_policy.pl`        | Client IP/CIDR, trusted-proxy, and auto-ban policy  |
-| `rpc.pl`              | HTTP client wrapper (`rpc/2,3`) over `/call`        |
+| `rpc.pl`              | HTTP `rpc/2,3` and asynchronous `promise/yield`     |
 | `websocket.pl`        | Native RFC 6455 WebSocket client/server transport   |
 | `web_prolog.pl`       | Trinity-compatible version-1 actor protocol         |
 | `distribution.pl`     | Persistent remote-node client and `Pid@Node` routing |
@@ -821,6 +821,11 @@ the defaults can be replaced with explicit `header/2` options.
 - `rpc/2,3` — call a goal on a remote node; solutions are yielded one
   by one on backtracking, with automatic page fetching when the node
   reports `More=true`
+- `promise/3,4` and `yield/2,3` — start a remote HTTP call immediately and
+  collect its complete `success/2`, `failure`, or `error/1` answer later;
+  timed-out yields retain the promise for a later collection
+- `promise_cleanup/1` — explicitly abandon an uncollected promise (otherwise
+  its registry entry expires automatically after five minutes)
 - `limit(N)` option to control page size
 - `src_text/1`, `src_list/1`, `src_predicates/1`, and `src_uri/1` options
   are materialized into the remote call's source payload
@@ -830,6 +835,11 @@ the defaults can be replaced with explicit `header/2` options.
 ```prolog
 ?- rpc('http://localhost:3060', member(X, [a,b,c])).
 X = a ; X = b ; X = c.
+
+?- promise('http://localhost:3060', (sleep(1), X=a), Ref,
+           [template(X)]),
+   yield(Ref, Answer, [timeout(0.3), on_timeout(Answer=timeout)]).
+Answer = timeout.
 ```
 
 ## Remaining limitations

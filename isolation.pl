@@ -151,6 +151,22 @@ execution_goal(Goal, Qualified) :-
     !,
     Qualified = rpc:rpc(URI, RemoteGoal, Options).
 execution_goal(Goal, Qualified) :-
+    Goal = promise(URI, RemoteGoal, Reference),
+    !,
+    Qualified = rpc:promise(URI, RemoteGoal, Reference).
+execution_goal(Goal, Qualified) :-
+    Goal = promise(URI, RemoteGoal, Reference, Options),
+    !,
+    Qualified = rpc:promise(URI, RemoteGoal, Reference, Options).
+execution_goal(Goal, Qualified) :-
+    Goal = yield(Reference, Answer),
+    !,
+    Qualified = rpc:yield(Reference, Answer).
+execution_goal(Goal, Qualified) :-
+    Goal = yield(Reference, Answer, Options),
+    !,
+    Qualified = rpc:yield(Reference, Answer, Options).
+execution_goal(Goal, Qualified) :-
     actors:self(Pid),
     actor_source_namespace(Pid, Module),
     !,
@@ -399,7 +415,7 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, ':- module(~q, [\'$actor_load\'/1, \'$actor_load_shared\'/1, \'$actor_call\'/1, \'$actor_copy_predicates\'/2, \'$actor_cleanup\'/0]).~n', [Module]),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
     format(Out, ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
-    format(Out, ':- use_module(~q, [rpc/2,rpc/3]).~n', [RpcFile]),
+    format(Out, ':- use_module(~q, [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,yield/2,yield/3]).~n', [RpcFile]),
     format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_format/2,sandbox_sleep/1,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     format(Out, ':- dynamic \'$actor_source_pi\'/1.~n', []),
     format(Out, ':- dynamic \'$actor_dynamic_pi\'/1.~n', []),
@@ -474,6 +490,11 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_call\'(toplevel_next(Pid,Options)) :- !, toplevel_actors:toplevel_next(Pid,Options).~n', []),
     format(Out, '\'$actor_call\'(rpc(URI,Goal)) :- !, rpc:rpc(URI,Goal).~n', []),
     format(Out, '\'$actor_call\'(rpc(URI,Goal,Options)) :- !, rpc:rpc(URI,Goal,Options).~n', []),
+    format(Out, '\'$actor_call\'(promise(URI,Goal,Reference)) :- !, rpc:promise(URI,Goal,Reference).~n', []),
+    format(Out, '\'$actor_call\'(promise(URI,Goal,Reference,Options)) :- !, rpc:promise(URI,Goal,Reference,Options).~n', []),
+    format(Out, '\'$actor_call\'(yield(Reference,Answer)) :- !, rpc:yield(Reference,Answer).~n', []),
+    format(Out, '\'$actor_call\'(yield(Reference,Answer,Options)) :- !, rpc:yield(Reference,Answer,Options).~n', []),
+    format(Out, '\'$actor_call\'(promise_cleanup(Reference)) :- !, rpc:promise_cleanup(Reference).~n', []),
     format(Out, '\'$actor_call\'(Goal) :- call(Goal).~n', []),
     format(Out, '\'$actor_copy_predicates\'([], []).~n', []),
     format(Out, '\'$actor_copy_predicates\'([Name/Arity|PIs], Terms) :- PI = Name/Arity, \'$actor_source_pi\'(PI), !, functor(Head,Name,Arity), \'$actor_dynamic_terms\'(PI,Declarations), findall(Term, (clause(Head,Body0), \'$actor_strip_source_module\'(Body0,Body), \'$actor_clause_term\'(Head,Body,Term)), Here), append(Declarations,Here,Current), \'$actor_copy_predicates\'(PIs,Rest), append(Current,Rest,Terms).~n', []),

@@ -100,6 +100,9 @@ goal choicepoint after optionally changing the page limit.
 :- use_module(actors).
 :- use_module(isolation).
 :- use_module(resource_policy).
+:- use_module(rpc,
+              [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,
+               yield/2,yield/3]).
 
 :- meta_predicate(toplevel_spawn(-, :)).
 
