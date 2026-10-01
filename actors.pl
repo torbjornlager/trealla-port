@@ -816,17 +816,31 @@ select_body_aux((Head -> Body), Message, Body) :-
 
 %!  flush is det.
 %
-%   Drain the calling actor's mailbox, printing each message to the
-%   current output stream.  Intended as a debugging aid at the toplevel;
-%   not for use inside normal actor code.  Uses `timeout(0)` so it
-%   returns immediately once the mailbox is empty.
+%   Drain the calling actor's mailbox, sending each message through the
+%   inherited terminal target. This matches the SWI implementation and keeps
+%   flush output visible to browser and remote terminals. Uses `timeout(0)`
+%   so it returns immediately once the mailbox is empty.
 
 flush :-
+    % Collect before producing acknowledged terminal output. On Trealla,
+    % blocking for an acknowledgement inside receive/2 can invalidate the
+    % deferred-list continuation and drop the unvisited tail.
+    flush_messages(Messages),
+    flush_outputs(Messages).
+
+flush_messages(Messages) :-
     receive({
        Message ->
-          format("Shell got ~q~n",[Message]),
-          flush
-    },[ timeout(0)]).
+          Messages = [Message|Rest],
+          flush_messages(Rest)
+    },[timeout(0), on_timeout(Messages = [])]).
+
+flush_outputs([]).
+flush_outputs([Message|Messages]) :-
+    term_to_atom(Message, Atom),
+    atom_concat('Shell got ', Atom, Text),
+    terminal_output(Text),
+    flush_outputs(Messages).
 
 
 %!  make_ref(-Ref) is det.

@@ -201,7 +201,7 @@ run_test_group(actors) :-
     t31, t32, t33, t98.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
-    t22, t27, t28, t29, t99, t100.
+    t22, t27, t28, t29, t99, t100, t101.
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
@@ -521,6 +521,24 @@ t100 :-
 
 drain_test_mailbox :-
     receive({ _ -> drain_test_mailbox }, [timeout(0)]).
+
+%!  t101 is det.
+%
+%   flush/0 drains pending messages through the inherited terminal instead
+%   of writing invisibly to the node process output.
+
+t101 :-
+    drain_test_mailbox,
+    self(Me),
+    toplevel_spawn(Pid, [target(Me), session(true)]),
+    toplevel_call(Pid, (Pid ! hello, Pid ! goodbye), []),
+    receive({ success(Pid, _, false) -> true }),
+    toplevel_call(Pid, flush, []),
+    receive({ terminal_output(Pid, 'Shell got hello') -> true }),
+    receive({ terminal_output(Pid, 'Shell got goodbye') -> true }),
+    receive({ success(Pid, [flush], false) -> true }),
+    exit(Pid, test_complete),
+    format("101. flush output uses inherited terminal ok~n").
 
 
                 /*******************************
