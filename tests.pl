@@ -205,7 +205,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -997,6 +997,49 @@ t105 :-
     Child ! stop,
     exit(Session, test_complete),
     format("105. nested src_predicates copies private session source ok~n").
+
+%!  t106 is det.
+%
+%   The non-stream format/1 and format/2 predicates in submitted source must
+%   use actor terminal output, including from children created with
+%   src_predicates/1.  This is the tutorial ping-pong program plus one
+%   format/2 call; format/3 remains forbidden by the sandbox.
+
+t106 :-
+    Source = 'ping(0, Pong_Pid) :- Pong_Pid ! finished, format(''Ping finished.~n'').\nping(N, Pong_Pid) :- self(Self), Pong_Pid ! ping(Self), receive({pong -> format(''Ping received pong.~n'')}), N1 is N - 1, ping(N1, Pong_Pid).\npong :- receive({finished -> format(''Pong finished.~n''); ping(Ping_Pid) -> format(''Pong received ping.~n''), Ping_Pid ! pong, pong}).\nping_pong :- spawn(pong, Pong_Pid, [src_predicates([pong/0])]), spawn(ping(3, Pong_Pid), _, [src_predicates([ping/2])]).\ngreet(Name) :- format(''Hello ~w.~n'', [Name]).',
+    sandbox_prepare_options(whitelist, actor, actor_context,
+                            [src_text(Source)], SourceOptions),
+    self(Me),
+    toplevel_spawn(Session, [target(Me), session(true)|SourceOptions]),
+    toplevel_call(Session, ping_pong, [target(Me)]),
+    receive({ success(Session, _, false) -> true
+            ; error(Session, Error) -> throw(Error)
+            }, [timeout(1), on_timeout(throw(t106_ping_timeout))]),
+    collect_terminal_lines(8, PingLines),
+    msort(PingLines, SortedPingLines),
+    msort(['Ping finished.\n',
+           'Ping received pong.\n', 'Ping received pong.\n',
+           'Ping received pong.\n', 'Pong finished.\n',
+           'Pong received ping.\n', 'Pong received ping.\n',
+           'Pong received ping.\n'], ExpectedPingLines),
+    SortedPingLines == ExpectedPingLines,
+    toplevel_call(Session, greet(trealla), [target(Me)]),
+    receive({ terminal_io_output(_, 'Hello trealla.\n') -> true },
+            [timeout(1), on_timeout(throw(t106_greet_output_timeout))]),
+    receive({ success(Session, _, false) -> true
+            ; error(Session, GreetError) -> throw(GreetError)
+            }, [timeout(1), on_timeout(throw(t106_greet_timeout))]),
+    caught_sandbox(sandbox_prepare_goal(
+        whitelist, actor, actor_context, format(user_output, '~w', [no]), _)),
+    exit(Session, test_complete),
+    format("106. sandboxed actor format output ok~n").
+
+collect_terminal_lines(0, []) :- !.
+collect_terminal_lines(N, [Text|Texts]) :-
+    receive({ terminal_io_output(_, Text) -> true },
+            [timeout(1), on_timeout(throw(t106_output_timeout(N)))]),
+    Next is N - 1,
+    collect_terminal_lines(Next, Texts).
 
 
                 /*******************************

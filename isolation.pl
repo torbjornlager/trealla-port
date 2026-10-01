@@ -5,6 +5,7 @@
          run_actor_goal/3,         % +Module, :Goal, +Options
          cleanup_actor/1,          % +Pid
          actor_module/2,           % +Pid, -Module
+         actor_source_module/2,    % +Pid, -Module
          execution_goal/2,         % +Goal, -QualifiedGoal
          rewrite_source_options/3  % +Options, +SourceModule, -Options
        ]).
@@ -30,6 +31,7 @@ policy before actor creation.
 :- use_module(source_policy).
 
 :- dynamic actor_namespace/2.
+:- dynamic actor_source_namespace/2.
 
 :- catch(mutex_create(_, [alias('$isolation_listing')]),
          error(permission_error(create, mutex, '$isolation_listing'), _),
@@ -55,16 +57,15 @@ prepare_actor(Pid, _GoalModule, Options, Module) :-
           assertz(actor_namespace(Pid, Module)),
           source_options(Options, Sources),
           call_in_module(Module, '$actor_load'(Sources)),
-          bb_put('$actor_source_module', Module),
-          ( Sources == []
-          -> bb_put('$actor_has_source', false)
-          ;  bb_put('$actor_has_source', true)
+          ( Sources == [] -> true
+          ; assertz(actor_source_namespace(Pid, Module))
           )
         ),
         Error,
         ( catch(delete_file(File), _, true),
           catch(call_in_module(Module, '$actor_cleanup'), _, true),
           retractall(actor_namespace(Pid, Module)),
+          retractall(actor_source_namespace(Pid, Module)),
           throw(Error)
         )).
 
@@ -76,15 +77,19 @@ run_actor_goal(Module, Goal0, Options) :-
     ).
 
 cleanup_actor(Pid) :-
+    retractall(actor_source_namespace(Pid, _)),
     forall(retract(actor_namespace(Pid, Module)),
            catch(call_in_module(Module, '$actor_cleanup'), _, true)).
 
 actor_module(Pid, Module) :-
     actor_namespace(Pid, Module).
 
+actor_source_module(Pid, Module) :-
+    actor_source_namespace(Pid, Module).
+
 execution_goal(Goal, Qualified) :-
-    bb_get('$actor_has_source', true),
-    bb_get('$actor_source_module', Module),
+    actors:self(Pid),
+    actor_source_namespace(Pid, Module),
     !,
     % Calling the goal through the private module's trampoline preserves any
     % explicit module qualification introduced by the sandbox rewriter.
@@ -244,7 +249,7 @@ write_bootstrap_(Out, Module, ActorsFile, SandboxFile) :-
     format(Out, '%% SPDX-License-Identifier: MIT~n', []),
     format(Out, ':- module(~q, [\'$actor_load\'/1, \'$actor_call\'/1, \'$actor_copy_predicates\'/2, \'$actor_cleanup\'/0]).~n', [Module]),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
-    format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
+    format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_format/2,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     format(Out, ':- dynamic \'$actor_source_pi\'/1.~n', []),
     format(Out, '\'$actor_load\'([]).~n', []),
     format(Out, '\'$actor_load\'([src_text(Text)|Rest]) :- !, \'$actor_text\'(Text), \'$actor_load\'(Rest).~n', []),

@@ -16,6 +16,7 @@
          sandbox_call/12,
          sandbox_spawn/7,
          sandbox_toplevel_call/7,
+         sandbox_format/2,
          sandbox_assert/5,
          sandbox_assert/6,
          sandbox_asserta/5,
@@ -126,6 +127,13 @@ sandbox_prepare_options(Mode0, Profile, _Module, Options0, Options) :-
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs, Goal) :-
     var(Goal),
     !.
+sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
+                    sandbox_policy:sandbox_format(Format, _Args)) :-
+    !,
+    % A src_predicates/1 child may receive clauses that were already rewritten
+    % when its parent session loaded them.  This one qualified runtime helper
+    % is capability-free and applies its own runtime format guard.
+    reject_format_meta_call(Format).
 sandbox_check_goal_(Mode, Profile, Module, AppPIs, Qualified:Goal) :-
     atom(Qualified),
     !,
@@ -289,6 +297,10 @@ special_goal_check(_Mode, _Module, _AppPIs, abolish(Name, Arity)) :- !,
     ( ( var(Name) ; var(Arity) ) -> true
     ; check_mutable_pi(Name/Arity)
     ).
+special_goal_check(_, _, _, format(Format)) :- !,
+    reject_format_meta_call(Format).
+special_goal_check(_, _, _, format(Format, _)) :- !,
+    reject_format_meta_call(Format).
 special_goal_check(_, _, _, format(_, Format, _)) :- !,
     reject_format_meta_call(Format).
 
@@ -447,6 +459,7 @@ reserved_source_name(goal_expansion).
 reserved_source_name(sandbox_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_toplevel_call).
+reserved_source_name(sandbox_format).
 reserved_source_name(sandbox_assert).
 reserved_source_name(sandbox_asserta).
 reserved_source_name(sandbox_assertz).
@@ -489,6 +502,14 @@ rewrite_goal_(Mode, Profile, Module, AppPIs, Var,
 % built-in predicate.  The stream-specific writeln/2 remains forbidden.
 rewrite_goal_(_M,_P,_C,_A,writeln(Term),
               actors:terminal_output(Term,[source(io)])).
+% The SWI actor I/O prelude redefines the non-stream format predicates.  A
+% private Trealla source module cannot redefine built-ins, so route those two
+% forms through an explicitly imported sandbox helper instead.  format/3 is
+% deliberately left as forbidden stream I/O.
+rewrite_goal_(_M,_P,_C,_A,format(Format),
+              sandbox_policy:sandbox_format(Format,[])).
+rewrite_goal_(_M,_P,_C,_A,format(Format,Args),
+              sandbox_policy:sandbox_format(Format,Args)).
 rewrite_goal_(M,P,C,A,(X0,Y0),(X,Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
 rewrite_goal_(M,P,C,A,(X0;Y0),(X;Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
 rewrite_goal_(M,P,C,A,(X0->Y0),(X->Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
@@ -638,7 +659,8 @@ guarded_assert_ref(Operation, Mode, Profile, Module, AppPIs, Clause0, Ref) :-
 call_in_context(Module, Goal) :- context_module(Module, RuntimeModule), call(RuntimeModule:Goal).
 
 context_module(actor_context, Module) :- !,
-    ( bb_get('$actor_source_module', Module) -> true
+    actors:self(Pid),
+    ( isolation:actor_source_module(Pid, Module) -> true
     ; throw(error(existence_error(actor_context, source_module), sandbox_policy))
     ).
 context_module(Module, Module).
@@ -670,7 +692,7 @@ forbidden_pi(write/1,stream_io). forbidden_pi(write/2,stream_io).
 forbidden_pi(writeln/2,stream_io).
 forbidden_pi(writeq/1,stream_io). forbidden_pi(writeq/2,stream_io).
 forbidden_pi(write_term/2,stream_io). forbidden_pi(write_term/3,stream_io).
-forbidden_pi(format/1,stream_io). forbidden_pi(format/2,stream_io). forbidden_pi(format/3,stream_io).
+forbidden_pi(format/3,stream_io).
 forbidden_pi(nl/0,stream_io). forbidden_pi(nl/1,stream_io).
 forbidden_pi(consult/1,module_loading). forbidden_pi(reconsult/1,module_loading).
 forbidden_pi((ensure_loaded)/1,module_loading). forbidden_pi(load_files/1,module_loading).
@@ -740,6 +762,7 @@ actor_safe_pi(demonitor/1). actor_safe_pi(demonitor/2). actor_safe_pi(exit/1).
 actor_safe_pi(exit/2). actor_safe_pi(register/2). actor_safe_pi(whereis/2).
 actor_safe_pi(unregister/1). actor_safe_pi(output/1). actor_safe_pi(output/2).
 actor_safe_pi(writeln/1).
+actor_safe_pi(format/1). actor_safe_pi(format/2).
 actor_safe_pi(input/2). actor_safe_pi(input/3). actor_safe_pi(respond/2).
 actor_safe_pi(make_ref/1). actor_safe_pi(flush/0).
 actor_safe_pi(toplevel_spawn/1). actor_safe_pi(toplevel_spawn/2).
@@ -749,8 +772,24 @@ actor_safe_pi(toplevel_stop/1). actor_safe_pi(toplevel_abort/1).
 actor_safe_pi(parallel/1). actor_safe_pi(first_solution/2). actor_safe_pi(first_solution/3).
 
 reject_format_meta_call(Format) :-
-    source_text_atom(Format, Atom),
+    format_text_atom(Format, Atom),
     ( sub_atom(Atom, _, 2, _, '~@')
     -> throw(error(permission_error(use, format_specifier, '~@'), format/3))
     ; true
     ).
+
+format_text_atom(Format, Atom) :-
+    ( atom(Format) -> Atom = Format
+    ; string(Format) -> atom_string(Atom, Format)
+    ; is_list(Format) -> catch(atom_codes(Atom, Format), _, Atom = '')
+    ; Atom = ''
+    ).
+
+% Runtime guard is required even after source validation because Format may be
+% supplied through a variable.  Rendering to an atom prevents access to an
+% ambient stream and produces the same single terminal event as SWI's actor
+% I/O prelude.
+sandbox_format(Format, Args) :-
+    reject_format_meta_call(Format),
+    format(atom(Text), Format, Args),
+    actors:terminal_output(Text, [source(io)]).
