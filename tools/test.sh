@@ -223,6 +223,9 @@ run_interop() {
     run_with_timeout "SWI browser terminal -> Trealla protocol node" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "browser_io_client_test($trealla_protocol_port),halt"
+    run_with_timeout "SWI nested toplevel binding -> Trealla protocol node" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "nested_toplevel_binding_test($trealla_protocol_port),halt"
 
     start_background "$TPL" -g \
         "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port)"

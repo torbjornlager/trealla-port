@@ -209,7 +209,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109, t114, t116.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109, t114, t116, t117.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -882,6 +882,43 @@ t116 :-
     integer(ChildPid),
     toplevel_halt(Outer, true),
     format("116. private actor toplevel API surface ok~n").
+
+%!  t117 is det.
+%
+%   Nested toplevel paging must not share its page accumulator with the
+%   private shell that receives the answer. The receive catch-all binding is
+%   the shell's only result row, matching the browser tutorial sequence.
+
+t117 :-
+    self(Me),
+    toplevel_spawn(Shell,
+                   [target(Me),session(true),link(false),
+                    src_list([shell_marker])]),
+    toplevel_call(Shell,
+                  toplevel_spawn(Child,
+                                 [session(true),monitor(true),
+                                  src_list([p(a),p(b)])]),
+                  [template(Child),limit(1)]),
+    receive({success(Shell, [Child], false) -> true},
+            [timeout(5),on_timeout(fail)]),
+    toplevel_call(Shell,
+                  toplevel_call(Child, p(X), [template(X),limit(1)]),
+                  [template(true),limit(1)]),
+    receive({success(Shell, [true], false) -> true},
+            [timeout(5),on_timeout(fail)]),
+    toplevel_call(Shell, flush, [template(true),limit(1)]),
+    receive({terminal_output(Shell, _) -> true},
+            [timeout(5),on_timeout(fail)]),
+    receive({success(Shell, [true], false) -> true},
+            [timeout(5),on_timeout(fail)]),
+    Goal = (toplevel_next(Child), receive({Answer -> true})),
+    toplevel_call(Shell, Goal, [template(Answer),limit(1)]),
+    receive({success(Shell, [Answer], false) -> true},
+            [timeout(5),on_timeout(fail)]),
+    Answer = success(Child, [b], false),
+    toplevel_halt(Child, true),
+    toplevel_halt(Shell, true),
+    format("117. nested toplevel receive binding is isolated ok~n").
 
 
                 /*******************************

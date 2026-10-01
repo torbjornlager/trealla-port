@@ -9,6 +9,7 @@
          actor_module/2,           % +Pid, -Module
          actor_source_module/2,    % +Pid, -Module
          execution_goal/2,         % +Goal, -QualifiedGoal
+         run_actor_query/2,        % +Module, +Goal
          rewrite_source_options/3, % +Options, +SourceModule, -Options
          load_options_text/3       % +SourceModule, +Options, -Text
        ]).
@@ -153,12 +154,38 @@ execution_goal(Goal, Qualified) :-
     actors:self(Pid),
     actor_source_namespace(Pid, Module),
     !,
-    % Calling the goal through the private module's trampoline preserves any
-    % explicit module qualification introduced by the sandbox rewriter.
-    % Trealla otherwise lets the outer Module:Goal qualification override a
-    % nested sandbox_policy:sandbox_spawn(...) qualification.
-    Qualified = Module:'$actor_call'(Goal).
+    % Keep the runtime goal out of a dynamically constructed Module:Goal
+    % call. Trealla treats arguments nested in that form as meta-goals and can
+    % qualify a catch-all receive variable, severing it from the result
+    % template. The fixed isolation entry point performs module dispatch only
+    % after the goal has crossed the toplevel state machine unchanged.
+    Qualified = isolation:run_actor_query(Module, Goal).
 execution_goal(Goal, Goal).
+
+run_actor_query(Module, (Left, Right)) :- !,
+    run_actor_query(Module, Left),
+    run_actor_query(Module, Right).
+run_actor_query(Module, (Left ; Right)) :- !,
+    ( run_actor_query(Module, Left)
+    ; run_actor_query(Module, Right)
+    ).
+run_actor_query(Module, (If -> Then)) :- !,
+    ( run_actor_query(Module, If)
+    -> run_actor_query(Module, Then)
+    ).
+run_actor_query(Module, (\+ Goal)) :- !,
+    \+ run_actor_query(Module, Goal).
+run_actor_query(Module, receive(Clauses0)) :- !,
+    call_in_module(Module, '$actor_qualify_receive'(Clauses0, Clauses)),
+    Qualified = Module:Clauses,
+    actors:receive_qualified(Qualified, []).
+run_actor_query(Module, receive(Clauses0, Options0)) :- !,
+    call_in_module(Module, '$actor_qualify_receive'(Clauses0, Clauses)),
+    call_in_module(Module, '$actor_qualify_receive_options'(Options0, Options)),
+    Qualified = Module:Clauses,
+    actors:receive_qualified(Qualified, Options).
+run_actor_query(Module, Goal) :-
+    call_in_module(Module, '$actor_call'(Goal)).
 
 
                 /*******************************
@@ -407,7 +434,7 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_qualify_receive\'((A0;B0), (A;B)) :- !, \'$actor_qualify_receive\'(A0,A), \'$actor_qualify_receive\'(B0,B).~n', []),
     format(Out, '\'$actor_qualify_receive\'((Head0->Body0), (Head->Body)) :- !, \'$actor_qualify_receive_head\'(Head0,Head), \'$actor_qualify_receive_body\'(Body0,Body).~n', []),
     format(Out, '\'$actor_qualify_receive\'(Clause, Clause).~n', []),
-    format(Out, '\'$actor_qualify_receive_head\'(if(Pattern,Guard0), if(Pattern,Guard)) :- !, \'$actor_qualify_receive_body\'(Guard0,Guard).~n', []),
+    format(Out, '\'$actor_qualify_receive_head\'(Head0, Head) :- nonvar(Head0), Head0 = if(Pattern,Guard0), !, Head = if(Pattern,Guard), \'$actor_qualify_receive_body\'(Guard0,Guard).~n', []),
     format(Out, '\'$actor_qualify_receive_head\'(Head, Head).~n', []),
     format(Out, '\'$actor_qualify_receive_options\'(Options, Options) :- var(Options), !.~n', []),
     format(Out, '\'$actor_qualify_receive_options\'([], []) :- !.~n', []),
@@ -439,8 +466,12 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_remember_dynamic_pi\'((A,B)) :- !, \'$actor_remember_dynamic_pi\'(A), \'$actor_remember_dynamic_pi\'(B).~n', []),
     format(Out, '\'$actor_remember_dynamic_pi\'(PI) :- ( \'$actor_dynamic_pi\'(PI) -> true ; assertz(\'$actor_dynamic_pi\'(PI)) ).~n', []),
     % Trealla does not preserve imports when an arbitrary term is passed
-    % through call/1 here.  Route the flat Web Prolog RPC surface explicitly,
+    % through call/1 here. Route the flat Web Prolog surface explicitly,
     % matching the actor_api re-export used by the SWI implementation.
+    format(Out, '\'$actor_call\'(sandbox_policy:sandbox_toplevel_call(M,P,C,A,Pid,Goal,Options)) :- !, sandbox_policy:sandbox_toplevel_call(M,P,C,A,Pid,Goal,Options).~n', []),
+    format(Out, '\'$actor_call\'(sandbox_toplevel_call(M,P,C,A,Pid,Goal,Options)) :- !, sandbox_policy:sandbox_toplevel_call(M,P,C,A,Pid,Goal,Options).~n', []),
+    format(Out, '\'$actor_call\'(toplevel_next(Pid)) :- !, toplevel_actors:toplevel_next(Pid).~n', []),
+    format(Out, '\'$actor_call\'(toplevel_next(Pid,Options)) :- !, toplevel_actors:toplevel_next(Pid,Options).~n', []),
     format(Out, '\'$actor_call\'(rpc(URI,Goal)) :- !, rpc:rpc(URI,Goal).~n', []),
     format(Out, '\'$actor_call\'(rpc(URI,Goal,Options)) :- !, rpc:rpc(URI,Goal,Options).~n', []),
     format(Out, '\'$actor_call\'(Goal) :- call(Goal).~n', []),

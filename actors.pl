@@ -30,6 +30,7 @@
          actor_thread/2,         % +Pid, -NativeThread
          receive/1,              % +ReceiveClauses
          receive/2,              % +ReceiveClauses, +Options
+         receive_qualified/2,    % +QualifiedClauses, +Options (runtime bridge)
          make_ref/1,             % -Ref
          flush/0,
 
@@ -727,6 +728,14 @@ receive(Clauses) :-
     receive(Clauses, []).
 
 receive(Clauses, Options) :-
+    receive_qualified(Clauses, Options).
+
+% Non-meta entry point for actor-private modules executing a receive term
+% supplied at runtime.  Calling the meta-predicate receive/2 through call/1
+% makes Trealla qualify a variable catch-all head as a goal, which can yield
+% spurious solutions and lose the caller's binding.  The isolation trampoline
+% constructs the exact Module:{Clauses} term and enters here instead.
+receive_qualified(Clauses, Options) :-
     thread_self(Mailbox),
     deferred_list(Deferred),
     (   select_deferred(Deferred, Clauses, Body, Rest)

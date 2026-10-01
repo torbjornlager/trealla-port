@@ -238,8 +238,8 @@ run_call(Pid, Goal, Template, Offset, Limit0, Target1,
           arg(1, Target, Target1),
           functor(PageState, count, 1),
           arg(1, PageState, 0),
-          bb_put('$ptcp_page_values', []),
-          bb_put('$ptcp_resource_timer', none),
+          page_values_put([]),
+          resource_timer_put(none),
           arm_call_timer(TimeLimit),
           drive(Pid, Goal, Template, Offset, PageCount, PageState, Target,
                 TimeLimit, IdleLimit),
@@ -253,14 +253,26 @@ run_call(Pid, Goal, Template, Offset, Limit0, Target1,
 
 arm_call_timer(TimeLimit) :-
     create_resource_timer(TimeLimit, Timer),
-    bb_put('$ptcp_resource_timer', Timer).
+    resource_timer_put(Timer).
 
 disarm_call_timer :-
-    ( bb_get('$ptcp_resource_timer', Timer) -> true ; Timer = none ),
+    ( resource_timer_get(Timer) -> true ; Timer = none ),
     ( Timer == none -> true
     ; disarm_resource_timer(Timer),
-      bb_put('$ptcp_resource_timer', none)
+      resource_timer_put(none)
     ).
+
+resource_timer_key(Key) :-
+    self(Pid),
+    format(atom(Key), '$ptcp_resource_timer_~w', [Pid]).
+
+resource_timer_put(Timer) :-
+    resource_timer_key(Key),
+    bb_put(Key, Timer).
+
+resource_timer_get(Timer) :-
+    resource_timer_key(Key),
+    bb_get(Key, Timer).
 
 handle_error(_Pid, _Target, _Orig, '$abort_goal') :- !,
     throw('$abort_goal').
@@ -320,19 +332,36 @@ drive_exhausted(Pid, PageState, Target) :-
     ).
 
 page_add(PageState, Value, Count) :-
-    bb_get('$ptcp_page_values', Rev0),
+    page_values_get(Rev0),
     arg(1, PageState, Count0),
     Count is Count0 + 1,
-    bb_put('$ptcp_page_values', [Value|Rev0]),
+    page_values_put([Value|Rev0]),
     nb_setarg(1, PageState, Count).
 
 page_values(_PageState, Values) :-
-    bb_get('$ptcp_page_values', Reversed),
+    page_values_get(Reversed),
     reverse(Reversed, Values).
 
 clear_page(PageState) :-
-    bb_put('$ptcp_page_values', []),
+    page_values_put([]),
     nb_setarg(1, PageState, 0).
+
+% Trealla's blackboard is process-wide, despite bb_* values often appearing
+% thread-local in simple tests. A shell and a nested toplevel can therefore
+% compute pages concurrently and overwrite a fixed key. Key the accumulator
+% by logical actor PID so a child's rows can never leak into its caller's
+% result page.
+page_values_key(Key) :-
+    self(Pid),
+    format(atom(Key), '$ptcp_page_values_~w', [Pid]).
+
+page_values_put(Values) :-
+    page_values_key(Key),
+    bb_put(Key, Values).
+
+page_values_get(Values) :-
+    page_values_key(Key),
+    bb_get(Key, Values).
 
 
 %!  page(+PageCount, +PageState, +Target, +IdleLimit) is semidet.
