@@ -205,7 +205,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -894,6 +894,26 @@ t41 :-
     findall(P-M, isolation:actor_module(P, M), After),
     Before == After,
     format("41. source preparation error cleanup ok~n").
+
+%!  t102 is det.
+%
+%   Preserve the actor's private source module while executing a receive/1
+%   body, including a forward call after an earlier message was deferred.
+
+t102 :-
+    Source = 'wait_hello :- receive({hello -> writeln(''Got hello.''), wait_goodbye}).\nwait_goodbye :- receive({goodbye -> writeln(''Got goodbye.'')}).',
+    sandbox_prepare_spawn(blacklist, actor, actor_context, true,
+                          [src_text(Source)], _, SourceOptions),
+    self(Me),
+    toplevel_spawn(Pid, [target(Me), session(true)|SourceOptions]),
+    Pid ! goodbye,
+    Pid ! hello,
+    toplevel_call(Pid, wait_hello, [target(Me)]),
+    receive({ terminal_io_output(Pid, 'Got hello.') -> true }),
+    receive({ terminal_io_output(Pid, 'Got goodbye.') -> true }),
+    receive({ success(Pid, [wait_hello], false) -> true }),
+    exit(Pid, test_complete),
+    format("102. receive body keeps private source module ok~n").
 
 
                 /*******************************
