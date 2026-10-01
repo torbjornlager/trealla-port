@@ -14,6 +14,8 @@ the cross-runtime test commands documented in README.md.
 :- use_module(node).
 :- use_module(web_prolog).
 
+:- op(200, xfx, @).
+
 websocket_tests :-
     handshake_vector,
     utf8_vector,
@@ -69,15 +71,25 @@ named_variable_json_vectors :-
 web_prolog_pid_binding_vector :-
     RuntimePid = '$thread'(39),
     WirePid = 1234567890,
-    web_prolog:relay_set_actors([actor(WirePid, RuntimePid, session)]),
-    web_prolog:wire_event(
-        ignored,
-        success(RuntimePid, [json_bindings(['Self'=RuntimePid])], false),
-        Event),
-    web_prolog:event_json(Event, JSON),
-    web_prolog:json_atom(JSON, Text),
-    web_prolog:relay_set_actors([]),
-    Text == '{"type":"success","pid":1234567890,"data":[{"Self":"1234567890"}],"more":false}'.
+    Node = 'https://n5.example.org',
+    setup_call_cleanup(
+        ( retractall(web_prolog:node_public_url(_)),
+          assertz(web_prolog:node_public_url(Node)),
+          web_prolog:relay_set_actors([actor(WirePid, RuntimePid, session)])
+        ),
+        ( web_prolog:wire_event(
+              ignored,
+              success(RuntimePid, [json_bindings(['Self'=RuntimePid])], false),
+              Event),
+          web_prolog:event_json(Event, JSON),
+          once(web_prolog:json_atom(JSON, Text)),
+          Text == '{"type":"success","pid":1234567890,"data":[{"Self":"1234567890@\'https:\\/\\/n5.example.org\'"}],"more":false}',
+          web_prolog:import_browser_pids(WirePid@Node, ignored, Imported),
+          Imported == RuntimePid
+        ),
+        ( web_prolog:relay_set_actors([]),
+          retractall(web_prolog:node_public_url(_))
+        )).
 
 profile_advertisement_vector :-
     web_prolog:event_json(transport_welcome(1, actor, blacklist), JSON),

@@ -903,9 +903,15 @@ wake_browser_io_requests([ReplyQueue|ReplyQueues]) :-
     catch(thread_send_message(ReplyQueue, connection_closed), _, true),
     wake_browser_io_requests(ReplyQueues).
 
-export_browser_pids(Term0, _Relay, WirePid) :-
+export_browser_pids(Term0, _Relay, WirePid@Node) :-
     nonvar(Term0),
     relay_actor(WirePid, Term0, _),
+    current_node_url(Node),
+    !.
+export_browser_pids(Term0, _Relay, Term0@Node) :-
+    nonvar(Term0),
+    actors:actor_thread(Term0, _),
+    current_node_url(Node),
     !.
 export_browser_pids(Term, _, Term) :- var(Term), !.
 export_browser_pids(Term, _, Term) :- atomic(Term), !.
@@ -923,7 +929,9 @@ export_browser_pid_args(Index, Arity, Relay, Term0, Term) :-
     export_browser_pid_args(Next, Arity, Relay, Term0, Term).
 
 import_browser_pids(Term0, Relay, Term) :-
-    ( browser_wire_pid(Term0, Id) ->
+    ( local_server_wire_pid(Term0, Relay, RuntimePid) ->
+        Term = RuntimePid
+    ; browser_wire_pid(Term0, Id) ->
         Term = '$web_prolog_endpoint'(Relay, Id)
     ; var(Term0) -> Term = Term0
     ; atomic(Term0) -> Term = Term0
@@ -934,6 +942,11 @@ import_browser_pids(Term0, Relay, Term) :-
 
 browser_wire_pid(Id@localhost, Id) :-
     integer(Id), Id >= 1000000000, Id =< 9999999999.
+
+local_server_wire_pid(Id@Node, _Relay, RuntimePid) :-
+    integer(Id), Id >= 1000000000, Id =< 9999999999,
+    current_node_url(Node),
+    ( relay_actor(Id, RuntimePid, _) -> true ; RuntimePid = Id ).
 
 import_browser_pid_args(Index, Arity, _, _, _) :- Index > Arity, !.
 import_browser_pid_args(Index, Arity, Relay, Term0, Term) :-
