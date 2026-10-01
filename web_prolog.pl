@@ -694,7 +694,7 @@ send_event(WS, Event) :-
                  *******************************/
 
 event_json(success(Pid, Rows, More), JSON) :- !,
-    terms_json_strings(Rows, Data),
+    answer_rows_json(Rows, Data),
     object([type-string_atom(success), pid-json_pid(Pid),
             data-list(Data), more-boolean(More)], JSON).
 event_json(failure(Pid), JSON) :- !,
@@ -878,10 +878,20 @@ import_browser_pid_args(Index, Arity, Relay, Term0, Term) :-
     Next is Index + 1,
     import_browser_pid_args(Next, Arity, Relay, Term0, Term).
 
-terms_json_strings([], []).
-terms_json_strings([Term|Terms], [string(Chars)|JSONTerms]) :-
+answer_rows_json([], []).
+answer_rows_json([json_bindings(Bindings)|Rows], [JSON|JSONRows]) :- !,
+    binding_json_fields(Bindings, Fields),
+    object(Fields, JSON),
+    answer_rows_json(Rows, JSONRows).
+answer_rows_json([Term|Rows], [string(Chars)|JSONRows]) :-
     term_wire_atom(Term, Atom), atom_chars(Atom, Chars),
-    terms_json_strings(Terms, JSONTerms).
+    answer_rows_json(Rows, JSONRows).
+
+binding_json_fields([], []).
+binding_json_fields([Name=Value|Bindings],
+                    [Name-string_atom(Text)|Fields]) :-
+    term_wire_atom(Value, Text),
+    binding_json_fields(Bindings, Fields).
 
 object(Fields, pairs(Pairs)) :- fields_pairs(Fields, Pairs).
 
@@ -959,8 +969,24 @@ read_goal_options(GoalText, OptionsText, Goal, Options) :-
     check_term_text_size(goal, GoalText),
     check_term_text_size(options, OptionsText),
     format(atom(Text), '(~w)-(~w)', [GoalText, OptionsText]),
-    read_term_from_atom(Text, Goal-Options, []),
-    must_be(list, Options).
+    read_term_from_atom(Text, Goal-Options0, [variable_names(Bindings0)]),
+    must_be(list, Options0),
+    named_bindings(Bindings0, Bindings),
+    exclude(template_option, Options0, CallOptions),
+    Options = [template(json_bindings(Bindings))|CallOptions].
+
+template_option(template(_)).
+
+named_bindings([], []).
+named_bindings([Name=Value|Bindings], Named) :-
+    ( anonymous_variable_name(Name)
+    -> Named = Rest
+    ; Named = [Name=Value|Rest]
+    ),
+    named_bindings(Bindings, Rest).
+
+anonymous_variable_name(Name) :-
+    atom_chars(Name, ['_'|_]).
 
 safe_spawn_options(Options0, Options) :-
     exclude(reserved_spawn_option, Options0, Options).

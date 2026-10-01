@@ -117,7 +117,7 @@ protocol_reply(Command, json{type:"transport_welcome",
 protocol_reply(Command, json{type:"spawned", pid:41}) :-
     Command.command == "toplevel_spawn", !.
 protocol_reply(Command, json{type:"success", pid:41,
-                             data:["swi"], more:false}) :-
+                             data:[json{'X':"swi"}], more:false}) :-
     Command.command == "toplevel_call", !.
 protocol_reply(Command, json{type:"halted", pid:41, reply:"true"}) :-
     Command.command == "toplevel_halt", !.
@@ -135,10 +135,32 @@ protocol_client_test(Port) :-
                        goal:"member(X,[a,b,c])",
                        options:"[template(X),limit(2)]"}),
     receive_json(WS, First),
-    First.data == ["a","b"], First.more == true,
+    First.data = [FirstA,FirstB],
+    get_dict('X', FirstA, "a"),
+    get_dict('X', FirstB, "b"),
+    First.more == true,
     send_json(WS, json{command:"toplevel_next", pid:Pid}),
     receive_json(WS, Second),
-    Second.data == ["c"], Second.more == false,
+    Second.data = [SecondC],
+    get_dict('X', SecondC, "c"),
+    Second.more == false,
+    send_json(WS, json{command:"toplevel_call", pid:Pid,
+                       goal:"append([a],[b,c],Xs)",
+                       options:"[limit(10)]"}),
+    receive_json(WS, BoundAppend),
+    BoundAppend.data = [BoundAppendRow],
+    get_dict('Xs', BoundAppendRow, "[a,b,c]"),
+    BoundAppend.more == false,
+    send_json(WS, json{command:"toplevel_call", pid:Pid,
+                       goal:"append(Xs,Ys,[a,b,c])",
+                       options:"[limit(10)]"}),
+    receive_json(WS, SplitAppend),
+    SplitAppend.data = [Split0,_Split1,_Split2,Split3],
+    get_dict('Xs', Split0, "[]"),
+    get_dict('Ys', Split0, "[a,b,c]"),
+    get_dict('Xs', Split3, "[a,b,c]"),
+    get_dict('Ys', Split3, "[]"),
+    SplitAppend.more == false,
     send_json(WS, json{command:"toplevel_halt", pid:Pid}),
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
@@ -158,7 +180,8 @@ source_uri_client_test(Port, SourcePort) :-
     send_json(WS, json{command:"toplevel_call", pid:Pid,
                        goal:"uri_value(X)", options:"[template(X)]"}),
     receive_type(WS, "success", Success),
-    Success.data = [SourceValue],
+    Success.data = [SourceBindings],
+    get_dict('X', SourceBindings, SourceValue),
     atom_codes(SourceValue, SourceCodes),
     % Protocol values are quoted Prolog text; the outer 39s are apostrophes.
     SourceCodes == [39,104,229,108,108,229,32,8364,39],

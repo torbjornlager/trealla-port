@@ -19,8 +19,10 @@ websocket_tests :-
     utf8_vector,
     close_vector,
     web_prolog_json_vector,
+    web_prolog_binding_json_vector,
     profile_advertisement_vector,
     web_prolog_variable_sharing_vector,
+    web_prolog_named_binding_vector,
     browser_io_state_vectors,
     format('WebSocket unit tests: ok~n').
 
@@ -42,6 +44,16 @@ web_prolog_json_vector :-
     web_prolog:json_atom(JSON, Text),
     Text == '{"type":"success","pid":7,"data":["a","b"],"more":true}'.
 
+web_prolog_binding_json_vector :-
+    web_prolog:event_json(
+        success(7,
+                [json_bindings(['Xs'=[b,c]]),
+                 json_bindings(['Xs'=[a,b,c],'Ys'=[]])],
+                false),
+        JSON),
+    web_prolog:json_atom(JSON, Text),
+    Text == '{"type":"success","pid":7,"data":[{"Xs":"[b,c]"},{"Xs":"[a,b,c]","Ys":"[]"}],"more":false}'.
+
 profile_advertisement_vector :-
     web_prolog:event_json(transport_welcome(1, actor, blacklist), JSON),
     web_prolog:json_atom_field(JSON, type, transport_welcome),
@@ -52,8 +64,17 @@ web_prolog_variable_sharing_vector :-
     web_prolog:read_goal_options('member(X,[a,b])', '[template(X),limit(1)]',
                                  Goal, Options),
     Goal = member(GoalX, _),
-    memberchk(template(TemplateX), Options),
+    memberchk(template(json_bindings(['X'=TemplateX])), Options),
     GoalX == TemplateX.
+
+web_prolog_named_binding_vector :-
+    web_prolog:read_goal_options(
+        'append(Xs,Ys,[a,b,c])', '[limit(10)]', Goal, Options),
+    Goal = append(GoalXs, GoalYs, _),
+    memberchk(template(json_bindings(Bindings)), Options),
+    Bindings = ['Xs'=TemplateXs,'Ys'=TemplateYs],
+    GoalXs == TemplateXs,
+    GoalYs == TemplateYs.
 
 browser_io_state_vectors :-
     message_queue_create(ReplyQueue),
@@ -132,7 +153,9 @@ trealla_protocol_client_test(Port) :-
     web_prolog_send(WS, Call),
     web_prolog_receive(WS, Success),
     web_prolog:json_atom_field(Success, type, success),
-    web_prolog:json_field(Success, data, list([string([s,w,i])])),
+    web_prolog:json_field(
+        Success, data,
+        list([pairs([string(['X'])-string([s,w,i])])])),
     ws_close(WS, 1000, done),
     format('Trealla Web Prolog protocol client test: ok~n').
 
