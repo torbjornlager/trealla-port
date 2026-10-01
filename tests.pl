@@ -9,9 +9,9 @@ ship with a unit-test framework (plunit is absent).
 ## Running {#tests-running}
 
 Run `TPL=/path/to/tpl ./tools/test.sh` from the repository root.  The
-runner executes `actors`, `toplevel`, `parallel`, and `isolation` through
+runner executes `actors`, `toplevel`, `parallel`, `isolation`, and `profiles` through
 `run_test_group/1` in fresh Trealla processes, then runs the WebSocket vector
-tests in a fourth process.  Fresh processes are intentional: detached-thread
+tests in another process.  Fresh processes are intentional: detached-thread
 cleanup and mailbox state must not leak between layers.
 
 Each test predicate prints a one-line status message and succeeds on
@@ -78,10 +78,19 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t39 a toplevel evaluates calls in its private namespace
   - t40 actor termination removes loaded clauses and namespace bookkeeping
   - t41 source-preparation errors propagate without retaining a namespace
+
+## Tests: execution profiles (t42-t46)
+
+  - t42 profile names, aliases, ordering, and route ceilings
+  - t43 unavailable routes and protocol commands are rejected
+  - t44 nested goals cannot smuggle stronger-profile operations
+  - t45 RELATION permits only advertised patterns and conjunctions
+  - t46 source-bearing spawn options obey profile policy
 */
 
 :- use_module(toplevel_actors).
 :- use_module(parallel).
+:- use_module(profile_policy).
 
 
                 /*******************************
@@ -105,6 +114,8 @@ run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
     t34, t35, t36, t37, t38, t39, t40, t41.
+run_test_group(profiles) :-
+    t42, t43, t44, t45, t46.
 
 
                 /*******************************
@@ -690,6 +701,72 @@ t41 :-
     findall(P-M, isolation:actor_module(P, M), After),
     Before == After,
     format("41. source preparation error cleanup ok~n").
+
+
+                /*******************************
+                *    PROFILES (t42-t46)       *
+                *******************************/
+
+t42 :-
+    normalize_profile(stateless, isobase),
+    normalize_profile(session, isotope),
+    min_profile(actor, isotope, isotope),
+    effective_profile_for_route(workbench, call, isobase),
+    effective_profile_for_route(workbench, ws, workbench),
+    profile_allows_route(relation, call),
+    format("42. profile ordering and ceilings ok~n").
+
+t43 :-
+    caught_profile_violation(profile_check_route(isobase, ws),
+                             isobase, route(ws)),
+    caught_profile_violation(profile_check_command(isotope, spawn),
+                             isotope, command(spawn)),
+    profile_check_route(actor, ws),
+    profile_check_command(actor, spawn),
+    format("43. profile route and command rejection ok~n").
+
+t44 :-
+    profile_check_goal(isobase, member(_, [a,b])),
+    caught_profile_violation(profile_check_goal(isobase,
+                                                once(send(target, message))),
+                             isobase, goal(send(target, message))),
+    caught_profile_violation(profile_check_goal(isobase,
+                                                (true, assertz(tmp_fact))),
+                             isobase, goal(assertz(tmp_fact))),
+    profile_check_goal(isotope, assertz(tmp_fact)),
+    format("44. nested goal profile enforcement ok~n").
+
+t45 :-
+    normalize_relation_patterns([edge/2, status(ok)], Patterns),
+    profile_check_goal(relation, (edge(a, X), status(ok)), Patterns),
+    var(X),
+    caught_procedure_error(profile_check_goal(relation, status(no), Patterns),
+                           status/1),
+    caught_procedure_error(profile_check_goal(relation, member(_, []), Patterns),
+                           member/2),
+    format("45. advertised relation allowlist ok~n").
+
+t46 :-
+    caught_profile_violation(
+        profile_check_spawn_options(relation, [src_text('p.')]),
+        relation, option(src_text('p.'))),
+    caught_profile_violation(
+        profile_check_spawn_options(isobase,
+                                    [src_list([(p :- assertz(q))])]),
+        isobase, goal(assertz(q))),
+    profile_check_spawn_options(actor,
+                                [src_list([(p :- send(target, message))])]),
+    format("46. source option profile enforcement ok~n").
+
+caught_profile_violation(Goal, Profile, Subject) :-
+    catch((Goal, fail),
+          error(profile_violation(Profile, Subject), _),
+          true).
+
+caught_procedure_error(Goal, Procedure) :-
+    catch((Goal, fail),
+          error(existence_error(procedure, Procedure), _),
+          true).
 
 spawn_ref_makers(0, _) :- !.
 spawn_ref_makers(N, Target) :-

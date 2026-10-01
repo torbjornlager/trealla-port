@@ -238,6 +238,33 @@ port with:
 ?- use_module(web_prolog), web_prolog_node(3060).
 ```
 
+The node accepts the same profile names as Trinity: `relation`, `isobase`,
+`isotope`, `actor`, and the unrestricted development profile `workbench`
+(the default). Historical `stateless` and `session` names are accepted as
+aliases for `isobase` and `isotope`:
+
+```prolog
+?- web_prolog_node(3060, [profile(actor)]).
+```
+
+Profiles are enforced at the request boundary. `/call` has an ISObase ceiling
+and `/ws` has an ACTOR ceiling; consequently an ISObase node returns HTTP 403
+for `/ws`, while ACTOR-only goals submitted to `/call` are rejected even on a
+workbench node. RELATION nodes additionally require an explicit allowlist of
+advertised query patterns. A conjunction is accepted only when every conjunct
+matches one of those patterns:
+
+```prolog
+?- web_prolog_node(3060,
+        [profile(relation), relations([edge/2, status(ok)])]).
+```
+
+The optional `transport_welcome` event advertises the configured profile in
+its additive `profile` field. Profile checks also cover nested meta-goals and
+source-bearing spawn options. These are capability checks, not a security
+sandbox: do not expose the evaluator to untrusted clients until authentication,
+origin policy, sandboxing, and resource ceilings have also been ported.
+
 Protocol version 1 uses one JSON object per text frame.  The port accepts the
 core actor commands `spawn`, `send`, `monitor`, `demonitor`, and `exit`, plus
 `toplevel_spawn`, `toplevel_call`, `toplevel_next`, `toplevel_stop`,
@@ -279,12 +306,10 @@ dedicated relay actor is the only WebSocket writer, while the connection
 reader remains free to accept `next`, `stop`, and `abort` during execution.
 Actors and sessions owned by a connection are terminated when it closes.
 
-The current protocol layer is for trusted peers.  It does not yet port
-Trinity's origin/authentication policy, execution profiles and sandbox,
-resource quotas, source-loading options, or Trinity's full node-controller
-routing table.
-Do not expose its
-goal execution endpoint directly to an untrusted network.
+The current protocol layer is for trusted peers. It does not yet port
+Trinity's origin/authentication policy, sandbox, resource quotas, or full
+node-controller routing table. Do not expose its goal execution endpoint
+directly to an untrusted network.
 
 ### Persistent remote nodes
 
@@ -481,8 +506,9 @@ fully supported.)
 ### web_prolog.pl
 
 - Core version-1 wire compatibility and source-bearing actor/toplevel spawns
-  are implemented; Trinity's security and resource-governance layers remain
-  to be ported. `src_uri/1` is not yet supported.
+  and execution-profile enforcement are implemented; Trinity's remaining
+  security and resource-governance layers still need to be ported.
+  `src_uri/1` is not yet supported.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.
 

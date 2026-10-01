@@ -101,6 +101,7 @@ Accepted HTTP and WebSocket connections run in independent detached threads.
 
 :- use_module(library(sockets)).
 :- use_module(actors).
+:- use_module(profile_policy).
 :- use_module(websocket).
 
 :- meta_predicate(node(+, 2)).
@@ -217,18 +218,24 @@ node(Port, WebSocketHandler) :-
 
 %!  node(+Port, :WebSocketHandler, +Options) is det.
 %
-%   Options include `ssl(true)`, `keyfile(File)`, `certfile(File)`, and
-%   `websocket_options(Options)` (for example subprotocol negotiation).
+%   Options include `profile(Profile)`, `relations(Patterns)`, `ssl(true)`,
+%   `keyfile(File)`, `certfile(File)`, and `websocket_options(Options)` (for
+%   example subprotocol negotiation).  The default profile is `workbench`.
 
 node(Port, WebSocketHandler, Options) :-
     node_server(Port, WebSocketHandler, Options).
 
 node_server(Port, WebSocketHandler, Options) :-
+    option(profile(Profile0), Options, workbench),
+    normalize_profile(Profile0, Profile),
+    option(relations(RelationPatterns0), Options, []),
+    normalize_relation_patterns(RelationPatterns0, RelationPatterns),
     node_socket_options(Options, SocketOptions),
     option(websocket_options(WebSocketOptions), Options, []),
     socket_server_open(Port, S, SocketOptions),
-    format("Node listening on port ~w~n", [Port]),
-    node_loop(S, WebSocketHandler, WebSocketOptions).
+    format("Node listening on port ~w (profile ~w)~n", [Port, Profile]),
+    node_loop(S, WebSocketHandler, WebSocketOptions,
+              Profile, RelationPatterns).
 
 node_socket_options(Options, SocketOptions) :-
     node_copy_option(ssl, Options, [], O1),
@@ -246,10 +253,11 @@ node_copy_option(Name, Options, Input, Output) :-
 %   Accept continuously, starting an independent thread for each HTTP or
 %   WebSocket connection.
 
-node_loop(S, WebSocketHandler, WebSocketOptions) :-
+node_loop(S, WebSocketHandler, WebSocketOptions, Profile, RelationPatterns) :-
     ( catch(socket_server_accept(S, _, C, [type(binary)]), Error,
             ( format(user_error, "node: accept error: ~q~n", [Error]), fail ))
-    -> ( catch(thread_create(node_serve(C, WebSocketHandler, WebSocketOptions), _,
+    -> ( catch(thread_create(node_serve(C, WebSocketHandler, WebSocketOptions,
+                                       Profile, RelationPatterns), _,
                              [detached(true)]),
                ThreadError,
                ( close(C), throw(ThreadError) ))
@@ -258,10 +266,12 @@ node_loop(S, WebSocketHandler, WebSocketOptions) :-
        )
     ; true
     ),
-    node_loop(S, WebSocketHandler, WebSocketOptions).
+    node_loop(S, WebSocketHandler, WebSocketOptions,
+              Profile, RelationPatterns).
 
-node_serve(C, WebSocketHandler, WebSocketOptions) :-
-    catch(handle_connection(C, WebSocketHandler, WebSocketOptions), Error,
+node_serve(C, WebSocketHandler, WebSocketOptions, Profile, RelationPatterns) :-
+    catch(handle_connection(C, WebSocketHandler, WebSocketOptions,
+                            Profile, RelationPatterns), Error,
           format(user_error, "node: error handling request: ~q~n", [Error])),
     catch(close(C), _, true).
 
@@ -271,7 +281,8 @@ node_serve(C, WebSocketHandler, WebSocketOptions) :-
 %   Dispatch `/call` as ordinary HTTP and `/ws` as an RFC 6455 socket
 %   handoff. Other paths receive a 404 response.
 
-handle_connection(C, WebSocketHandler, WebSocketOptions) :-
+handle_connection(C, WebSocketHandler, WebSocketOptions,
+                  Profile, RelationPatterns) :-
     node_http_request(C, Method, Path, Ver, Headers),
     ( split(Path, '?', PathPart, _)
     -> true
@@ -279,13 +290,35 @@ handle_connection(C, WebSocketHandler, WebSocketOptions) :-
     ),
     atom_chars(PathAtom, PathPart),
     ( Method == get, PathAtom == '/call'
-    -> handle_call(C, Path, Ver)
+    -> handle_call_route(C, Path, Ver, Profile, RelationPatterns)
     ; Method == get, PathAtom == '/ws', WebSocketHandler \== none
-    -> ws_accept(C, Headers, WebSocket, WebSocketOptions),
-       call(WebSocketHandler, WebSocket, PathAtom)
+    -> ( catch(profile_check_route(Profile, ws), Error,
+               reply_profile_denied(C, Ver, Error))
+       -> ( var(Error)
+          -> ws_accept(C, Headers, WebSocket, WebSocketOptions),
+             call(WebSocketHandler, WebSocket, PathAtom)
+          ;  true
+          )
+       ; true
+       )
     ;  http_reply(C, Ver, 404, 'Not Found',
                   'text/plain', 'Not found\n')
     ).
+
+handle_call_route(C, Path, Ver, Profile, RelationPatterns) :-
+    catch(profile_check_route(Profile, call), RouteError, true),
+    ( var(RouteError)
+    -> effective_profile_for_route(Profile, call, EffectiveProfile),
+       catch(handle_call(C, Path, Ver, EffectiveProfile, RelationPatterns),
+             Error,
+             reply_answer(C, Ver, prolog, error(Error)))
+    ;  reply_profile_denied(C, Ver, RouteError)
+    ).
+
+reply_profile_denied(C, Ver, Error) :-
+    format(atom(Body), '~q.\n', [error(Error)]),
+    http_reply(C, Ver, 403, 'Forbidden',
+               'text/plain; charset=UTF-8', Body).
 
 
 %!  node_http_request(+Stream, -Method, -Path, -Version, -Headers) is det.
@@ -355,6 +388,9 @@ node_lower_codes([C|Cs], [L|Ls]) :-
 %   respectively (atom_number/2 throws syntax_error on the empty atom).
 
 handle_call(C, Path, Ver) :-
+    handle_call(C, Path, Ver, isobase, []).
+
+handle_call(C, Path, Ver, Profile, RelationPatterns) :-
     parse_query(Path, Params),
     param(goal,     Params, GoalAtom,     ''),
     param(template, Params, TemplateAtom, GoalAtom),
@@ -366,6 +402,7 @@ handle_call(C, Path, Ver) :-
     % Parse Goal and Template as a single term so variables are shared
     atomic_list_concat([GoalAtom, +, TemplateAtom], QTAtom),
     read_term_from_atom(QTAtom, Goal+Template, []),
+    profile_check_goal(Profile, Goal, RelationPatterns),
     compute_answer(Goal, Template, Offset, Limit, Answer),
     reply_answer(C, Ver, Format, Answer).
 

@@ -19,6 +19,7 @@ websocket_tests :-
     utf8_vector,
     close_vector,
     web_prolog_json_vector,
+    profile_advertisement_vector,
     web_prolog_variable_sharing_vector,
     browser_io_state_vectors,
     format('WebSocket unit tests: ok~n').
@@ -40,6 +41,11 @@ web_prolog_json_vector :-
     web_prolog:event_json(success(7, [a,b], true), JSON),
     web_prolog:json_atom(JSON, Text),
     Text == '{"type":"success","pid":7,"data":["a","b"],"more":true}'.
+
+profile_advertisement_vector :-
+    web_prolog:event_json(transport_welcome(1, actor), JSON),
+    web_prolog:json_atom_field(JSON, type, transport_welcome),
+    web_prolog:json_atom_field(JSON, profile, actor).
 
 web_prolog_variable_sharing_vector :-
     web_prolog:read_goal_options('member(X,[a,b])', '[template(X),limit(1)]',

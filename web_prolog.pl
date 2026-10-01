@@ -4,6 +4,7 @@
     [ web_prolog_node/1,
       web_prolog_node/2,
       web_prolog_handler/2,
+      web_prolog_handler/3,
       web_prolog_connect/2,
       web_prolog_connect/3,
       web_prolog_send/2,
@@ -28,15 +29,17 @@ negotiate `io_ack:true` receive terminal output as `io_request` events and
 must answer with `browser_io_reply`; prompt replies are authorized once and
 scoped to the connection that received the prompt.
 
-This first port is intended for trusted peers.  Unlike the Trinity node it
-does not yet implement authentication, origin checks, execution profiles,
-resource quotas, or a source-code sandbox.
+Node startup accepts Trinity-compatible execution profiles and enforces their
+route, command, goal, and source-option ceilings.  This remains intended for
+trusted peers: profiles are capability policy, not a source-code sandbox, and
+authentication, origin checks, and resource quotas are not yet implemented.
 */
 
 :- use_module(library(dcgs)).
 :- use_module(library(json)).
 :- use_module(actors).
 :- use_module(isolation).
+:- use_module(profile_policy).
 :- use_module(toplevel_actors).
 :- use_module(node).
 :- use_module(websocket).
@@ -72,8 +75,10 @@ web_prolog_node(Port) :-
     web_prolog_node(Port, []).
 
 web_prolog_node(Port, Options) :-
+    option(profile(Profile0), Options, workbench),
+    normalize_profile(Profile0, Profile),
     configure_node_url(Port, Options),
-    node(Port, web_prolog_handler, Options).
+    node(Port, web_prolog_handler(Profile), Options).
 
 configure_node_url(Port, Options) :-
     ( memberchk(node_url(URL0), Options) -> node_url_atom(URL0, URL1)
@@ -94,26 +99,29 @@ current_node_url(URL) :- node_public_url(URL).
 %! web_prolog_handler(+WebSocket, +Path) is det.
 
 web_prolog_handler(WS, '/ws') :-
+    web_prolog_handler(workbench, WS, '/ws').
+
+web_prolog_handler(Profile, WS, '/ws') :-
     thread_self(Reader),
     spawn(relay_start(WS), Relay, [link(false)]),
     setup_call_cleanup(
         true,
-        read_loop(WS, Relay, Reader),
+        read_loop(WS, Relay, Reader, Profile),
         close_connection(Relay)
     ).
 
-read_loop(WS, Relay, Reader) :-
+read_loop(WS, Relay, Reader, Profile) :-
     ws_receive(WS, Frame),
     ( Frame = text(Text) ->
-        catch(dispatch_text(Text, Relay, Reader), Error,
+        catch(dispatch_text(Text, Relay, Reader, Profile), Error,
               Relay ! protocol_error(Error)),
-        read_loop(WS, Relay, Reader)
+        read_loop(WS, Relay, Reader, Profile)
     ; Frame = close(Code, Reason) ->
         Relay ! '$peer_close'(Code, Reason, Reader),
         thread_get_message(Reader, '$peer_closed'(Relay))
     ; Frame == end_of_file ->
         true
-    ; read_loop(WS, Relay, Reader)
+    ; read_loop(WS, Relay, Reader, Profile)
     ).
 
 close_connection(Relay) :-
@@ -158,40 +166,47 @@ web_prolog_receive(Connection, JSON) :-
                  *          DISPATCH             *
                  *******************************/
 
-dispatch_text(Text, Relay, Reader) :-
+dispatch_text(Text, Relay, Reader, Profile) :-
     json_atom(JSON, Text),
     json_atom_field(JSON, command, Command),
-    dispatch(Command, JSON, Relay, Reader).
+    profile_check_command(Profile, Command),
+    dispatch(Command, JSON, Relay, Reader, Profile).
 
-dispatch(transport_hello, JSON, Relay, Reader) :- !,
+dispatch(transport_hello, JSON, Relay, Reader, Profile) :- !,
     json_integer_default(JSON, version, 1, Version),
     json_boolean_default(JSON, io_ack, false, IoAck),
     ( Version =:= 1 ->
-        Relay ! '$transport_hello'(Version, IoAck, Reader),
+        Relay ! '$transport_hello'(Version, IoAck, Profile, Reader),
         thread_get_message(Reader, '$transport_ready'(Relay))
     ; throw(error(domain_error(web_prolog_protocol_version, Version),
                   web_prolog_handler/2))
     ).
-dispatch(toplevel_spawn, JSON, Relay, _) :- !,
+dispatch(toplevel_spawn, JSON, Relay, _, Profile) :- !,
     json_options(JSON, Options0),
+    profile_check_spawn_options(Profile, Options0),
     safe_spawn_options(Options0, Options1),
     spawn_io_options(JSON, Relay, Options1, Options),
     thread_self(Reader),
     Relay ! '$toplevel_spawn'(Options, Reader),
     thread_get_message(Reader, '$spawned'(_WirePid)).
-dispatch(toplevel_call, JSON, Relay, _) :- !,
+dispatch(toplevel_call, JSON, Relay, _, Profile) :- !,
+    json_text_field(JSON, goal, GoalText),
+    json_text_default(JSON, options, '[]', OptionsText),
+    read_goal_options(GoalText, OptionsText, Goal, Options),
+    profile_check_goal(Profile, Goal),
+    profile_check_spawn_options(Profile, Options),
     Relay ! '$ws_command'(toplevel_call, JSON).
-dispatch(toplevel_next, JSON, Relay, _) :- !,
+dispatch(toplevel_next, JSON, Relay, _, _) :- !,
     Relay ! '$ws_command'(toplevel_next, JSON).
-dispatch(toplevel_stop, JSON, Relay, _) :- !,
+dispatch(toplevel_stop, JSON, Relay, _, _) :- !,
     Relay ! '$ws_command'(toplevel_stop, JSON).
-dispatch(toplevel_abort, JSON, Relay, _) :- !,
+dispatch(toplevel_abort, JSON, Relay, _, _) :- !,
     Relay ! '$ws_command'(toplevel_abort, JSON).
-dispatch(toplevel_halt, JSON, Relay, _) :- !,
+dispatch(toplevel_halt, JSON, Relay, _, _) :- !,
     Relay ! '$ws_command'(toplevel_halt, JSON).
-dispatch(toplevel_respond, JSON, Relay, _) :- !,
+dispatch(toplevel_respond, JSON, Relay, _, _) :- !,
     Relay ! '$ws_command'(toplevel_respond, JSON).
-dispatch(browser_io_reply, JSON, Relay, _) :- !,
+dispatch(browser_io_reply, JSON, Relay, _, _) :- !,
     json_text_field(JSON, request_id, RequestId),
     json_text_field(JSON, status, Status),
     ( memberchk(Status, [ok,error]) ->
@@ -199,25 +214,27 @@ dispatch(browser_io_reply, JSON, Relay, _) :- !,
     ; throw(error(domain_error(browser_io_status, Status),
                   web_prolog_handler/2))
     ).
-dispatch(spawn, JSON, Relay, Reader) :- !,
+dispatch(spawn, JSON, Relay, Reader, Profile) :- !,
     json_term_field(JSON, goal, Goal0),
     import_browser_pids(Goal0, Relay, Goal),
+    profile_check_goal(Profile, Goal),
     json_options(JSON, Options0),
+    profile_check_spawn_options(Profile, Options0),
     safe_spawn_options(Options0, Options1),
     spawn_io_options(JSON, Relay, Options1, Options),
     Relay ! '$spawn'(Goal, Options, Reader),
     thread_get_message(Reader, '$spawned'(_Pid)).
-dispatch(send, JSON, Relay, _) :- !,
+dispatch(send, JSON, Relay, _, _) :- !,
     Relay ! '$ws_command'(send, JSON).
-dispatch(monitor, JSON, Relay, _) :- !,
+dispatch(monitor, JSON, Relay, _, _) :- !,
     Relay ! '$ws_command'(monitor, JSON).
-dispatch(demonitor, JSON, Relay, _) :- !,
+dispatch(demonitor, JSON, Relay, _, _) :- !,
     Relay ! '$ws_command'(demonitor, JSON).
-dispatch(exit, JSON, Relay, _) :- !,
+dispatch(exit, JSON, Relay, _, _) :- !,
     Relay ! '$ws_command'(exit, JSON).
-dispatch(io_request, JSON, Relay, _) :- !,
+dispatch(io_request, JSON, Relay, _, _) :- !,
     Relay ! '$io_request'(JSON).
-dispatch(Command, _, _, _) :-
+dispatch(Command, _, _, _, _) :-
     throw(error(domain_error(web_prolog_command, Command),
                 web_prolog_handler/2)).
 
@@ -331,10 +348,10 @@ relay_message(_, '$ws_close') :- !,
     bb_put('$web_prolog_actors', []),
     bb_put('$web_prolog_monitors', []),
     bb_put('$web_prolog_halts', []).
-relay_message(WS, '$transport_hello'(Version, IoAck, Reader)) :- !,
+relay_message(WS, '$transport_hello'(Version, IoAck, Profile, Reader)) :- !,
     self(Relay),
     set_browser_io_enabled(Relay, IoAck),
-    send_event(WS, transport_welcome(Version)),
+    send_event(WS, transport_welcome(Version, Profile)),
     thread_send_message(Reader, '$transport_ready'(Relay)).
 relay_message(WS, '$peer_close'(Code, Reason, Reader)) :- !,
     self(Relay),
@@ -561,9 +578,12 @@ event_json(down(Pid, Ref, Reason), JSON) :- !,
     object([type-string_atom(down), pid-json_pid(Pid), ref-json_pid(Ref),
             reason-string_atom(ReasonText)], JSON).
 event_json(transport_welcome(Version), JSON) :- !,
+    event_json(transport_welcome(Version, workbench), JSON).
+event_json(transport_welcome(Version, Profile), JSON) :- !,
     object([type-string_atom(transport_welcome),
             protocol-string_atom(web_prolog_browser_actor),
             io_ack-boolean(true), browser_pids-boolean(true),
+            profile-string_atom(Profile),
             version-number(Version)], JSON).
 event_json(actor_message(Target, Message), JSON) :- !,
     term_wire_atom(Target, TargetText),
