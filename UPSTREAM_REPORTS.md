@@ -593,6 +593,29 @@ Current workaround: build Trealla with OpenSSL when TLS is required, or
 terminate TLS in a reverse proxy. Hostname verification in SSL-enabled builds
 remains a separate requirement tracked in BUG-005.
 
+### BUG-016: Blocking inside a receive body can lose its deferred tail
+
+**Status:** Needs minimization
+**Priority:** High
+
+The actor receive loop keeps unmatched mailbox messages in a thread-local
+blackboard list. On Trealla v3.12.6, if a matching receive body blocks in
+`thread_get_message/3` before recursively receiving again, the next deferred
+message is no longer observed. The browser terminal exposed this when
+`flush/0` drained two messages: it emitted the first, waited for the browser's
+acknowledgement, then returned success without emitting the second. Both
+messages were demonstrably enqueued before `flush/0` began.
+
+The same recursive drain works when its body does not block, so the trigger
+appears to involve resuming a receive continuation after a cross-thread queue
+wait. It may be related to the mutable-term/cross-thread continuation symptoms
+in BUG-006, but the exact runtime mechanism has not yet been isolated.
+
+Current workaround: `actors:flush/0` first drains every pending message into a
+plain list without blocking for terminal acknowledgements, then emits the
+collected messages in a second pass. The SWI-to-Trealla browser interoperability
+test verifies two acknowledged outputs in order.
+
 ## Compatibility gaps worth tracking, but not yet bug reports
 
 These missing facilities increase porting work but need a clearer upstream
