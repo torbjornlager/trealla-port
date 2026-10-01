@@ -154,8 +154,7 @@ profile_check_goal(Profile0, Goal, RelationPatterns) :-
     ).
 
 profile_check_goal_1(Profile, Goal) :-
-    ( var(Goal) -> throw(error(instantiation_error,
-                              profile_policy:profile_check_goal/2))
+    ( var(Goal) -> true
     ; Goal = (_Module:Inner) -> profile_check_goal_1(Profile, Inner)
     ; Goal = (Left, Right) -> profile_check_goal_1(Profile, Left),
                               profile_check_goal_1(Profile, Right)

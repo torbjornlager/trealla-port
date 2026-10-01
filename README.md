@@ -259,11 +259,36 @@ matches one of those patterns:
         [profile(relation), relations([edge/2, status(ok)])]).
 ```
 
-The optional `transport_welcome` event advertises the configured profile in
-its additive `profile` field. Profile checks also cover nested meta-goals and
-source-bearing spawn options. These are capability checks, not a security
-sandbox: do not expose the evaluator to untrusted clients until authentication,
-origin policy, sandboxing, and resource ceilings have also been ported.
+The node also accepts `sandbox(off|blacklist|whitelist)`. The default is
+`blacklist`; historical `on`, `demo`, and `strict` values select the more
+conservative whitelist:
+
+```prolog
+?- web_prolog_node(3060,
+       [profile(actor), sandbox(blacklist)]).
+```
+
+Blacklist mode rejects ambient stream/filesystem access, process execution,
+network creation, module/native-code loading, thread primitives, runtime
+reflection, parser mutation, and foreign module qualification. Opaque
+meta-calls and dynamically asserted clause bodies are rewritten through
+runtime guards, so constructing a forbidden goal in a variable does not evade
+the initial walk. Whitelist mode additionally admits only a conservative
+catalog of pure predicates, actor operations, and predicates defined in the
+submitted source. `sandbox(off)` is intended only for trusted development.
+
+Public `src_text/1` and `src_list/1` inputs are parsed, checked, rewritten, and
+then loaded as actor-private terms. Unsafe directives, qualified/reserved
+clause heads, and source-level expansion hooks are rejected. Direct public
+`src_predicates/1` must be materialized by the sending node, as the Trealla
+distribution layer does. `src_uri/1` remains disabled until fetch limits,
+redirect handling, and an origin allowlist are implemented. Nested remote
+spawn is currently restricted to loopback node URLs in sandbox mode.
+
+The optional `transport_welcome` event advertises the configured profile and
+sandbox in additive `profile` and `sandbox` fields. These Prolog-level checks
+are defense in depth, not a host security boundary: public deployment still
+requires authentication, resource ceilings, and OS/container isolation.
 
 Protocol version 1 uses one JSON object per text frame.  The port accepts the
 core actor commands `spawn`, `send`, `monitor`, `demonitor`, and `exit`, plus
@@ -306,10 +331,10 @@ dedicated relay actor is the only WebSocket writer, while the connection
 reader remains free to accept `next`, `stop`, and `abort` during execution.
 Actors and sessions owned by a connection are terminated when it closes.
 
-The current protocol layer is for trusted peers. It does not yet port
-Trinity's origin/authentication policy, sandbox, resource quotas, or full
-node-controller routing table. Do not expose its goal execution endpoint
-directly to an untrusted network.
+The current protocol layer does not yet port Trinity's origin/authentication
+policy, resource quotas, or full node-controller routing table. Do not expose
+its goal execution endpoint directly to an untrusted network without those
+layers and OS-level containment.
 
 ### Persistent remote nodes
 
@@ -506,9 +531,10 @@ fully supported.)
 ### web_prolog.pl
 
 - Core version-1 wire compatibility and source-bearing actor/toplevel spawns
-  and execution-profile enforcement are implemented; Trinity's remaining
-  security and resource-governance layers still need to be ported.
-  `src_uri/1` is not yet supported.
+  now include execution-profile enforcement and native Trealla blacklist and
+  whitelist sandbox modes. Authentication, resource governance, and the
+  deployment boundary still need to be ported. `src_uri/1` remains disabled
+  pending an explicit fetch-origin policy.
 - A TLS-enabled Trealla client currently lacks complete hostname-verified
   certificate validation in the underlying socket implementation.
 

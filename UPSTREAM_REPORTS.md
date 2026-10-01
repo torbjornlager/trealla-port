@@ -144,6 +144,25 @@ retracts all dynamically loaded user clauses on termination, and deletes its
 bootstrap file. The empty bootstrap module necessarily remains in the module
 table until process exit.
 
+### FR-007: Provide an extensible goal-safety analysis library
+
+**Status:** Needs design
+**Priority:** Medium
+
+Trealla has no equivalent of SWI-Prolog's `library(sandbox)`. A node accepting
+goals and source from remote peers consequently has to maintain its own walker,
+safe-primitive catalog, meta-call guards, directive policy, and source
+validation rules.
+
+Desired behavior: a module-aware safety API that can validate goals and source
+before execution, recognizes the meta-arguments of standard predicates, and
+allows applications to declare additional safe primitives and meta-predicates.
+Runtime checking must remain possible when a callable is initially a variable.
+
+Current workaround: `sandbox_policy.pl` implements a native blacklist and a
+conservative whitelist, rewrites opaque meta-calls through runtime guards, and
+validates submitted source before it reaches an actor's private module.
+
 ## Bug reports
 
 ### BUG-001: Abrupt in-process WebSocket teardown can crash Trealla

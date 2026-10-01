@@ -43,9 +43,10 @@ web_prolog_json_vector :-
     Text == '{"type":"success","pid":7,"data":["a","b"],"more":true}'.
 
 profile_advertisement_vector :-
-    web_prolog:event_json(transport_welcome(1, actor), JSON),
+    web_prolog:event_json(transport_welcome(1, actor, blacklist), JSON),
     web_prolog:json_atom_field(JSON, type, transport_welcome),
-    web_prolog:json_atom_field(JSON, profile, actor).
+    web_prolog:json_atom_field(JSON, profile, actor),
+    web_prolog:json_atom_field(JSON, sandbox, blacklist).
 
 web_prolog_variable_sharing_vector :-
     web_prolog:read_goal_options('member(X,[a,b])', '[template(X),limit(1)]',

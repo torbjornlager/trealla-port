@@ -9,7 +9,8 @@ ship with a unit-test framework (plunit is absent).
 ## Running {#tests-running}
 
 Run `TPL=/path/to/tpl ./tools/test.sh` from the repository root.  The
-runner executes `actors`, `toplevel`, `parallel`, `isolation`, and `profiles` through
+runner executes `actors`, `toplevel`, `parallel`, `isolation`, `profiles`, and
+`sandbox` through
 `run_test_group/1` in fresh Trealla processes, then runs the WebSocket vector
 tests in another process.  Fresh processes are intentional: detached-thread
 cleanup and mailbox state must not leak between layers.
@@ -86,11 +87,26 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t44 nested goals cannot smuggle stronger-profile operations
   - t45 RELATION permits only advertised patterns and conjunctions
   - t46 source-bearing spawn options obey profile policy
+
+## Tests: sandbox and public source policy (t47-t56)
+
+  - t47 sandbox modes and compatibility aliases normalize
+  - t48 dangerous direct, nested, qualified, and receive-body goals are denied
+  - t49 unsafe source options, directives, and clause heads are denied
+  - t50 checked source still loads and executes in a private actor namespace
+  - t51 runtime-constructed meta-calls are guarded
+  - t52 whitelist mode admits safe source-local calls and rejects unknown calls
+  - t53 sandbox(off) preserves trusted-node behavior
+  - t54 runtime-constructed asserted clauses are checked before mutation
+  - t55 producer exceptions return to the HTTP worker instead of deadlocking
+  - t56 the portable abolish/2 form stays scoped to the actor module
 */
 
 :- use_module(toplevel_actors).
 :- use_module(parallel).
 :- use_module(profile_policy).
+:- use_module(sandbox_policy).
+:- use_module(node).
 
 
                 /*******************************
@@ -116,6 +132,8 @@ run_test_group(isolation) :-
     t34, t35, t36, t37, t38, t39, t40, t41.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
+run_test_group(sandbox) :-
+    t47, t48, t49, t50, t51, t52, t53, t54, t55, t56.
 
 
                 /*******************************
@@ -757,6 +775,124 @@ t46 :-
     profile_check_spawn_options(actor,
                                 [src_list([(p :- send(target, message))])]),
     format("46. source option profile enforcement ok~n").
+
+
+                /*******************************
+                *     SANDBOX (t47-t56)       *
+                *******************************/
+
+t47 :-
+    normalize_sandbox_mode(off, off),
+    normalize_sandbox_mode(blacklist, blacklist),
+    normalize_sandbox_mode(whitelist, whitelist),
+    normalize_sandbox_mode(on, whitelist),
+    normalize_sandbox_mode(demo, whitelist),
+    normalize_sandbox_mode(strict, whitelist),
+    format("47. sandbox mode normalization ok~n").
+
+t48 :-
+    caught_sandbox(sandbox_prepare_goal(blacklist, actor, user,
+                                        open(secret, read, _), _)),
+    caught_sandbox(sandbox_prepare_goal(blacklist, actor, user,
+                                        catch(true, _, shell(command)), _)),
+    caught_sandbox(sandbox_prepare_goal(blacklist, actor, user,
+                                        user:member(_, []), _)),
+    caught_sandbox(sandbox_prepare_goal(
+        blacklist, actor, user,
+        receive({go -> current_prolog_flag(version_data, _)}), _)),
+    caught_sandbox(sandbox_prepare_goal(
+        blacklist, actor, user, _Module:open(secret, read, _), _)),
+    format("48. sandbox goal walker denial ok~n").
+
+t49 :-
+    caught_permission(sandbox_prepare_options(
+        blacklist, actor, actor_context,
+        [src_text(':- initialization(shell(command)).')], _)),
+    caught_sandbox(sandbox_prepare_options(
+        blacklist, actor, actor_context,
+        [src_list([(user:p :- true)])], _)),
+    caught_permission(sandbox_prepare_options(
+        blacklist, actor, actor_context, [src_uri('file:///etc/passwd')], _)),
+    caught_permission(sandbox_prepare_options(
+        blacklist, actor, actor_context, [src_predicates([secret/1])], _)),
+    format("49. public source policy denial ok~n").
+
+t50 :-
+    self(Me),
+    Goal0 = (sandbox_value(X), Me ! sandbox_source_value(X)),
+    sandbox_prepare_spawn(blacklist, actor, actor_context, Goal0,
+                          [src_text('sandbox_value(checked).')],
+                          Goal, Options0),
+    append(Options0, [link(false)], Options),
+    spawn(Goal, _, Options),
+    receive({sandbox_source_value(Value) -> true}),
+    Value == checked,
+    format("50. checked private source execution ok~n").
+
+t51 :-
+    Goal0 = (RuntimeGoal = current_prolog_flag(version_data, _),
+             call(RuntimeGoal)),
+    sandbox_prepare_goal(blacklist, isobase, user, Goal0, Goal),
+    caught_sandbox(call(Goal)),
+    format("51. runtime meta-call guard ok~n").
+
+t52 :-
+    self(Me),
+    Goal0 = (whitelist_value(X), Me ! whitelist_source_value(X)),
+    sandbox_prepare_spawn(
+        whitelist, actor, actor_context, Goal0,
+        [src_text('whitelist_value(X) :- member(X, [safe]).')],
+        Goal, Options0),
+    append(Options0, [link(false)], Options),
+    spawn(Goal, _, Options),
+    receive({whitelist_source_value(Value) -> true}),
+    Value == safe,
+    caught_sandbox(sandbox_prepare_goal(whitelist, actor, user,
+                                        unknown_host_predicate, _)),
+    format("52. conservative whitelist ok~n").
+
+t53 :-
+    Unsafe = open(trusted_file, read, _),
+    sandbox_prepare_goal(off, actor, user, Unsafe, Same),
+    Same = Unsafe,
+    format("53. sandbox off compatibility ok~n").
+
+t54 :-
+    Goal0 = (Clause = (sandbox_asserted :-
+                         current_prolog_flag(version_data, _)),
+             assertz(Clause)),
+    sandbox_prepare_goal(blacklist, isotope, user, Goal0, Goal),
+    caught_sandbox(call(Goal)),
+    \+ current_predicate(sandbox_asserted/0),
+    format("54. runtime asserted-clause guard ok~n").
+
+t55 :-
+    catch((node:compute_answer(throw(producer_runtime_error), value,
+                               0, 1, _), fail),
+          producer_runtime_error,
+          true),
+    format("55. producer exception propagation ok~n").
+
+t56 :-
+    sandbox_prepare_goal(blacklist, isotope, user,
+                         (assertz(sandbox_abolish_probe),
+                          abolish(sandbox_abolish_probe, 0)),
+                         Goal),
+    call(Goal),
+    \+ current_predicate(sandbox_abolish_probe/0),
+    caught_sandbox(sandbox_prepare_goal(
+        blacklist, isotope, user, abolish('$actor_call', 1), _)),
+    format("56. scoped portable abolish/2 ok~n").
+
+caught_sandbox(Goal) :-
+    catch((Goal, fail),
+          error(permission_error(_, sandboxed, _), _),
+          true).
+
+caught_permission(Goal) :-
+    catch((Goal, fail),
+          error(permission_error(_, _, _), _),
+          true).
 
 caught_profile_violation(Goal, Profile, Subject) :-
     catch((Goal, fail),

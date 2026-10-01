@@ -102,6 +102,7 @@ Accepted HTTP and WebSocket connections run in independent detached threads.
 :- use_module(library(sockets)).
 :- use_module(actors).
 :- use_module(profile_policy).
+:- use_module(sandbox_policy).
 :- use_module(websocket).
 
 :- meta_predicate(node(+, 2)).
@@ -218,9 +219,10 @@ node(Port, WebSocketHandler) :-
 
 %!  node(+Port, :WebSocketHandler, +Options) is det.
 %
-%   Options include `profile(Profile)`, `relations(Patterns)`, `ssl(true)`,
+%   Options include `profile(Profile)`, `sandbox(Mode)`, `relations(Patterns)`, `ssl(true)`,
 %   `keyfile(File)`, `certfile(File)`, and `websocket_options(Options)` (for
-%   example subprotocol negotiation).  The default profile is `workbench`.
+%   example subprotocol negotiation).  Defaults are `profile(workbench)` and
+%   `sandbox(blacklist)`.
 
 node(Port, WebSocketHandler, Options) :-
     node_server(Port, WebSocketHandler, Options).
@@ -228,14 +230,17 @@ node(Port, WebSocketHandler, Options) :-
 node_server(Port, WebSocketHandler, Options) :-
     option(profile(Profile0), Options, workbench),
     normalize_profile(Profile0, Profile),
+    option(sandbox(Sandbox0), Options, blacklist),
+    normalize_sandbox_mode(Sandbox0, Sandbox),
     option(relations(RelationPatterns0), Options, []),
     normalize_relation_patterns(RelationPatterns0, RelationPatterns),
     node_socket_options(Options, SocketOptions),
     option(websocket_options(WebSocketOptions), Options, []),
     socket_server_open(Port, S, SocketOptions),
-    format("Node listening on port ~w (profile ~w)~n", [Port, Profile]),
+    format("Node listening on port ~w (profile ~w, sandbox ~w)~n",
+           [Port, Profile, Sandbox]),
     node_loop(S, WebSocketHandler, WebSocketOptions,
-              Profile, RelationPatterns).
+              Profile, Sandbox, RelationPatterns).
 
 node_socket_options(Options, SocketOptions) :-
     node_copy_option(ssl, Options, [], O1),
@@ -253,11 +258,12 @@ node_copy_option(Name, Options, Input, Output) :-
 %   Accept continuously, starting an independent thread for each HTTP or
 %   WebSocket connection.
 
-node_loop(S, WebSocketHandler, WebSocketOptions, Profile, RelationPatterns) :-
+node_loop(S, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
+          RelationPatterns) :-
     ( catch(socket_server_accept(S, _, C, [type(binary)]), Error,
             ( format(user_error, "node: accept error: ~q~n", [Error]), fail ))
     -> ( catch(thread_create(node_serve(C, WebSocketHandler, WebSocketOptions,
-                                       Profile, RelationPatterns), _,
+                                       Profile, Sandbox, RelationPatterns), _,
                              [detached(true)]),
                ThreadError,
                ( close(C), throw(ThreadError) ))
@@ -267,11 +273,12 @@ node_loop(S, WebSocketHandler, WebSocketOptions, Profile, RelationPatterns) :-
     ; true
     ),
     node_loop(S, WebSocketHandler, WebSocketOptions,
-              Profile, RelationPatterns).
+              Profile, Sandbox, RelationPatterns).
 
-node_serve(C, WebSocketHandler, WebSocketOptions, Profile, RelationPatterns) :-
+node_serve(C, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
+           RelationPatterns) :-
     catch(handle_connection(C, WebSocketHandler, WebSocketOptions,
-                            Profile, RelationPatterns), Error,
+                            Profile, Sandbox, RelationPatterns), Error,
           format(user_error, "node: error handling request: ~q~n", [Error])),
     catch(close(C), _, true).
 
@@ -282,7 +289,7 @@ node_serve(C, WebSocketHandler, WebSocketOptions, Profile, RelationPatterns) :-
 %   handoff. Other paths receive a 404 response.
 
 handle_connection(C, WebSocketHandler, WebSocketOptions,
-                  Profile, RelationPatterns) :-
+                  Profile, Sandbox, RelationPatterns) :-
     node_http_request(C, Method, Path, Ver, Headers),
     ( split(Path, '?', PathPart, _)
     -> true
@@ -290,7 +297,7 @@ handle_connection(C, WebSocketHandler, WebSocketOptions,
     ),
     atom_chars(PathAtom, PathPart),
     ( Method == get, PathAtom == '/call'
-    -> handle_call_route(C, Path, Ver, Profile, RelationPatterns)
+    -> handle_call_route(C, Path, Ver, Profile, Sandbox, RelationPatterns)
     ; Method == get, PathAtom == '/ws', WebSocketHandler \== none
     -> ( catch(profile_check_route(Profile, ws), Error,
                reply_profile_denied(C, Ver, Error))
@@ -305,11 +312,12 @@ handle_connection(C, WebSocketHandler, WebSocketOptions,
                   'text/plain', 'Not found\n')
     ).
 
-handle_call_route(C, Path, Ver, Profile, RelationPatterns) :-
+handle_call_route(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     catch(profile_check_route(Profile, call), RouteError, true),
     ( var(RouteError)
     -> effective_profile_for_route(Profile, call, EffectiveProfile),
-       catch(handle_call(C, Path, Ver, EffectiveProfile, RelationPatterns),
+       catch(handle_call(C, Path, Ver, EffectiveProfile, Sandbox,
+                         RelationPatterns),
              Error,
              reply_answer(C, Ver, prolog, error(Error)))
     ;  reply_profile_denied(C, Ver, RouteError)
@@ -388,9 +396,9 @@ node_lower_codes([C|Cs], [L|Ls]) :-
 %   respectively (atom_number/2 throws syntax_error on the empty atom).
 
 handle_call(C, Path, Ver) :-
-    handle_call(C, Path, Ver, isobase, []).
+    handle_call(C, Path, Ver, isobase, blacklist, []).
 
-handle_call(C, Path, Ver, Profile, RelationPatterns) :-
+handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     parse_query(Path, Params),
     param(goal,     Params, GoalAtom,     ''),
     param(template, Params, TemplateAtom, GoalAtom),
@@ -403,7 +411,8 @@ handle_call(C, Path, Ver, Profile, RelationPatterns) :-
     atomic_list_concat([GoalAtom, +, TemplateAtom], QTAtom),
     read_term_from_atom(QTAtom, Goal+Template, []),
     profile_check_goal(Profile, Goal, RelationPatterns),
-    compute_answer(Goal, Template, Offset, Limit, Answer),
+    sandbox_prepare_goal(Sandbox, Profile, user, Goal, ExecutionGoal),
+    compute_answer(ExecutionGoal, Template, Offset, Limit, Answer),
     reply_answer(C, Ver, Format, Answer).
 
 
@@ -504,7 +513,8 @@ compute_answer(Goal, Template, Offset, Limit, Answer) :-
     self(Self),
     (   cache_retract(Gid, Offset, ProducerPid, Lookahead)
     ->  true                            % resume suspended producer
-    ;   spawn(run_goal_producer(Goal, Template), ProducerPid, [link(false)]),
+    ;   spawn(run_goal_producer_guarded(Goal, Template), ProducerPid,
+              [link(false)]),
         (Offset > 0 -> stream_skip(ProducerPid, Self, Offset) ; true),
         Lookahead = none
     ),
@@ -520,6 +530,8 @@ compute_answer(Goal, Template, Offset, Limit, Answer) :-
                 Answer = success(Slice, true)
             ; eos ->
                 (Slice == [] -> Answer = failure ; Answer = success(Slice, false))
+            ; producer_error(Error) ->
+                throw(Error)
         })
     ).
 
@@ -556,6 +568,20 @@ run_goal_producer(Goal, Template) :-
         '$prod_stop',
         true
     ).
+
+% Execute a producer while preserving exceptions as a reply to the next
+% outstanding page request.  Public sandbox runtime guards can reject a goal
+% only after variables become concrete, so dropping an actor exception here
+% would otherwise leave the HTTP worker blocked forever.
+run_goal_producer_guarded(Goal, Template) :-
+    catch(run_goal_producer(Goal, Template), Error,
+          producer_error_reply(Error)).
+
+producer_error_reply(Error) :-
+    receive({
+        '$request'(C) -> C ! producer_error(Error)
+        ; '$stop' -> true
+    }).
 
 
 %!  stream_collect(+Pid, +Self, +N, +Lookahead, -Slice, -Exhausted) is det.
@@ -595,6 +621,8 @@ stream_collect_(Pid, Self, N, none, Acc, List, Exh) :-
             stream_collect_(Pid, Self, N1, none, [T|Acc], List, Exh)
         ; eos ->
             List = Acc, Exh = true
+        ; producer_error(Error) ->
+            throw(Error)
     }).
 
 
@@ -613,6 +641,7 @@ stream_skip(Pid, Self, N) :-
     receive({
         sol(_) -> N1 is N - 1, stream_skip(Pid, Self, N1)
         ; eos  -> true
+        ; producer_error(Error) -> throw(Error)
     }).
 
 
