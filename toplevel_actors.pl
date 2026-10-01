@@ -398,6 +398,9 @@ toplevel_stop(Pid) :-
 %   no longer exists the call succeeds silently.
 
 toplevel_abort(Pid) :-
-    catch(thread_signal(Pid, throw('$abort_goal')),
-          error(existence_error(_,_), _),
-          true).
+    ( actors:actor_thread(Pid, Thread) ->
+        catch(thread_signal(Thread, throw('$abort_goal')),
+              error(existence_error(_,_), _),
+              true)
+    ; true
+    ).

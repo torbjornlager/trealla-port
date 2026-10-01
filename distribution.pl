@@ -118,8 +118,9 @@ remote_node_close(Node) :-
     Node = remote_node(_URL, Reader, Writer),
     manager_forget_endpoints_if_running(Writer),
     Writer ! '$remote_close',
-    ( catch(thread_property(Reader, status(running)), _, fail) ->
-        catch(thread_cancel(Reader), _, true)
+    ( actors:actor_thread(Reader, ReaderThread),
+      catch(thread_property(ReaderThread, status(running)), _, fail) ->
+        catch(thread_cancel(ReaderThread), _, true)
     ; true
     ),
     wait_thread_end(Reader, 100),
@@ -141,7 +142,8 @@ remote_drop_connection(URL0) :-
 
 wait_thread_end(_, 0) :- !.
 wait_thread_end(Thread, Attempts) :-
-    ( thread_property(Thread, status(running)) ->
+    ( actors:actor_thread(Thread, Native),
+      thread_property(Native, status(running)) ->
         sleep(0.01), Next is Attempts - 1,
         wait_thread_end(Thread, Next)
     ; true
@@ -706,7 +708,8 @@ deliver_terminal_target(Target, Message) :-
     web_prolog:hook_terminal_delivery(Target, Message),
     !.
 deliver_terminal_target(Target, Message) :-
-    catch(thread_property(Target, status(running)), _, fail),
+    actors:actor_thread(Target, Thread),
+    catch(thread_property(Thread, status(running)), _, fail),
     Target ! Message.
 
 web_prolog:hook_close_browser_io(Relay) :-
@@ -919,13 +922,13 @@ manager_message('$node_request'(URL, Caller), Nodes, Routes,
       ; NextNodes = Nodes, Error = OpenError
       )
     ),
-    self(Manager),
+    manager_identity(Manager),
     ( Error == none -> Caller ! '$node_reply'(Manager, URL, Node)
     ; Caller ! '$node_error'(Manager, URL, Error)
     ).
 manager_message('$node_lookup'(URL, Caller), Nodes, Routes,
                 Nodes, Routes) :- !,
-    self(Manager),
+    manager_identity(Manager),
     ( member(node(URL, Node0), Nodes), node_writer_running(Node0) -> Node = Node0
     ; Node = none
     ),
@@ -933,10 +936,10 @@ manager_message('$node_lookup'(URL, Caller), Nodes, Routes,
 manager_message('$route_register'(Pid, Writer, Caller), Nodes, Routes,
                 Nodes, [route(Pid, Writer)|Rest]) :- !,
     exclude(manager_route_pid(Pid), Routes, Rest),
-    self(Manager),
+    manager_identity(Manager),
     Caller ! '$route_registered'(Manager, Pid).
 manager_message('$route_request'(Pid, Caller), Nodes, Routes, Nodes, Routes) :- !,
-    self(Manager),
+    manager_identity(Manager),
     ( memberchk(route(Pid, Writer), Routes) ->
         Caller ! '$route_reply'(Manager, Pid, Writer)
     ; Caller ! '$route_missing'(Manager, Pid)
@@ -966,7 +969,7 @@ manager_message('$endpoint_request'(Writer, Target, Caller),
       NextEndpoints = [endpoint(Writer, Id, Target)|Endpoints]
     ),
     bb_put('$distribution_endpoints', NextEndpoints),
-    self(Manager),
+    manager_identity(Manager),
     Caller ! '$endpoint_reply'(Manager, Writer, Target, Id).
 manager_message('$endpoint_deliver'(Writer, Id, Message),
                 Nodes, Routes, Nodes, Routes) :- !,
@@ -977,9 +980,16 @@ manager_message('$endpoint_deliver'(Writer, Id, Message),
     ).
 manager_message(_, Nodes, Routes, Nodes, Routes).
 
+% The manager is deliberately a raw Trealla thread alias rather than an
+% actor. Its request/reply protocol therefore identifies it by that stable
+% alias, not by the lazy logical PID self/1 assigns to non-actor threads.
+manager_identity('$distribution_manager').
+
 node_writer_running(remote_node(_, Reader, Writer)) :-
-    catch(thread_property(Reader, status(running)), _, fail),
-    catch(thread_property(Writer, status(running)), _, fail).
+    actors:actor_thread(Reader, ReaderThread),
+    actors:actor_thread(Writer, WriterThread),
+    catch(thread_property(ReaderThread, status(running)), _, fail),
+    catch(thread_property(WriterThread, status(running)), _, fail).
 
 manager_route_pid(Pid, route(Pid, _)).
 manager_node_url(URL, node(URL, _)).
@@ -1059,7 +1069,8 @@ portable_term_args(Index, Arity, Writer, Term0, Term) :-
 
 local_runtime_pid(Pid) :-
     nonvar(Pid),
-    catch(thread_property(Pid, status(_)), _, fail).
+    actors:actor_thread(Pid, Thread),
+    catch(thread_property(Thread, status(_)), _, fail).
 
 endpoint_for_target(Writer, Target, Id) :-
     distribution_manager(Manager),

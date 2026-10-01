@@ -170,6 +170,7 @@ protocol_client_test(Port) :-
     SelfId == Pid,
     SelfId >= 1000000000,
     SelfId =< 9999999999,
+    SelfAnswer.more == false,
     send_json(WS, json{command:"toplevel_halt", pid:Pid}),
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),

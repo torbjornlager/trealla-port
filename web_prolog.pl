@@ -446,7 +446,7 @@ relay_message(WS, '$toplevel_spawn'(Options, Reader)) :- !,
                 ( release_capacity_reservation(Reservation),
                   throw(SpawnError) )),
           commit_ws_actor_capacity(Reservation, RuntimePid),
-          fresh_wire_pid(WirePid),
+          wire_pid(RuntimePid, WirePid),
           relay_add_actor(WirePid, RuntimePid, session),
           relay_observe_actor_start(session, RuntimePid),
           thread_send_message(Reader, '$spawned'(WirePid)),
@@ -463,7 +463,7 @@ relay_message(WS, '$spawn'(Goal, Options, Reader)) :- !,
                 ( release_capacity_reservation(Reservation),
                   throw(SpawnError) )),
           commit_ws_actor_capacity(Reservation, RuntimePid),
-          fresh_wire_pid(WirePid),
+          wire_pid(RuntimePid, WirePid),
           relay_add_actor(WirePid, RuntimePid, actor),
           relay_observe_actor_start(actor, RuntimePid),
           thread_send_message(Reader, '$spawned'(WirePid)),
@@ -571,6 +571,14 @@ fresh_wire_pid(WirePid) :-
     \+ browser_actor_capability(_, Candidate, _),
     !,
     WirePid = Candidate.
+
+wire_pid(RuntimePid, RuntimePid) :-
+    integer(RuntimePid),
+    RuntimePid >= 1000000000,
+    RuntimePid =< 9999999999,
+    !.
+wire_pid(_, WirePid) :-
+    fresh_wire_pid(WirePid).
 
 relay_actors(Actors) :-
     relay_state_key(actors, Key),
@@ -779,7 +787,8 @@ event_json(Event, JSON) :-
                  *******************************/
 
 actors:hook_send('$web_prolog_endpoint'(Relay, Id), Message) :-
-    catch(thread_property(Relay, status(running)), _, fail),
+    actors:actor_thread(Relay, Thread),
+    catch(thread_property(Thread, status(running)), _, fail),
     Relay ! '$browser_message'(Id@localhost, Message).
 
 actors:hook_send(WirePid, Message) :-
@@ -788,6 +797,7 @@ actors:hook_send(WirePid, Message) :-
     WirePid =< 9999999999,
     with_mutex('$browser_actor_capabilities',
                browser_actor_capability(_, WirePid, RuntimePid)),
+    WirePid \== RuntimePid,
     actors:actor_send(RuntimePid, Message).
 
 actors:hook_exit(WirePid, Reason) :-
@@ -796,6 +806,7 @@ actors:hook_exit(WirePid, Reason) :-
     WirePid =< 9999999999,
     with_mutex('$browser_actor_capabilities',
                browser_actor_capability(_, WirePid, RuntimePid)),
+    WirePid \== RuntimePid,
     actors:exit(RuntimePid, Reason).
 
 actors:hook_send('$browser_io'(Relay), Message) :-

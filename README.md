@@ -129,7 +129,7 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 89–92 | IP/CIDR and trusted-proxy policy          | ok |
 | 95 | bounded node shutdown and connection cleanup   | ok |
 | 96–97 | operational routes and RPC paging           | ok |
-| 98 | deterministic `self/1`                         | ok |
+| 98 | deterministic ten-digit logical `self/1` and spawn identity | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -594,9 +594,10 @@ parsing `goal` and `options` together:
  "goal":"member(X,[a,b,c])", "options":"[template(X),limit(2)]"}
 ```
 
-Trealla allocates integer wire PIDs, matching the Trinity
-protocol even though current Trealla thread handles are opaque terms.  A
-dedicated relay actor is the only WebSocket writer, while the connection
+Trealla allocates stable ten-digit logical actor PIDs and keeps a private
+logical-PID-to-thread registry. The same PID is returned by `spawn/2`, by
+the child actor's `self/1`, and on the WebSocket wire; opaque Trealla thread
+handles never enter the public actor API. A dedicated relay actor is the only WebSocket writer, while the connection
 reader remains free to accept `next`, `stop`, and `abort` during execution.
 Actors and sessions owned by a connection are terminated when it closes.
 Every PID-bearing control command also resolves the PID through that

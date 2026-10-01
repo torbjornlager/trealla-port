@@ -261,8 +261,14 @@ t1 :-
 
 t98 :-
     findall(Pid, self(Pid), Pids),
-    Pids = [_],
-    format("98. deterministic self ok~n").
+    Pids = [Self],
+    integer(Self), Self >= 1000000000, Self =< 9999999999,
+    spawn((self(ChildSelf), Self ! child_identity(ChildSelf)), Child,
+          [link(false)]),
+    integer(Child), Child >= 1000000000, Child =< 9999999999,
+    receive({child_identity(ChildSelf) -> true}),
+    ChildSelf == Child,
+    format("98. deterministic logical self and spawn identity ok~n").
 
 %!  t2 is det.
 %

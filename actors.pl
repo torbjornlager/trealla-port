@@ -26,6 +26,7 @@
          terminal_output/2,      % +Term, +Options
          current_io_target/1,    % -Target
          live_actor_count/1,     % -Count
+         actor_thread/2,         % +Pid, -NativeThread
          receive/1,              % +ReceiveClauses
          receive/2,              % +ReceiveClauses, +Options
          make_ref/1,             % -Ref
@@ -153,6 +154,9 @@ Reply = hello.
     hook_stop/1.
 
 :- dynamic actor_alive/1.
+:- dynamic pid_thread/2.
+:- dynamic thread_pid/2.
+:- dynamic issued_pid/1.
 
 :- catch(mutex_create(_, [alias('$actor_registry')]),
          error(permission_error(create, mutex, '$actor_registry'), _),
@@ -204,11 +208,12 @@ spawn(Goal, Pid, Options0) :-
     strip_module(Goal, GoalModule, _),
     isolation:rewrite_source_options(Options0, GoalModule, Options1),
     inherit_spawn_io_target(Options1, Options),
-    thread_self(Self),
+    self(Self),
     with_mutex('$actor_registry',
         ( live_actor_count_unlocked(LiveCount),
           forall(hook_admit_spawn(LiveCount, Options), true),
-          thread_create(start(Self, Pid, GoalModule, Goal, Options), Pid, [
+          make_pid_unlocked(Pid),
+          thread_create(start(Self, Pid, GoalModule, Goal, Options), _Thread, [
               detached(true),
               at_exit(stop(Pid, Self))
           ]),
@@ -242,6 +247,11 @@ inherit_spawn_io_target(Options, Options).
 %   unreliable.
 
 start(Parent, Pid, GoalModule, Goal, Options) :-
+    thread_self(Thread),
+    with_mutex('$actor_registry',
+        ( assertz(pid_thread(Pid, Thread)),
+          assertz(thread_pid(Thread, Pid))
+        )),
     set_parent(Parent),
     set_spawn_io_target(Parent, Options),
     option(link(Link), Options, true),
@@ -257,9 +267,9 @@ start(Parent, Pid, GoalModule, Goal, Options) :-
     catch(isolation:prepare_actor(Pid, GoalModule, Options, Module),
           PrepError, true),
     ( nonvar(PrepError)
-    -> thread_send_message(Parent, '$actor_started'(Pid, error(PrepError))),
+    -> actor_send(Parent, '$actor_started'(Pid, error(PrepError))),
        assertz(exit_reason(Pid, exception(PrepError)))
-    ; thread_send_message(Parent, '$actor_started'(Pid, ok)),
+    ; actor_send(Parent, '$actor_started'(Pid, ok)),
     % Record outcome explicitly: Trealla's thread_property/2 still
     % reports status(running) inside the at_exit hook, so we can't
     % read the outcome from it the way SWI does.
@@ -302,7 +312,11 @@ stop(Pid, Parent) :-
     retractall(link(Parent, Pid)),
     retractall(registered(_Name, Pid)),
     retractall(registered_service(_Name, Pid)),
-    with_mutex('$actor_registry', retractall(actor_alive(Pid))),
+    with_mutex('$actor_registry',
+        ( retractall(actor_alive(Pid)),
+          retractall(pid_thread(Pid, _)),
+          retractall(thread_pid(_, Pid))
+        )),
     isolation:cleanup_actor(Pid),
     forall(retract(link(Pid, ChildPid)),
            exit(ChildPid, linked)),
@@ -341,10 +355,28 @@ down_reason(_, noproc).
 
 %!  self(-Pid) is det.
 %
-%   Unify Pid with the calling actor's own identifier (its thread ID).
+%   Unify Pid with the calling actor's stable ten-digit logical identifier.
+%   Non-actor threads (notably the REPL and WebSocket reader) are registered
+%   lazily the first time they enter the actor API.
 
 self(Self) :-
-    thread_self(Self),
+    thread_self(Thread),
+    with_mutex('$actor_registry', self_for_thread(Thread, Self)),
+    !.
+
+self_for_thread(Thread, Self) :-
+    ( thread_pid(Thread, Existing) -> Self = Existing
+    ; make_pid_unlocked(Self),
+      assertz(pid_thread(Self, Thread)),
+      assertz(thread_pid(Thread, Self))
+    ).
+
+%!  actor_thread(+Pid, -NativeThread) is semidet.
+%
+%   Resolve a public logical actor PID to Trealla's private thread handle.
+
+actor_thread(Pid, Thread) :-
+    with_mutex('$actor_registry', pid_thread(Pid, Thread)),
     !.
 
 
@@ -451,7 +483,8 @@ whereis(_Name, undefined).
 
 register_service(Name, Pid) :-
     must_be(atom, Name),
-    ( catch(thread_property(Pid, status(running)), _, fail) -> true
+    ( actor_thread(Pid, Thread),
+      catch(thread_property(Thread, status(running)), _, fail) -> true
     ; throw(error(existence_error(process, Pid), register_service/2))
     ),
     ( registered_service(Name, _) ->
@@ -515,14 +548,20 @@ exit(Pid, Reason) :-
     hook_exit(Pid, Reason),
     !.
 exit(Pid, Reason) :-
-    catch(thread_signal(Pid, actors:exit(Reason)), _, true).
+    ( actor_thread(Pid, Thread) ->
+        catch(thread_signal(Thread, actors:exit(Reason)), _, true)
+    ; logical_pid(Pid) ->
+        true
+    ; catch(thread_signal(Pid, actors:exit(Reason)), _, true)
+    ).
 
 
 %!  !(+PidOrName, +Message) is det.
 %
 %   Asynchronously send Message to the actor identified by PidOrName.
-%   PidOrName may be either a raw PID (thread ID) or an atom previously
-%   bound with register/2.  Returns immediately; delivery is reliable
+%   PidOrName may be either a logical PID or an atom previously bound with
+%   register/2.  Native handles remain accepted only for internal runtime
+%   aliases and queues. Returns immediately; delivery is reliable
 %   within a single Prolog process.  If the target actor does not
 %   exist (or has already exited), the message is silently dropped.
 
@@ -541,7 +580,17 @@ actor_send(Pid, Message) :-
     hook_send(Pid, Message),
     !.
 actor_send(Pid, Message) :-
-    catch(thread_send_message(Pid, Message), _, true).
+    ( actor_thread(Pid, Thread) ->
+        catch(thread_send_message(Thread, Message), _, true)
+    ; logical_pid(Pid) ->
+        true
+    ; catch(thread_send_message(Pid, Message), _, true)
+    ).
+
+logical_pid(Pid) :-
+    integer(Pid),
+    Pid >= 1000000000,
+    Pid =< 9999999999.
 
 
 %!  receive(+ReceiveClauses) is semidet.
@@ -794,6 +843,22 @@ flush :-
 
 make_ref(ref(N)) :-
     with_mutex('$actor_ref_counter', next_ref_number(N)).
+
+%!  make_pid(-Pid) is det.
+%
+%   Mint a process-unique ten-digit logical actor identifier. Allocation and
+%   registry insertion share '$actor_registry', so concurrent self/spawn
+%   calls cannot claim the same candidate.
+
+make_pid(Pid) :-
+    with_mutex('$actor_registry', make_pid_unlocked(Pid)).
+
+make_pid_unlocked(Pid) :-
+    random_between(1000000000, 9999999999, Candidate),
+    ( issued_pid(Candidate) -> make_pid_unlocked(Pid)
+    ; assertz(issued_pid(Candidate)),
+      Pid = Candidate
+    ).
 
 next_ref_number(N) :-
     ( retract(actor_ref_counter(Current)) -> N = Current ; N = 0 ),
