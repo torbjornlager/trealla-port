@@ -37,7 +37,7 @@ unchanged on Trealla, so no separate Trealla variant is needed.
 
 ## Test results
 
-All 94 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
+All 95 manual tests pass on Trealla v3.12.6 (the original 30 also pass on
 v2.99.6 and v2.99.12; t22 requires
 `findnsols(count(N), ...)` + `nb_setarg/3`; the other 29 also
 pass on v2.97.13).  Tests t23-t30 mirror behaviours from the
@@ -117,9 +117,27 @@ override their defaults.
 | 80–84 | persistent bearer-token lifecycle       | ok |
 | 85–88, 93–94 | controlled source-URI and egress policy | ok |
 | 89–92 | IP/CIDR and trusted-proxy policy          | ok |
+| 95 | bounded node shutdown and connection cleanup   | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
+
+## Node lifecycle
+
+`node/1-3` blocks while serving, as before. A control thread can now stop a
+listener and its active clients with `node:stop_node/1`; the two-argument form
+accepts a bounded drain timeout:
+
+```prolog
+?- node:stop_node(3060, [timeout(10)]).
+```
+
+Shutdown first prevents new work, closes every tracked client stream, wakes
+the blocked accept loop, and waits for detached connection handlers to run
+their normal cleanup. `node_running/1` and `node_connection_count/2` expose
+the lifecycle state. If handlers have not drained before the deadline,
+`stop_node/2` raises `resource_error(node_shutdown_timeout(Port, Count))`;
+it does not use forced thread interruption.
 
 ## Native WebSocket transport
 
@@ -770,11 +788,6 @@ X = a ; X = b ; X = c.
   Trealla's public `call_with_time_limit/2` commits to the first solution, the
   port uses a reusable runtime timer around the complete pageable call;
   `time_limit/1` therefore includes time suspended between pages.
-
-### node.pl
-
-- Active detached connections are not currently tracked for graceful
-  process-wide shutdown.
 
 ### web_prolog.pl
 

@@ -3,7 +3,11 @@
 :- module(node,
        [ node/1,                 % +Port
          node/2,                 % +Port, :WebSocketHandler
-         node/3                  % +Port, :WebSocketHandler, +Options
+         node/3,                 % +Port, :WebSocketHandler, +Options
+         stop_node/1,            % +Port
+         stop_node/2,            % +Port, +Options
+         node_running/1,         % ?Port
+         node_connection_count/2 % +Port, -Count
        ]).
 
 :- op(800, xfx, !).
@@ -84,7 +88,9 @@ is reached, the oldest entry is evicted (FIFO).
 `node(Port)` serves the existing `/call` HTTP endpoint. The
 `node(Port, WebSocketHandler)` form additionally enables `/ws`; after a
 successful RFC 6455 upgrade it calls `WebSocketHandler(WebSocket, '/ws')`.
-Accepted HTTP and WebSocket connections run in independent detached threads.
+Accepted HTTP and WebSocket connections run in independent tracked detached
+threads. `stop_node/1-2` closes the listener and active client streams and
+waits for their normal cleanup under a bounded timeout.
 
 ## Trealla port notes {#node-trealla}
 
@@ -120,6 +126,13 @@ Accepted HTTP and WebSocket connections run in independent detached threads.
 :- meta_predicate(node(+, 2, +)).
 
 :- dynamic connection_governance/4.
+:- dynamic node_listener/4.
+:- dynamic node_connection/4.
+:- dynamic node_stopping/1.
+
+:- catch(mutex_create(_, [alias('$node_lifecycle')]),
+         error(permission_error(create, mutex, '$node_lifecycle'), _),
+         true).
 
 
                 /*******************************
@@ -282,10 +295,14 @@ node_server(Port, WebSocketHandler, Options) :-
     option(bind_address(BindAddress0), Options, '0.0.0.0'),
     node_bind_address(BindAddress0, BindAddress),
     socket_server_open(BindAddress:Port, S, SocketOptions),
-    format("Node listening on port ~w (profile ~w, sandbox ~w, auth ~w)~n",
-           [Port, Profile, Sandbox, AuthMode]),
-    node_loop(S, WebSocketHandler, WebSocketOptions,
-              Profile, Sandbox, RelationPatterns).
+    setup_call_cleanup(
+        register_node_listener(Port, S, BindAddress, SocketOptions),
+        ( format("Node listening on port ~w (profile ~w, sandbox ~w, auth ~w)~n",
+                 [Port, Profile, Sandbox, AuthMode]),
+          catch(node_loop(Port, S, WebSocketHandler, WebSocketOptions,
+                          Profile, Sandbox, RelationPatterns),
+                '$node_shutdown', true) ),
+        cleanup_node_listener(Port, S)).
 
 node_bind_address(Address, Address) :- atom(Address), Address \== '', !.
 node_bind_address(Address, Atom) :-
@@ -304,28 +321,61 @@ node_copy_option(Name, Options, Input, Output) :-
     ; Output = Input
     ).
 
-%!  node_loop(+ServerSocket, :WebSocketHandler) is det.
+%!  node_loop(+Port, +ServerSocket, :WebSocketHandler, +WebSocketOptions,
+%!            +Profile, +Sandbox, +Relations) is det.
 %
 %   Accept continuously, starting an independent thread for each HTTP or
 %   WebSocket connection.
 
-node_loop(S, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
+node_loop(Port, S, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
           RelationPatterns) :-
-    ( catch(socket_server_accept(S, ReportedPeer, C, [type(binary)]), Error,
-            ( format(user_error, "node: accept error: ~q~n", [Error]), fail ))
-    -> node_connection_peer(C, ReportedPeer, Peer),
-       ( catch(thread_create(node_serve(C, Peer, WebSocketHandler, WebSocketOptions,
-                                       Profile, Sandbox, RelationPatterns), _,
-                             [detached(true)]),
-               ThreadError,
-               ( close(C), throw(ThreadError) ))
-       -> true
-       ; close(C)
+    ( node_is_stopping(Port)
+    -> true
+    ; accept_node_connection(Port, S, ReportedPeer, C)
+    -> ( node_is_stopping(Port)
+       -> safe_close_stream(C)
+       ; node_connection_peer(C, ReportedPeer, Peer),
+         dispatch_node_connection(Port, C, Peer, WebSocketHandler,
+                                  WebSocketOptions, Profile, Sandbox,
+                                  RelationPatterns),
+         node_loop(Port, S, WebSocketHandler, WebSocketOptions,
+                   Profile, Sandbox, RelationPatterns)
        )
-    ; true
-    ),
-    node_loop(S, WebSocketHandler, WebSocketOptions,
-              Profile, Sandbox, RelationPatterns).
+    ; node_is_stopping(Port)
+    -> true
+    ; node_loop(Port, S, WebSocketHandler, WebSocketOptions,
+                Profile, Sandbox, RelationPatterns)
+    ).
+
+accept_node_connection(Port, S, Peer, C) :-
+    catch(socket_server_accept(S, Peer, C, [type(binary)]), Error,
+          accept_node_error(Port, Error)).
+
+accept_node_error(Port, _) :- node_is_stopping(Port), !, fail.
+accept_node_error(_, Error) :-
+    format(user_error, "node: accept error: ~q~n", [Error]), fail.
+
+dispatch_node_connection(Port, C, Peer, WebSocketHandler, WebSocketOptions,
+                         Profile, Sandbox, RelationPatterns) :-
+    make_ref(Key),
+    register_node_connection(Port, Key, C),
+    catch(thread_create(
+              node_serve_tracked(Port, Key, C, Peer, WebSocketHandler,
+                                 WebSocketOptions, Profile, Sandbox,
+                                 RelationPatterns),
+              Thread, [detached(true)]),
+          Error,
+          ( unregister_node_connection(Key),
+            catch(close(C), _, true), throw(Error) )),
+    set_node_connection_thread(Key, Thread).
+
+node_serve_tracked(Port, Key, C, Peer, WebSocketHandler, WebSocketOptions,
+                   Profile, Sandbox, RelationPatterns) :-
+    setup_call_cleanup(
+        true,
+        node_serve(Port, C, Peer, WebSocketHandler, WebSocketOptions,
+                   Profile, Sandbox, RelationPatterns),
+        unregister_node_connection(Key)).
 
 % Older installed library(sockets) releases returned the accepted stream in
 % the Client argument.  The v3.12 runtime already records the actual peer on
@@ -335,12 +385,140 @@ node_connection_peer(Stream, _Reported, Address:Port) :-
     catch('$peer_addr'(Stream, Address, Port), _, fail), !.
 node_connection_peer(_, Reported, Reported).
 
-node_serve(C, Peer, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
+node_serve(Port, C, Peer, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
            RelationPatterns) :-
     catch(handle_connection(C, Peer, WebSocketHandler, WebSocketOptions,
                             Profile, Sandbox, RelationPatterns), Error,
-          format(user_error, "node: error handling request: ~q~n", [Error])),
+          report_node_connection_error(Port, Error)),
     catch(close(C), _, true).
+
+report_node_connection_error(Port, _) :- node_is_stopping(Port), !.
+report_node_connection_error(_, Error) :-
+    format(user_error, "node: error handling request: ~q~n", [Error]).
+
+
+                 /*******************************
+                 *       NODE LIFECYCLE         *
+                 *******************************/
+
+register_node_listener(Port, S, BindAddress, SocketOptions) :-
+    ( memberchk(ssl(true), SocketOptions) -> SSL = true ; SSL = false ),
+    with_mutex('$node_lifecycle',
+        ( retractall(node_stopping(Port)),
+          retractall(node_listener(Port, _, _, _)),
+          assertz(node_listener(Port, S, BindAddress, SSL)) )).
+
+cleanup_node_listener(Port, S) :-
+    safe_close_server(S),
+    close_node_connections(Port),
+    with_mutex('$node_lifecycle',
+        ( retractall(node_listener(Port, _, _, _)),
+          retractall(node_stopping(Port)) )).
+
+register_node_connection(Port, Key, Stream) :-
+    with_mutex('$node_lifecycle',
+               assertz(node_connection(Port, Key, Stream, pending))).
+
+set_node_connection_thread(Key, Thread) :-
+    with_mutex('$node_lifecycle',
+        ( retract(node_connection(Port, Key, Stream, pending))
+        -> assertz(node_connection(Port, Key, Stream, Thread))
+        ; true
+        )).
+
+unregister_node_connection(Key) :-
+    with_mutex('$node_lifecycle',
+               retractall(node_connection(_, Key, _, _))).
+
+node_running(Port) :-
+    with_mutex('$node_lifecycle', node_listener(Port, _, _, _)).
+
+node_connection_count(Port, Count) :-
+    with_mutex('$node_lifecycle',
+        ( findall(Key, node_connection(Port, Key, _, _), Keys),
+          length(Keys, Count) )).
+
+node_is_stopping(Port) :-
+    with_mutex('$node_lifecycle', node_stopping(Port)).
+
+%!  stop_node(+Port) is det.
+%
+%   Stop accepting new connections, close every tracked client socket, and
+%   wait up to five seconds for detached handlers to run their cleanup.
+
+stop_node(Port) :- stop_node(Port, [timeout(5)]).
+
+%!  stop_node(+Port, +Options) is det.
+%
+%   `timeout(Seconds)` bounds the drain wait. A timeout leaves shutdown
+%   requested and raises `resource_error(node_shutdown_timeout(Port, Count))`.
+
+stop_node(Port, Options) :-
+    must_be(integer, Port), must_be(list, Options),
+    option(timeout(Timeout0), Options, 5),
+    node_shutdown_timeout(Timeout0, Timeout),
+    begin_node_shutdown(Port, Wake, Streams),
+    close_node_streams(Streams),
+    ( nonvar(Wake) -> wake_node_listener(Wake, Port)
+    ; true
+    ),
+    get_time(Now), Deadline is Now + Timeout,
+    wait_node_shutdown(Port, Deadline).
+
+node_shutdown_timeout(Value, Value) :- number(Value), Value >= 0, !.
+node_shutdown_timeout(Value, _) :-
+    throw(error(domain_error(node_shutdown_timeout, Value), node:stop_node/2)).
+
+begin_node_shutdown(Port, Wake, Streams) :-
+    with_mutex('$node_lifecycle',
+        ( ( node_listener(Port, _, BindAddress, SSL)
+          -> Wake = wake(BindAddress, SSL),
+             ( node_stopping(Port) -> true ; assertz(node_stopping(Port)) )
+          ; Wake = _
+          ),
+          findall(Stream, node_connection(Port, _, Stream, _), Streams) )).
+
+wake_node_listener(wake(BindAddress, SSL), Port) :-
+    % Trealla BUG-014: closing a listener from another thread does not wake
+    % its blocked accept. A local connection lets the owner observe the stop
+    % flag and close its own listening stream. Match TLS so accept can finish.
+    listener_wake_address(BindAddress, Address),
+    listener_wake_options(SSL, Options),
+    ( catch(socket_client_open(Address:Port, Stream, Options), _, fail)
+    -> safe_close_stream(Stream)
+    ; true
+    ).
+
+listener_wake_address('0.0.0.0', '127.0.0.1') :- !.
+listener_wake_address(Address, Address).
+
+listener_wake_options(true, [ssl(true),type(binary)]).
+listener_wake_options(false, [type(binary)]).
+
+close_node_connections(Port) :-
+    with_mutex('$node_lifecycle',
+        findall(Stream, node_connection(Port, _, Stream, _), Streams)),
+    close_node_streams(Streams).
+
+close_node_streams([]).
+close_node_streams([Stream|Streams]) :-
+    safe_close_stream(Stream), close_node_streams(Streams).
+
+safe_close_stream(Stream) :-
+    ( catch(close(Stream), _, fail) -> true ; true ).
+
+safe_close_server(Server) :-
+    ( catch(socket_server_close(Server), _, fail) -> true ; true ).
+
+wait_node_shutdown(Port, Deadline) :-
+    node_connection_count(Port, Count),
+    ( \+ node_running(Port), Count =:= 0
+    -> true
+    ; get_time(Now), Now >= Deadline
+    -> throw(error(resource_error(node_shutdown_timeout(Port, Count)),
+                   node:stop_node/2))
+    ; sleep(0.01), wait_node_shutdown(Port, Deadline)
+    ).
 
 
 %!  handle_connection(+Client, :WebSocketHandler) is det.

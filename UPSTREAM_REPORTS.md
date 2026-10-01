@@ -515,6 +515,46 @@ Current workaround: the Trealla node binds explicitly to the IPv4 wildcard
 `0.0.0.0` by default. This makes the reported IPv4 peer reliable, at the cost
 of not accepting IPv6 connections on that listener.
 
+### BUG-014: Cross-thread server close does not wake a blocked accept
+
+**Status:** Ready
+**Priority:** Medium
+
+On macOS with Trealla v3.12.6, one thread can call
+`socket_server_close/1` successfully on a listening socket owned by another
+thread, while the owner remains blocked in `socket_server_accept/4`. A new
+client can still connect and satisfy that accept after the reported close.
+
+Minimal outline:
+
+```prolog
+:- dynamic held/2.
+
+server :-
+    socket_server_open('127.0.0.1':Port, Server, []),
+    assertz(held(Port, Server)),
+    socket_server_accept(Server, _, Client, []),
+    close(Client), socket_server_close(Server).
+
+test :-
+    thread_create(server, Thread, []), sleep(0.1),
+    held(Port, Server), socket_server_close(Server),
+    socket_client_open('127.0.0.1':Port, Client, []),
+    close(Client), thread_join(Thread, _).
+```
+
+The client connection succeeds and releases the accept. Expected behavior is
+either that closing the server reliably interrupts the blocked accept, or
+that Trealla provides a supported cross-thread listener-stop operation with
+that effect.
+
+Impact: a server cannot implement bounded graceful shutdown merely by closing
+its listening stream from a control thread.
+
+Current workaround: `node.pl` marks the listener as stopping and makes one
+local wake-up connection. The accept loop observes the flag, closes the wake
+connection, and closes its own listener from the owning thread.
+
 ## Compatibility gaps worth tracking, but not yet bug reports
 
 These missing facilities increase porting work but need a clearer upstream

@@ -134,6 +134,10 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t91 allowlist, blocklist, and precedence are enforced
   - t92 repeated rate-limit offenses trigger and clear a temporary ban
 
+## Tests: node lifecycle (t95)
+
+  - t95 stopping a node closes its listener and tracked client connections
+
 ## Tests: per-principal governance (t69-t73)
 
   - t69 rate and concurrency options normalize
@@ -174,6 +178,8 @@ pass, fails (or throws) on failure.  Tests are grouped:
 :- use_module(node).
 :- use_module(source_policy).
 :- use_module(ip_policy).
+:- use_module(library(sockets),
+              [socket_server_open/3,socket_client_open/3]).
 
 
                 /*******************************
@@ -226,6 +232,8 @@ run_test_group(source_policy) :-
 run_test_group(ip_policy) :-
     t89, t90, t91, t92,
     reset_ip_policy.
+run_test_group(lifecycle) :-
+    t95.
 
 
                 /*******************************
@@ -1476,6 +1484,49 @@ t92 :-
     clear_ip_bans,
     \+ ip_temp_banned('198.51.100.7'),
     format("92. rate-offense temporary IP ban ok~n").
+
+
+                /*******************************
+                *      NODE LIFECYCLE (95)     *
+                *******************************/
+
+t95 :-
+    socket_server_open('127.0.0.1':Port, Probe, []), close(Probe),
+    thread_create(node:node(Port, none, [bind_address('127.0.0.1')]),
+                  Server, []),
+    setup_call_cleanup(
+        wait_node_running(Port, 2),
+        ( socket_client_open('127.0.0.1':Port, Client, [type(binary)]),
+          wait_node_connections(Port, 1, 2),
+          stop_node(Port, [timeout(2)]),
+          thread_join(Server, true),
+          \+ node_running(Port),
+          node_connection_count(Port, 0) ),
+        ( catch(close(Client), _, true),
+          ( catch(stop_node(Port, [timeout(0.5)]), _, fail) -> true ; true ),
+          ( catch(thread_join(Server, _), _, fail) -> true ; true ) )),
+    format("95. bounded node shutdown and connection cleanup ok~n").
+
+wait_node_running(Port, Timeout) :-
+    get_time(Now), Deadline is Now + Timeout,
+    wait_node_running_until(Port, Deadline).
+
+wait_node_running_until(Port, Deadline) :-
+    ( node_running(Port) -> true
+    ; get_time(Now), Now < Deadline,
+      sleep(0.01), wait_node_running_until(Port, Deadline)
+    ).
+
+wait_node_connections(Port, Expected, Timeout) :-
+    get_time(Now), Deadline is Now + Timeout,
+    wait_node_connections_until(Port, Expected, Deadline).
+
+wait_node_connections_until(Port, Expected, Deadline) :-
+    node_connection_count(Port, Count),
+    ( Count =:= Expected -> true
+    ; get_time(Now), Now < Deadline,
+      sleep(0.01), wait_node_connections_until(Port, Expected, Deadline)
+    ).
 
 read_test_file(File, Text) :-
     setup_call_cleanup(open(File, read, Stream, [type(binary)]),

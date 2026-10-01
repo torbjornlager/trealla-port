@@ -23,6 +23,7 @@ Status terms:
 |---|---|---|---|---|---|
 | Version-1 actor WebSocket protocol and cross-node PID routing | SWI | Implemented | Implemented | Not assessed | Partial; expand with GNU Prolog when available |
 | Controlled distribution failover via `remote_drop_connection/1` | SWI | Implemented | Implemented | Not assessed | Candidate |
+| Bounded listener shutdown with active-connection cleanup | SWI runtime (`http_stop_server/2`) | Implemented | Implemented via `stop_node/1-2` | Not assessed | Candidate operational test |
 | Profile, sandbox, resource, authentication, and per-principal governance policies | SWI | Implemented | Implemented | Not assessed | Partial |
 | IP allow/block lists and temporary rate-limit bans | SWI | Implemented | Implemented | Not assessed | Candidate |
 | Resolve-check-connect source egress with a public-only default and explicit IP-range pinning | Trealla port | Candidate | Implemented | Not assessed | Needed before adoption as shared behavior |

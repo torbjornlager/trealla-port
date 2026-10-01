@@ -119,6 +119,7 @@ run_unit() {
     run_tpl_goal "persistent bearer-token lifecycle" "run_test_group(tokens)"
     run_tpl_goal "controlled source URI policy" "run_test_group(source_policy)"
     run_tpl_goal "IP/CIDR and trusted-proxy policy" "run_test_group(ip_policy)"
+    run_tpl_goal "node lifecycle" "run_test_group(lifecycle)"
     run_with_timeout "WebSocket and protocol vectors" \
         "$TPL" -g "consult('$ROOT/websocket_tests.pl'),(websocket_tests->halt;halt(1))"
 }
