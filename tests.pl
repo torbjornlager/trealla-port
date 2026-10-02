@@ -1095,9 +1095,15 @@ t102 :-
     Pid ! goodbye,
     Pid ! hello,
     toplevel_call(Pid, wait_hello, [target(Me)]),
-    receive({ terminal_io_output(Pid, 'Got hello.') -> true }),
-    receive({ terminal_io_output(Pid, 'Got goodbye.') -> true }),
-    receive({ success(Pid, [wait_hello], false) -> true }),
+    receive({ terminal_io_output(Pid, 'Got hello.') -> true
+            ; error(Pid, Error1) -> throw(Error1)
+            }, [timeout(2),on_timeout(throw(t102_hello_timeout))]),
+    receive({ terminal_io_output(Pid, 'Got goodbye.') -> true
+            ; error(Pid, Error2) -> throw(Error2)
+            }, [timeout(2),on_timeout(throw(t102_goodbye_timeout))]),
+    receive({ success(Pid, [wait_hello], false) -> true
+            ; error(Pid, Error3) -> throw(Error3)
+            }, [timeout(2),on_timeout(throw(t102_success_timeout))]),
     exit(Pid, test_complete),
     format("102. receive body keeps private source module ok~n").
 
@@ -1298,19 +1304,15 @@ answer_expert_prompts(Session, N) :-
 
 t111 :-
     sandbox_policy:portable_format('~~p', '~~p'),
-    Goal0 = (self(Self),
-             Self ! number(-2),
-             receive({
-                 number(N) if N > 0 ->
-                     format("Positive number: ~p~n", [N]) ;
-                 number(N) if N =< 0 ->
-                     format("Non-positive number: ~p~n", [N])
-             })),
+    GoalText = 'self(Self), Self ! number(-2), receive({ number(N) if N > 0 -> format("Positive number: ~p~n", [N]) ; number(N) if N =< 0 -> format("Non-positive number: ~p~n", [N]) })',
+    format(atom(QueryText), '(~w)-([])', [GoalText]),
+    read_term_from_atom(QueryText, Goal0-[], [variable_names(Bindings)]),
     sandbox_prepare_spawn(blacklist, actor, actor_context,
                           Goal0, [], Goal, Options),
     self(Me),
     toplevel_spawn(Session, [target(Me),session(true)|Options]),
-    toplevel_call(Session, Goal, [target(Me)]),
+    toplevel_call(Session, Goal,
+                  [template(json_bindings(Bindings)),target(Me)]),
     receive({ terminal_io_output(Session, 'Non-positive number: -2\n') -> true
             ; error(Session, Error) -> throw(Error)
             }, [timeout(1),on_timeout(throw(t111_output_timeout))]),

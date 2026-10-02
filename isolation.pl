@@ -10,6 +10,7 @@
          actor_source_module/2,    % +Pid, -Module
          execution_goal/2,         % +Goal, -QualifiedGoal
          run_actor_query/2,        % +Module, +Goal
+         actor_builtin_goal/1,     % +Goal
          rewrite_source_options/3, % +Options, +SourceModule, -Options
          load_options_text/3       % +SourceModule, +Options, -Text
        ]).
@@ -256,6 +257,11 @@ actor_query_goal(_, Goal, sandbox_policy:sandbox_builtin_call(Goal)) :-
     actor_direct_builtin_pi(Name/Arity),
     !.
 actor_query_goal(Module, Goal, isolation:call_actor_leaf(Module, Goal)).
+
+actor_builtin_goal(Goal) :-
+    nonvar(Goal),
+    functor(Goal, Name, Arity),
+    actor_direct_builtin_pi(Name/Arity).
 
 call_actor_leaf(Module, Goal) :-
     call_in_module(Module, '$actor_call'(Goal)).
@@ -553,8 +559,15 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_qualify_receive\'((A0;B0), (A;B)) :- !, \'$actor_qualify_receive\'(A0,A), \'$actor_qualify_receive\'(B0,B).~n', []),
     format(Out, '\'$actor_qualify_receive\'((Head0->Body0), (Head->Body)) :- !, \'$actor_qualify_receive_head\'(Head0,Head), \'$actor_qualify_receive_body\'(Body0,Body).~n', []),
     format(Out, '\'$actor_qualify_receive\'(Clause, Clause).~n', []),
-    format(Out, '\'$actor_qualify_receive_head\'(Head0, Head) :- nonvar(Head0), Head0 = if(Pattern,Guard0), !, Head = if(Pattern,Guard), \'$actor_qualify_receive_body\'(Guard0,Guard).~n', []),
+    format(Out, '\'$actor_qualify_receive_head\'(Head0, Head) :- nonvar(Head0), Head0 = if(Pattern,Guard0), !, Head = if(Pattern,Guard), \'$actor_qualify_receive_guard\'(Guard0,Guard).~n', []),
     format(Out, '\'$actor_qualify_receive_head\'(Head, Head).~n', []),
+    format(Out, '\'$actor_qualify_receive_guard\'((A0,B0), (A,B)) :- !, \'$actor_qualify_receive_guard\'(A0,A), \'$actor_qualify_receive_guard\'(B0,B).~n', []),
+    format(Out, '\'$actor_qualify_receive_guard\'((A0;B0), (A;B)) :- !, \'$actor_qualify_receive_guard\'(A0,A), \'$actor_qualify_receive_guard\'(B0,B).~n', []),
+    format(Out, '\'$actor_qualify_receive_guard\'((A0->B0), (A->B)) :- !, \'$actor_qualify_receive_guard\'(A0,A), \'$actor_qualify_receive_guard\'(B0,B).~n', []),
+    format(Out, '\'$actor_qualify_receive_guard\'((\\+ A0), (\\+ A)) :- !, \'$actor_qualify_receive_guard\'(A0,A).~n', []),
+    format(Out, '\'$actor_qualify_receive_guard\'(Qualified:Goal, Qualified:Goal) :- atom(Qualified), !.~n', []),
+    format(Out, '\'$actor_qualify_receive_guard\'(Goal, sandbox_policy:sandbox_builtin_call(Goal)) :- isolation:actor_builtin_goal(Goal), !.~n', []),
+    format(Out, '\'$actor_qualify_receive_guard\'(Goal, ~q:Goal).~n', [Module]),
     format(Out, '\'$actor_qualify_receive_options\'(Options, Options) :- var(Options), !.~n', []),
     format(Out, '\'$actor_qualify_receive_options\'([], []) :- !.~n', []),
     format(Out, '\'$actor_qualify_receive_options\'([on_timeout(Goal0)|Options0], [on_timeout(Goal)|Options]) :- !, \'$actor_qualify_receive_body\'(Goal0,Goal), \'$actor_qualify_receive_options\'(Options0,Options).~n', []),
