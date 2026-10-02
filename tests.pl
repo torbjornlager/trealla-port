@@ -83,6 +83,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t114 node-wide shared source is visible, with local predicate shadowing
   - t116 private actor modules expose the complete toplevel actor API
   - t121 private-session if-then-else preserves committed failure semantics
+  - t122 private-session forall/2 transforms nested built-ins and DCGs
 
 ## Tests: execution profiles (t42-t46)
 
@@ -212,7 +213,7 @@ run_test_group(toplevel) :-
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
-    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109, t114, t116, t117, t121.
+    t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109, t114, t116, t117, t121, t122.
 run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
@@ -944,6 +945,24 @@ t121 :-
             [timeout(1),on_timeout(fail)]),
     toplevel_halt(Session, true),
     format("121. private control commitment semantics ok~n").
+
+t122 :-
+    self(Me),
+    Source = 's(_) --> [].\ns(X) --> [_], s(X).',
+    toplevel_spawn(Session,
+                   [target(Me),session(true),link(false),src_text(Source)]),
+    Goal = forall((between(1, 3, N),
+                   length(S, N),
+                   phrase(s(_), S)),
+                  Me ! forall_value(N)),
+    toplevel_call(Session, Goal, [target(Me)]),
+    receive({forall_value(1) -> true}, [timeout(1),on_timeout(fail)]),
+    receive({forall_value(2) -> true}, [timeout(1),on_timeout(fail)]),
+    receive({forall_value(3) -> true}, [timeout(1),on_timeout(fail)]),
+    receive({success(Session, [_], false) -> true},
+            [timeout(1),on_timeout(fail)]),
+    toplevel_halt(Session, true),
+    format("122. private forall transforms nested built-ins and DCGs ok~n").
 
 
                 /*******************************

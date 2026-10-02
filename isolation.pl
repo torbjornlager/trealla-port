@@ -216,6 +216,10 @@ actor_query_goal(Module, (Left0 ; Right0), (Left ; Right)) :- !,
 actor_query_goal(Module, (If0 -> Then0), (If -> Then)) :- !,
     actor_query_goal(Module, If0, If),
     actor_query_goal(Module, Then0, Then).
+actor_query_goal(Module, forall(Generate0, Test0),
+                 (\+ (Generate, \+ Test))) :- !,
+    actor_query_goal(Module, Generate0, Generate),
+    actor_query_goal(Module, Test0, Test).
 actor_query_goal(Module, (\+ Goal0), (\+ Goal)) :- !,
     actor_query_goal(Module, Goal0, Goal).
 actor_query_goal(_, !, !) :- !.
