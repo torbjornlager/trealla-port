@@ -46,6 +46,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t17 toplevel_stop/1 followed by a fresh call in session mode
   - t18 session mode with two successive calls
   - t22 mid-stream limit change via toplevel_next/2
+  - t123 nested toplevel input is routed to its protocol caller
 
 ## Tests: receive timeout (t19-t21) {#tests-timeout}
 
@@ -209,7 +210,7 @@ run_test_group(actors) :-
     t31, t32, t33, t98, t113, t115.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
-    t22, t27, t28, t29, t99, t100, t101, t111, t112.
+    t22, t27, t28, t29, t99, t100, t101, t111, t112, t123.
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
@@ -735,6 +736,48 @@ t28 :-
             [ timeout(1), on_timeout(fail) ]),
     format("28. toplevel input/respond ok~n").
 
+%!  t123 is det.
+%
+%   A nested toplevel may inherit a browser terminal from its caller, but its
+%   input prompt belongs to the actor using the PTCP protocol. The caller must
+%   receive prompt/2 and be able to complete the goal with respond/2.
+
+t123 :-
+    self(Me),
+    spawn(nested_input_sink(Me), Sink, [link(false)]),
+    spawn(nested_input_owner(Me), Owner,
+          [io_target(Sink),monitor(true),link(false)]),
+    receive({ nested_input_prompt(Child, 'Input') -> true
+            ; nested_input_diverted(Prompt) ->
+                  throw(t123_prompt_diverted(Prompt))
+            ; down(Owner, Owner, Reason) -> throw(t123_owner_down(Reason))
+            }, [timeout(2),on_timeout(throw(t123_prompt_timeout))]),
+    receive({ nested_input_success(Child,
+                                   success(Child,
+                                           [input('Input', hello)], false)) ->
+                  true
+            ; down(Owner, Owner, Reason2) -> throw(t123_owner_down(Reason2))
+            }, [timeout(2),on_timeout(throw(t123_success_timeout))]),
+    exit(Sink, test_complete),
+    format("123. nested toplevel input targets its protocol caller ok~n").
+
+nested_input_sink(Parent) :-
+    receive({Prompt -> Parent ! nested_input_diverted(Prompt)}).
+
+nested_input_owner(Parent) :-
+    toplevel_spawn(Child, [session(true),link(false)]),
+    toplevel_call(Child, input('Input', X)),
+    receive({prompt(Child, Prompt) ->
+                 Parent ! nested_input_prompt(Child, Prompt),
+                 respond(Child, hello)
+            }, [timeout(1),on_timeout(throw(nested_input_prompt_timeout))]),
+    receive({success(Child, [input('Input', X)], false) ->
+                 Parent ! nested_input_success(
+                              Child,
+                              success(Child, [input('Input', X)], false))
+            }, [timeout(1),on_timeout(throw(nested_input_success_timeout))]),
+    toplevel_halt(Child, true).
+
 %!  t29 is det.
 %
 %   toplevel_abort/1 unwinds a runaway goal.  Asserts a recursive
@@ -905,21 +948,21 @@ t117 :-
                                   src_list([p(a),p(b)])]),
                   [template(Child),limit(1)]),
     receive({success(Shell, [Child], false) -> true},
-            [timeout(5),on_timeout(fail)]),
+            [timeout(5),on_timeout(throw(t117_spawn_timeout))]),
     toplevel_call(Shell,
                   toplevel_call(Child, p(X), [template(X),limit(1)]),
                   [template(true),limit(1)]),
     receive({success(Shell, [true], false) -> true},
-            [timeout(5),on_timeout(fail)]),
+            [timeout(5),on_timeout(throw(t117_call_timeout))]),
     toplevel_call(Shell, flush, [template(true),limit(1)]),
     receive({terminal_output(Shell, _) -> true},
-            [timeout(5),on_timeout(fail)]),
+            [timeout(5),on_timeout(throw(t117_flush_output_timeout))]),
     receive({success(Shell, [true], false) -> true},
-            [timeout(5),on_timeout(fail)]),
+            [timeout(5),on_timeout(throw(t117_flush_success_timeout))]),
     Goal = (toplevel_next(Child), receive({Answer -> true})),
     toplevel_call(Shell, Goal, [template(Answer),limit(1)]),
     receive({success(Shell, [Answer], false) -> true},
-            [timeout(5),on_timeout(fail)]),
+            [timeout(5),on_timeout(throw(t117_next_timeout))]),
     Answer = success(Child, [b], false),
     toplevel_halt(Child, true),
     toplevel_halt(Shell, true),

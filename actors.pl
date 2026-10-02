@@ -1032,6 +1032,7 @@ input(Prompt, Answer) :-
 input(Prompt, Answer, Options) :-
     self(Self),
     ( option(target(Target), Options) -> true
+    ; actor_input_target(Self, Target) -> true
     ; current_io_target(Target) -> true
     ; get_parent(Target)
     ),
@@ -1039,6 +1040,10 @@ input(Prompt, Answer, Options) :-
     receive({
         '$input'(_From, Answer) -> true
     }).
+
+actor_input_target(Self, Target) :-
+    format(atom(Key), '$actor_input_target_~w', [Self]),
+    bb_get(Key, Target).
 
 
 %!  respond(+Pid, +Answer) is det.

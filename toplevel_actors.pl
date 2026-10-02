@@ -181,6 +181,11 @@ remove_lifecycle_options([Option|Options], [Option|Rest]) :-
 %   toplevel_abort/1 (which signals `'$abort_goal'`).
 
 session(Pid, Target, Continue, TimeLimit, IdleLimit) :-
+    % Input belongs to the PTCP client, which can differ from an inherited
+    % browser terminal for nested toplevels. Ordinary output keeps using the
+    % inherited terminal target.
+    format(atom(InputTargetKey), '$actor_input_target_~w', [Pid]),
+    bb_put(InputTargetKey, Target),
     catch(session_running(Pid, Target, Continue, TimeLimit, IdleLimit),
           '$resource_idle',
           true).
