@@ -43,6 +43,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t146 preserves rewritten terminal output through `src_predicates/1`
   - t147 routes `time/1` wall-time reports through the actor terminal
   - t148 runs the tutorial's parallel sleeps concurrently
+  - t149 copies and drives the hand-built toplevel session protocol
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -234,7 +235,7 @@ run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119, t120,
-    t144, t145, t146, t147, t148,
+    t144, t145, t146, t147, t148, t149,
     reset_source_policy.
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62, t110, t125, t126,
@@ -1812,6 +1813,40 @@ t148 :-
     sub_atom(Report, _, _, _, 'seconds wall'),
     toplevel_halt(Session, true),
     format("148. tutorial parallel sleeps run concurrently ok~n").
+
+t149 :-
+    Source = 'mytoplevel(Pid, Options) :- self(Self), spawn(session(Pid, Self), Pid, Options). session(Pid, Parent) :- receive({''$call''(Template, Goal) -> (call_cleanup(Goal, Det=true), (var(Det) -> Parent ! success(Pid, Template, true), receive({''$next'' -> fail; ''$stop'' -> true}), !; Parent ! success(Pid, Template, false)); Parent ! failure(Pid))}), session(Pid, Parent).',
+    sandbox_prepare_options(blacklist, actor, actor_context,
+                            [src_text(Source)], SourceOptions),
+    self(Me),
+    toplevel_spawn(Shell,
+                   [target(Me),session(true),link(false)|SourceOptions]),
+    Spawn0 = mytoplevel(Child, [src_predicates([session/2])]),
+    sandbox_prepare_goal(blacklist, actor, actor_context, Spawn0, Spawn),
+    toplevel_call(Shell, Spawn,
+                  [template(Child),target(Me),limit(1)]),
+    receive({success(Shell, [Child], false) -> true;
+             error(Shell, SpawnError) -> throw(SpawnError)},
+            [timeout(2),on_timeout(throw(t149_spawn_timeout))]),
+    Call0 = (Child ! '$call'(X, member(X, [a,b,c])),
+             receive({First -> true})),
+    sandbox_prepare_goal(blacklist, actor, actor_context, Call0, Call),
+    toplevel_call(Shell, Call,
+                  [template(First),target(Me),limit(1)]),
+    receive({success(Shell, [success(Child,a,true)], false) -> true;
+             error(Shell, CallError) -> throw(CallError)},
+            [timeout(2),on_timeout(throw(t149_call_timeout))]),
+    Next0 = (Child ! '$next', receive({Second -> true})),
+    sandbox_prepare_goal(blacklist, actor, actor_context, Next0, Next),
+    toplevel_call(Shell, Next,
+                  [template(Second),target(Me),limit(1)]),
+    receive({success(Shell, [success(Child,b,true)], false) -> true;
+             error(Shell, NextError) -> throw(NextError)},
+            [timeout(2),on_timeout(throw(t149_next_timeout))]),
+    Child ! '$stop',
+    exit(Child, normal),
+    toplevel_halt(Shell, true),
+    format("149. copied hand-built toplevel protocol ok~n").
 
 t127 :-
     self(Me),

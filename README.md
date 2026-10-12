@@ -154,6 +154,7 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 146 | copied sandbox terminal output through `src_predicates/1` | ok |
 | 147 | actor-aware `time/1` reporting and `sleep/1` wall timing | ok |
 | 148 | concurrent sleeps in the tutorial parallel combinator | ok |
+| 149 | copied hand-built toplevel session and paging protocol | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.

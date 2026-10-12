@@ -967,6 +967,16 @@ restore_clause_body(Module, sandbox_policy:sandbox_time(_Context, Goal0),
                     time(Goal)) :-
     !,
     restore_clause_body(Module, Goal0, Goal).
+restore_clause_body(Module, sandbox_policy:Call0, Call) :-
+    nonvar(Call0),
+    functor(Call0, sandbox_call, Arity),
+    Arity >= 5,
+    Arity =< 12,
+    !,
+    Call0 =.. [sandbox_call,_Mode,_Profile,_Context,_PIs,Closure0|Extra0],
+    restore_clause_body(Module, Closure0, Closure),
+    restore_clause_args(Module, Extra0, Extra),
+    Call =.. [call,Closure|Extra].
 restore_clause_body(_Module, Term, Term) :- var(Term), !.
 restore_clause_body(_Module, Term, Term) :- atomic(Term), !.
 restore_clause_body(Module, Term0, Term) :-
