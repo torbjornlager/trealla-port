@@ -152,6 +152,8 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 144 | actor sandbox exposure of `send/3` and `cancel/1` | ok |
 | 145 | nested link tutorial source copying and termination cascade | ok |
 | 146 | copied sandbox terminal output through `src_predicates/1` | ok |
+| 147 | actor-aware `time/1` reporting and `sleep/1` wall timing | ok |
+| 148 | concurrent sleeps in the tutorial parallel combinator | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.

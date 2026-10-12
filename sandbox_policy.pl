@@ -18,6 +18,7 @@
          sandbox_toplevel_call/7,
          sandbox_control_catch/4,
          sandbox_format/2,
+         sandbox_time/2,
          sandbox_sleep/1,
          sandbox_clause/6,
          sandbox_assert/5,
@@ -141,6 +142,10 @@ sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     sandbox_policy:sandbox_sleep(_Seconds)) :-
     !.
+sandbox_check_goal_(Mode, Profile, Module, AppPIs,
+                    sandbox_policy:sandbox_time(_Context, Goal)) :-
+    !,
+    sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal).
 sandbox_check_goal_(Mode, Profile, Module, AppPIs,
                     sandbox_policy:sandbox_control_catch(_,Goal,_,Recover)) :-
     !,
@@ -480,6 +485,7 @@ reserved_source_name(sandbox_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_toplevel_call).
 reserved_source_name(sandbox_format).
+reserved_source_name(sandbox_time).
 reserved_source_name(sandbox_sleep).
 reserved_source_name(sandbox_builtin_call).
 reserved_source_name(sandbox_clause).
@@ -536,6 +542,13 @@ rewrite_goal_(_M,_P,_C,_A,format(Format),
               sandbox_policy:sandbox_format(Format,[])).
 rewrite_goal_(_M,_P,_C,_A,format(Format,Args),
               sandbox_policy:sandbox_format(Format,Args)).
+% Trealla's native time/1 writes its report to the process stream.  On a Web
+% Prolog node that leaks into the container log, so report wall and CPU time
+% through the actor's inherited terminal while retaining time/1's meta-call
+% and backtracking behaviour.
+rewrite_goal_(M,P,C,A,time(Goal0),
+              sandbox_policy:sandbox_time(C,Goal)) :-
+    rewrite_goal(M,P,C,A,Goal0,Goal).
 % sleep/1 is available in Trealla's user module but is not inherited by the
 % short-lived private modules used for actor sessions.
 rewrite_goal_(_M,_P,_C,_A,sleep(Seconds),
@@ -872,8 +885,41 @@ sandbox_format(Format, Args) :-
     format(atom(Text), Format, Args),
     actors:terminal_output(Text, [source(io)]).
 
+sandbox_time(Module, Goal) :-
+    get_time(Wall0),
+    statistics(cputime, CPU0),
+    statistics(inferences, Inferences0),
+    State = time_state(Wall0, CPU0, Inferences0),
+    ( call_cleanup(
+          catch(call_in_context(Module, Goal), Error,
+                ( sandbox_time_report(State), throw(Error) )),
+          Deterministic = true),
+      sandbox_time_report(State),
+      ( Deterministic == true -> ! ; true )
+    ; sandbox_time_report(State),
+      fail
+    ).
+
+sandbox_time_report(time_state(Wall0, CPU0, Inferences0)) :-
+    get_time(Wall1),
+    statistics(cputime, CPU1),
+    statistics(inferences, Inferences1),
+    Wall is max(0, Wall1-Wall0),
+    CPU is max(0, CPU1-CPU0),
+    Inferences is max(0, Inferences1-Inferences0),
+    format(atom(Text),
+           '% ~3f seconds wall, ~3f seconds CPU, ~d inferences~n',
+           [Wall, CPU, Inferences]),
+    actors:terminal_output(Text, [source(io)]).
+
 sandbox_sleep(Seconds) :-
-    sleep(Seconds).
+    % Trealla v3.13.3's native sleep/1 uses the process alarm machinery;
+    % concurrent actor sleeps interrupt and lengthen one another.  The actor
+    % mailbox timeout is per-thread and leaves every message untouched because
+    % this clause's guard can never commit.  It also lets actor exit controls
+    % interrupt the wait normally.
+    actors:receive({_Message if fail -> true},
+                   [timeout(Seconds),on_timeout(true)]).
 
 % Execute a pre-validated primitive in this module, where Trealla exposes its
 % built-ins reliably. Short-lived private modules cannot resolve every native
@@ -917,6 +963,10 @@ restore_clause_body(Module, Module:Inner0, Inner) :-
     restore_clause_body(Module, Inner0, Inner).
 restore_clause_body(_Module, sandbox_policy:sandbox_sleep(Seconds),
                     sleep(Seconds)) :- !.
+restore_clause_body(Module, sandbox_policy:sandbox_time(_Context, Goal0),
+                    time(Goal)) :-
+    !,
+    restore_clause_body(Module, Goal0, Goal).
 restore_clause_body(_Module, Term, Term) :- var(Term), !.
 restore_clause_body(_Module, Term, Term) :- atomic(Term), !.
 restore_clause_body(Module, Term0, Term) :-

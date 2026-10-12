@@ -865,6 +865,54 @@ The production port conservatively retains the established per-thread
 `nb_setval/2`/`nb_current/2` list and commits new deferred copies only on
 rejection or exceptional propagation.
 
+### BUG-021: Concurrent `sleep/1` calls lengthen one another
+
+**Status:** Reproduced in v3.13.3
+**Priority:** High
+
+Independent threads sleeping for one, three, and two seconds should all have
+finished after approximately three seconds. On Trealla v3.13.3 they regularly
+take about 4.1–4.5 seconds in total. Instrumenting each thread shows that all
+three enter `sleep/1` promptly, but their actual waits are lengthened when the
+other process-wide alarms fire.
+
+Standalone reproducer (`reproducers/bug-021-concurrent-sleep.pl`):
+
+```prolog
+reproducer :-
+    get_time(Start),
+    thread_create(sleep(1), One, []),
+    thread_create(sleep(3), Three, []),
+    thread_create(sleep(2), Two, []),
+    thread_join(One, _),
+    thread_join(Three, _),
+    thread_join(Two, _),
+    get_time(Finish),
+    Elapsed is Finish-Start,
+    format('elapsed(~3f).~n', [Elapsed]).
+```
+
+Run:
+
+```text
+tpl -f reproducers/bug-021-concurrent-sleep.pl
+```
+
+Expected output is close to `elapsed(3.000).`; observed output on macOS arm64
+is typically close to `elapsed(4.200).`. The same defect occurs with
+`thread_sleep/1`.
+
+Impact: actor programs use sleeps concurrently for timeouts, races, and
+teaching examples. The three-way parallel example that should take as long as
+its slowest three-second branch instead takes roughly 4.2 seconds.
+
+Current workaround: sandboxed `sleep/1` is implemented as a per-thread actor
+mailbox deadline whose receive guard always fails. It preserves all queued
+messages, remains interruptible by actor termination, and completes the
+one/three/two-second parallel example in approximately three seconds.
+Regression tests 147 and 148 cover both the primitive and tutorial-level
+behavior.
+
 ## Compatibility gaps worth tracking, but not yet bug reports
 
 These missing facilities increase porting work but need a clearer upstream

@@ -41,6 +41,8 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t144 exposes delayed send and cancellation through the actor sandbox
   - t145 copies the nested link tutorial without private-module re-entry
   - t146 preserves rewritten terminal output through `src_predicates/1`
+  - t147 routes `time/1` wall-time reports through the actor terminal
+  - t148 runs the tutorial's parallel sleeps concurrently
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -232,7 +234,7 @@ run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119, t120,
-    t144, t145, t146,
+    t144, t145, t146, t147, t148,
     reset_source_policy.
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62, t110, t125, t126,
@@ -1752,6 +1754,64 @@ t146 :-
     Alarm ! stop,
     toplevel_halt(Session, true),
     format("146. copied sandbox terminal output remains callable ok~n").
+
+t147 :-
+    self(Me),
+    sandbox_prepare_goal(blacklist, actor, actor_context,
+                         time(sleep(0.05)), TimedGoal),
+    get_time(Start),
+    spawn(TimedGoal, Timed, [target(Me),monitor(true),link(false)]),
+    receive({terminal_io_output(Timed, Report) -> true},
+            [timeout(2),on_timeout(throw(t147_report_timeout))]),
+    receive({down(Timed, _, true) -> true},
+            [timeout(2),on_timeout(throw(t147_completion_timeout))]),
+    get_time(Finish),
+    Elapsed is Finish-Start,
+    Elapsed >= 0.04,
+    sub_atom(Report, _, _, _, 'seconds wall'),
+    sub_atom(Report, _, _, _, 'seconds CPU'),
+    get_time(ParallelStart),
+    spawn(sandbox_policy:sandbox_sleep(0.1), Sleep1,
+          [monitor(true),link(false)]),
+    spawn(sandbox_policy:sandbox_sleep(0.3), Sleep2,
+          [monitor(true),link(false)]),
+    spawn(sandbox_policy:sandbox_sleep(0.2), Sleep3,
+          [monitor(true),link(false)]),
+    receive({down(Sleep1, _, true) -> true}, [timeout(1)]),
+    receive({down(Sleep2, _, true) -> true}, [timeout(1)]),
+    receive({down(Sleep3, _, true) -> true}, [timeout(1)]),
+    get_time(ParallelFinish),
+    ParallelElapsed is ParallelFinish-ParallelStart,
+    ParallelElapsed >= 0.25,
+    ParallelElapsed < 0.5,
+    format("147. actor-aware time/1 and sleep/1 wall timing ok~n").
+
+t148 :-
+    Source = 'myparallel(Goals) :- maplist(par_solve, Goals, Pids), maplist(par_yield(Pids), Pids, Goals). par_solve(Goal, Pid) :- self(Self), spawn((call(Goal), Self ! Pid-Goal), Pid, [monitor(true)]). par_yield(Pids, Pid, Goal) :- receive({Pid-Goal -> receive({down(Pid, _, true) -> true}); down(_, _, false) -> tidy_up_all(Pids), fail; down(_, _, exception(E)) -> tidy_up_all(Pids), throw(E)}). tidy_up_all(Pids) :- maplist(tidy_up, Pids). tidy_up(Pid) :- demonitor(Pid), exit(Pid, kill).',
+    sandbox_prepare_options(blacklist, actor, actor_context,
+                            [src_text(Source)], SourceOptions),
+    self(Me),
+    toplevel_spawn(Session,
+                   [target(Me),session(true),link(false)|SourceOptions]),
+    Query0 = time(myparallel([(X=a,sleep(0.1)),
+                              (Y=b,sleep(0.3)),
+                              (Z=c,sleep(0.2))])),
+    sandbox_prepare_goal(blacklist, actor, actor_context, Query0, Query),
+    get_time(Start),
+    toplevel_call(Session, Query,
+                  [template([X,Y,Z]),target(Me),limit(1)]),
+    receive({terminal_io_output(Session, Report) -> true},
+            [timeout(2),on_timeout(throw(t148_report_timeout))]),
+    receive({success(Session, [[a,b,c]], false) -> true;
+             error(Session, Error) -> throw(Error)},
+            [timeout(2),on_timeout(throw(t148_result_timeout))]),
+    get_time(Finish),
+    Elapsed is Finish-Start,
+    Elapsed >= 0.25,
+    Elapsed < 0.6,
+    sub_atom(Report, _, _, _, 'seconds wall'),
+    toplevel_halt(Session, true),
+    format("148. tutorial parallel sleeps run concurrently ok~n").
 
 t127 :-
     self(Me),
