@@ -37,6 +37,8 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t124 send/2 is the canonical non-operator message API
   - t127-t130 enforce SWI-compatible one-sided receive and guard semantics
   - t132-t135 cover committed exit reasons and race-safe monitors
+  - t140-t143 cover delayed send delivery, cancellation, and actor-scoped IDs
+  - t144 exposes delayed send and cancellation through the actor sandbox
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -215,7 +217,8 @@ run_test_group(actors) :-
     t1, t2, t3, t4, t5, t6, t7,
     t19, t20, t21, t23, t24, t25, t26,
     t31, t32, t33, t98, t113, t115, t124,
-    t127, t128, t129, t130, t132, t133, t134, t135.
+    t127, t128, t129, t130, t132, t133, t134, t135,
+    t140, t141, t142, t143.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
     t22, t27, t28, t29, t99, t100, t101, t111, t112, t123, t131.
@@ -227,6 +230,7 @@ run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119, t120,
+    t144,
     reset_source_policy.
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62, t110, t125, t126,
@@ -1635,6 +1639,62 @@ t124 :-
     send(Me, native_send),
     receive({native_send -> true}),
     format("124. native send/2 actor API ok~n").
+
+t140 :-
+    self(Me),
+    Id = delayed_cancel,
+    send(Me, delayed(Id), [delay(0.15),id(Id)]),
+    cancel(Id),
+    receive({delayed(Id) -> fail},
+            [timeout(0.25),on_timeout(true)]),
+    format("140. cancel/1 withdraws a delayed send ok~n").
+
+t141 :-
+    self(Me),
+    send(Me, delayed_value(ok), [delay(0.02)]),
+    receive({delayed_value(Value) -> true},
+            [timeout(1),on_timeout(fail)]),
+    Value == ok,
+    format("141. send/3 delivers after delay ok~n").
+
+t142 :-
+    self(Me),
+    make_ref(Id),
+    send(Me, delayed(one, Id), [delay(0.15),id(Id)]),
+    send(Me, delayed(two, Id), [delay(0.15),id(Id)]),
+    cancel(Id),
+    receive({delayed(_, Id) -> fail},
+            [timeout(0.25),on_timeout(true)]),
+    format("142. cancel/1 withdraws every send sharing an id ok~n").
+
+t143 :-
+    self(Me),
+    make_ref(Id),
+    send(Me, own_delayed(Id), [delay(0.12),id(Id)]),
+    spawn(( send(Me, foreign_delayed(Id), [delay(0.12),id(Id)]),
+            send(Me, foreign_scheduled),
+            receive({done -> true})
+          ), Scheduler, [link(false)]),
+    receive({foreign_scheduled -> true},
+            [timeout(1),on_timeout(fail)]),
+    cancel(Id),
+    receive({foreign_delayed(Id) -> true},
+            [timeout(1),on_timeout(fail)]),
+    Scheduler ! done,
+    receive({own_delayed(Id) -> fail},
+            [timeout(0.08),on_timeout(true)]),
+    format("143. delayed-send ids are scoped to their scheduling actor ok~n").
+
+t144 :-
+    self(Me),
+    Goal0 = ( send(Me, sandbox_delayed, [delay(0.12),id(sandbox_delay)]),
+              cancel(sandbox_delay)
+            ),
+    sandbox_prepare_goal(whitelist, actor, user, Goal0, Goal),
+    call(Goal),
+    receive({sandbox_delayed -> fail},
+            [timeout(0.2),on_timeout(true)]),
+    format("144. sandbox exposes send/3 and cancel/1 ok~n").
 
 t127 :-
     self(Me),

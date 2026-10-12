@@ -18,6 +18,8 @@
          exit/2,                 % +Pid, +Reason
          actor_terminating/0,
          send/2,                 % +Pid, +Message
+         send/3,                 % +Pid, +Message, +Options
+         cancel/1,               % +Id
          (!)/2,                  % +Pid, +Message
          input/2,                % +Prompt, -Answer
          input/3,                % +Prompt, -Answer, +Options
@@ -56,7 +58,8 @@ What it does provide:
 
   - spawn/1, spawn/2, spawn/3 to launch a new actor running a goal
   - self/1 to obtain the current actor's PID
-  - (!)/2 for asynchronous message passing
+  - send/2 and (!)/2 for immediate asynchronous message passing
+  - send/3 and cancel/1 for cancellable delayed messages
   - receive/1, receive/2 for Erlang-style pattern-matched, guarded,
     optionally timed-out mailbox reads
   - monitor/2 / demonitor/1,2 for passive lifecycle notifications
@@ -162,6 +165,7 @@ Reply = hello.
 :- dynamic issued_ref/1.
 :- dynamic actor_namespace/2.
 :- dynamic actor_public_namespace/2.
+:- dynamic delayed_send/3.
 
 :- catch(mutex_create(_, [alias('$actor_registry')]),
          error(permission_error(create, mutex, '$actor_registry'), _),
@@ -371,6 +375,7 @@ stop(Pid, Parent) :-
           retractall(actor_alive(Pid)),
           retractall(actor_namespace(Pid, _)),
           retractall(actor_public_namespace(Pid, _)),
+          retractall(delayed_send(_Owner, _Id, Pid)),
           retractall(pid_thread(Pid, _)),
           retractall(thread_pid(_, Pid)),
           findall(ChildPid, retract(link(Pid, ChildPid)), ChildPids),
@@ -686,6 +691,40 @@ Pid ! Message :-
 
 send(Pid, Message) :-
     actor_send(Pid, Message).
+
+%!  send(+PidOrName, +Message, +Options) is det.
+%
+%   Schedule Message for asynchronous delivery after delay(Seconds), which
+%   defaults to zero.  If Options contains id(Id), the calling actor may
+%   withdraw every one of its pending sends carrying Id with cancel/1.
+
+send(Pid, Message, Options) :-
+    option(delay(Delay), Options, 0),
+    self(Owner),
+    spawn(send_with_delay(Pid, Message, Delay), DelayPid),
+    ( option(id(Id), Options) -> assertz(delayed_send(Owner, Id, DelayPid))
+    ; true
+    ).
+
+%!  cancel(+Id) is det.
+%
+%   Cancel every pending delayed send tagged Id by the calling actor.  Tags
+%   are actor-scoped, so another actor may use the same tag independently.
+
+cancel(Id) :-
+    self(Owner),
+    forall(retract(delayed_send(Owner, Id, DelayPid)),
+           send(DelayPid, '$cancel')).
+
+send_with_delay(Pid, Message, Delay) :-
+    receive({
+        '$cancel' -> true
+    }, [
+        timeout(Delay),
+        on_timeout(send(Pid, Message))
+    ]),
+    self(Self),
+    retractall(delayed_send(_, _, Self)).
 
 actor_send(Name, Message) :-
     registered(Name, Pid),

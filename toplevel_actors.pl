@@ -14,6 +14,8 @@
          exit/1,                 % +Reason
          exit/2,                 % +Pid, +Reason
          send/2,                 % +Pid, +Message
+         send/3,                 % +Pid, +Message, +Options
+         cancel/1,               % +Id
          (!)/2,                  % +Pid, +Message
          input/2,                % +Prompt, -Answer
          input/3,                % +Prompt, -Answer, +Options

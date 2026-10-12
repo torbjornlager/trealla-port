@@ -148,6 +148,8 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 131 | stale deferred commands do not consume a new call's continuation | ok |
 | 132–135 | first-exit-wins, reserved controls, and monitor lifecycle | ok |
 | 136–139 | parallel templates, worker isolation, policies, and private goals | ok |
+| 140–143 | delayed send delivery, cancellation, and actor-scoped IDs | ok |
+| 144 | actor sandbox exposure of `send/3` and `cancel/1` | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -760,6 +762,8 @@ the defaults can be replaced with explicit `header/2` options.
 - Per-actor source namespaces with `src_text(Text)`, `src_list(Terms)`, and
   `src_predicates(PIs)`; the same options work across Trealla distribution
 - `self/1`, `send/2`, and the `(!)/2` operator alias
+- `send/3` with `delay(Seconds)` and optional actor-scoped `id(Id)`, plus
+  `cancel/1` to withdraw all of the caller's pending sends with that ID
 - `receive/1-2` with one-sided `subsumes_term/2` matching, guards
   (`Pattern if Guard -> Body`), `timeout(0)` polling, and positive
   `timeout(T)` deadlines. Patterns cannot instantiate variables inside a
