@@ -40,6 +40,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t140-t143 cover delayed send delivery, cancellation, and actor-scoped IDs
   - t144 exposes delayed send and cancellation through the actor sandbox
   - t145 copies the nested link tutorial without private-module re-entry
+  - t146 preserves rewritten terminal output through `src_predicates/1`
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -231,7 +232,7 @@ run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119, t120,
-    t144, t145,
+    t144, t145, t146,
     reset_source_policy.
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62, t110, t125, t126,
@@ -1729,6 +1730,28 @@ t145 :-
             [timeout(2),on_timeout(throw(t145_cascade_timeout))]),
     toplevel_halt(Session, true),
     format("145. nested link tutorial source copying and cascade ok~n").
+
+t146 :-
+    Source = 'alarm :- receive({ring -> writeln(''Alarm ringing!''), alarm; stop -> true}).',
+    sandbox_prepare_options(blacklist, actor, actor_context,
+                            [src_text(Source)], SourceOptions),
+    self(Me),
+    toplevel_spawn(Session,
+                   [target(Me),session(true),link(false)|SourceOptions]),
+    Spawn0 = spawn(alarm, Alarm, [src_predicates([alarm/0])]),
+    sandbox_prepare_spawn(blacklist, actor, actor_context,
+                          Spawn0, [], SpawnGoal, SpawnOptions),
+    toplevel_call(Session, SpawnGoal,
+                  [template(Alarm),target(Me),limit(1)|SpawnOptions]),
+    receive({success(Session, [Alarm], false) -> true;
+             error(Session, Error) -> throw(Error)},
+            [timeout(2),on_timeout(throw(t146_spawn_timeout))]),
+    send(Alarm, ring, [delay(0.02),id(t146_alarm)]),
+    receive({terminal_io_output(Alarm, 'Alarm ringing!') -> true},
+            [timeout(2),on_timeout(throw(t146_output_timeout))]),
+    Alarm ! stop,
+    toplevel_halt(Session, true),
+    format("146. copied sandbox terminal output remains callable ok~n").
 
 t127 :-
     self(Me),

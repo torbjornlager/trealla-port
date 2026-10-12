@@ -833,6 +833,10 @@ actor_safe_pi(receive/1). actor_safe_pi(receive/2). actor_safe_pi(monitor/2).
 actor_safe_pi(demonitor/1). actor_safe_pi(demonitor/2). actor_safe_pi(exit/1).
 actor_safe_pi(exit/2). actor_safe_pi(register/2). actor_safe_pi(whereis/2).
 actor_safe_pi(unregister/1). actor_safe_pi(output/1). actor_safe_pi(output/2).
+% Source copied with src_predicates/1 may already contain the qualified
+% terminal bridge produced by the writeln/1 rewrite.  It is capability-free:
+% output is still confined to the actor's inherited terminal target.
+actor_safe_pi(terminal_output/1). actor_safe_pi(terminal_output/2).
 actor_safe_pi(writeln/1).
 actor_safe_pi(format/1). actor_safe_pi(format/2).
 actor_safe_pi(input/2). actor_safe_pi(input/3). actor_safe_pi(respond/2).
