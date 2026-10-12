@@ -44,6 +44,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t147 routes `time/1` wall-time reports through the actor terminal
   - t148 runs the tutorial's parallel sleeps concurrently
   - t149 copies and drives the hand-built toplevel session protocol
+  - t150 constructs proof trees whose reflected clause bodies contain variables
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -235,7 +236,7 @@ run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119, t120,
-    t144, t145, t146, t147, t148, t149,
+    t144, t145, t146, t147, t148, t149, t150,
     reset_source_policy.
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62, t110, t125, t126,
@@ -1847,6 +1848,26 @@ t149 :-
     exit(Child, normal),
     toplevel_halt(Shell, true),
     format("149. copied hand-built toplevel protocol ok~n").
+
+t150 :-
+    Source = ':- dynamic mortal/1, human/1. mortal(X) :- human(X). human(socrates). prove(true, true) :- !. prove((A,B), (ProofA,ProofB)) :- !, prove(A,ProofA), prove(B,ProofB). prove(A, A/Proof) :- clause(A,B), prove(B,Proof).',
+    sandbox_prepare_options(blacklist, actor, actor_context,
+                            [src_text(Source)], SourceOptions),
+    self(Me),
+    toplevel_spawn(Session,
+                   [target(Me),session(true),link(false)|SourceOptions]),
+    Goal0 = prove(mortal(Who), Proof),
+    sandbox_prepare_goal(blacklist, actor, actor_context, Goal0, Goal),
+    toplevel_call(Session, Goal,
+                  [template([Who,Proof]),target(Me),limit(1)]),
+    receive({success(Session,
+                     [[socrates,
+                       mortal(socrates)/(human(socrates)/true)]],
+                     false) -> true;
+             error(Session, Error) -> throw(Error)},
+            [timeout(2),on_timeout(throw(t150_proof_timeout))]),
+    toplevel_halt(Session, true),
+    format("150. variable-bearing reflected proof tree ok~n").
 
 t127 :-
     self(Me),

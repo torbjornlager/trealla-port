@@ -952,6 +952,10 @@ allow_application_clause_goal(Head, Body) :-
     ; true
     ).
 
+% This must precede every structural clause.  Otherwise a variable occurring
+% inside an ordinary body such as human(X) unifies with one of the internal
+% wrapper patterns below, commits at its cut, and expands recursively forever.
+restore_clause_body(_Module, Term, Term) :- var(Term), !.
 restore_clause_body(Module,
                     sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0),
                     clause(Head,Body)) :-
@@ -977,7 +981,6 @@ restore_clause_body(Module, sandbox_policy:Call0, Call) :-
     restore_clause_body(Module, Closure0, Closure),
     restore_clause_args(Module, Extra0, Extra),
     Call =.. [call,Closure|Extra].
-restore_clause_body(_Module, Term, Term) :- var(Term), !.
 restore_clause_body(_Module, Term, Term) :- atomic(Term), !.
 restore_clause_body(Module, Term0, Term) :-
     Term0 =.. [Functor|Args0],
