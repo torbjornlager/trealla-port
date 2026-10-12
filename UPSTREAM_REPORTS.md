@@ -780,7 +780,7 @@ v3.13.2 port status: the promise-polling special case is gone. Regression test
 121 and the SWI-to-Trealla promise/yield interoperability test now exercise the
 ordinary reconstructed control term.
 
-### BUG-020: Repeated replacement of a thread-local list can corrupt its tail
+### BUG-020: Mutable per-thread list state can perturb or corrupt live terms
 
 **Status:** Needs minimization
 **Priority:** High
@@ -796,9 +796,19 @@ A small single-threaded retract/assert experiment did not reproduce the
 failure, so the interaction still needs reducing from the private-module,
 recursive selective-receive case before it is ready to file.
 
-Current workaround: mutable per-actor lists and scalar state use v3.13.2's
-per-thread `nb_setval/2` and `nb_current/2` globals. Those facilities have the
-right ownership and update semantics and pass the complete actor suite.
+A second application-level symptom appeared while porting SWI's pre-guard
+message deferral. Calling `nb_setval/2` with a list containing a pristine copy
+of a freshly dequeued message before matching it changed the `/call` JSON
+answer path: a formerly valid binding response failed in `write_term/2` with
+`domain_error(write_option, variable_names(['X'=a]))`. Delaying that state
+write until the message is rejected (or immediately before a reserved control
+exception is rethrown) restores the correct answer.
+
+Current workaround: mutable scalar and established list state uses v3.13.2's
+per-thread `nb_setval/2` and `nb_current/2` globals. The receive path first
+copies a fresh message, then commits that copy to the deferred list only on
+rejection or exceptional propagation. The complete actor and node suites cover
+both cases.
 
 ## Compatibility gaps worth tracking, but not yet bug reports
 

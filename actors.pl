@@ -140,6 +140,7 @@ Reply = hello.
 :- meta_predicate(spawn(0, -, +)).
 :- meta_predicate(spawn_scoped(0, -, +, +, +)).
 :- meta_predicate(receive(:, +)).
+:- meta_predicate(discard_deferred(1)).
 
 :- use_module(isolation).
 :- use_module(resource_policy).
@@ -660,14 +661,14 @@ logical_pid(Pid) :-
     Pid =< 9999999999.
 
 
-%!  receive(+ReceiveClauses) is semidet.
-%!  receive(+ReceiveClauses, +Options) is semidet.
+%!  receive(+ReceiveClauses) is nondet.
+%!  receive(+ReceiveClauses, +Options) is nondet.
 %
-%   Erlang-style mailbox read.  Blocks until a message in the mailbox
-%   matches one of the clauses in ReceiveClauses, then executes the
-%   corresponding body.  Messages that do not match any clause are
-%   moved to the per-thread deferred list and remain available to
-%   subsequent receive calls.
+%   Erlang-style mailbox read with committed, one-sided message selection.
+%   A pattern may bind its own variables but never variables in the receiver's
+%   copy of the message. One invocation consumes at most one message; its
+%   ordinary Prolog body may nevertheless yield multiple logical solutions.
+%   Backtracking through the body never selects another message or clause.
 %
 %   ReceiveClauses is a brace-wrapped disjunction of clauses:
 %
@@ -686,8 +687,9 @@ logical_pid(Pid) :-
 %       unified with the message and Body is called.
 %     - `Pattern if Guard -> Body`
 %       Matches only if the message is subsumed by Pattern *and*
-%       Guard succeeds.  Guard is called deterministically via once/1;
-%       any error causes the clause not to match.
+%       Guard succeeds. Guard is called deterministically via once/1. Ordinary
+%       guard exceptions reject the candidate; actor lifecycle and resource
+%       control exceptions propagate.
 %
 %   Clauses are tried top-to-bottom against each mailbox message, with
 %   the mailbox scanned in arrival order.
@@ -723,6 +725,23 @@ logical_pid(Pid) :-
 %   ==
 %
 %   Deferred messages live in a native per-thread non-backtrackable value.
+
+%!  discard_deferred(:Test) is det.
+%
+%   Remove already-deferred messages for which call(Test, Message) succeeds.
+%   Messages still in the native thread queue are untouched. This lets the
+%   toplevel discard commands skipped before a new call without discarding a
+%   command sent immediately after it.
+
+discard_deferred(Test) :-
+    deferred_list(Deferred),
+    discard_deferred_(Deferred, Test, Kept),
+    deferred_put(Kept).
+
+discard_deferred_([], _, []).
+discard_deferred_([Message|Messages], Test, Kept) :-
+    ( call(Test, Message) -> Kept = Rest ; Kept = [Message|Rest] ),
+    discard_deferred_(Messages, Test, Rest).
 
 receive(Clauses) :-
     receive(Clauses, []).
@@ -801,11 +820,13 @@ receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline) :-
     get_time(Now),
     Remaining is max(0.0, Deadline - Now),
     (   thread_get_message(Mailbox, Msg, [timeout(Remaining)])
-    ->  (   select_body(Clauses, Msg, Body)
+    ->  copy_term(Msg, SavedMsg),
+        (   catch(select_body(Clauses, Msg, Body), Error,
+                  preserve_control_exception(Deferred, SavedMsg, Error))
         ->  deferred_put(Deferred),
             call(Body)
-        ;   append(Deferred, [Msg], Deferred1),
-            receive_loop_timed_(Mailbox, Clauses, Options, Deferred1, Deadline)
+        ;   remember_incoming(Deferred, SavedMsg, Pending),
+            receive_loop_timed_(Mailbox, Clauses, Options, Pending, Deadline)
         )
     ;   % timeout fired
         deferred_put(Deferred),
@@ -820,12 +841,27 @@ receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline) :-
 %   and loop.
 
 handle_incoming(Mailbox, Clauses, Options, Deferred, Msg) :-
-    (   select_body(Clauses, Msg, Body)
+    copy_term(Msg, SavedMsg),
+    (   catch(select_body(Clauses, Msg, Body), Error,
+              preserve_control_exception(Deferred, SavedMsg, Error))
     ->  deferred_put(Deferred),
         call(Body)
-    ;   append(Deferred, [Msg], Deferred1),
-        receive_loop(Mailbox, Clauses, Options, Deferred1)
+    ;   remember_incoming(Deferred, SavedMsg, Pending),
+        receive_loop(Mailbox, Clauses, Options, Pending)
     ).
+
+% Keep a pristine copy before evaluating guards. Trealla's mutable per-thread
+% store cannot safely hold the live message term during matching, so the copy
+% is committed to the deferred list on rejection or before rethrowing a
+% reserved control exception. This has the same observable mailbox semantics
+% as SWI's pre-guard deferred fact.
+remember_incoming(Deferred, SavedMsg, Pending) :-
+    append(Deferred, [SavedMsg], Pending),
+    deferred_put(Pending).
+
+preserve_control_exception(Deferred, SavedMsg, Error) :-
+    remember_incoming(Deferred, SavedMsg, _),
+    throw(Error).
 
 %!  select_deferred(+Deferred, +Clauses, -Body, -Rest) is semidet.
 %
@@ -860,23 +896,42 @@ select_body(_M:{Clauses}, Message, Body) :-
 
 %!  select_body_aux(+Clauses, +Message, -Body) is semidet.
 %
-%   Recursively try each clause in the disjunction.  For a guarded
-%   clause `Pattern if Guard -> Body`, the guard is called via once/1
-%   and any error is treated as a non-match.
+%   Recursively try each clause in the disjunction. Matching is one-sided: the
+%   pattern must subsume the message. For a guarded clause, ordinary errors are
+%   non-matches while reserved control exceptions propagate.
 
 select_body_aux((Clause ; Clauses), Message, Body) :-
     (   select_body_aux(Clause,  Message, Body)
     ;   select_body_aux(Clauses, Message, Body)
     ).
 select_body_aux((Head -> Body), Message, Body) :-
-    (   subsumes_term(if(Pattern, Guard), Head)
-    ->  if(Pattern, Guard) = Head,
-        subsumes_term(Pattern, Message),
-        Pattern = Message,
-        catch(once(Guard), _, fail)
-    ;   subsumes_term(Head, Message),
-        Head = Message
+    (   nonvar(Head),
+        Head = if(Pattern, Guard)
+    ->  match_message(Pattern, Message),
+        catch(once(Guard), Error, guard_exception(Error))
+    ;   match_message(Head, Message)
     ).
+
+match_message(Pattern, Message) :-
+    subsumes_term(Pattern, Message),
+    Pattern = Message.
+
+guard_exception(Error) :-
+    guard_control_exception(Error),
+    !,
+    throw(Error).
+guard_exception(_) :-
+    fail.
+
+% Reserved transfers used by the Trealla actor and PTCP layers, plus the SWI
+% forms accepted on shared source paths.
+guard_control_exception(actor_exit).
+guard_control_exception('$abort_goal').
+guard_control_exception('$resource_idle').
+guard_control_exception('$ptcp_time_limit').
+guard_control_exception(time_limit_exceeded).
+guard_control_exception(error(time_limit_exceeded(_, _), _)).
+guard_control_exception(unwind(_)).
 
 
                 /*******************************

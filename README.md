@@ -139,6 +139,8 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 116 | private actor modules expose the toplevel actor API | ok |
 | 104 | sandboxed nested spawn retains its runtime module in source sessions | ok |
 | 105 | nested `src_predicates/1` copies source from its private parent session | ok |
+| 127–130 | one-sided receive, correlation safety, and guard control semantics | ok |
+| 131 | stale deferred commands do not consume a new call's continuation | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -751,8 +753,11 @@ the defaults can be replaced with explicit `header/2` options.
 - Per-actor source namespaces with `src_text(Text)`, `src_list(Terms)`, and
   `src_predicates(PIs)`; the same options work across Trealla distribution
 - `self/1`, `send/2`, and the `(!)/2` operator alias
-- `receive/1-2` with patterns, guards (`Pattern if Guard -> Body`),
-  `timeout(0)` polling, and positive `timeout(T)` deadlines
+- `receive/1-2` with one-sided `subsumes_term/2` matching, guards
+  (`Pattern if Guard -> Body`), `timeout(0)` polling, and positive
+  `timeout(T)` deadlines. Patterns cannot instantiate variables inside a
+  message; ordinary guard exceptions reject a candidate, while lifecycle and
+  resource-control exceptions propagate without losing the message.
 - `monitor/2`, `demonitor/1-2`
 - `register/2`, `unregister/1`, `whereis/2`
 - `exit/1`, `exit/2`

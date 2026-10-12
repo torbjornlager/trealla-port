@@ -207,6 +207,7 @@ session_running(Pid, Target, Continue, TimeLimit, IdleLimit) :-
 state_1(Pid, Target0, Continue, TimeLimit, IdleLimit) :-
     receive_with_idle_limit({
         '$call'(Goal, Options) ->
+            drain_stale_commands,
             option(template(Template), Options, Goal),
             option(offset(Offset),     Options, 0),
             option(limit(RequestedLimit), Options, 1000000000),
@@ -220,6 +221,16 @@ state_1(Pid, Target0, Continue, TimeLimit, IdleLimit) :-
     ->  true
     ;   state_1(Pid, Target0, Continue, TimeLimit, IdleLimit)
     ).
+
+% Discard only commands skipped before the call selected above. Commands sent
+% after the call are still in the native queue and remain available to the
+% running query or paging state.
+drain_stale_commands :-
+    actors:discard_deferred(toplevel_actors:stale_command).
+
+stale_command('$next'(_)).
+stale_command('$stop').
+stale_command('$input'(_, _)).
 
 receive_with_idle_limit(Clauses, infinite) :- !, receive(Clauses).
 receive_with_idle_limit(Clauses, IdleLimit) :-

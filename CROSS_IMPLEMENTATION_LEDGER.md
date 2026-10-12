@@ -22,6 +22,8 @@ Status terms:
 | Change | Origin | SWI-Prolog | Trealla | GNU Prolog | Conformance |
 |---|---|---|---|---|---|
 | Version-1 actor WebSocket protocol and cross-node PID routing | SWI | Implemented | Implemented | Not assessed | Partial; expand with GNU Prolog when available |
+| One-sided receive matching, guard control propagation, and pre-guard message preservation | SWI | Implemented | Implemented | Not assessed | Candidate core actor contract |
+| Toplevel stale-command discard limited to already-deferred messages | SWI | Implemented | Implemented | Not assessed | Candidate PTCP contract |
 | Stateless `/call` JSON named-binding response format | SWI | Implemented | Implemented | Not assessed | Candidate |
 | `/healthz`, `/readyz`, `/version`, `/node_info`, and maintenance/drain semantics | SWI | Implemented | Implemented (native core fields) | Not assessed | Candidate operational profile |
 | Public URL, browser-origin, and tutorial-section discovery metadata | Trealla port | Candidate | Implemented | Not assessed | Candidate operational profile |

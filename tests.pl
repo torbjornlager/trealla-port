@@ -35,6 +35,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t113 actors/1 returns a deterministic live-actor snapshot
   - t115 connection-scoped actors/1 hides internal relays and other shells
   - t124 send/2 is the canonical non-operator message API
+  - t127-t130 enforce SWI-compatible one-sided receive and guard semantics
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -48,6 +49,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t18 session mode with two successive calls
   - t22 mid-stream limit change via toplevel_next/2
   - t123 nested toplevel input is routed to its protocol caller
+  - t131 discards only control commands deferred before a new call
 
 ## Tests: receive timeout (t19-t21) {#tests-timeout}
 
@@ -210,10 +212,11 @@ pass, fails (or throws) on failure.  Tests are grouped:
 run_test_group(actors) :-
     t1, t2, t3, t4, t5, t6, t7,
     t19, t20, t21, t23, t24, t25, t26,
-    t31, t32, t33, t98, t113, t115, t124.
+    t31, t32, t33, t98, t113, t115, t124,
+    t127, t128, t129, t130.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
-    t22, t27, t28, t29, t99, t100, t101, t111, t112, t123.
+    t22, t27, t28, t29, t99, t100, t101, t111, t112, t123, t131.
 run_test_group(parallel) :-
     t8, t9, t10, t30.
 run_test_group(isolation) :-
@@ -763,6 +766,30 @@ t123 :-
             }, [timeout(2),on_timeout(throw(t123_success_timeout))]),
     exit(Sink, test_complete),
     format("123. nested toplevel input targets its protocol caller ok~n").
+
+t131 :-
+    self(Me),
+    toplevel_spawn(Pid,
+                   [target(Me),session(true),monitor(true),link(false)]),
+    toplevel_next(Pid),
+    toplevel_call(Pid, member(X, [a,b,c]),
+                  [template(X),limit(1),target(Me)]),
+    toplevel_next(Pid),
+    receive({success(Pid, First, true) -> true},
+            [timeout(2),on_timeout(fail)]),
+    receive({success(Pid, Second, true) -> true},
+            [timeout(2),on_timeout(fail)]),
+    First == [a],
+    Second == [b],
+    receive({success(Pid, Third, _) -> true},
+            [timeout(0.05),on_timeout(Third = none)]),
+    Third == none,
+    toplevel_stop(Pid),
+    toplevel_call(Pid, true, [template(done),target(Me)]),
+    receive({success(Pid, [done], false) -> true},
+            [timeout(2),on_timeout(fail)]),
+    toplevel_halt(Pid, true),
+    format("131. stale deferred commands are scoped to the prior call ok~n").
 
 nested_input_sink(Parent) :-
     receive({Prompt -> Parent ! nested_input_diverted(Prompt)}).
@@ -1606,6 +1633,53 @@ t124 :-
     send(Me, native_send),
     receive({native_send -> true}),
     format("124. native send/2 actor API ok~n").
+
+t127 :-
+    self(Me),
+    Me ! offer(_),
+    receive({offer(coffee) -> fail},
+            [timeout(0),on_timeout(true)]),
+    receive({offer(Value) -> true},
+            [timeout(0),on_timeout(fail)]),
+    var(Value),
+    format("127. receive does not specialize message variables ok~n").
+
+t128 :-
+    self(Me),
+    Me ! offer(_),
+    Me ! ready,
+    receive({ready -> true}, [timeout(0),on_timeout(fail)]),
+    receive({offer(tea) -> fail}, [timeout(0),on_timeout(true)]),
+    receive({offer(Value) -> true}, [timeout(0),on_timeout(fail)]),
+    var(Value),
+    format("128. deferred receive remains one-sided ok~n").
+
+t129 :-
+    self(Me),
+    Ref = 4711,
+    Me ! _-bogus,
+    Me ! Ref-genuine,
+    receive({Ref-Answer -> true}, [timeout(0),on_timeout(fail)]),
+    Answer == genuine,
+    receive({Variable-bogus -> true}, [timeout(0),on_timeout(fail)]),
+    var(Variable),
+    format("129. receive correlation reference cannot be forged ok~n").
+
+t130 :-
+    self(Me),
+    Me ! guarded(_),
+    catch(receive({guarded(Witness) if
+                       (Witness = changed, throw('$abort_goal')) -> fail},
+                  [timeout(0),on_timeout(fail)]),
+          Caught, true),
+    Caught == '$abort_goal',
+    receive({guarded(Value) -> true}, [timeout(0),on_timeout(fail)]),
+    var(Value),
+    Me ! ordinary,
+    receive({ordinary if throw(rejected_guard) -> fail;
+             ordinary -> true},
+            [timeout(0),on_timeout(fail)]),
+    format("130. guard control propagation and rollback ok~n").
 
 
                 /*******************************
