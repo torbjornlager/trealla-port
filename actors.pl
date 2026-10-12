@@ -35,6 +35,7 @@
          receive/1,              % +ReceiveClauses
          receive/2,              % +ReceiveClauses, +Options
          receive_qualified/2,    % +QualifiedClauses, +Options (runtime bridge)
+         receive_empty/0,        % internal private-module bridge
          make_ref/1,             % -Ref
          flush/0,
 
@@ -838,6 +839,12 @@ receive(Clauses) :-
 
 receive(Clauses, Options) :-
     receive_qualified(Clauses, Options).
+
+% Private source modules use this bridge for receive({}).  Constructing a
+% module-qualified empty-brace term in generated source triggers Trealla's
+% parser (`Module:{}`), whereas the ordinary term compiled here is valid.
+receive_empty :-
+    receive({}).
 
 % Non-meta entry point for actor-private modules executing a receive term
 % supplied at runtime.  Calling the meta-predicate receive/2 through call/1

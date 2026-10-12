@@ -39,6 +39,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t132-t135 cover committed exit reasons and race-safe monitors
   - t140-t143 cover delayed send delivery, cancellation, and actor-scoped IDs
   - t144 exposes delayed send and cancellation through the actor sandbox
+  - t145 copies the nested link tutorial without private-module re-entry
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -230,7 +231,7 @@ run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119, t120,
-    t144,
+    t144, t145,
     reset_source_policy.
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62, t110, t125, t126,
@@ -1695,6 +1696,39 @@ t144 :-
     receive({sandbox_delayed -> fail},
             [timeout(0.2),on_timeout(true)]),
     format("144. sandbox exposes send/3 and cancel/1 ok~n").
+
+t145 :-
+    Source = 'root :- spawn(child, _, [src_predicates([child/0, grandchild/0])]), receive({}). child :- spawn(grandchild, _, [src_predicates([grandchild/0])]), receive({}). grandchild :- receive({}).',
+    sandbox_prepare_options(blacklist, actor, actor_context,
+                            [src_text(Source)], SourceOptions),
+    self(Me),
+    toplevel_spawn(Session,
+                   [target(Me),session(true),link(false)|SourceOptions]),
+    Spawn0 = spawn(root, Root,
+                   [src_predicates([root/0,child/0,grandchild/0])]),
+    sandbox_prepare_spawn(blacklist, actor, actor_context,
+                          Spawn0, [], SpawnGoal, SpawnOptions),
+    toplevel_call(Session, SpawnGoal,
+                  [template(Root),target(Me),limit(1)|SpawnOptions]),
+    receive({success(Session, [Root], false) -> true;
+             error(Session, Error) -> throw(Error)},
+            [timeout(2),on_timeout(throw(t145_spawn_timeout))]),
+    sleep(0.1),
+    toplevel_call(Session, actors(Alive),
+                  [template(Alive),target(Me),limit(1)]),
+    receive({success(Session, [FourAlive], false) -> true;
+             error(Session, ActorError) -> throw(ActorError)},
+            [timeout(2),on_timeout(throw(t145_actors_timeout))]),
+    length(FourAlive, 4),
+    exit(Root, die),
+    sleep(0.1),
+    toplevel_call(Session, actors(Remaining),
+                  [template(Remaining),target(Me),limit(1)]),
+    receive({success(Session, [[Session]], false) -> true;
+             error(Session, CascadeError) -> throw(CascadeError)},
+            [timeout(2),on_timeout(throw(t145_cascade_timeout))]),
+    toplevel_halt(Session, true),
+    format("145. nested link tutorial source copying and cascade ok~n").
 
 t127 :-
     self(Me),

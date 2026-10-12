@@ -150,6 +150,7 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 136–139 | parallel templates, worker isolation, policies, and private goals | ok |
 | 140–143 | delayed send delivery, cancellation, and actor-scoped IDs | ok |
 | 144 | actor sandbox exposure of `send/3` and `cancel/1` | ok |
+| 145 | nested link tutorial source copying and termination cascade | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
