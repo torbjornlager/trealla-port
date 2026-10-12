@@ -905,7 +905,10 @@ in the code today.
 
 Trealla v3.13.2 provides `thread_local/1` and per-thread non-backtrackable
 globals. The actor runtime uses `nb_setval/2` and `nb_current/2` for mutable
-mailbox, parent, terminal, paging, and connection state:
+mailbox, parent, terminal, paging, and connection state. A clean retest also
+passed with a repeatedly replaced `thread_local/1` mailbox value; the existing
+representation remains because it directly models one mutable value and is
+already covered by the full suite:
 
 ```prolog
 deferred_list(L) :-

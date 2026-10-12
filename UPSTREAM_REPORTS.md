@@ -20,8 +20,8 @@ Status meanings:
 ## v3.13.2 upstream audit
 
 Trealla v3.13.2 incorporates the maintainer's `trealla-port-review` work.  The
-upstream history explicitly resolves all nine feature requests in this
-document: FR-001 through FR-009.  The release adds application-defined
+upstream history explicitly resolves the original nine feature requests in
+this document: FR-001 through FR-009.  The release adds application-defined
 `send/2`, `thread_local/1`, `http_switch_protocol/2`, URI form encoding,
 atomic `flag/3`, temporary-module lifecycle predicates, `library(sandbox)`,
 inference and thread stack limits, and independent TLS server-name/address
@@ -44,10 +44,12 @@ listener from the shutdown thread leaves the owner blocked in `accept`, and
 the node lifecycle suite times out. The loopback wake connection remains in
 place pending a focused v3.13.2 reproducer.
 
-BUG-017 is likewise not yet removable: loading the expanded clause body
-without the actor's receive-qualification pass makes regression 102 fail when
-the selected receive body calls the next private predicate. The source rewrite
-therefore remains pending a focused v3.13.2 retest.
+BUG-017's broad original description is no longer independently reproducible:
+a conventional dynamically asserted call to an imported meta-predicate keeps
+its caller module on v3.13.2. Loading the expanded actor clause body without
+the receive-qualification pass still makes regression 102 fail when the
+selected body calls the next private predicate. The remaining trigger must be
+narrowed to temporary-module runtime dispatch before filing.
 
 The port's full manual, WebSocket, distribution, SWI-interoperability, and
 deployment suites pass against v3.13.2.  Removing the compatibility
@@ -55,10 +57,11 @@ workarounds is deliberately a separate follow-up: each should first be
 replaced with its new native facility and covered by the same regression
 test.
 
-During that replacement work, `thread_local/1` proved unsuitable for the
-actor's repeatedly replaced list-valued mailbox state; the new observation is
-tracked as BUG-020 pending a standalone minimization. The port uses the new
-per-thread non-backtrackable globals for that mutable state instead.
+A later clean retest could not reproduce BUG-020: both a repeatedly replaced
+`thread_local/1` deferred list and pre-guard `nb_setval/2` storage passed the
+complete unit suite on v3.13.2. The port retains its established
+non-backtrackable representation, but BUG-020 must not be filed without a new
+standalone failure.
 
 ## Feature requests
 
@@ -254,6 +257,37 @@ without losing normal address-family fallback.
 v3.13.2 port status: every resolver result is policy-checked, the connection
 uses an approved numeric address, and `server_name(Host)` preserves SNI and
 certificate identity verification.
+
+### FR-010: Support absolute deadlines in `thread_get_message/3`
+
+**Status:** Ready
+**Priority:** Medium
+
+Trealla's SWI-compatible `thread_get_message/3` accepts `timeout(Seconds)` but
+not SWI-Prolog's `deadline(AbsoluteTime)` option. A selective receive loop must
+therefore recompute a shrinking relative timeout after every unrelated
+message. Passing an absolute deadline directly is simpler and prevents a
+restarted relative timeout from extending the caller's requested wait.
+
+Repository reproducer:
+`reproducers/fr-010-thread-get-message-deadline.pl`.
+
+```sh
+tpl -q -f reproducers/fr-010-thread-get-message-deadline.pl \
+    -g "reproducer,halt"
+```
+
+Trealla v3.13.2 reports:
+
+```text
+error(domain_error(read_option,deadline(...)),thread_get_message/3)
+```
+
+The same program under SWI-Prolog prints `none`, meaning the already-expired
+deadline makes the call fail immediately without an exception. Desired
+behavior: accept `deadline(Time)` as an alternative to `timeout(Seconds)`,
+using the same absolute time basis as `get_time/1`. No matching Trealla issue
+was found in an upstream issue search on 2026-10-12.
 
 ## Bug reports
 
@@ -688,6 +722,13 @@ each executable receive-body leaf with the fresh actor module. Regression test
 102 exercises the complete tutorial sequence, including deferred-message
 selection.
 
+v3.13.2 retest: a standalone temporary module that asserts a clause calling a
+simple imported meta-predicate retains the correct caller context. The broad
+meta-predicate claim above is therefore not ready to file. The application
+regression still requires its qualification bridge, so any future report must
+first isolate the additional temporary-module, runtime-term, or receive-DSL
+condition that distinguishes it from the passing minimal case.
+
 ### BUG-018: `format/3` segfaults on the `~p` directive
 
 **Status:** Resolved in v3.13.2
@@ -782,7 +823,7 @@ ordinary reconstructed control term.
 
 ### BUG-020: Mutable per-thread list state can perturb or corrupt live terms
 
-**Status:** Needs minimization
+**Status:** Not reproduced on clean v3.13.2 retest
 **Priority:** High
 
 While replacing the actor runtime's old blackboard state on Trealla v3.13.2,
@@ -804,11 +845,17 @@ answer path: a formerly valid binding response failed in `write_term/2` with
 write until the message is rejected (or immediately before a reserved control
 exception is rethrown) restores the correct answer.
 
-Current workaround: mutable scalar and established list state uses v3.13.2's
-per-thread `nb_setval/2` and `nb_current/2` globals. The receive path first
-copies a fresh message, then commits that copy to the deferred list only on
-rejection or exceptional propagation. The complete actor and node suites cover
-both cases.
+On 2026-10-12 both suspected mechanisms were substituted independently into
+the current port. Replacing the deferred state through a `thread_local/1`
+clause passed every unit group. Storing the copied message with `nb_setval/2`
+before guard evaluation also passed every unit group, including `/call` JSON
+bindings and private recursive receive. Simple standalone experiments pass as
+well. The historical observations remain recorded here, but this report must
+not be sent upstream unless a fresh failure can be reproduced.
+
+The production port conservatively retains the established per-thread
+`nb_setval/2`/`nb_current/2` list and commits new deferred copies only on
+rejection or exceptional propagation.
 
 ## Compatibility gaps worth tracking, but not yet bug reports
 
