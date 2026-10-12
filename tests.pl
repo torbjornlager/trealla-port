@@ -45,6 +45,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t148 runs the tutorial's parallel sleeps concurrently
   - t149 copies and drives the hand-built toplevel session protocol
   - t150 constructs proof trees whose reflected clause bodies contain variables
+  - t151 provides SWI-compatible `random_member/2` to submitted programs
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -227,7 +228,7 @@ run_test_group(actors) :-
     t140, t141, t142, t143.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
-    t22, t27, t28, t29, t99, t100, t101, t111, t112, t123, t131.
+    t22, t27, t28, t29, t99, t100, t101, t111, t112, t123, t131, t152.
 run_test_group(parallel) :-
     t8, t9, t10, t30, t136, t137, t138, t139.
 run_test_group(isolation) :-
@@ -236,7 +237,7 @@ run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119, t120,
-    t144, t145, t146, t147, t148, t149, t150,
+    t144, t145, t146, t147, t148, t149, t150, t151,
     reset_source_policy.
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62, t110, t125, t126,
@@ -1868,6 +1869,37 @@ t150 :-
             [timeout(2),on_timeout(throw(t150_proof_timeout))]),
     toplevel_halt(Session, true),
     format("150. variable-bearing reflected proof tree ok~n").
+
+t151 :-
+    Source = 'pick(Value) :- random_member(Value, [tweety,pingu]).',
+    sandbox_prepare_options(blacklist, actor, actor_context,
+                            [src_text(Source)], SourceOptions),
+    self(Me),
+    toplevel_spawn(Session,
+                   [target(Me),session(true),link(false)|SourceOptions]),
+    sandbox_prepare_goal(blacklist, actor, actor_context,
+                         pick(Value), Goal),
+    toplevel_call(Session, Goal,
+                  [template(Value),target(Me),limit(1)]),
+    receive({success(Session, [Picked], false) -> true;
+             error(Session, Error) -> throw(Error)},
+            [timeout(2),on_timeout(throw(t151_random_member_timeout))]),
+    memberchk(Picked, [tweety,pingu]),
+    toplevel_halt(Session, true),
+    format("151. sandboxed random_member/2 compatibility ok~n").
+
+t152 :-
+    self(Me),
+    toplevel_spawn(Session,
+                   [target(Me),session(true),link(false),
+                    src_list([p(a),p(b),p(c)])]),
+    toplevel_call(Session, p(X),
+                  [template(X),limit(1),once(true)]),
+    receive({success(Session, [a], false) -> true;
+             error(Session, Error) -> throw(Error)},
+            [timeout(2),on_timeout(throw(t152_once_timeout))]),
+    toplevel_halt(Session, true),
+    format("152. toplevel once(true) commits the first answer ok~n").
 
 t127 :-
     self(Me),

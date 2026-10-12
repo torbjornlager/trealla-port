@@ -214,15 +214,22 @@ state_1(Pid, Target0, Continue, TimeLimit, IdleLimit) :-
             option(offset(Offset),     Options, 0),
             option(limit(RequestedLimit), Options, 1000000000),
             effective_solution_limit(RequestedLimit, Limit0),
+            option(once(Once),          Options, false),
             option(target(Target1),    Options, Target0),
             isolation:execution_goal(Goal, ExecutionGoal),
-            run_call(Pid, ExecutionGoal, Template, Offset, Limit0, Target1,
+            once_execution_goal(Once, ExecutionGoal, RunGoal),
+            run_call(Pid, RunGoal, Template, Offset, Limit0, Target1,
                      TimeLimit, IdleLimit)
         }, IdleLimit),
     (   Continue == false
     ->  true
     ;   state_1(Pid, Target0, Continue, TimeLimit, IdleLimit)
     ).
+
+once_execution_goal(true, Goal, once(Goal)) :- !.
+once_execution_goal(false, Goal, Goal) :- !.
+once_execution_goal(Once, _, _) :-
+    throw(error(domain_error(boolean, Once), toplevel_call/3)).
 
 % Discard only commands skipped before the call selected above. Commands sent
 % after the call are still in the native queue and remain available to the

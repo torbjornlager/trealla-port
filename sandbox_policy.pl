@@ -20,6 +20,7 @@
          sandbox_format/2,
          sandbox_time/2,
          sandbox_sleep/1,
+         sandbox_random_member/2,
          sandbox_clause/6,
          sandbox_assert/5,
          sandbox_assert/6,
@@ -141,6 +142,9 @@ sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
     reject_format_meta_call(Format).
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     sandbox_policy:sandbox_sleep(_Seconds)) :-
+    !.
+sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
+                    sandbox_policy:sandbox_random_member(_Element, _List)) :-
     !.
 sandbox_check_goal_(Mode, Profile, Module, AppPIs,
                     sandbox_policy:sandbox_time(_Context, Goal)) :-
@@ -487,6 +491,7 @@ reserved_source_name(sandbox_toplevel_call).
 reserved_source_name(sandbox_format).
 reserved_source_name(sandbox_time).
 reserved_source_name(sandbox_sleep).
+reserved_source_name(sandbox_random_member).
 reserved_source_name(sandbox_builtin_call).
 reserved_source_name(sandbox_clause).
 reserved_source_name(sandbox_assert).
@@ -549,6 +554,10 @@ rewrite_goal_(_M,_P,_C,_A,format(Format,Args),
 rewrite_goal_(M,P,C,A,time(Goal0),
               sandbox_policy:sandbox_time(C,Goal)) :-
     rewrite_goal(M,P,C,A,Goal0,Goal).
+% random_member/2 is provided by SWI's library(random), which is part of the
+% demonstrator's normal environment, but Trealla v3.13.3 has no equivalent.
+rewrite_goal_(_M,_P,_C,_A,random_member(Element,List),
+              sandbox_policy:sandbox_random_member(Element,List)).
 % sleep/1 is available in Trealla's user module but is not inherited by the
 % short-lived private modules used for actor sessions.
 rewrite_goal_(_M,_P,_C,_A,sleep(Seconds),
@@ -921,6 +930,13 @@ sandbox_sleep(Seconds) :-
     actors:receive({_Message if fail -> true},
                    [timeout(Seconds),on_timeout(true)]).
 
+sandbox_random_member(Element, List) :-
+    must_be(list, List),
+    length(List, Length),
+    Length > 0,
+    random_between(1, Length, Index),
+    nth1(Index, List, Element).
+
 % Execute a pre-validated primitive in this module, where Trealla exposes its
 % built-ins reliably. Short-lived private modules cannot resolve every native
 % predicate from a compound meta-call.
@@ -967,6 +983,9 @@ restore_clause_body(Module, Module:Inner0, Inner) :-
     restore_clause_body(Module, Inner0, Inner).
 restore_clause_body(_Module, sandbox_policy:sandbox_sleep(Seconds),
                     sleep(Seconds)) :- !.
+restore_clause_body(_Module,
+                    sandbox_policy:sandbox_random_member(Element,List),
+                    random_member(Element,List)) :- !.
 restore_clause_body(Module, sandbox_policy:sandbox_time(_Context, Goal0),
                     time(Goal)) :-
     !,

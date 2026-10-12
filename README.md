@@ -156,6 +156,8 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 148 | concurrent sleeps in the tutorial parallel combinator | ok |
 | 149 | copied hand-built toplevel session and paging protocol | ok |
 | 150 | variable-bearing reflective clause bodies and proof trees | ok |
+| 151 | SWI-compatible `random_member/2` in submitted programs | ok |
+| 152 | toplevel `once(true)` commits the first answer | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
