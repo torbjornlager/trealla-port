@@ -67,8 +67,8 @@ esac
 printf 'Trealla: %s (%s)\n' "$VERSION_TERM" "$TPL"
 
 "$TPL" -g \
-    "current_prolog_flag(version_data,trealla(A,B,C,_)),((A>3;A=:=3,B>12;A=:=3,B=:=12,C>=6)->halt;halt(2))" \
-    >/dev/null 2>&1 || fail "Trealla v3.12.6 or newer is required; found $VERSION_TERM"
+    "current_prolog_flag(version_data,trealla(A,B,C,_)),((A>3;A=:=3,B>13;A=:=3,B=:=13,C>=2)->halt;halt(2))" \
+    >/dev/null 2>&1 || fail "Trealla v3.13.2 or newer is required; found $VERSION_TERM"
 
 run_with_timeout() {
     test_label=$1

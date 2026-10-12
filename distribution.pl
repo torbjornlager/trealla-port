@@ -633,11 +633,30 @@ remote_event(down, JSON, Pid, down(Pid, Ref, Reason)) :- !,
     json_event_term(JSON, reason, Reason).
 remote_event(Type, _, Pid, unknown_remote_event(Pid, Type)).
 
-json_terms([], []).
+json_terms([], Terms) :- Terms = [].
 json_terms([string(Chars)|Values], [Term|Terms]) :-
     atom_chars(Text, Chars),
     ( catch(read_term_from_atom(Text, Term, []), _, fail) -> true ; Term = Text ),
     json_terms(Values, Terms).
+json_terms([pairs(Bindings)|Values], [Term|Terms]) :-
+    json_binding_row(Bindings, Term),
+    json_terms(Values, Terms).
+
+json_binding_row([_-Value], Term) :- !,
+    json_binding_value(Value, Term).
+json_binding_row(Bindings, Terms) :-
+    json_binding_values(Bindings, Terms).
+
+json_binding_values([], Terms) :- Terms = [].
+json_binding_values([string(NameChars)-Value|Bindings],
+                    [Name=Term|Terms]) :-
+    atom_chars(Name, NameChars),
+    json_binding_value(Value, Term),
+    json_binding_values(Bindings, Terms).
+
+json_binding_value(string(Chars), Term) :-
+    atom_chars(Text, Chars),
+    ( catch(read_term_from_atom(Text, Term, []), _, fail) -> true ; Term = Text ).
 
 json_event_term(JSON, Key, Term) :-
     web_prolog:json_text_default(JSON, Key, '', Text),

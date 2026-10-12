@@ -37,7 +37,7 @@ Run the complete build and proxy test:
 ./tools/deployment-smoke.sh
 ```
 
-The test builds Trealla v3.12.6, starts both containers, checks health,
+The test builds Trealla v3.13.2, starts both containers, checks health,
 readiness, discovery metadata, JSON execution, a proxied WebSocket upgrade,
 internal admin maintenance, and the post-maintenance 503 response, then
 removes its containers and volumes.

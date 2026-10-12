@@ -246,6 +246,9 @@ actor_query_goal(_, yield(Reference, Answer),
                  rpc:yield(Reference, Answer)) :- !.
 actor_query_goal(_, yield(Reference, Answer, Options),
                  rpc:yield(Reference, Answer, Options)) :- !.
+actor_query_goal(_, Qualified:Goal, Qualified:Goal) :-
+    atom(Qualified),
+    !.
 actor_query_goal(_, (Left == Right),
                  isolation:actor_identical(Left, Right)) :- !.
 actor_query_goal(_, true, true) :- !.

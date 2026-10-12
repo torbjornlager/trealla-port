@@ -1045,9 +1045,22 @@ binding_json_fields(Bindings, Fields) :-
 
 binding_json_fields_([], _, []).
 binding_json_fields_([Name=Value|Bindings], VarNames,
+                     [Name-string_atom(VariableName)|Fields]) :-
+    var(Value),
+    !,
+    binding_variable_name(Value, VarNames, VariableName),
+    binding_json_fields_(Bindings, VarNames, Fields).
+binding_json_fields_([Name=Value|Bindings], VarNames,
                      [Name-string_atom(Text)|Fields]) :-
     named_term_wire_atom(Value, VarNames, Text),
     binding_json_fields_(Bindings, VarNames, Fields).
+
+binding_variable_name(Var, [Name=Value|_], Name) :-
+    var(Value),
+    Var == Value,
+    !.
+binding_variable_name(Var, [_|Bindings], Name) :-
+    binding_variable_name(Var, Bindings, Name).
 
 named_term_wire_atom(Term, NamedVars, Atom) :-
     % Match SWI's binding serializer: retain query-variable names and render

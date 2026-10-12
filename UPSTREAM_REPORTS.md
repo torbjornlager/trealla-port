@@ -17,6 +17,29 @@ Status meanings:
   should first be reduced to a small standalone program.
 - **Retest** — observed on an older release; establish whether it remains.
 
+## v3.13.2 upstream audit
+
+Trealla v3.13.2 incorporates the maintainer's `trealla-port-review` work.  The
+upstream history explicitly resolves all nine feature requests in this
+document: FR-001 through FR-009.  The release adds application-defined
+`send/2`, `thread_local/1`, `http_switch_protocol/2`, URI form encoding,
+atomic `flag/3`, temporary-module lifecycle predicates, `library(sandbox)`,
+inference and thread stack limits, and independent TLS server-name/address
+handling.
+
+The same history explicitly addresses BUG-002, BUG-004 through BUG-006,
+BUG-008, BUG-010, and BUG-012 through BUG-019.  Those entries remain below as
+historical records of the original symptoms and workarounds.  BUG-001,
+BUG-003, BUG-007, BUG-009, and BUG-011 do not have a corresponding fix named
+in the v3.13.2 history and still require focused retesting before their status
+is changed.
+
+The port's full manual, WebSocket, distribution, SWI-interoperability, and
+deployment suites pass against v3.13.2.  Removing the compatibility
+workarounds is deliberately a separate follow-up: each should first be
+replaced with its new native facility and covered by the same regression
+test.
+
 ## Feature requests
 
 ### FR-001: Allow a module-local definition to replace or shadow a built-in

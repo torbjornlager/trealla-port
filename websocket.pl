@@ -615,25 +615,39 @@ utf8_code(C, [B1,B2,B3,B4]) :- C >= 65536, C =< 1114111, !,
     B3 is 128 \/ ((C >> 6) /\ 63), B4 is 128 \/ (C /\ 63).
 utf8_code(C, _) :- protocol_error(invalid_unicode(C)).
 
-utf8_decode([], []).
-utf8_decode([B|Bs], [C|Cs]) :-
-    ( B =< 127 -> C = B, Rest = Bs
-    ; B >= 194, B =< 223 ->
-        continuation(Bs, B2, Rest), C is ((B /\ 31) << 6) \/ (B2 /\ 63)
-    ; B >= 224, B =< 239 ->
-        continuation(Bs, B2, R1), continuation(R1, B3, Rest),
-        C is ((B /\ 15) << 12) \/ ((B2 /\ 63) << 6) \/ (B3 /\ 63),
-        C >= 2048, (C < 55296 ; C > 57343)
-    ; B >= 240, B =< 244 ->
-        continuation(Bs, B2, R1), continuation(R1, B3, R2),
-        continuation(R2, B4, Rest),
-        C is ((B /\ 7) << 18) \/ ((B2 /\ 63) << 12) \/
-             ((B3 /\ 63) << 6) \/ (B4 /\ 63),
-        C >= 65536, C =< 1114111
-    ; protocol_error(invalid_utf8)
-    ), !,
-    utf8_decode(Rest, Cs).
-utf8_decode(_, _) :- protocol_error(invalid_utf8).
+% Avoid constructing an output tail for the overwhelmingly common ASCII case.
+% Trealla 3.13.2 can otherwise leave that tail unable to unify with [] when this
+% predicate runs in the WebSocket reader actor.
+utf8_decode(Bytes, Codes) :-
+    ascii_bytes(Bytes), !,
+    Codes = Bytes.
+utf8_decode(Bytes, Codes) :-
+    utf8_decode_non_ascii(Bytes, Codes).
+
+ascii_bytes([]).
+ascii_bytes([B|Bs]) :- B =< 127, ascii_bytes(Bs).
+
+utf8_decode_non_ascii([], Codes) :- Codes = [].
+utf8_decode_non_ascii([B|Bs], [C|Cs]) :-
+    utf8_character(B, Bs, C, Rest),
+    utf8_decode_non_ascii(Rest, Cs).
+utf8_decode_non_ascii(_, _) :- protocol_error(invalid_utf8).
+
+utf8_character(B, Bs, B, Bs) :- B =< 127, !.
+utf8_character(B, Bs, C, Rest) :- B >= 194, B =< 223, !,
+    continuation(Bs, B2, Rest),
+    C is ((B /\ 31) << 6) \/ (B2 /\ 63).
+utf8_character(B, Bs, C, Rest) :- B >= 224, B =< 239, !,
+    continuation(Bs, B2, R1), continuation(R1, B3, Rest),
+    C is ((B /\ 15) << 12) \/ ((B2 /\ 63) << 6) \/ (B3 /\ 63),
+    C >= 2048, (C < 55296 ; C > 57343), !.
+utf8_character(B, Bs, C, Rest) :- B >= 240, B =< 244, !,
+    continuation(Bs, B2, R1), continuation(R1, B3, R2),
+    continuation(R2, B4, Rest),
+    C is ((B /\ 7) << 18) \/ ((B2 /\ 63) << 12) \/
+         ((B3 /\ 63) << 6) \/ (B4 /\ 63),
+    C >= 65536, C =< 1114111, !.
+utf8_character(_, _, _, _) :- protocol_error(invalid_utf8).
 
 continuation([B|Bs], B, Bs) :- B >= 128, B =< 191, !.
 continuation(_, _, _) :- protocol_error(invalid_utf8).

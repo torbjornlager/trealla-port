@@ -400,7 +400,9 @@ dispatch_node_connection(Port, C, Peer, WebSocketHandler, WebSocketOptions,
               node_serve_tracked(Port, Key, C, Peer, WebSocketHandler,
                                  WebSocketOptions, Profile, Sandbox,
                                  RelationPatterns),
-              Thread, [detached(true)]),
+              Thread,
+              [detached(true),
+               at_exit(node:node_connection_exit(Key, C))]),
           Error,
           ( unregister_node_connection(Key),
             catch(close(C), _, true), throw(Error) )),
@@ -412,7 +414,12 @@ node_serve_tracked(Port, Key, C, Peer, WebSocketHandler, WebSocketOptions,
         true,
         node_serve(Port, C, Peer, WebSocketHandler, WebSocketOptions,
                    Profile, Sandbox, RelationPatterns),
-        unregister_node_connection(Key)).
+        ( safe_close_stream(C),
+          unregister_node_connection(Key) )).
+
+node_connection_exit(Key, Stream) :-
+    safe_close_stream(Stream),
+    unregister_node_connection(Key).
 
 % Older installed library(sockets) releases returned the accepted stream in
 % the Client argument.  The v3.12 runtime already records the actual peer on
@@ -529,8 +536,8 @@ stop_node(Port, Options) :-
     must_be(integer, Port), must_be(list, Options),
     option(timeout(Timeout0), Options, 5),
     node_shutdown_timeout(Timeout0, Timeout),
-    begin_node_shutdown(Port, Wake, Streams),
-    close_node_streams(Streams),
+    begin_node_shutdown(Port, Wake, Connections),
+    stop_node_connections(Connections),
     ( nonvar(Wake) -> wake_node_listener(Wake, Port)
     ; true
     ),
@@ -541,7 +548,7 @@ node_shutdown_timeout(Value, Value) :- number(Value), Value >= 0, !.
 node_shutdown_timeout(Value, _) :-
     throw(error(domain_error(node_shutdown_timeout, Value), node:stop_node/2)).
 
-begin_node_shutdown(Port, Wake, Streams) :-
+begin_node_shutdown(Port, Wake, Connections) :-
     with_mutex('$node_lifecycle',
         ( ( node_listener(Port, _, BindAddress, SSL)
           -> Wake = wake(BindAddress, SSL),
@@ -550,7 +557,8 @@ begin_node_shutdown(Port, Wake, Streams) :-
              ( node_stopping(Port) -> true ; assertz(node_stopping(Port)) )
           ; Wake = _
           ),
-          findall(Stream, node_connection(Port, _, Stream, _), Streams) )).
+          findall(connection(Stream, Thread),
+                  node_connection(Port, _, Stream, Thread), Connections) )).
 
 wake_node_listener(wake(BindAddress, SSL), Port) :-
     % Trealla BUG-014: closing a listener from another thread does not wake
@@ -571,12 +579,22 @@ listener_wake_options(false, [type(binary)]).
 
 close_node_connections(Port) :-
     with_mutex('$node_lifecycle',
-        findall(Stream, node_connection(Port, _, Stream, _), Streams)),
-    close_node_streams(Streams).
+        findall(connection(Stream, Thread),
+                node_connection(Port, _, Stream, Thread), Connections)),
+    stop_node_connections(Connections).
 
-close_node_streams([]).
-close_node_streams([Stream|Streams]) :-
-    safe_close_stream(Stream), close_node_streams(Streams).
+stop_node_connections([]).
+stop_node_connections([connection(Stream, pending)|Connections]) :- !,
+    safe_close_stream(Stream),
+    stop_node_connections(Connections).
+stop_node_connections([connection(Stream, Thread)|Connections]) :-
+    % Trealla 3.13.2 makes thread_cancel/1 interrupt a handler blocked in a
+    % socket read. Let the handler's cleanup close its own stream; closing it
+    % concurrently from the shutdown thread can race inside the runtime.
+    ( catch(thread_cancel(Thread), _, fail) -> true
+    ; safe_close_stream(Stream)
+    ),
+    stop_node_connections(Connections).
 
 safe_close_stream(Stream) :-
     ( catch(close(Stream), _, fail) -> true ; true ).

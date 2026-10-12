@@ -431,7 +431,10 @@ toplevel_call(Pid, Goal) :-
     toplevel_call(Pid, Goal, []).
 
 toplevel_call(Pid, Goal0, Options) :-
-    strip_module(Goal0, _, Goal),
+    ( nonvar(Goal0), Goal0 = Qualified:_Goal, atom(Qualified)
+    -> Goal = Goal0
+    ; strip_module(Goal0, _, Goal)
+    ),
     Pid ! '$call'(Goal, Options).
 
 
