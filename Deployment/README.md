@@ -13,7 +13,7 @@ explicit `WP_ACK_PUBLIC=yes` set in `compose.yaml`. Do not publish port 3060.
 
 The deployment image builds Trealla with OpenSSL so actor code can use
 `rpc/2-3` with HTTPS Web Prolog nodes. Caddy still terminates inbound TLS.
-Trealla v3.13.2 verifies client-side certificate chains and host names;
+Trealla v3.13.3 verifies client-side certificate chains and host names;
 production egress policy remains an important independent boundary.
 
 `WP_LOAD_URI_ORIGINS` enables exact public `src_uri/1` origins. Optional
@@ -36,7 +36,7 @@ Run the complete build and proxy test:
 ./tools/deployment-smoke.sh
 ```
 
-The test builds Trealla v3.13.2, starts both containers, checks health,
+The test builds Trealla v3.13.3, starts both containers, checks health,
 readiness, discovery metadata, JSON execution, a proxied WebSocket upgrade,
 internal admin maintenance, and the post-maintenance 503 response, then
 removes its containers and volumes.

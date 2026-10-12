@@ -2,7 +2,7 @@
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
-(currently tested on v3.13.2; earlier actor/RPC work was also tested on
+(currently tested on v3.13.3; earlier actor/RPC work was also tested on
 v2.99.12, v2.99.6, and v2.97.13).
 
 The port lives alongside this report:
@@ -39,7 +39,7 @@ worker replies, and use monitor barriers for race-free cleanup.
 
 ## Test results
 
-The complete manual and interoperability suites pass on Trealla v3.13.2
+The complete manual and interoperability suites pass on Trealla v3.13.3
 (the original 30 tests also pass on v2.99.6 and v2.99.12). Tests t23-t30 mirror behaviours from the
 canonical SWI plunit suite in `simple-node/tests.pl`:
 
@@ -49,12 +49,12 @@ Run the isolated unit groups with:
 TPL=/path/to/tpl ./tools/test.sh
 ```
 
-To create a pinned repository-local Trealla v3.13.2 build without replacing a
+To create a pinned repository-local Trealla v3.13.3 build without replacing a
 system installation:
 
 ```sh
 ./tools/build-trealla.sh
-TPL="$PWD/.build/trealla-v3.13.2/tpl" ./tools/test.sh all
+TPL="$PWD/.build/trealla-v3.13.3/tpl" ./tools/test.sh all
 ```
 
 The helper disables TLS by default; the automated matrix uses plain loopback
@@ -77,7 +77,7 @@ reported as skipped; set `TRINITY_NODE_FILE` to the canonical SWI `node.pl` to
 enable it from a different checkout layout.
 
 For an invitation-only deployment, see [Deployment/README.md](Deployment/README.md).
-The bundle pins Trealla v3.13.2, runs it unprivileged and read-only behind
+The bundle pins Trealla v3.13.3, runs it unprivileged and read-only behind
 Caddy, applies container resource limits, exposes only an authenticated route
 allowlist, drains on shutdown, and has an end-to-end smoke test:
 
@@ -1028,7 +1028,7 @@ RPC request values and node query decoding use v3.13.2's
 
 ## Overall assessment
 
-The actor/RPC modules are ported and exercised through Trealla v3.13.2:
+The actor/RPC modules are ported and exercised through Trealla v3.13.3:
 
 - **`actors.pl`** — feature-complete, including positive `receive`
   timeouts via the native `thread_get_message/3` `timeout(Float)`
@@ -1050,13 +1050,13 @@ The actor/RPC modules are ported and exercised through Trealla v3.13.2:
   identifiers.
 
 The remaining runtime-specific adaptations are recorded in
-`UPSTREAM_REPORTS.md`; compatibility paths are kept only where their v3.13.2
+`UPSTREAM_REPORTS.md`; compatibility paths are kept only where their v3.13.3
 regressions still fail or where Web Prolog needs stricter application policy.
 
 ### Benchmark stability
 
 Older v2.x builds crashed intermittently in the high-volume threading
 benchmarks (`bm-ping-pong.pl`, `bm-spawning.pl`). That historical observation
-must be rerun before making a stability claim about v3.13.2; the current
+must be rerun before making a stability claim about v3.13.3; the current
 application, interoperability, and deployment suites pass at their normal
 loads.

@@ -10,7 +10,7 @@
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-TREALLA_VERSION=${TREALLA_VERSION:-v3.13.2}
+TREALLA_VERSION=${TREALLA_VERSION:-v3.13.3}
 TREALLA_TLS=${TREALLA_TLS:-0}
 case "$TREALLA_TLS" in
     0) DEFAULT_BUILD_DIR=$ROOT/.build/trealla-$TREALLA_VERSION ;;

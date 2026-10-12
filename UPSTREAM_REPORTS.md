@@ -17,6 +17,14 @@ Status meanings:
   should first be reduced to a small standalone program.
 - **Retest** — observed on an older release; establish whether it remains.
 
+## v3.13.3 upstream audit
+
+Trealla v3.13.3 contains one runtime commit after v3.13.2: a predicate cached
+by a call is now cached afresh after that predicate is abolished. The complete
+Web Prolog unit and bidirectional SWI interoperability suites pass against the
+release on macOS arm64. FR-010 remains open: `thread_get_message/3` still
+rejects `deadline/1` with `domain_error(read_option, deadline(...))`.
+
 ## v3.13.2 upstream audit
 
 Trealla v3.13.2 incorporates the maintainer's `trealla-port-review` work.  The
@@ -277,7 +285,7 @@ tpl -q -f reproducers/fr-010-thread-get-message-deadline.pl \
     -g "reproducer,halt"
 ```
 
-Trealla v3.13.2 reports:
+Trealla v3.13.2 and v3.13.3 report:
 
 ```text
 error(domain_error(read_option,deadline(...)),thread_get_message/3)
