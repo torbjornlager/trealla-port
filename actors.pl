@@ -318,7 +318,7 @@ start(Parent, Pid, GoalModule, Goal, Options) :-
     set_parent(Parent),
     set_spawn_io_target(Parent, Options),
     option(link(Link), Options, true),
-    ( Link == true, \+ link(Parent, Pid) -> exit(linked) ; true ),
+    ( Link == true, \+ link(Parent, Pid) -> exit(kill) ; true ),
     catch(isolation:prepare_actor(Pid, GoalModule, Options, Module),
           PrepError, true),
     ( nonvar(PrepError)
@@ -384,7 +384,7 @@ stop(Pid, Parent) :-
 
 exit_linked_children([]).
 exit_linked_children([Pid|Pids]) :-
-    exit(Pid, linked),
+    exit(Pid, kill),
     exit_linked_children(Pids).
 
 deliver_downs([], _, _).

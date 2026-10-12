@@ -21,9 +21,9 @@ Status terms:
 
 | Change | Origin | SWI-Prolog | Trealla | GNU Prolog | Conformance |
 |---|---|---|---|---|---|
-| Version-1 actor WebSocket protocol and cross-node PID routing | SWI | Implemented | Implemented | Not assessed | Partial; expand with GNU Prolog when available |
-| One-sided receive matching, guard control propagation, and pre-guard message preservation | SWI | Implemented | Implemented | Not assessed | Candidate core actor contract |
-| First-exit-wins, reserved control filtering, pre-start lifecycle relations, and exact monitor teardown | SWI | Implemented | Implemented | Not assessed | Candidate core actor contract |
+| Version-1 actor WebSocket protocol and cross-node PID routing | SWI | Implemented | Implemented, including replies to received qualified PIDs | Not assessed | Bidirectional SWI/Trealla interop; expand with GNU Prolog when available |
+| One-sided receive matching, guard control propagation, and pre-guard message preservation | SWI | Implemented | Implemented | Not assessed | Core matching and variable-preservation cases run bidirectionally against real nodes |
+| First-exit-wins, reserved control filtering, pre-start lifecycle relations, and exact monitor teardown | SWI | Implemented | Implemented | Not assessed | Exit, monitor, demonitor, and remote-link cases run bidirectionally against real nodes |
 | Template-based `parallel/1`, correlated worker guards, cleanup barriers, and `first_solution/3` policies | SWI | Implemented | Implemented | Not assessed | Candidate behaviour contract |
 | Toplevel stale-command discard limited to already-deferred messages | SWI | Implemented | Implemented | Not assessed | Candidate PTCP contract |
 | Stateless `/call` JSON named-binding response format | SWI | Implemented | Implemented | Not assessed | Candidate |

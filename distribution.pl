@@ -806,6 +806,24 @@ actors:hook_send(Name@Node0, Message) :-
       Writer ! '$remote_json'(JSON)
     ).
 
+% A qualified pid can arrive as ordinary data without having been created by
+% this node (for example, a SWI actor passes its own pid to a Trealla actor as
+% a reply address).  Route it by its node URL instead of requiring a route
+% entry installed by an earlier transparent spawn.
+actors:hook_send(WirePid@Node0, Message) :-
+    integer(WirePid),
+    !,
+    node_url_atom(Node0, URL),
+    ( ( Node0 == localhost ; web_prolog:current_node_url(URL) ) ->
+        actors:send(WirePid, Message)
+    ; transparent_node(URL, remote_node(_, _, Writer)),
+      portable_term_for_writer(Writer, Message, PortableMessage),
+      term_wire_atom(PortableMessage, MessageText),
+      web_prolog:object([command-string_atom(send), pid-number(WirePid),
+                         message-string_atom(MessageText)], JSON),
+      Writer ! '$remote_json'(JSON)
+    ).
+
 actors:hook_send(RemotePid, Message) :-
     remote_pid_writer(RemotePid, Writer, WirePid),
     portable_term_for_writer(Writer, Message, PortableMessage),

@@ -67,10 +67,14 @@ hard timeout to every fresh process, and keeps actor, toplevel, parallel, and
 WebSocket state isolated. When the executable has a sibling `library/`
 directory, the runner pins that directory too, preventing a local build from
 silently loading an older system-wide Trealla library. Run the bidirectional
-Trealla/SWI WebSocket and
-protocol matrix with `./tools/test.sh interop`, or everything with
-`./tools/test.sh all`. Set `SWIPL`, `TEST_TIMEOUT`, or `TEST_PORT_BASE` to
-override their defaults.
+Trealla/SWI WebSocket and protocol matrix with `./tools/test.sh interop`, or
+everything with `./tools/test.sh all`. Set `SWIPL`, `TEST_TIMEOUT`, or
+`TEST_PORT_BASE` to override their defaults. If the Trinity demonstrator is
+checked out beside this repository, the matrix also starts its real SWI actor
+node and checks the shared receive, exit, monitor, demonitor, link, and
+qualified-PID reply contracts in both directions. Otherwise that section is
+reported as skipped; set `TRINITY_NODE_FILE` to the canonical SWI `node.pl` to
+enable it from a different checkout layout.
 
 For an invitation-only deployment, see [Deployment/README.md](Deployment/README.md).
 The bundle pins Trealla v3.13.2, runs it unprivileged and read-only behind

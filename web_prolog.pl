@@ -1137,10 +1137,14 @@ json_pid_field(JSON, Key, Pid) :-
     ).
 
 json_term_field(JSON, Key, Term) :-
-    json_text_field(JSON, Key, Text),
-    check_term_text_size(Key, Text),
-    normalize_wire_quoted_newlines(Text, Normalized),
-    read_term_from_atom(Normalized, Term, []).
+    ( json_text_field(JSON, Key, Text) ->
+        check_term_text_size(Key, Text),
+        normalize_wire_quoted_newlines(Text, Normalized),
+        read_term_from_atom(Normalized, Term, [])
+    ; json_field(JSON, Key, boolean(Boolean)),
+      memberchk(Boolean, [true,false]),
+      Term = Boolean
+    ).
 
 json_term_default(JSON, Key, Default, Term) :-
     ( json_term_field(JSON, Key, Found) -> Term = Found ; Term = Default ).

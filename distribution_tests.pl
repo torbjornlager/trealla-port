@@ -8,6 +8,75 @@
 
 :- op(200, xfx, @).
 
+cross_runtime_actor_contract_test(Port) :-
+    distribution_url(Port, URL),
+    remote_node_open(URL, Node),
+    cross_first_exit_test(Node),
+    cross_reserved_control_test(Node),
+    cross_one_sided_receive_test(Node),
+    cross_dead_monitor_test(Node),
+    cross_demonitor_test(Node),
+    cross_remote_link_test(URL),
+    remote_node_close(Node),
+    format('Trealla -> remote actor semantic contracts: ok~n').
+
+cross_first_exit_test(Node) :-
+    remote_spawn(Node, call_cleanup(exit(first),exit(second)), Pid,
+                 [monitor(true),link(false)]),
+    receive({down(Pid, _, first) -> true},
+            [timeout(5),on_timeout(fail)]).
+
+cross_reserved_control_test(Node) :-
+    remote_spawn(Node, catch(exit(reserved),_,true), Pid,
+                 [monitor(true),link(false)]),
+    receive({down(Pid, _, reserved) -> true},
+            [timeout(5),on_timeout(fail)]).
+
+cross_one_sided_receive_test(Node) :-
+    self(Client),
+    remote_spawn(Node,
+                 receive({offer(tea) -> Client ! specialized ;
+                          offer(Value) -> Client ! observed(Value)}),
+                 Pid, [monitor(true),link(false)]),
+    remote_send(Node, Pid, offer(_)),
+    receive({observed(Value) -> var(Value)},
+            [timeout(5),on_timeout(fail)]),
+    receive({down(Pid, _, true) -> true},
+            [timeout(5),on_timeout(fail)]).
+
+cross_dead_monitor_test(Node) :-
+    remote_spawn(Node, true, Pid, [monitor(true),link(false)]),
+    receive({down(Pid, _, true) -> true},
+            [timeout(5),on_timeout(fail)]),
+    monitor(Pid, Ref),
+    receive({down(Pid, Ref, no_process) -> true},
+            [timeout(5),on_timeout(fail)]).
+
+cross_demonitor_test(Node) :-
+    remote_spawn(Node, receive({finish -> true}), Pid, [link(false)]),
+    monitor(Pid, Ref),
+    demonitor(Ref, [flush]),
+    remote_send(Node, Pid, finish),
+    sleep(0.1),
+    receive({down(Pid, Ref, _) -> fail},
+            [timeout(0),on_timeout(true)]).
+
+cross_remote_link_test(URL) :-
+    self(Self),
+    spawn(cross_link_parent(URL, Self), Parent, [link(false)]),
+    receive({linked_child(Parent, Child) -> true},
+            [timeout(5),on_timeout(fail)]),
+    monitor(Child, Ref),
+    Parent ! release_parent,
+    receive({down(Child, Ref, kill) -> true},
+            [timeout(5),on_timeout(fail)]).
+
+cross_link_parent(URL, Parent) :-
+    spawn(receive({never -> true}), Child, [node(URL)]),
+    self(Self),
+    Parent ! linked_child(Self, Child),
+    receive({release_parent -> true}).
+
 distribution_toplevel_test(Port) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
     remote_node_open(URL, Node),
@@ -344,7 +413,7 @@ transparent_link_test(Port) :-
     receive({linked_remote(Pid) -> true}, [timeout(5),on_timeout(fail)]),
     monitor(Pid, Ref),
     LocalParent ! finish,
-    receive({down(Pid, Ref, linked) -> true},
+    receive({down(Pid, Ref, kill) -> true},
             [timeout(5),on_timeout(fail)]),
     format('Transparent remote-link test: ok~n').
 

@@ -24,7 +24,8 @@
             remote_spawn_echo_client_test/3,
             browser_distributed_io_client_test/2,
             trinity_service_node/2,
-            trinity_terminal_client_test/3
+            trinity_terminal_client_test/3,
+            trinity_actor_contract_client_test/3
           ]).
 
 :- use_module(library(http/thread_httpd)).
@@ -108,6 +109,78 @@ terminal_client_worker(RemoteURL, Parent) :-
     actors:receive({down(Pid, Pid, true) -> true},
                    [timeout(8),on_timeout(fail)]),
     actors:send(Parent, terminal_client_done).
+
+trinity_actor_contract_client_test(HomePort, RemoteURL, NodeFile) :-
+    use_module(NodeFile),
+    node(HomePort, [profile(actor),auth(open)]),
+    trinity_first_exit_test(RemoteURL),
+    trinity_reserved_control_test(RemoteURL),
+    trinity_one_sided_receive_test(RemoteURL),
+    trinity_dead_monitor_test(RemoteURL),
+    trinity_demonitor_test(RemoteURL),
+    trinity_remote_link_test(RemoteURL),
+    format('SWI -> Trealla actor semantic contracts: ok~n').
+
+trinity_first_exit_test(RemoteURL) :-
+    actors:spawn(call_cleanup(exit(first), exit(second)), Pid,
+                 [node(RemoteURL),monitor(true),link(false)]),
+    actors:receive({down(Pid, _, first) -> true},
+                   [timeout(5),on_timeout(fail)]).
+
+trinity_reserved_control_test(RemoteURL) :-
+    actors:spawn(catch(exit(reserved), _, true), Pid,
+                 [node(RemoteURL),monitor(true),link(false)]),
+    actors:receive({down(Pid, _, reserved) -> true},
+                   [timeout(5),on_timeout(fail)]).
+
+trinity_one_sided_receive_test(RemoteURL) :-
+    actors:self(Client),
+    Goal = receive({offer(tea) -> send(Client, specialized) ;
+                    offer(Value) -> send(Client, observed(Value))}),
+    actors:spawn(Goal, Pid,
+                 [node(RemoteURL),monitor(true),link(false)]),
+    actors:send(Pid, offer(_)),
+    actors:receive({observed(Value) -> var(Value)},
+                   [timeout(5),on_timeout(fail)]),
+    actors:receive({down(Pid, _, true) -> true},
+                   [timeout(5),on_timeout(fail)]).
+
+trinity_dead_monitor_test(RemoteURL) :-
+    actors:spawn(true, Pid,
+                 [node(RemoteURL),monitor(true),link(false)]),
+    actors:receive({down(Pid, _, true) -> true},
+                   [timeout(5),on_timeout(fail)]),
+    actors:monitor(Pid, Ref),
+    actors:receive({down(Pid, Ref, no_process) -> true},
+                   [timeout(5),on_timeout(fail)]).
+
+trinity_demonitor_test(RemoteURL) :-
+    actors:spawn(receive({finish -> true}), Pid,
+                 [node(RemoteURL),link(false)]),
+    actors:monitor(Pid, Ref),
+    actors:demonitor(Ref, [flush]),
+    actors:send(Pid, finish),
+    sleep(0.1),
+    actors:receive({down(Pid, Ref, _) -> fail},
+                   [timeout(0),on_timeout(true)]).
+
+trinity_remote_link_test(RemoteURL) :-
+    actors:self(Client),
+    actors:spawn(swi_websocket_interop:swi_cross_link_parent(RemoteURL,
+                                                              Client), Parent,
+                 [link(false)]),
+    actors:receive({linked_child(Parent, Child) -> true},
+                   [timeout(5),on_timeout(fail)]),
+    actors:monitor(Child, Ref),
+    actors:send(Parent, release_parent),
+    actors:receive({down(Child, Ref, kill) -> true},
+                   [timeout(5),on_timeout(fail)]).
+
+swi_cross_link_parent(RemoteURL, Client) :-
+    actors:spawn(receive({never -> true}), Child, [node(RemoteURL)]),
+    actors:self(Self),
+    actors:send(Client, linked_child(Self, Child)),
+    actors:receive({release_parent -> true}).
 
 protocol_connection(WebSocket) :-
     ws_receive(WebSocket, Message),

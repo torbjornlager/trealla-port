@@ -21,6 +21,7 @@ TPL=${TPL:-tpl}
 SWIPL=${SWIPL:-swipl}
 TEST_TIMEOUT=${TEST_TIMEOUT:-30}
 TEST_PORT_BASE=${TEST_PORT_BASE:-39760}
+TRINITY_NODE_FILE=${TRINITY_NODE_FILE:-$ROOT/../trinity-demonstrator/prolog/web_prolog/node.pl}
 MODE=${1:-unit}
 BACKGROUND_PIDS=""
 
@@ -163,8 +164,10 @@ run_interop() {
     trealla_private_port=$((TEST_PORT_BASE + 6))
     source_port=$((TEST_PORT_BASE + 7))
     ip_policy_port=$((TEST_PORT_BASE + 8))
+    swi_actor_port=$((TEST_PORT_BASE + 9))
+    swi_actor_home_port=$((TEST_PORT_BASE + 10))
 
-    for candidate_port in "$echo_port" "$reverse_port" "$swi_protocol_port" "$trealla_protocol_port" "$trealla_remote_port" "$trealla_private_port" "$source_port" "$ip_policy_port"; do
+    for candidate_port in "$echo_port" "$reverse_port" "$swi_protocol_port" "$trealla_protocol_port" "$trealla_remote_port" "$trealla_private_port" "$source_port" "$ip_policy_port" "$swi_actor_port" "$swi_actor_home_port"; do
         if nc -z 127.0.0.1 "$candidate_port" >/dev/null 2>&1; then
             fail "interoperability port $candidate_port is already in use; set TEST_PORT_BASE"
         fi
@@ -229,6 +232,22 @@ run_interop() {
     run_with_timeout "SWI promise/yield -> Trealla protocol node" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "promise_yield_client_test($trealla_protocol_port),halt"
+
+    if [ -f "$TRINITY_NODE_FILE" ]; then
+        start_background "$SWIPL" -q \
+            -g "use_module('$TRINITY_NODE_FILE'),node:node($swi_actor_port,[profile(actor),auth(open)]),thread_get_message(stop)"
+        swi_actor_pid=$STARTED_PID
+        wait_for_port "$swi_actor_port" || fail "SWI actor node did not start on port $swi_actor_port"
+        run_with_timeout "Trealla -> SWI actor semantic contracts" \
+            "$TPL" -g "(catch((consult('$ROOT/distribution_tests.pl'),cross_runtime_actor_contract_test($swi_actor_port)),_,fail)->halt(0);halt(1))"
+        run_with_timeout "SWI -> Trealla actor semantic contracts" \
+            "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+            -g "trinity_actor_contract_client_test($swi_actor_home_port,'http://127.0.0.1:$trealla_protocol_port','$TRINITY_NODE_FILE'),halt"
+        stop_background "$swi_actor_pid"
+    else
+        printf '\n=== Actor semantic contracts ===\n'
+        printf 'SKIP: set TRINITY_NODE_FILE to the canonical SWI node.pl checkout\n'
+    fi
 
     start_background "$TPL" -g \
         "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port)"

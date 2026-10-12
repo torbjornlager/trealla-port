@@ -21,6 +21,7 @@ websocket_tests :-
     utf8_vector,
     close_vector,
     web_prolog_json_vector,
+    web_prolog_boolean_term_vector,
     web_prolog_binding_json_vector,
     named_variable_json_vectors,
     web_prolog_pid_binding_vector,
@@ -48,6 +49,12 @@ web_prolog_json_vector :-
     web_prolog:event_json(success(7, [a,b], true), JSON),
     web_prolog:json_atom(JSON, Text),
     Text == '{"type":"success","pid":7,"data":["a","b"],"more":true}'.
+
+web_prolog_boolean_term_vector :-
+    web_prolog:json_atom(TrueJSON, '{"goal":true}'),
+    web_prolog:json_term_field(TrueJSON, goal, true),
+    web_prolog:json_atom(FalseJSON, '{"goal":false}'),
+    web_prolog:json_term_field(FalseJSON, goal, false).
 
 web_prolog_binding_json_vector :-
     web_prolog:event_json(
