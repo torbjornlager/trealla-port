@@ -36,6 +36,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t115 connection-scoped actors/1 hides internal relays and other shells
   - t124 send/2 is the canonical non-operator message API
   - t127-t130 enforce SWI-compatible one-sided receive and guard semantics
+  - t132-t135 cover committed exit reasons and race-safe monitors
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -50,6 +51,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t22 mid-stream limit change via toplevel_next/2
   - t123 nested toplevel input is routed to its protocol caller
   - t131 discards only control commands deferred before a new call
+  - t136-t139 cover parallel templates, worker guards, and policies
 
 ## Tests: receive timeout (t19-t21) {#tests-timeout}
 
@@ -213,12 +215,12 @@ run_test_group(actors) :-
     t1, t2, t3, t4, t5, t6, t7,
     t19, t20, t21, t23, t24, t25, t26,
     t31, t32, t33, t98, t113, t115, t124,
-    t127, t128, t129, t130.
+    t127, t128, t129, t130, t132, t133, t134, t135.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
     t22, t27, t28, t29, t99, t100, t101, t111, t112, t123, t131.
 run_test_group(parallel) :-
-    t8, t9, t10, t30.
+    t8, t9, t10, t30, t136, t137, t138, t139.
 run_test_group(isolation) :-
     t34, t35, t36, t37, t38, t39, t40, t41, t102, t103, t104, t105, t106, t107, t109, t114, t116, t117, t121, t122.
 run_test_group(profiles) :-
@@ -1680,6 +1682,95 @@ t130 :-
              ordinary -> true},
             [timeout(0),on_timeout(fail)]),
     format("130. guard control propagation and rollback ok~n").
+
+t132 :-
+    spawn(call_cleanup(exit(first), exit(second)), Pid,
+          [monitor(true),link(false),'$entry_context'(caller)]),
+    receive({down(Pid, Pid, first) -> true},
+            [timeout(2),on_timeout(fail)]),
+    format("132. first committed exit reason wins ok~n").
+
+t133 :-
+    sandbox_prepare_goal(blacklist, actor, user,
+                         catch(exit(first), _, true), Prepared),
+    spawn(call(Prepared), Pid,
+          [monitor(true),link(false),'$entry_context'(caller)]),
+    receive({down(Pid, Pid, first) -> true},
+            [timeout(2),on_timeout(fail)]),
+    sandbox_prepare_goal(blacklist, actor, user,
+                         catch(throw(ordinary), ordinary, true), Ordinary),
+    spawn(call(Ordinary), Pid2,
+          [monitor(true),link(false),'$entry_context'(caller)]),
+    receive({down(Pid2, Pid2, true) -> true},
+            [timeout(2),on_timeout(fail)]),
+    format("133. application catch cannot consume runtime control ok~n").
+
+t134 :-
+    spawn(true, Pid, [monitor(true),link(false)]),
+    receive({down(Pid, Pid, true) -> true},
+            [timeout(2),on_timeout(fail)]),
+    monitor(Pid, Ref),
+    receive({down(Pid, Ref, no_process) -> true},
+            [timeout(0),on_timeout(fail)]),
+    format("134. monitoring a dead actor reports no_process ok~n").
+
+t135 :-
+    spawn(receive({finish -> true}), Pid, [link(false)]),
+    monitor(Pid, Ref),
+    demonitor(Ref, [flush]),
+    Pid ! finish,
+    sleep(0.02),
+    receive({down(Pid, Ref, _) -> fail},
+            [timeout(0),on_timeout(true)]),
+    format("135. demonitor flush prevents late down delivery ok~n").
+
+
+                /*******************************
+                *  PARALLEL CONTRACT (t136+)  *
+                *******************************/
+
+t136 :-
+    self(Me),
+    spawn(( parallel([X=a,X=b])
+          -> Me ! parallel_unexpected(X)
+          ;  Me ! parallel_failed
+          ), Worker, [monitor(true),link(false),'$entry_context'(caller)]),
+    receive({parallel_failed -> true;
+             parallel_unexpected(_) -> fail;
+             down(Worker, _, Reason) -> throw(t136_worker_down(Reason))},
+            [timeout(2),on_timeout(fail)]),
+    parallel([Y=a,Y=a]),
+    Y == a,
+    format("136. parallel combines compatible templates and rejects conflicts ok~n").
+
+t137 :-
+    self(Me),
+    Me ! down(unrelated, 42, false),
+    parallel([true]),
+    receive({down(unrelated, 42, false) -> true},
+            [timeout(0),on_timeout(fail)]),
+    format("137. parallel leaves unrelated monitor traffic untouched ok~n").
+
+t138 :-
+    first_solution(X, [fail,(X=continued)], [on_fail(continue)]),
+    X == continued,
+    first_solution(Y, [throw(ignored),(sleep(0.02),Y=recovered)],
+                   [on_error(continue)]),
+    Y == recovered,
+    \+ first_solution(_, [fail,sleep(0.1)], [on_fail(stop)]),
+    format("138. first_solution failure and error policies ok~n").
+
+t139 :-
+    self(Me),
+    spawn(private_parallel_run(Me),
+          Pid,
+          [src_text('private_parallel_value(ok). private_parallel_run(To) :- parallel([private_parallel_value(X)]), send(To,private_parallel(X)).'),monitor(true),link(false)]),
+    receive({private_parallel(ok) -> true;
+             down(Pid, Pid, Reason) -> throw(t139_worker_down(Reason))},
+            [timeout(2),on_timeout(fail)]),
+    receive({down(Pid, Pid, true) -> true},
+            [timeout(2),on_timeout(fail)]),
+    format("139. parallel preserves the private caller module ok~n").
 
 
                 /*******************************

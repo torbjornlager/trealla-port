@@ -1,98 +1,189 @@
 % SPDX-License-Identifier: MIT
 
-%%  parallel(+Goals)
-%
-%   Runs all Goals concurrently and succeeds only if every goal succeeds.
-%   Fails or throws immediately if any goal fails or raises an error.
-%
-%	@param	Goals - list of goals to execute in parallel
-%	@author Torbjörn Lager
+:- module(parallel,
+       [ parallel/1,
+         parallel_in/2,
+         first_solution/2,
+         first_solution/3,
+         first_solution_in/4
+       ]).
 
-parallel(Goals) :-
-    maplist(par_solve, Goals, Pids),
-    maplist(par_yield(Pids), Pids, Goals).
+:- op(1000, xfy, if).
 
-par_solve(Goal, Pid) :-
+/** <module> Actor-based parallel predicate generics
+
+Workers return only their goal-variable templates. A result message is
+consumed before it is unified with the caller's template, so incompatible
+bindings shared by independent workers make parallel/1 fail instead of
+leaving an unmatched message and waiting forever.
+*/
+
+:- use_module(actors).
+
+:- meta_predicate parallel(:).
+:- meta_predicate first_solution(?, :).
+:- meta_predicate first_solution(?, :, +).
+
+
+%!  parallel(:Goals) is semidet.
+
+parallel(QualifiedGoals) :-
+    strip_module(QualifiedGoals, Module, Goals0),
+    parallel_in(Module, Goals0).
+
+parallel_in(Module, Goals0) :-
+    must_be(list, Goals0),
+    qualify_goals(Goals0, Module, Goals),
+    goal_templates(Goals, Templates),
+    spawn_parallel_workers(Goals, Templates, Pids),
+    collect_parallel_workers(Pids, Pids, Templates).
+
+qualify_goals([], _, []).
+qualify_goals([Goal|Goals], Module,
+              [qualified_goal(Module,Goal)|Qualified]) :-
+    qualify_goals(Goals, Module, Qualified).
+
+goal_templates([], []).
+goal_templates([Goal|Goals], [Template|Templates]) :-
+    term_variables(Goal, Template),
+    goal_templates(Goals, Templates).
+
+spawn_parallel_workers([], [], []).
+spawn_parallel_workers([Goal|Goals], [Template|Templates], [Pid|Pids]) :-
     self(Self),
-    spawn((call(Goal), Self ! Pid-Goal), Pid, [
-        monitor(true)
-    ]).
+    spawn(parallel:parallel_worker(Self, Pid, Goal, Template), Pid,
+          [monitor(true),'$entry_context'(caller)]),
+    spawn_parallel_workers(Goals, Templates, Pids).
 
-par_yield(Pids, Pid, Goal) :-
+parallel_worker(Self, Pid, Goal, Template) :-
+    call_qualified_goal(Goal),
+    send(Self, Pid-Template).
+
+collect_parallel_workers(_, [], []).
+collect_parallel_workers(AllPids, [Pid|Pids], [Template|Templates]) :-
     receive({
-        Pid-Goal ->
-            receive({
-                down(Pid, _, true) ->
-                    true
-            }) ;
-        down(_, _, false) ->
-            tidy_up_all(Pids),
-            fail ;
-        down(_, _, exception(E)) ->
-            tidy_up_all(Pids),
-            throw(E)
-    }).
-    
-    
-%%  first_solution(+Solution, +Goals)
+        Pid-Answer ->
+            ( Template = Answer
+            -> receive({down(Pid, _, true) -> true})
+            ;  tidy_up_all(AllPids), !, fail
+            ) ;
+        down(FailedPid, _, false) if known_worker(FailedPid, AllPids) ->
+            tidy_up_all(AllPids), !, fail ;
+        down(FailedPid, _, exception(Error))
+                if known_worker(FailedPid, AllPids) ->
+            tidy_up_all(AllPids), throw(Error)
+    }),
+    collect_parallel_workers(AllPids, Pids, Templates).
+
+
+%!  first_solution(-Solution, :Goals) is semidet.
+%!  first_solution(-Solution, :Goals, +Options) is semidet.
 %
-%   Spawns all Goals in parallel and binds Solution to the result of whichever
-%   goal succeeds first, killing the remaining actors.
-%
-%	@param	Solution - unified with the first successful result
-%	@param	Goals - list of goals to race in parallel
-%	@author Torbjörn Lager
+%   Options are on_fail(stop|continue), default continue, and
+%   on_error(stop|continue), default stop.
 
 first_solution(Solution, Goals) :-
-    maplist(first_solve(Solution), Goals, Pids),
-    wait_first(Pids, Solution).
+    first_solution(Solution, Goals,
+                   [on_fail(continue),on_error(stop)]).
 
-first_solve(Solution, Goal, Pid) :-
+first_solution(Solution, QualifiedGoals, Options) :-
+    strip_module(QualifiedGoals, Module, Goals0),
+    first_solution_in(Module, Solution, Goals0, Options).
+
+first_solution_in(Module, Solution, Goals0, Options) :-
+    must_be(list, Options),
+    validate_first_solution_options(Options),
+    option(on_fail(OnFail), Options, continue),
+    option(on_error(OnError), Options, stop),
+    valid_stop_policy(OnFail),
+    valid_stop_policy(OnError),
+    must_be(list, Goals0),
+    qualify_goals(Goals0, Module, Goals),
+    spawn_first_workers(Goals, Solution, Pids),
+    wait_first(Pids, Solution, OnFail, OnError).
+
+validate_first_solution_options([]).
+validate_first_solution_options([on_fail(_)|Options]) :- !,
+    validate_first_solution_options(Options).
+validate_first_solution_options([on_error(_)|Options]) :- !,
+    validate_first_solution_options(Options).
+validate_first_solution_options([Option|_]) :-
+    throw(error(domain_error(first_solution_option, Option),
+                first_solution/3)).
+
+valid_stop_policy(stop) :- !.
+valid_stop_policy(continue) :- !.
+valid_stop_policy(Value) :-
+    throw(error(domain_error(first_solution_policy, Value),
+                first_solution/3)).
+
+spawn_first_workers([], _, []).
+spawn_first_workers([Goal|Goals], Solution, [Pid|Pids]) :-
     self(Self),
-    spawn((call(Goal), Self ! Pid-Solution), Pid, [
-        monitor(true)
-    ]).
+    spawn(parallel:first_worker(Self, Pid, Solution, Goal), Pid,
+          [monitor(true),'$entry_context'(caller)]),
+    spawn_first_workers(Goals, Solution, Pids).
 
-wait_first([], _) :- !, fail.
-wait_first(Pids, Solution) :-
+first_worker(Self, Pid, Solution, Goal) :-
+    call_qualified_goal(Goal),
+    send(Self, Pid-Solution).
+
+call_qualified_goal(qualified_goal(Module, Goal)) :-
+    isolation:call_in_module(Module, Goal).
+
+wait_first([], _, _, _) :- !, fail.
+wait_first(Pids, Solution, OnFail, OnError) :-
     receive({
-        _ - Solution ->
-            tidy_up_all(Pids) ;
-        down(Pid, _, false) ->
-            select(Pid, Pids, Rest),
-            wait_first(Rest, Solution) ;
-        down(_, _, exception(Error)) ->
-            tidy_up_all(Pids),
-            throw(Error)
+        Winner-Answer if known_worker(Winner, Pids) ->
+            ( Solution = Answer
+            -> tidy_up_all(Pids)
+            ;  tidy_up_all(Pids), !, fail
+            ) ;
+        down(FailedPid, _, false) if known_worker(FailedPid, Pids) ->
+            handle_first_failure(FailedPid, Pids, Solution,
+                                 OnFail, OnError) ;
+        down(FailedPid, _, exception(Error))
+                if known_worker(FailedPid, Pids) ->
+            handle_first_error(FailedPid, Error, Pids, Solution,
+                               OnFail, OnError)
     }).
 
+handle_first_failure(Pid, Pids, Solution, continue, OnError) :- !,
+    select(Pid, Pids, Rest),
+    wait_first(Rest, Solution, continue, OnError).
+handle_first_failure(_, Pids, _, stop, _) :-
+    tidy_up_all(Pids), !, fail.
 
-%%  Utility predicate
-%
+handle_first_error(Pid, _, Pids, Solution, OnFail, continue) :- !,
+    select(Pid, Pids, Rest),
+    wait_first(Rest, Solution, OnFail, continue).
+handle_first_error(_, Error, Pids, _, _, stop) :-
+    tidy_up_all(Pids),
+    throw(Error).
 
-tidy_up_all(Pids) :-
-    maplist(tidy_up, Pids).
+
+known_worker(Pid, Pids) :-
+    ground(Pid),
+    memberchk(Pid, Pids).
+
+
+% Cleanup uses a fresh monitor as an ordering barrier. Once its down/3 has
+% arrived, no result or earlier monitor notification from that worker can be
+% delivered after the zero-time drain.
+tidy_up_all([]).
+tidy_up_all([Pid|Pids]) :-
+    tidy_up(Pid),
+    tidy_up_all(Pids).
 
 tidy_up(Pid) :-
-    demonitor(Pid),
+    demonitor(Pid, [flush]),
+    monitor(Pid, CleanupRef),
     exit(Pid, kill),
-    drain_mailbox(Pid).
+    receive({down(Pid, CleanupRef, _) -> true}),
+    drain_worker_messages(Pid).
 
-drain_mailbox(Pid) :-
+drain_worker_messages(Pid) :-
     receive({
-        Msg if arg(1, Msg, Pid) ->
-            drain_mailbox(Pid)
-    },[
-        timeout(0)
-    ]).
-
-
-/** <examples>
-
-?- time(parallel([(X=a,sleep(1)),(Y=b,sleep(3)),(Z=c,sleep(2))])).
-?- time(parallel([(X=a,sleep(1)),(Y=b,fail),(Z=c,sleep(2))])).
-?- time(parallel([(X=a,sleep(1)),(Y=b,sleep(a)),(Z=c,sleep(2))])).
-    
-?- first_solution(X, [(sleep(2),X=a),(sleep(1),X=b)]).
-
-*/
+        Pid-_ -> drain_worker_messages(Pid) ;
+        down(Pid, _, _) -> drain_worker_messages(Pid)
+    }, [timeout(0)]).

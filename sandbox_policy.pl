@@ -16,6 +16,7 @@
          sandbox_call/12,
          sandbox_spawn/7,
          sandbox_toplevel_call/7,
+         sandbox_control_catch/4,
          sandbox_format/2,
          sandbox_sleep/1,
          sandbox_clause/6,
@@ -140,6 +141,11 @@ sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     sandbox_policy:sandbox_sleep(_Seconds)) :-
     !.
+sandbox_check_goal_(Mode, Profile, Module, AppPIs,
+                    sandbox_policy:sandbox_control_catch(_,Goal,_,Recover)) :-
+    !,
+    sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal),
+    sandbox_check_goal_(Mode, Profile, Module, AppPIs, Recover).
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     clause(Head, Body)) :-
     !,
@@ -468,6 +474,8 @@ reserved_source_name(module).
 reserved_source_name(initialization).
 reserved_source_name(term_expansion).
 reserved_source_name(goal_expansion).
+reserved_source_name(parallel).
+reserved_source_name(first_solution).
 reserved_source_name(sandbox_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_toplevel_call).
@@ -550,7 +558,9 @@ rewrite_goal_(M,P,C,A,toplevel_call(Pid,X),sandbox_policy:sandbox_toplevel_call(
 rewrite_goal_(M,P,C,A,toplevel_call(Pid,X,O),sandbox_policy:sandbox_toplevel_call(M,P,C,A,Pid,X,O)).
 rewrite_goal_(M,P,C,A,once(X0),once(X)) :- rewrite_goal(M,P,C,A,X0,X).
 rewrite_goal_(M,P,C,A,ignore(X0),ignore(X)) :- rewrite_goal(M,P,C,A,X0,X).
-rewrite_goal_(M,P,C,A,catch(X0,E,H0),catch(X,E,H)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,H0,H).
+rewrite_goal_(M,P,C,A,catch(X0,E,H0),
+              sandbox_policy:sandbox_control_catch(C,X,E,H)) :-
+    rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,H0,H).
 rewrite_goal_(M,P,C,A,setup_call_cleanup(S0,X0,K0),setup_call_cleanup(S,X,K)) :- rewrite_goal(M,P,C,A,S0,S), rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,K0,K).
 rewrite_goal_(M,P,C,A,call_cleanup(X0,K0),call_cleanup(X,K)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,K0,K).
 rewrite_goal_(M,P,C,A,forall(X0,Y0),forall(X,Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
@@ -617,6 +627,29 @@ guarded_call(Mode, Profile, Module, AppPIs, Closure, Extra) :-
     sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal0),
     rewrite_goal(Mode, Profile, Module, AppPIs, Goal0, Goal),
     call_in_context(Module, Goal).
+
+%!  sandbox_control_catch(+Module, :Goal, ?Catcher, :Recover) is nondet.
+%
+%   ISO catch/3 for application exceptions, while runtime controls remain
+%   reserved to the actor and PTCP boundaries.  Test the control term before
+%   unifying Catcher so a catch-all cannot consume it.
+
+sandbox_control_catch(Module, Goal, Catcher, Recover) :-
+    catch(call_in_context(Module, Goal), Error,
+          sandbox_recover(Module, Error, Catcher, Recover)).
+
+sandbox_recover(_, Error, _, _) :-
+    reserved_runtime_control(Error),
+    !,
+    throw(Error).
+sandbox_recover(Module, Error, Catcher, Recover) :-
+    ( Error = Catcher -> call_in_context(Module, Recover) ; throw(Error) ).
+
+reserved_runtime_control(actor_exit).
+reserved_runtime_control('$abort_goal').
+reserved_runtime_control('$resource_idle').
+reserved_runtime_control(time_limit_exceeded).
+reserved_runtime_control(error(time_limit_exceeded(_, _), _)).
 
 sandbox_assert(M,P,C,A,Clause) :- guarded_assert(assertz,M,P,C,A,Clause).
 sandbox_assert(M,P,C,A,Clause,Ref) :- guarded_assert_ref(assertz,M,P,C,A,Clause,Ref).

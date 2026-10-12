@@ -16,6 +16,7 @@
          whereis_service/2,      % +Name, -Pid
          exit/1,                 % +Reason
          exit/2,                 % +Pid, +Reason
+         actor_terminating/0,
          send/2,                 % +Pid, +Message
          (!)/2,                  % +Pid, +Message
          input/2,                % +Prompt, -Answer
@@ -228,24 +229,47 @@ spawn_local(Goal, Pid, Options0, Namespace, Visibility) :-
     inherit_spawn_io_target(Options1, Options),
     self(Self),
     with_mutex('$actor_registry',
-        ( live_actor_count_unlocked(LiveCount),
-          forall(hook_admit_spawn(LiveCount, Options), true),
-          make_pid_unlocked(Pid),
-          actor_thread_options([
-              detached(true),
-              at_exit(stop(Pid, Self))
-          ], ThreadOptions),
-          thread_create(start(Self, Pid, GoalModule, Goal, Options), _Thread,
-                        ThreadOptions),
-          assertz(actor_alive(Pid)),
-          remember_actor_namespace(Visibility, Pid, Namespace)
-        )),
+        spawn_local_locked(Self, GoalModule, Goal, Options, Namespace,
+                           Visibility, Pid)),
     thread_get_message('$actor_started'(Pid, StartResult)),
     ( StartResult == ok
     -> true
     ; StartResult = error(Error),
       throw(Error)
     ).
+
+spawn_local_locked(Self, GoalModule, Goal, Options, Namespace, Visibility,
+                   Pid) :-
+    live_actor_count_unlocked(LiveCount),
+    forall(hook_admit_spawn(LiveCount, Options), true),
+    make_pid_unlocked(Pid),
+    actor_thread_options([
+        detached(true),
+        at_exit(stop(Pid, Self))
+    ], ThreadOptions),
+    % Install lifecycle relations before the child thread exists.  If the
+    % parent dies during startup its stop hook removes the link; start/5 then
+    % observes the missing relation and exits instead of becoming an orphan.
+    assertz(actor_alive(Pid)),
+    remember_actor_namespace(Visibility, Pid, Namespace),
+    install_spawn_relations(Self, Pid, Options),
+    catch(thread_create(start(Self, Pid, GoalModule, Goal, Options), _Thread,
+                        ThreadOptions),
+          Error,
+          ( rollback_spawn(Self, Pid), throw(Error) )).
+
+install_spawn_relations(Parent, Pid, Options) :-
+    option(link(Link), Options, true),
+    ( Link == true -> assertz(link(Parent, Pid)) ; true ),
+    option(monitor(Monitor), Options, false),
+    ( Monitor == true -> assertz(monitor(Parent, Pid, Pid)) ; true ).
+
+rollback_spawn(Parent, Pid) :-
+    retractall(link(Parent, Pid)),
+    retractall(monitor(Parent, Pid, Pid)),
+    retractall(actor_alive(Pid)),
+    retractall(actor_namespace(Pid, _)),
+    retractall(actor_public_namespace(Pid, _)).
 
 current_actor_namespace(Namespace) :-
     thread_self(Thread),
@@ -294,33 +318,25 @@ start(Parent, Pid, GoalModule, Goal, Options) :-
     set_parent(Parent),
     set_spawn_io_target(Parent, Options),
     option(link(Link), Options, true),
-    (   Link == true
-    ->  assertz(link(Parent, Pid))
-    ;   true
-    ),
-    option(monitor(Monitor), Options, false),
-    (   Monitor == true
-    ->  assertz(monitor(Parent, Pid, Pid))
-    ;   true
-    ),
+    ( Link == true, \+ link(Parent, Pid) -> exit(linked) ; true ),
     catch(isolation:prepare_actor(Pid, GoalModule, Options, Module),
           PrepError, true),
     ( nonvar(PrepError)
     -> actor_send(Parent, '$actor_started'(Pid, error(PrepError))),
-       assertz(exit_reason(Pid, exception(PrepError)))
+       record_exit_reason(Pid, exception(PrepError))
     ; actor_send(Parent, '$actor_started'(Pid, ok)),
     % Record outcome explicitly: Trealla's thread_property/2 still
     % reports status(running) inside the at_exit hook, so we can't
     % read the outcome from it the way SWI does.
     catch(
         ( isolation:run_actor_goal(Module, Goal, Options)
-        ->  assertz(exit_reason(Pid, true))
-        ;   assertz(exit_reason(Pid, false))
+        ->  record_exit_reason(Pid, true)
+        ;   record_exit_reason(Pid, false)
         ),
         E,
         ( E == actor_exit
         ->  true                % exit/1 already asserted the reason
-        ;   assertz(exit_reason(Pid, exception(E)))
+        ;   record_exit_reason(Pid, exception(E))
         )
     )
     ).
@@ -348,23 +364,33 @@ stop(Pid, Parent) :-
     % No thread_detach here: the thread was spawned with detached(true)
     % because calling thread_detach from inside at_exit hangs the
     % hook on Trealla.
-    retractall(link(Parent, Pid)),
-    retractall(registered(_Name, Pid)),
-    retractall(registered_service(_Name, Pid)),
     with_mutex('$actor_registry',
-        ( retractall(actor_alive(Pid)),
+        ( retractall(link(Parent, Pid)),
+          retractall(registered(_Name, Pid)),
+          retractall(registered_service(_Name, Pid)),
+          retractall(actor_alive(Pid)),
           retractall(actor_namespace(Pid, _)),
           retractall(actor_public_namespace(Pid, _)),
           retractall(pid_thread(Pid, _)),
-          retractall(thread_pid(_, Pid))
+          retractall(thread_pid(_, Pid)),
+          findall(ChildPid, retract(link(Pid, ChildPid)), ChildPids),
+          findall(Other-Ref, retract(monitor(Other, Pid, Ref)), Watchers)
         )),
     isolation:cleanup_actor(Pid),
-    forall(retract(link(Pid, ChildPid)),
-           exit(ChildPid, linked)),
+    exit_linked_children(ChildPids),
     forall(hook_stop(Pid), true),
     down_reason(Pid, Reason),
-    forall(retract(monitor(Other, Pid, Ref)),
-           Other ! down(Pid, Ref, Reason)).
+    deliver_downs(Watchers, Pid, Reason).
+
+exit_linked_children([]).
+exit_linked_children([Pid|Pids]) :-
+    exit(Pid, linked),
+    exit_linked_children(Pids).
+
+deliver_downs([], _, _).
+deliver_downs([Other-Ref|Watchers], Pid, Reason) :-
+    Other ! down(Pid, Ref, Reason),
+    deliver_downs(Watchers, Pid, Reason).
 
 
 %!  live_actor_count(-Count) is det.
@@ -475,12 +501,16 @@ monitor(Name, Ref) :-
 monitor(Pid, Ref) :-
     self(Self),
     make_ref(Ref),
-    hook_monitor(Self, Pid, Ref),
-    !,
-    assertz(monitor(Self, Pid, Ref)).
-monitor(Pid, Ref) :-
-    self(Self),
-    make_ref(Ref),
+    ( with_mutex('$actor_registry', install_local_monitor(Self, Pid, Ref))
+    -> true
+    ; hook_monitor(Self, Pid, Ref)
+    -> with_mutex('$actor_registry', assertz(monitor(Self, Pid, Ref)))
+    ; Self ! down(Pid, Ref, no_process)
+    ),
+    !.
+
+install_local_monitor(Self, Pid, Ref) :-
+    actor_alive(Pid),
     assertz(monitor(Self, Pid, Ref)).
 
 
@@ -488,8 +518,11 @@ demonitor(Ref) :-
     demonitor(Ref, []).
 
 demonitor(Ref, Options) :-
-    forall(hook_demonitor(Ref), true),
-    retractall(monitor(_, _, Ref)),
+    self(Self),
+    with_mutex('$actor_registry',
+        ( forall(hook_demonitor(Ref), true),
+          retractall(monitor(Self, _, Ref))
+        )),
     (   option(flush, Options)
     ->  receive({
             down(_, Ref, _) ->
@@ -594,8 +627,26 @@ exit(Reason) :-
     instantiation_error(Reason).
 exit(Reason) :-
     self(Self),
-    asserta(exit_reason(Self, Reason)),
-    throw(actor_exit).
+    with_mutex('$actor_registry', commit_exit(Self, Reason, Committed)),
+    ( Committed == true -> throw(actor_exit) ; true ).
+
+commit_exit(Self, Reason, Committed) :-
+    ( exit_reason(Self, _) -> Committed = false
+    ; assertz(exit_reason(Self, Reason)), Committed = true
+    ).
+
+record_exit_reason(Pid, Reason) :-
+    with_mutex('$actor_registry',
+        ( exit_reason(Pid, _) -> true ; assertz(exit_reason(Pid, Reason)) )).
+
+%!  actor_terminating is semidet.
+%
+%   True after the calling actor has committed its first exit reason.
+
+actor_terminating :-
+    self(Self),
+    with_mutex('$actor_registry', exit_reason(Self, _)),
+    !.
 
 
 %!  exit(+Pid, +Reason) is det.

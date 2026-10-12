@@ -30,11 +30,12 @@ The port lives alongside this report:
 | `CROSS_IMPLEMENTATION_LEDGER.md` | SWI/Trealla/GNU Prolog change tracking |
 | `NOTICE.md`            | Source provenance and third-party attribution   |
 | `Deployment/`          | Fail-closed Docker/Caddy private-pilot bundle   |
-| `parallel.pl`         | `parallel/1` and `first_solution/2` demo client     |
+| `parallel.pl`         | `parallel/1` and `first_solution/2-3` actor generics |
 | `tests.pl`            | Manual test suite (no plunit on Trealla)            |
 
-`parallel.pl` is pure client code over the actors API and runs
-unchanged on Trealla, so no separate Trealla variant is needed.
+`parallel.pl` is the native Trealla implementation of the shared actor
+generics. Workers exchange compact variable templates, validate correlated
+worker replies, and use monitor barriers for race-free cleanup.
 
 ## Test results
 
@@ -141,6 +142,8 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 105 | nested `src_predicates/1` copies source from its private parent session | ok |
 | 127–130 | one-sided receive, correlation safety, and guard control semantics | ok |
 | 131 | stale deferred commands do not consume a new call's continuation | ok |
+| 132–135 | first-exit-wins, reserved controls, and monitor lifecycle | ok |
+| 136–139 | parallel templates, worker isolation, policies, and private goals | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
