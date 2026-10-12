@@ -16,6 +16,7 @@
          whereis_service/2,      % +Name, -Pid
          exit/1,                 % +Reason
          exit/2,                 % +Pid, +Reason
+         send/2,                 % +Pid, +Message
          (!)/2,                  % +Pid, +Message
          input/2,                % +Prompt, -Answer
          input/3,                % +Prompt, -Answer, +Options
@@ -69,7 +70,8 @@ What it does provide:
 
 ## Mailboxes {#actors-mailboxes}
 
-Every actor has an ordered mailbox.  `Pid ! Message` enqueues `Message`
+Every actor has an ordered mailbox.  `send(Pid, Message)` (or its operator
+alias `Pid ! Message`) enqueues `Message`
 and returns immediately.  receive/1,2 consumes messages in arrival
 order, with pattern matching and guards selecting which message is
 extracted; non-matching messages are left in the mailbox and remain
@@ -92,12 +94,9 @@ primarily an observation tool.
 ## Deferred messages {#actors-deferred}
 
 When receive/1,2 scans the mailbox and finds messages that do not
-match any clause, those messages are moved to a per-thread *deferred
-list* stored on the thread-local blackboard under the key
-`'$actor_deferred'`.  Deferred messages are re-offered to the next
-receive call before the live mailbox is consulted.  Trealla's
-`bb_put/2` and `bb_get/2` are thread-local, so the deferred list is
-private to each actor.
+match any clause, those messages are moved to a per-thread non-backtrackable
+*deferred list*. Deferred messages are re-offered to the next receive call
+before the live mailbox is consulted.
 
 ## Example {#actors-example}
 
@@ -121,11 +120,8 @@ Reply = hello.
 ## Trealla port notes {#actors-trealla}
 
   - `library(debug)` is absent and has been dropped (it was unused).
-  - `thread_local/1` is absent.  Per-thread state (deferred message
-    list, parent PID) is stored on the thread-local blackboard via
-    `bb_put/2` and `bb_get/2`.
   - `thread_signal/2` and `thread_send_message/2` on a dead detached
-    thread raise a catchable domain_error; exit/2 and actor_send/2 use a
+    thread raise a catchable domain_error; exit/2 and send/2 use a
     bare `catch/3` and treat the error as a silent drop.
   - Public PIDs and monitor references are collision-checked random
     ten-digit integers, matching the SWI distribution layer's wire form.
@@ -146,6 +142,7 @@ Reply = hello.
 :- meta_predicate(receive(:, +)).
 
 :- use_module(isolation).
+:- use_module(resource_policy).
 
 :- multifile
     hook_spawn/3,
@@ -233,10 +230,12 @@ spawn_local(Goal, Pid, Options0, Namespace, Visibility) :-
         ( live_actor_count_unlocked(LiveCount),
           forall(hook_admit_spawn(LiveCount, Options), true),
           make_pid_unlocked(Pid),
-          thread_create(start(Self, Pid, GoalModule, Goal, Options), _Thread, [
+          actor_thread_options([
               detached(true),
               at_exit(stop(Pid, Self))
-          ]),
+          ], ThreadOptions),
+          thread_create(start(Self, Pid, GoalModule, Goal, Options), _Thread,
+                        ThreadOptions),
           assertz(actor_alive(Pid)),
           remember_actor_namespace(Visibility, Pid, Namespace)
         )),
@@ -328,13 +327,13 @@ start(Parent, Pid, GoalModule, Goal, Options) :-
 set_spawn_io_target(_Parent, Options) :-
     option(io_target(Target), Options),
     !,
-    bb_put('$actor_io_target', Target).
+    nb_setval('$actor_io_target', Target).
 set_spawn_io_target(_Parent, Options) :-
     option(target(Target), Options),
     !,
-    bb_put('$actor_io_target', Target).
+    nb_setval('$actor_io_target', Target).
 set_spawn_io_target(Parent, _) :-
-    bb_put('$actor_io_target', Parent).
+    nb_setval('$actor_io_target', Parent).
 
 
 %!  stop(+Pid, +Parent) is det.
@@ -629,6 +628,11 @@ exit(Pid, Reason) :-
 %   exist (or has already exited), the message is silently dropped.
 
 Pid ! Message :-
+    send(Pid, Message).
+
+%!  send(+PidOrName, +Message) is det.
+
+send(Pid, Message) :-
     actor_send(Pid, Message).
 
 actor_send(Name, Message) :-
@@ -718,11 +722,7 @@ logical_pid(Pid) :-
 %   receive({ Msg -> use(Msg) }, [timeout(0), on_timeout(true)])
 %   ==
 %
-%   Trealla port note: deferred messages live on the per-thread
-%   blackboard as a list under the key `'$actor_deferred'`.  Trealla's
-%   `bb_put/2` and `bb_get/2` are thread-local, so the deferred list
-%   is private to each actor.  Positive timeouts are emulated with a
-%   helper timer actor (see the module-level Trealla port notes).
+%   Deferred messages live in a native per-thread non-backtrackable value.
 
 receive(Clauses) :-
     receive(Clauses, []).
@@ -840,14 +840,13 @@ select_deferred([Msg|Rest0], Clauses, Body, [Msg|Rest]) :-
 %!  deferred_list(-L) is det.
 %!  deferred_put(+L) is det.
 %
-%   Read/write the per-thread deferred message list from/to the
-%   thread-local blackboard.
+%   Read/write the native thread-local deferred message list.
 
 deferred_list(L) :-
-    (   bb_get('$actor_deferred', L) -> true ; L = [] ).
+    ( nb_current('$actor_deferred', L) -> true ; L = [] ).
 
 deferred_put(L) :-
-    bb_put('$actor_deferred', L).
+    nb_setval('$actor_deferred', L).
 
 
 %!  select_body(+Clauses, +Message, -Body) is semidet.
@@ -893,25 +892,13 @@ select_body_aux((Head -> Body), Message, Body) :-
 %   so it returns immediately once the mailbox is empty.
 
 flush :-
-    % Collect before producing acknowledged terminal output. On Trealla,
-    % blocking for an acknowledgement inside receive/2 can invalidate the
-    % deferred-list continuation and drop the unvisited tail.
-    flush_messages(Messages),
-    flush_outputs(Messages).
-
-flush_messages(Messages) :-
     receive({
        Message ->
-          Messages = [Message|Rest],
-          flush_messages(Rest)
-    },[timeout(0), on_timeout(Messages = [])]).
-
-flush_outputs([]).
-flush_outputs([Message|Messages]) :-
-    term_to_atom(Message, Atom),
-    atom_concat('Shell got ', Atom, Text),
-    terminal_output(Text),
-    flush_outputs(Messages).
+          term_to_atom(Message, Atom),
+          atom_concat('Shell got ', Atom, Text),
+          terminal_output(Text),
+          flush
+    },[timeout(0), on_timeout(true)]).
 
 
 %!  make_ref(-Ref) is det.
@@ -922,14 +909,17 @@ flush_outputs([Message|Messages]) :-
 %   reference cannot be confused with a PID minted by this process.
 
 make_ref(Ref) :-
-    with_mutex('$actor_registry', make_ref_unlocked(Ref)).
+    flag('$actor_ref', Offset, Offset + 1),
+    Candidate is 1000000000 + Offset,
+    ( Candidate =< 9999999999 -> true
+    ; throw(error(resource_error(actor_references), actors:make_ref/1))
+    ),
+    with_mutex('$actor_registry', reserve_ref(Candidate, Reserved)),
+    ( Reserved == true -> Ref = Candidate ; make_ref(Ref) ).
 
-make_ref_unlocked(Ref) :-
-    random_between(1000000000, 9999999999, Candidate),
-    ( issued_pid(Candidate) -> make_ref_unlocked(Ref)
-    ; issued_ref(Candidate) -> make_ref_unlocked(Ref)
-    ; assertz(issued_ref(Candidate)),
-      Ref = Candidate
+reserve_ref(Candidate, Reserved) :-
+    ( issued_pid(Candidate) -> Reserved = false
+    ; assertz(issued_ref(Candidate)), Reserved = true
     ).
 
 %!  make_pid(-Pid) is det.
@@ -954,18 +944,11 @@ make_pid_unlocked(Pid) :-
                 *     OUTPUT / INPUT / RESPOND *
                 *******************************/
 
-% Parent is tracked per-thread via the bb blackboard.
-% The key is made thread-specific so that each actor has its own parent.
-
 set_parent(Parent) :-
-    thread_self(Me),
-    format(atom(Key), '$actor_parent_~w', [Me]),
-    bb_put(Key, Parent).
+    nb_setval('$actor_parent', Parent).
 
 get_parent(Parent) :-
-    thread_self(Me),
-    format(atom(Key), '$actor_parent_~w', [Me]),
-    (bb_get(Key, Parent) -> true ; Parent = Me).
+    ( nb_current('$actor_parent', Parent) -> true ; self(Parent) ).
 
 
 %!  output(+Term) is det.
@@ -1011,7 +994,7 @@ terminal_output(Term, Options) :-
 %!  current_io_target(-Target) is semidet.
 
 current_io_target(Target) :-
-    bb_get('$actor_io_target', Target).
+    nb_current('$actor_io_target', Target).
 
 
 %!  input(+Prompt, -Answer) is det.
@@ -1041,9 +1024,12 @@ input(Prompt, Answer, Options) :-
         '$input'(_From, Answer) -> true
     }).
 
-actor_input_target(Self, Target) :-
-    format(atom(Key), '$actor_input_target_~w', [Self]),
-    bb_get(Key, Target).
+actor_input_target(_Self, Target) :-
+    nb_current('$actor_input_target', Target).
+
+set_input_target(Target) :-
+    nb_setval('$actor_input_target', Target).
+
 
 
 %!  respond(+Pid, +Answer) is det.

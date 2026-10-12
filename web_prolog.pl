@@ -514,13 +514,6 @@ relay_message(WS, '$spawn'(Goal, Options, Reader)) :- !,
         Error,
         thread_send_message(Reader, '$spawn_failed'(Error))).
 
-% Calling a conjunction received as data through the module-qualified actor
-% trampoline makes current Trealla try to resolve ','/2 after its first arm.
-% Walk conjunctions here so browser spawn goals retain ordinary Prolog control
-% semantics.
-run_spawn_goal((Left, Right)) :- !,
-    run_spawn_goal(Left),
-    run_spawn_goal(Right).
 run_spawn_goal(Goal) :-
     isolation:execution_goal(Goal, ExecutionGoal),
     call(ExecutionGoal).
@@ -648,11 +641,11 @@ wire_pid(_, WirePid) :-
 
 relay_actors(Actors) :-
     relay_state_key(actors, Key),
-    ( bb_get(Key, Actors) -> true ; Actors = [] ).
+    ( nb_current(Key, Actors) -> true ; Actors = [] ).
 
 relay_set_actors(Actors) :-
     relay_state_key(actors, Key),
-    bb_put(Key, Actors).
+    nb_setval(Key, Actors).
 
 relay_actor(WirePid, RuntimePid, Kind) :-
     relay_actors(Actors), memberchk(actor(WirePid, RuntimePid, Kind), Actors).
@@ -690,11 +683,11 @@ stop_relay_actor_pids([RuntimePid|Actors]) :-
 
 relay_monitors(Monitors) :-
     relay_state_key(monitors, Key),
-    ( bb_get(Key, Monitors) -> true ; Monitors = [] ).
+    ( nb_current(Key, Monitors) -> true ; Monitors = [] ).
 
 relay_set_monitors(Monitors) :-
     relay_state_key(monitors, Key),
-    bb_put(Key, Monitors).
+    nb_setval(Key, Monitors).
 
 relay_add_monitor(RuntimePid, Ref) :-
     relay_monitors(Monitors),
@@ -732,11 +725,11 @@ relay_take_halt(RuntimePid, WirePid) :-
 
 relay_halts(Halts) :-
     relay_state_key(halts, Key),
-    ( bb_get(Key, Halts) -> true ; Halts = [] ).
+    ( nb_current(Key, Halts) -> true ; Halts = [] ).
 
 relay_set_halts(Halts) :-
     relay_state_key(halts, Key),
-    bb_put(Key, Halts).
+    nb_setval(Key, Halts).
 
 relay_state_key(Kind, Key) :-
     thread_self(Relay),
@@ -744,11 +737,11 @@ relay_state_key(Kind, Key) :-
 
 relay_set_governance(Principal, Identity) :-
     relay_state_key(governance, Key),
-    bb_put(Key, governance(Principal, Identity)).
+    nb_setval(Key, governance(Principal, Identity)).
 
 relay_governance(Principal, Identity) :-
     relay_state_key(governance, Key),
-    bb_get(Key, governance(Principal, Identity)).
+    nb_getval(Key, governance(Principal, Identity)).
 
 relay_reserve_ws_actor(Reservation) :-
     relay_governance(Principal, Identity),
@@ -779,7 +772,7 @@ relay_clear_state :-
 
 relay_delete_state(Kind) :-
     relay_state_key(Kind, Key),
-    ( bb_delete(Key, _) -> true ; true ).
+    ( nb_current(Key, _) -> nb_delete(Key) ; true ).
 
 send_down_events(_, _, [], _).
 send_down_events(WS, Pid, [Ref|Refs], Reason) :-

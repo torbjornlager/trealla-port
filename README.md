@@ -16,7 +16,7 @@ The port lives alongside this report:
 | `governance_policy.pl` | Per-principal rate and concurrency governance      |
 | `observability.pl`    | Audit events, activity tracking, and metrics       |
 | `node_tokens.pl`      | Hashed bearer issuance, revocation, and persistence |
-| `crypto_portable.pl`  | OS randomness and portable SHA-256 fallback        |
+| `crypto_portable.pl`  | Native secure randomness and portable SHA-256 fallback |
 | `source_policy.pl`    | Allowlisted, bounded `src_uri/1` fetching           |
 | `ip_policy.pl`        | Client IP/CIDR, trusted-proxy, and auto-ban policy  |
 | `rpc.pl`              | HTTP `rpc/2,3` and asynchronous `promise/yield`     |
@@ -272,12 +272,9 @@ node uses the same handler and adds socket options:
        [ssl(true), keyfile('key.pem'), certfile('cert.pem')]).
 ```
 
-The client selects TLS from the URL automatically.  Trealla 3.12.6 encrypts a
-connection opened without `certfile/1`, but its socket layer does not verify
-the peer in that mode.  Passing `certfile/1` enables the verification path but
-the current Trealla implementation does not perform hostname verification.
-Production deployments should terminate TLS in a well-configured proxy until
-Trealla's client verification is complete.
+The client selects TLS from the URL automatically. Trealla v3.13.2 verifies
+the certificate chain and host name by default and supports a separate
+`server_name(Host)` when connecting to a pinned numeric address.
 
 The transport also implements optional RFC 6455 subprotocol negotiation.
 Web Prolog does **not** request a WebSocket subprotocol: Trinity version 1 is
@@ -362,23 +359,19 @@ not.
        ]).
 ```
 
-Every source host is resolved once, checked, and then contacted at that same
-numeric address, closing the DNS-rebinding interval between authorization and
-connection. Without `load_uri_allowed_ip_ranges/1`, only public IPv4 and IPv6
+Every address returned for a source host is checked before the first approved
+numeric address is contacted, closing the DNS-rebinding interval between
+authorization and connection. Without `load_uri_allowed_ip_ranges/1`, only public IPv4 and IPv6
 global-unicast destinations are accepted. Supplying the option replaces that
 default with an explicit exact-address/IPv4-CIDR allowlist; the example
 therefore deliberately permits its loopback source server. Redirect targets
 go through the same resolution and address policy.
 
-Trealla v3.12.6 does not verify TLS host names. For that reason HTTPS source
-fetching fails even for an allowlisted origin unless the operator also sets
-`allow_unverified_https(true)`. That switch acknowledges the limitation; it
-does not provide server authentication. A hostname-verifying reverse proxy is
-the recommended deployment boundary. Because Trealla cannot yet separate a
-socket's numeric connection address from its TLS server name, the pinned
-address is also used as SNI; HTTPS sites requiring name-based SNI may need that
-proxy (FR-009 in `UPSTREAM_REPORTS.md`). The operating system or container
-should still enforce an independent egress boundary as defense in depth.
+HTTPS source fetching verifies the origin host while connecting to the pinned
+address. `allow_unverified_https(true)` is now an explicit unsafe opt-out,
+retained only for deployments with a separately authenticated transport. The
+operating system or container should still enforce an independent egress
+boundary as defense in depth.
 
 Public nodes also install resource ceilings. They are configured with these
 startup options (defaults shown):
@@ -386,6 +379,7 @@ startup options (defaults shown):
 ```prolog
 ?- web_prolog_node(3060,
        [ time_limit(300), idle_limit(300),
+         inference_limit(unlimited), stack_limit(unlimited),
          max_actors(256), max_solutions(1000),
          max_term_text_bytes(32768),
          max_source_text_bytes(262144),
@@ -403,10 +397,10 @@ limit as well.
 
 PTCP and HTTP-producer execution timers are disarmed while a result page waits
 for its continuation and rearmed when computation resumes; the separate PTCP
-idle ceiling governs that suspended state. Trealla v3.12.6 does not expose
-SWI-equivalent inference or per-thread stack ceilings, so
-process memory/CPU containment remains the deployment boundary for those
-resources.
+idle ceiling governs that suspended state. `inference_limit/1` bounds each
+query using `call_with_inference_limit/3`, while `stack_limit/1` is passed to
+every actor thread. Both default to `unlimited`; container limits remain an
+independent boundary.
 
 Authentication is configured independently of profiles and sandboxing.  Open
 mode remains the compatibility default; private mode requires an authenticated
@@ -448,11 +442,10 @@ require an authenticated `admin` principal:
 - `DELETE /admin/tokens?id=<public-id>` revokes a token while retaining its
   audit metadata.
 
-Trealla's current `crypto_n_random_bytes/2` is not cryptographically secure,
-so this layer deliberately reads the macOS/Linux OS CSPRNG and fails closed if
-it is unavailable. SHA-256 uses Trealla's OpenSSL primitive when present and a
-portable implementation otherwise. Tokens must still be transported only over
-TLS and kept out of shell history and logs. A bearer can be used by the
+Trealla v3.13.2 supplies cryptographically secure random bytes. SHA-256 uses
+Trealla's OpenSSL primitive when present and a portable implementation
+otherwise. Tokens must still be transported only over TLS and kept out of
+shell history and logs. A bearer can be used by the
 explicit distribution API:
 
 ```prolog
@@ -493,10 +486,8 @@ used. Repeated HTTP or WebSocket rate-limit violations can trigger a temporary
 ban. Explicitly allowlisted clients are exempt from automatic bans. Metrics
 remain public, but the IP gate covers `/call` and the `/ws` upgrade.
 
-The node binds to the IPv4 wildcard `0.0.0.0` by default. This avoids a
-Trealla v3.12.6 peer-address bug on dual-stack IPv6 wildcard listeners
-(BUG-013 in `UPSTREAM_REPORTS.md`). Use `bind_address(Address)` to restrict
-the listener to a specific IPv4 interface.
+The node binds to the IPv4 wildcard `0.0.0.0` by default. Use
+`bind_address(Address)` to restrict the listener to a specific interface.
 
 WebSocket requests without an `Origin` header remain available to native
 clients. Browser requests must be same-origin with the request `Host`, or
@@ -759,7 +750,7 @@ the defaults can be replaced with explicit `header/2` options.
 - `spawn/1-3` with `monitor(Bool)` and `link(Bool)` options
 - Per-actor source namespaces with `src_text(Text)`, `src_list(Terms)`, and
   `src_predicates(PIs)`; the same options work across Trealla distribution
-- `self/1`, `(!)/2`
+- `self/1`, `send/2`, and the `(!)/2` operator alias
 - `receive/1-2` with patterns, guards (`Pattern if Guard -> Body`),
   `timeout(0)` polling, and positive `timeout(T)` deadlines
 - `monitor/2`, `demonitor/1-2`
@@ -768,7 +759,8 @@ the defaults can be replaced with explicit `header/2` options.
 - `output/1-2`, `input/2-3`, `respond/2`
 - `terminal_output/1-2` with local descendant inheritance
 - `input/2-3` inherits the same terminal target
-- `make_ref/1` with process-lifetime-unique ten-digit integer references,
+- `make_ref/1` backed by Trealla's atomic `flag/3`, with process-lifetime-unique
+  ten-digit integer references,
   `actors/1` for a live-actor snapshot, and `flush/0`
 - Links 
 - Deferred-message semantics (non-matching messages stay in the
@@ -863,8 +855,9 @@ Answer = timeout.
   `Deployment/`. `src_uri/1` has an exact-origin, redirect-aware, size- and
   time-bounded fetch policy plus resolve-check-connect IP pinning.
   OS/container egress policy remains recommended as an independent boundary.
-- A TLS-enabled Trealla client currently lacks complete hostname-verified
-  certificate validation in the underlying socket implementation.
+- HTTPS source loading pins every resolver result through the address policy
+  while retaining the URI host through `server_name/1` for SNI and certificate
+  verification.
 
 ### distribution.pl
 
@@ -878,9 +871,8 @@ Answer = timeout.
 
 - Trealla's HTTP library recognizes `https://` when the runtime is built with
   OpenSSL. The repository's convenience build uses `NOSSL=1`, so use an
-  SSL-enabled runtime or terminate TLS at a reverse proxy. TLS-disabled builds
-  currently report the missing feature as `resource_error(memory)` (BUG-015),
-  while SSL-enabled clients still lack hostname verification (BUG-005).
+  SSL-enabled runtime or terminate TLS at a reverse proxy. SSL-enabled
+  v3.13.2 clients verify certificate chains and host names by default.
 
 ## License and attribution
 
@@ -897,30 +889,22 @@ in the code today.
 
 ### `actors.pl`
 
-#### 1. No `thread_local/1`
+#### 1. Mutable per-thread actor state
 
-Trealla has no `thread_local/1` directive. Per-thread state (the
-deferred message list and the parent PID) is stored on the
-thread-local blackboard via `bb_put/2` and `bb_get/2`:
+Trealla v3.13.2 provides `thread_local/1` and per-thread non-backtrackable
+globals. The actor runtime uses `nb_setval/2` and `nb_current/2` for mutable
+mailbox, parent, terminal, paging, and connection state:
 
 ```prolog
 deferred_list(L) :-
-    (bb_get('$actor_deferred', L) -> true ; L = []).
+    (nb_current('$actor_deferred', L) -> true ; L = []).
 
 deferred_put(L) :-
-    bb_put('$actor_deferred', L).
+    nb_setval('$actor_deferred', L).
 ```
 
-The blackboard values used here are thread-scoped.  The parent-pointer code
-also retains an explicit thread ID in its key, making that ownership visible
-and keeping compatibility with older implementations:
-
-```prolog
-set_parent(Parent) :-
-    thread_self(Me),
-    format(atom(Key), '$actor_parent_~w', [Me]),
-    bb_put(Key, Parent).
-```
+This directly matches the state lifetime instead of encoding thread IDs into
+process-wide blackboard keys.
 
 #### 2. `thread_detach/1` in `at_exit` hangs
 
@@ -957,15 +941,13 @@ but were missing from the very first Trealla port. They are now
 implemented here on top of the per-thread parent pointer described
 in delta #1.
 
-#### 5. Private modules are emptied rather than destroyed
+#### 5. Private modules use the native lifecycle
 
-Trealla has no public temporary-module destruction operation. `isolation.pl`
-creates a unique module for each actor, dynamically installs source clauses,
-and retracts those clauses when the actor terminates. The empty bootstrap
-module remains in Trealla's module table until process exit. `src_predicates/1`
-also needs a serialized `listing/1` workaround because module-qualified
-listing does not currently inspect the requested module (tracked in
-[UPSTREAM_REPORTS.md](UPSTREAM_REPORTS.md)).
+`isolation.pl` creates a temporary actor module and calls Trealla v3.13.2's
+`destroy_module/1` when the actor terminates. Module records can therefore be
+reused instead of accumulating empty bootstrap modules. The actor lifetime is
+asynchronous, so it cannot be expressed directly by scoped
+`in_temporary_module/3`.
 
 ### `toplevel_actors.pl`
 
@@ -982,13 +964,12 @@ mutable integer cells support mid-stream limit and target changes.
 
 ### `node.pl`
 
-#### 1. Direct socket server enables protocol handoff
+#### 1. Direct socket server retains node lifecycle control
 
-The node uses `library(sockets)` directly. It parses the HTTP request once,
-serves `/call` normally, or passes the same open stream to `ws_accept/3` for
-`/ws`. This avoids the standard HTTP server's unconditional
-`Content-Length`, `Connection: close`, and socket close behavior. Query
-parameters are parsed with a small percent-decoder (`url_decode/2`).
+Trealla v3.13.2 now provides `http_switch_protocol/2`. The node continues to
+use `library(sockets)` directly because its connection registry, bounded
+shutdown, maintenance gate, authentication, and per-principal governance all
+own the handler lifecycle. Query parameters use the native URI form codec.
 
 #### 2. `library(settings)` absent
 
@@ -1020,24 +1001,19 @@ timeout would only obscure real bugs.
 
 ### `rpc.pl`
 
-#### 1. `http_open/3` is committed with `once/1`
+#### 1. `http_open/3` uses the public API directly
 
-Trealla v3.12.6's `http_open/3` leaves internal socket-opening choicepoints.
-The RPC client commits to the successful connection with `once/1`, preventing
-those internals from being revisited when RPC answers are yielded on
-backtracking. URLs are passed directly to the public API; the removed private
-`'$parse_url'/2` predicate is no longer used.
+Trealla v3.13.2 commits socket opening correctly, so the old `once/1`
+compatibility wrapper is gone. URLs are passed directly to the public API.
 
-#### 2. URL percent-encoding is hand-rolled
+#### 2. URL encoding uses the native URI library
 
-There is no `uri_encoded/3` or `www_form_encode/2` in Trealla's
-stdlib, so `url_encode/2` is implemented inline alongside
-`url_decode/2`, following RFC 3986's unreserved-character set.
+RPC request values and node query decoding use v3.13.2's
+`www_form_encode/2`, including correct UTF-8 percent encoding.
 
 ## Overall assessment
 
-The actor/RPC modules are ported and exercised through Trealla v3.12.6
-(all 30 actor tests pass on the current version):
+The actor/RPC modules are ported and exercised through Trealla v3.13.2:
 
 - **`actors.pl`** — feature-complete, including positive `receive`
   timeouts via the native `thread_get_message/3` `timeout(Float)`
@@ -1050,7 +1026,7 @@ The actor/RPC modules are ported and exercised through Trealla v3.12.6
   the legacy `/call` route.
   The producer-actor cache works particularly cleanly thanks to
   Trealla's stack-preserving `receive/1`.
-- **`rpc.pl`** — `http://` only.
+- **`rpc.pl`** — native `http://` and hostname-verified `https://` transport.
 - **`websocket.pl` / `web_prolog.pl`** — native `ws://` and `wss://`
   transport with the Trinity version-1 actor vocabulary, tested in both
   Trealla-to-SWI and SWI-to-Trealla directions.
@@ -1058,14 +1034,14 @@ The actor/RPC modules are ported and exercised through Trealla v3.12.6
   routing to local actor mailboxes using Trinity-compatible `Pid@NodeURL`
   identifiers.
 
-Every other delta is a small, localised workaround for a
-Trealla-specific quirk.
+The remaining runtime-specific adaptations are recorded in
+`UPSTREAM_REPORTS.md`; compatibility paths are kept only where their v3.13.2
+regressions still fail or where Web Prolog needs stricter application policy.
 
 ### Benchmark stability
 
-The threading benchmarks (`bm-ping-pong.pl`, `bm-spawning.pl`) are
-stable at low iteration counts (≤ 1 000) but crash roughly 30 % of
-the time at 10 000+ iterations under both v2.98.10 and v2.99.12.
-This is an upstream Trealla issue (tracked as issue #1026); the
-application-level tests are unaffected because they use far fewer
-actor round-trips.
+Older v2.x builds crashed intermittently in the high-volume threading
+benchmarks (`bm-ping-pong.pl`, `bm-spawning.pl`). That historical observation
+must be rerun before making a stability claim about v3.13.2; the current
+application, interoperability, and deployment suites pass at their normal
+loads.

@@ -9,33 +9,14 @@
 
 /** <module> Small cryptographic compatibility layer
 
-Trealla only exposes `crypto_data_hash/3` when built with OpenSSL, while its
-current `crypto_n_random_bytes/2` fallback uses C `rand()` and is unsuitable
-for credentials.  Token issuance therefore reads the operating system CSPRNG
-and uses a portable SHA-256 implementation when the OpenSSL predicate is not
-present.  `/dev/urandom` is available on the macOS and Linux deployment
-targets; issuance fails closed on a platform without it.
+Trealla v3.13.2 supplies cryptographically secure random bytes natively.
+SHA-256 uses the OpenSSL-backed primitive when present and retains a portable
+fallback for explicitly TLS-disabled builds.
 */
 
 secure_random_bytes(Count, Bytes) :-
     integer(Count), Count > 0,
-    catch(setup_call_cleanup(
-              open('/dev/urandom', read, Stream, [type(binary)]),
-              read_random_bytes(Stream, Count, Bytes),
-              close(Stream)),
-          _,
-          throw(error(resource_error(secure_random_source),
-                      context(crypto_portable:secure_random_bytes/2,
-                              'OS cryptographic random source unavailable')))).
-
-read_random_bytes(_, 0, []) :- !.
-read_random_bytes(Stream, Count, [Byte|Bytes]) :-
-    get_byte(Stream, Byte),
-    ( Byte >= 0 -> true
-    ; throw(error(resource_error(secure_random_source), crypto_portable))
-    ),
-    Next is Count-1,
-    read_random_bytes(Stream, Next, Bytes).
+    crypto_n_random_bytes(Count, Bytes).
 
 bytes_hex(Bytes, Hex) :-
     bytes_hex_chars(Bytes, Chars), atom_chars(Hex, Chars).

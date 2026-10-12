@@ -31,12 +31,12 @@
          sandbox_abolish/6
        ]).
 
-/** <module> Native Trealla sandbox and public source policy
+/** <module> Trealla sandbox and Web Prolog public policy
 
-Trealla does not provide SWI-Prolog's `library(sandbox)`.  This module ports
-the node-owned, runtime-independent policy instead: public goals are walked,
-dangerous ambient capabilities are denied, source is parsed and validated
-before loading, and opaque meta-calls are rewritten through runtime guards.
+Trealla v3.13.2 provides `library(sandbox)`. This module layers Web Prolog's
+profiles, actor capabilities, source-option policy, and scoped mutation rules
+on top of its native safe-goal analysis. Opaque meta-calls still pass through
+runtime guards because their targets are not known during admission.
 
 `blacklist` preserves ordinary Prolog except for explicitly dangerous
 families. `whitelist` additionally permits only a conservative catalog of
@@ -47,6 +47,7 @@ still required for an internet-facing node.
 */
 
 :- use_module(library(error)).
+:- use_module(library(sandbox), []).
 :- use_module(profile_policy).
 :- use_module(isolation).
 :- use_module(resource_policy).
@@ -746,6 +747,8 @@ forbidden_pi(message_queue_destroy/1,threads). forbidden_pi(mutex_create/2,threa
 forbidden_pi(mutex_lock/1,threads). forbidden_pi(mutex_unlock/1,threads).
 forbidden_pi(with_mutex/2,threads). forbidden_pi(bb_put/2,runtime_state).
 forbidden_pi(bb_get/2,runtime_reflection). forbidden_pi(bb_delete/1,runtime_state).
+forbidden_pi(nb_setval/2,runtime_state). forbidden_pi(nb_getval/2,runtime_reflection).
+forbidden_pi(nb_current/2,runtime_reflection). forbidden_pi(nb_delete/1,runtime_state).
 forbidden_pi(current_predicate/1,runtime_reflection). forbidden_pi(predicate_property/2,runtime_reflection).
 forbidden_pi(current_prolog_flag/2,runtime_reflection). forbidden_pi(set_prolog_flag/2,runtime_state).
 forbidden_pi(op/3,parser_state). forbidden_pi(char_conversion/2,parser_state).
@@ -753,7 +756,11 @@ forbidden_pi(clause/2,runtime_reflection). forbidden_pi(listing/0,runtime_reflec
 forbidden_pi(listing/1,runtime_reflection).
 
 whitelist_goal(_Module, AppPIs, Goal) :-
-    functor(Goal,N,A), (memberchk(N/A,AppPIs); safe_pi(N/A); actor_safe_pi(N/A)).
+    functor(Goal,N,A), (memberchk(N/A,AppPIs); actor_safe_pi(N/A)), !.
+whitelist_goal(Module, _AppPIs, Goal) :-
+    catch(sandbox:safe_goal(Module:Goal), _, fail), !.
+whitelist_goal(_Module, _AppPIs, Goal) :-
+    functor(Goal,N,A), safe_pi(N/A).
 
 safe_pi(true/0). safe_pi(fail/0). safe_pi(repeat/0). safe_pi(!/0).
 safe_pi((=)/2). safe_pi((\=)/2). safe_pi((==)/2). safe_pi((\==)/2).
@@ -819,39 +826,13 @@ format_text_atom(Format, Atom) :-
     ; Atom = ''
     ).
 
-portable_format(Format, NativeFormat) :-
-    format_codes(Format, Codes),
-    !,
-    replace_print_directives(Codes, NativeCodes),
-    atom_codes(NativeFormat, NativeCodes).
-portable_format(Format, Format).
-
-format_codes(Format, Codes) :- atom(Format), !, atom_codes(Format, Codes).
-format_codes(Format, Codes) :- string(Format), !, string_codes(Format, Codes).
-format_codes(Format, Codes) :- is_list(Format),
-    ( catch(atom_codes(_, Format), _, fail) -> Codes = Format
-    ; catch(atom_chars(Atom, Format), _, fail), atom_codes(Atom, Codes)
-    ).
-
-% Trealla v3.12.6 segfaults on SWI's ~p print directive.  Its ~q directive
-% provides the portable quoted-term rendering needed by actor tutorials.
-% Preserve ~~ as an escaped tilde, so the following p remains literal text.
-replace_print_directives([], []).
-replace_print_directives([0'~,0'~|Codes], [0'~,0'~|Native]) :- !,
-    replace_print_directives(Codes, Native).
-replace_print_directives([0'~,0'p|Codes], [0'~,0'q|Native]) :- !,
-    replace_print_directives(Codes, Native).
-replace_print_directives([Code|Codes], [Code|Native]) :-
-    replace_print_directives(Codes, Native).
-
 % Runtime guard is required even after source validation because Format may be
 % supplied through a variable.  Rendering to an atom prevents access to an
 % ambient stream and produces the same single terminal event as SWI's actor
 % I/O prelude.
 sandbox_format(Format, Args) :-
     reject_format_meta_call(Format),
-    portable_format(Format, NativeFormat),
-    format(atom(Text), NativeFormat, Args),
+    format(atom(Text), Format, Args),
     actors:terminal_output(Text, [source(io)]).
 
 sandbox_sleep(Seconds) :-

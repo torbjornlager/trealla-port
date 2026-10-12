@@ -34,17 +34,37 @@ BUG-003, BUG-007, BUG-009, and BUG-011 do not have a corresponding fix named
 in the v3.13.2 history and still require focused retesting before their status
 is changed.
 
+BUG-006 nevertheless still fails its application regression when compound
+cells are restored to ordinary literal construction: the toplevel paging suite
+hangs at its target-switch test. The explicit `functor/3` plus `arg/3`
+construction therefore remains pending a smaller v3.13.2 reproducer.
+
+BUG-014 also fails its application retest: directly closing the registered
+listener from the shutdown thread leaves the owner blocked in `accept`, and
+the node lifecycle suite times out. The loopback wake connection remains in
+place pending a focused v3.13.2 reproducer.
+
+BUG-017 is likewise not yet removable: loading the expanded clause body
+without the actor's receive-qualification pass makes regression 102 fail when
+the selected receive body calls the next private predicate. The source rewrite
+therefore remains pending a focused v3.13.2 retest.
+
 The port's full manual, WebSocket, distribution, SWI-interoperability, and
 deployment suites pass against v3.13.2.  Removing the compatibility
 workarounds is deliberately a separate follow-up: each should first be
 replaced with its new native facility and covered by the same regression
 test.
 
+During that replacement work, `thread_local/1` proved unsuitable for the
+actor's repeatedly replaced list-valued mailbox state; the new observation is
+tracked as BUG-020 pending a standalone minimization. The port uses the new
+per-thread non-backtrackable globals for that mutable state instead.
+
 ## Feature requests
 
 ### FR-001: Allow a module-local definition to replace or shadow a built-in
 
-**Status:** Ready
+**Status:** Resolved in v3.13.2
 **Priority:** High
 
 Trealla reserves built-in predicates such as `send/2` as static procedures and
@@ -67,17 +87,15 @@ its own `send/2` without changing the system predicate globally.  An API similar
 to `redefine_system_predicate/1`, or well-defined module-local shadowing, would
 be sufficient.
 
-Impact: the SWI actor implementation exports `send/2`; the Trealla port must
-instead expose the `!/2` operator and keep its internal `actor_send/2` helper
-private.  This is an API compatibility difference rather than merely an
-implementation detail.
+Port result: the Trealla actor implementation now exports canonical `send/2`;
+the `!/2` operator remains an alias.
 
 ### FR-002: Add thread-local dynamic predicates
 
-**Status:** Ready  
+**Status:** Resolved in v3.13.2
 **Priority:** Medium
 
-Trealla has no `thread_local/1` directive.  The actor runtime therefore stores
+At the time of the report Trealla had no `thread_local/1` directive. The actor runtime therefore stored
 per-actor deferred receive state and parent state in the thread-local
 blackboard (`bb_put/2` and `bb_get/2`) rather than using the declarative
 thread-local facts used by the SWI implementation.
@@ -85,12 +103,13 @@ thread-local facts used by the SWI implementation.
 Desired behavior: support `thread_local/1`, with semantics close enough to SWI
 for portable thread-aware libraries.
 
-Current workaround: see the deferred-message and parent bookkeeping in
-`actors.pl`.
+v3.13.2 port status: mutable actor state now uses native per-thread
+non-backtrackable globals. See BUG-020 for a separate `thread_local/1`
+list-replacement observation.
 
 ### FR-003: Provide a supported HTTP-to-WebSocket upgrade handoff
 
-**Status:** Needs minimization
+**Status:** Resolved in v3.13.2
 **Priority:** Medium
 
 The standard HTTP server path writes ordinary HTTP response headers and closes
@@ -105,21 +124,27 @@ automatic `Content-Length`, `Connection: close`, or stream close.
 Current workaround: the direct socket server and protocol handoff in `node.pl`
 and `websocket.pl`.
 
+Port result: `http_switch_protocol/2` is available. The direct server remains
+an architectural choice because it owns Web Prolog's connection registry,
+bounded shutdown, authentication, and governance lifecycle.
+
 ### FR-004: Add standard URI query percent-encoding helpers
 
-**Status:** Ready  
+**Status:** Resolved in v3.13.2
 **Priority:** Low
 
-Trealla's standard library has no equivalent of `uri_encoded/3` or
-`www_form_encode/2`.  The RPC client and HTTP node carry local RFC 3986
-encoders/decoders as a result.
+Older Trealla releases had no equivalent of `www_form_encode/2`; the RPC
+client and HTTP node consequently carried local encoders.
 
 Desired behavior: a maintained library predicate for percent-encoding and
 decoding URI query components.
 
+Port result: RPC encoding and node query decoding use native
+`www_form_encode/2`, including its UTF-8 handling.
+
 ### FR-005: Add an atomic process-wide counter such as `flag/3`
 
-**Status:** Ready  
+**Status:** Resolved in v3.13.2
 **Priority:** Low
 
 The standalone SWI actor implementation does not require a special opaque
@@ -137,9 +162,8 @@ Desired behavior: provide an atomic named counter compatible with SWI-Prolog's
 `flag/3`, or an equivalent primitive from which a collision-free `make_ref/1`
 can be implemented.  This would also be useful for generating local actor IDs.
 
-Current workaround: the port keeps a dynamic counter and increments it while
-holding an explicitly created Trealla mutex.  This provides process-lifetime
-uniqueness but is considerably more machinery than the SWI implementation.
+v3.13.2 port status: `make_ref/1` now uses native atomic `flag/3`, followed by
+the shared actor/reference reservation check.
 
 The distributed SWI implementation takes a different approach: its
 `hook_make_ref/1` uses a ten-digit cryptographically random ID, but `make_id/1`
@@ -150,29 +174,27 @@ workaround and does not require a new opaque-reference primitive.
 
 ### FR-006: Expose temporary-module lifecycle operations
 
-**Status:** Needs design
+**Status:** Resolved in v3.13.2
 **Priority:** Medium
 
 Actor source isolation needs a fresh module for each actor and deterministic
-destruction when that actor terminates. Trealla can create modules while
-loading a file, but its public Prolog API has no equivalent of SWI-Prolog's
+destruction when that actor terminates. At the time of the report Trealla
+could create modules while loading a file, but its public Prolog API had no equivalent of SWI-Prolog's
 `in_temporary_module/3` or a supported module-destruction predicate.
 
 Desired behavior: a scoped temporary-module operation, or explicit supported
 create/delete operations, that remove the module's predicates, operators,
 imports, and module-table entry after use.
 
-Current workaround: the Trealla port gives every actor a unique module,
-retracts all dynamically loaded user clauses on termination, and deletes its
-bootstrap file. The empty bootstrap module necessarily remains in the module
-table until process exit.
+v3.13.2 port status: actor modules are explicitly created and reclaimed with
+public `destroy_module/1` at actor termination.
 
 ### FR-007: Provide an extensible goal-safety analysis library
 
-**Status:** Needs design
+**Status:** Resolved in v3.13.2
 **Priority:** Medium
 
-Trealla has no equivalent of SWI-Prolog's `library(sandbox)`. A node accepting
+At the time of the report Trealla had no equivalent of SWI-Prolog's `library(sandbox)`. A node accepting
 goals and source from remote peers consequently has to maintain its own walker,
 safe-primitive catalog, meta-call guards, directive policy, and source
 validation rules.
@@ -182,17 +204,17 @@ before execution, recognizes the meta-arguments of standard predicates, and
 allows applications to declare additional safe primitives and meta-predicates.
 Runtime checking must remain possible when a callable is initially a variable.
 
-Current workaround: `sandbox_policy.pl` implements a native blacklist and a
-conservative whitelist, rewrites opaque meta-calls through runtime guards, and
-validates submitted source before it reaches an actor's private module.
+v3.13.2 port status: `sandbox_policy.pl` delegates primitive safety analysis
+to `library(sandbox)` while retaining Web Prolog's profile, capability,
+source, and scoped-mutation policy.
 
 ### FR-008: Add inference and per-thread stack ceilings
 
-**Status:** Ready
+**Status:** Resolved in v3.13.2
 **Priority:** High
 
 The SWI node bounds public calls with `call_with_inference_limit/3` and actor
-memory with the `stack_limit(Bytes)` thread option. Trealla v3.12.6 provides
+memory with the `stack_limit(Bytes)` thread option. Trealla v3.12.6 provided
 neither facility: `call_with_inference_limit/3` is absent and
 `thread_create/3` rejects `stack_limit/1` with
 `domain_error(thread_option, stack_limit(_))`.
@@ -202,19 +224,19 @@ per-thread stack/heap ceiling. Together with an application-level actor cap,
 these allow a public node to bound CPU work and process memory without placing
 every individual query in a separate OS process.
 
-Current workaround: the Trealla port enforces wall-clock, live-actor, result
-page, and textual-input limits. Hard process memory and CPU ceilings must be
-provided by the container or service manager.
+v3.13.2 port status: queries use `call_with_inference_limit/3`, and actor
+creation passes the configured `stack_limit/1` thread option. Container limits
+remain a defense-in-depth boundary.
 
 ### FR-009: Separate a socket's connection address from its TLS server name
 
-**Status:** Needs design
+**Status:** Resolved in v3.13.2
 **Priority:** Medium
 
 A DNS-rebinding-resistant HTTPS client needs to resolve and authorize a
 numeric destination, connect to that exact address, and still send the
 original host name as TLS SNI (and eventually verify it as the certificate
-identity). Trealla's `socket_client_open/3` currently derives both the TCP
+identity). Trealla v3.12.6 derived both the TCP
 destination and TLS server name from the same address term.
 
 Connecting to the authorized numeric address therefore pins the destination
@@ -229,10 +251,9 @@ caller-controlled TCP connection has been established. A way to obtain all
 candidate resolver addresses would also allow policy-checking each candidate
 without losing normal address-family fallback.
 
-Current workaround: `source_policy.pl` resolves once and connects to the
-authorized numeric address. HTTP is unaffected; HTTPS sites that require
-name-based SNI may need a trusted fetch proxy until the two values can be
-supplied separately.
+v3.13.2 port status: every resolver result is policy-checked, the connection
+uses an approved numeric address, and `server_name(Host)` preserves SNI and
+certificate identity verification.
 
 ## Bug reports
 
@@ -301,7 +322,7 @@ another supported way for an exit hook to inspect the thread's final outcome.
 
 ### BUG-004: `http_open/3` leaves socket-opening choicepoints
 
-**Status:** Needs minimization  
+**Status:** Resolved in v3.13.2
 **Priority:** Medium
 
 On v3.12.6, a successful `http_open/3` leaves internal socket-opening
@@ -309,8 +330,8 @@ choicepoints.  When the RPC predicate later backtracks for additional Prolog
 answers, execution can re-enter those connection internals instead of staying
 within the established HTTP response.
 
-Current workaround: `rpc.pl` wraps the successful `http_open/3` call in
-`once/1` before exposing answer backtracking.
+v3.13.2 port status: the `once/1` wrapper is gone and `http_open/3` is called
+directly.
 
 Expected behavior: after a connection has been selected successfully,
 `http_open/3` should be deterministic unless its public contract explicitly
@@ -318,7 +339,7 @@ documents alternative connections on backtracking.
 
 ### BUG-005: TLS client verification does not verify hostnames
 
-**Status:** Needs upstream security review  
+**Status:** Resolved in v3.13.2
 **Priority:** High
 
 Trealla v3.12.6 can establish an encrypted `wss://` socket.  Without
@@ -329,8 +350,8 @@ matches the requested host.
 Impact: callers can obtain encryption without server identity verification,
 which is unsafe for production WebSocket and HTTPS clients.
 
-Current workaround: terminate TLS in a proxy with complete certificate and
-hostname verification.
+v3.13.2 port status: ordinary clients verify the chain and host name by
+default, and pinned-address source loading supplies the URI host separately.
 
 Desired behavior: secure defaults plus explicit CA/trust-store and hostname
 verification controls, with verification enabled for ordinary `wss://` and
@@ -383,7 +404,7 @@ threading/GC issue.
 
 ### BUG-008: `thread_signal/2` intermittently fails to interrupt a CPU-bound thread
 
-**Status:** Needs minimization
+**Status:** Resolved in v3.13.2
 **Priority:** High
 
 On Trealla v3.12.6 for macOS arm64, an actor running `(repeat, fail)` does not
@@ -413,7 +434,7 @@ work.
 
 ### BUG-009: A module-qualified actor trampoline misexecutes a conjunction
 
-**Status:** Needs minimization
+**Status:** Resolved in v3.13.2
 **Priority:** Medium
 
 On Trealla v3.12.6, a conjunction read from a WebSocket command and passed
@@ -424,14 +445,13 @@ receive.  Direct `call(user:(write(a),write(b)))` succeeds, so the trigger
 appears to involve the combination of a goal read as data, module
 qualification, a meta-predicate, and execution in a new thread.
 
-Current workaround: `web_prolog:run_spawn_goal/1` walks conjunctions
-structurally and calls their leaves.  The browser-to-remote-node terminal
-interoperability test exercises this path.  Reduce that path to a standalone
-module/thread reproducer before filing upstream.
+v3.13.2 port status: the structural conjunction trampoline is gone; the
+browser-to-remote-node interoperability path now uses native control-term
+execution.
 
 ### BUG-010: `listing(Module:PI)` lists the calling module instead
 
-**Status:** Needs minimization
+**Status:** Resolved in v3.13.2
 **Priority:** Medium
 
 Trealla v3.12.6 accepts a module-qualified predicate indicator in
@@ -441,11 +461,8 @@ serializing a private static predicate in another source module. Direct
 `clause/2` access is not a substitute because Trealla rejects access to such
 static private predicates.
 
-Current workaround: the isolation layer temporarily installs a uniquely
-named helper in the source module, invokes unqualified `listing/1` from that
-helper with output redirected to a temporary file, reads the terms back, and
-removes the helper. Access is serialized because `listing/1` has no explicit
-stream argument.
+v3.13.2 port status: `src_predicates/1` calls `listing(Module:PI)` directly.
+Output capture remains serialized because `listing/1` has no stream argument.
 
 ### BUG-011: `call_with_time_limit/2` discards goal choicepoints
 
@@ -472,7 +489,7 @@ to the execution limit.
 
 ### BUG-012: `crypto_n_random_bytes/2` repeats predictable output across processes
 
-**Status:** Ready
+**Status:** Resolved in v3.13.2
 **Priority:** Critical for credential generation
 
 Trealla v3.12.6 implements `crypto_n_random_bytes/2` with C `rand()`, seeded
@@ -503,13 +520,12 @@ source and fail closed when that source is unavailable. If compatibility
 requires retaining the current PRNG, it should have a name that does not imply
 cryptographic security.
 
-Current workaround: `crypto_portable.pl` reads `/dev/urandom` directly for
-bearer-token ids and secrets. Token issuance fails rather than falling back to
-`crypto_n_random_bytes/2` when the OS source is unavailable.
+v3.13.2 port status: token generation now uses native
+`crypto_n_random_bytes/2`.
 
 ### BUG-013: An IPv6 wildcard listener reports IPv4 peers as `0.0.0.0`
 
-**Status:** Ready
+**Status:** Resolved in v3.13.2
 **Priority:** High for access-control servers
 
 On macOS with Trealla v3.12.6, a server opened on the wildcard address may
@@ -536,9 +552,9 @@ and audit attribution cannot safely use the reported peer address.
 Desired behavior: accept into `sockaddr_storage`, inspect `ss_family`, and
 format either the IPv4 or IPv6 address accordingly.
 
-Current workaround: the Trealla node binds explicitly to the IPv4 wildcard
-`0.0.0.0` by default. This makes the reported IPv4 peer reliable, at the cost
-of not accepting IPv6 connections on that listener.
+v3.13.2 port status: the peer-address defect is fixed. The node retains an
+explicit IPv4 wildcard as its conservative deployment default, but callers
+may select another interface with `bind_address/1`.
 
 ### BUG-014: Cross-thread server close does not wake a blocked accept
 
@@ -582,7 +598,7 @@ connection, and closes its own listener from the owning thread.
 
 ### BUG-015: A TLS-disabled build reports `resource_error(memory)` for SSL
 
-**Status:** Ready
+**Status:** Resolved in v3.13.2
 **Priority:** Low
 
 On macOS arm64 with Trealla v3.12.6 built using `make NOSSL=1`, requesting an
@@ -614,13 +630,13 @@ The same failure is visible through
 specific `existence_error(feature, ssl)` or similar availability error, never
 a spurious memory-exhaustion exception.
 
-Current workaround: build Trealla with OpenSSL when TLS is required, or
-terminate TLS in a reverse proxy. Hostname verification in SSL-enabled builds
-remains a separate requirement tracked in BUG-005.
+v3.13.2 port status: TLS-disabled builds now report feature unavailability
+accurately. TLS use still naturally requires an OpenSSL-enabled build or a
+terminating proxy.
 
 ### BUG-016: Blocking inside a receive body can lose its deferred tail
 
-**Status:** Needs minimization
+**Status:** Resolved in v3.13.2
 **Priority:** High
 
 The actor receive loop keeps unmatched mailbox messages in a thread-local
@@ -636,10 +652,8 @@ appears to involve resuming a receive continuation after a cross-thread queue
 wait. It may be related to the mutable-term/cross-thread continuation symptoms
 in BUG-006, but the exact runtime mechanism has not yet been isolated.
 
-Current workaround: `actors:flush/0` first drains every pending message into a
-plain list without blocking for terminal acknowledgements, then emits the
-collected messages in a second pass. The SWI-to-Trealla browser interoperability
-test verifies two acknowledged outputs in order.
+v3.13.2 port status: `flush/0` again receives and emits each message in one
+recursive pass. The acknowledged browser interoperability regression passes.
 
 ### BUG-017: Dynamically asserted calls to an imported meta-predicate lose the caller module
 
@@ -676,7 +690,7 @@ selection.
 
 ### BUG-018: `format/3` segfaults on the `~p` directive
 
-**Status:** Ready
+**Status:** Resolved in v3.13.2
 **Priority:** High
 
 Trealla v3.12.6 exits with signal 11 when its formatter encounters the SWI
@@ -693,13 +707,12 @@ drop its WebSocket connection and restart the whole node.
 Expected behavior is either support for `~p` or a catchable format error; an
 unsupported directive must not crash the process.
 
-Current workaround: the Trealla actor I/O adapter translates unescaped `~p`
-to Trealla's `~q` before calling native `format/3`. Escaped `~~p` remains
-literal text. Regression test 111 covers the original guarded-receive query.
+v3.13.2 port status: the translation layer is gone and actor I/O passes `~p`
+directly to native `format/3`. Regression test 111 covers the original query.
 
 ### BUG-019: Rebuilding `If -> Then ; Else` loses commitment semantics
 
-**Status:** Ready
+**Status:** Resolved in v3.13.2
 **Priority:** High
 
 Trealla v3.12.6 changes the semantics of an if-then-else term after the term
@@ -763,10 +776,29 @@ for private source modules; the defect caused a failed timeout branch to enter
 the terminating `Else` branch, so repeated promise polling returned its first
 timeout instead of waiting for the remote answer.
 
-Current workaround: the Trealla port detects the affected promise-polling
-shape and executes its control loop in the statically compiled RPC module.
-Regression test 121 covers reconstructed commitment, and the SWI-to-Trealla
-promise/yield interoperability test covers the original polling query.
+v3.13.2 port status: the promise-polling special case is gone. Regression test
+121 and the SWI-to-Trealla promise/yield interoperability test now exercise the
+ordinary reconstructed control term.
+
+### BUG-020: Repeated replacement of a thread-local list can corrupt its tail
+
+**Status:** Needs minimization
+**Priority:** High
+
+While replacing the actor runtime's old blackboard state on Trealla v3.13.2,
+the deferred mailbox was represented as a `thread_local/1` predicate whose
+single clause was repeatedly retracted and asserted. In the selective-receive
+suite, a ground value such as `[4-low2]` was later read as
+`[4-dummy|dummy]`, and subsequently as a variable. The receive loop then
+failed to make progress and hung.
+
+A small single-threaded retract/assert experiment did not reproduce the
+failure, so the interaction still needs reducing from the private-module,
+recursive selective-receive case before it is ready to file.
+
+Current workaround: mutable per-actor lists and scalar state use v3.13.2's
+per-thread `nb_setval/2` and `nb_current/2` globals. Those facilities have the
+right ownership and update semantics and pass the complete actor suite.
 
 ## Compatibility gaps worth tracking, but not yet bug reports
 

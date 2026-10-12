@@ -327,10 +327,10 @@ enqueue_json(remote_node(_URL, _Reader, Writer), JSON) :-
     Writer ! '$remote_json'(JSON).
 
 remote_writer_start(WS, URL, Owner) :-
-    bb_put('$distribution_owner', Owner),
-    bb_put('$distribution_targets', []),
-    bb_put('$distribution_monitors', []),
-    bb_put('$distribution_io_requests', []),
+    nb_setval('$distribution_owner', Owner),
+    nb_setval('$distribution_targets', []),
+    nb_setval('$distribution_monitors', []),
+    nb_setval('$distribution_io_requests', []),
     send_transport_hello(WS),
     remote_writer_loop(WS, URL).
 
@@ -402,14 +402,14 @@ writer_message('$remote_close', WS, URL, false) :- !,
 writer_message(_, _, _, true).
 
 writer_owner(Owner) :-
-    bb_get('$distribution_owner', Owner).
+    nb_getval('$distribution_owner', Owner).
 
 writer_targets(Targets) :-
-    ( bb_get('$distribution_targets', Targets) -> true ; Targets = [] ).
+    ( nb_current('$distribution_targets', Targets) -> true ; Targets = [] ).
 
 writer_add_target(WirePid, Target, Mode) :-
     writer_targets(Targets),
-    bb_put('$distribution_targets',
+    nb_setval('$distribution_targets',
            [target(WirePid, Target, live, Mode)|Targets]).
 
 writer_prepare_target(explicit, _, _, _, _, _) :- !.
@@ -428,46 +428,46 @@ writer_prepare_handshake(transparent, WirePid, Caller, Target) :-
     receive({ '$remote_spawn_ready'(Target, WirePid) -> true }, []).
 
 writer_monitors(Monitors) :-
-    ( bb_get('$distribution_monitors', Monitors) -> true ; Monitors = [] ).
+    ( nb_current('$distribution_monitors', Monitors) -> true ; Monitors = [] ).
 
 writer_add_monitor(WirePid, Ref, Watcher) :-
     writer_monitors(Monitors),
-    bb_put('$distribution_monitors',
+    nb_setval('$distribution_monitors',
            [monitor(WirePid, Ref, Watcher)|Monitors]).
 
 writer_remove_monitor(Ref) :-
     writer_monitors(Monitors),
     exclude(writer_monitor_ref(Ref), Monitors, Rest),
-    bb_put('$distribution_monitors', Rest).
+    nb_setval('$distribution_monitors', Rest).
 
 writer_monitor_ref(Ref, monitor(_, Ref, _)).
 
 writer_remove_watcher(Watcher) :-
     writer_monitors(Monitors),
     exclude(writer_monitor_watcher(Watcher), Monitors, Rest),
-    bb_put('$distribution_monitors', Rest).
+    nb_setval('$distribution_monitors', Rest).
 
 writer_monitor_watcher(Watcher, monitor(_, _, Watcher)).
 
 writer_io_requests(Requests) :-
-    ( bb_get('$distribution_io_requests', Requests) -> true ; Requests = [] ).
+    ( nb_current('$distribution_io_requests', Requests) -> true ; Requests = [] ).
 
 writer_add_io_request(RequestId, ReplyQueue) :-
     writer_io_requests(Requests),
-    bb_put('$distribution_io_requests',
+    nb_setval('$distribution_io_requests',
            [io_request(RequestId, ReplyQueue)|Requests]).
 
 writer_remove_io_request(RequestId) :-
     writer_io_requests(Requests),
     exclude(writer_io_request_id(RequestId), Requests, Rest),
-    bb_put('$distribution_io_requests', Rest).
+    nb_setval('$distribution_io_requests', Rest).
 
 writer_io_request_id(RequestId, io_request(RequestId, _)).
 
 writer_deliver_io_reply(RequestId, Status) :-
     writer_io_requests(Requests),
     ( select(io_request(RequestId, ReplyQueue), Requests, Rest) ->
-        bb_put('$distribution_io_requests', Rest),
+        nb_setval('$distribution_io_requests', Rest),
         catch(thread_send_message(ReplyQueue, Status), _, true)
     ; true
     ).
@@ -475,7 +475,7 @@ writer_deliver_io_reply(RequestId, Status) :-
 writer_fail_io_requests(Reason) :-
     writer_io_requests(Requests),
     fail_io_requests(Requests, Reason),
-    bb_put('$distribution_io_requests', []).
+    nb_setval('$distribution_io_requests', []).
 
 fail_io_requests([], _).
 fail_io_requests([io_request(_, ReplyQueue)|Requests], Reason) :-
@@ -495,7 +495,7 @@ writer_deliver_target_event(transparent, WirePid, _,
                             down(Pid, _RemoteRef, Reason)) :- !,
     writer_monitors(Monitors),
     take_wire_monitors(Monitors, WirePid, Watchers, Rest),
-    bb_put('$distribution_monitors', Rest),
+    nb_setval('$distribution_monitors', Rest),
     deliver_wire_downs(Watchers, Pid, Reason),
     cleanup_transparent_pid(Pid).
 writer_deliver_target_event(transparent, _, Target, Event) :-
@@ -521,7 +521,7 @@ writer_note_terminal(Type, WirePid) :-
     ( Type == down ; Type == halted ), !,
     writer_targets(Targets),
     mark_writer_target_dead(Targets, WirePid, Marked),
-    bb_put('$distribution_targets', Marked).
+    nb_setval('$distribution_targets', Marked).
 writer_note_terminal(_, _).
 
 mark_writer_target_dead([], _, []).
@@ -534,8 +534,8 @@ mark_writer_target_dead([Target|Targets], WirePid, [Target|Marked]) :-
 writer_notify_connection_closed(URL) :-
     writer_targets(Targets),
     notify_live_targets(Targets, URL),
-    bb_put('$distribution_targets', []),
-    bb_put('$distribution_monitors', []),
+    nb_setval('$distribution_targets', []),
+    nb_setval('$distribution_monitors', []),
     writer_fail_io_requests(connection_closed),
     self(Writer),
     manager_forget_endpoints_if_running(Writer),
@@ -921,7 +921,7 @@ wait_distribution_manager(Attempts) :-
     ).
 
 distribution_manager_start :-
-    bb_put('$distribution_endpoints', []),
+    nb_setval('$distribution_endpoints', []),
     distribution_manager_loop([], []).
 
 distribution_manager_loop(Nodes, Routes) :-
@@ -973,12 +973,12 @@ manager_message('$endpoint_writer_forget'(Writer), Nodes, Routes,
                 Nodes, Routes) :- !,
     manager_endpoints(Endpoints),
     remove_writer_endpoints(Endpoints, Writer, RestEndpoints),
-    bb_put('$distribution_endpoints', RestEndpoints).
+    nb_setval('$distribution_endpoints', RestEndpoints).
 manager_message('$target_stopped'(Target), Nodes, Routes, Nodes, Routes) :- !,
     notify_node_target_stopped(Nodes, Target),
     manager_endpoints(Endpoints),
     exclude(manager_endpoint_target(Target), Endpoints, RestEndpoints),
-    bb_put('$distribution_endpoints', RestEndpoints).
+    nb_setval('$distribution_endpoints', RestEndpoints).
 manager_message('$endpoint_request'(Writer, Target, Caller),
                 Nodes, Routes, Nodes, Routes) :- !,
     manager_endpoints(Endpoints),
@@ -987,7 +987,7 @@ manager_message('$endpoint_request'(Writer, Target, Caller),
     ; fresh_endpoint_id(Endpoints, Id),
       NextEndpoints = [endpoint(Writer, Id, Target)|Endpoints]
     ),
-    bb_put('$distribution_endpoints', NextEndpoints),
+    nb_setval('$distribution_endpoints', NextEndpoints),
     manager_identity(Manager),
     Caller ! '$endpoint_reply'(Manager, Writer, Target, Id).
 manager_message('$endpoint_deliver'(Writer, Id, Message),
@@ -1028,7 +1028,7 @@ remove_writer_routes([Route|Routes], Writer, Rest) :-
     remove_writer_routes(Routes, Writer, Tail).
 
 manager_endpoints(Endpoints) :-
-    ( bb_get('$distribution_endpoints', Endpoints) -> true ; Endpoints = [] ).
+    ( nb_current('$distribution_endpoints', Endpoints) -> true ; Endpoints = [] ).
 
 remove_writer_endpoints([], _, []).
 remove_writer_endpoints([endpoint(EndpointWriter, Id, Target)|Endpoints],

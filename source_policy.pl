@@ -26,15 +26,14 @@ default with an explicit address/CIDR allowlist for private or pinned sources.
 Bodies are read incrementally under the node's source-size ceiling and a
 separate wall-clock deadline.
 
-Trealla's TLS client does not currently verify host names.  HTTPS source
-origins are consequently rejected unless the operator explicitly enables
-`allow_unverified_https(true)`.  This opt-in does not turn unverified TLS
-into authenticated TLS; it only records that the deployment accepts that
-runtime limitation.
+Trealla v3.13.2 verifies TLS certificates and host names by default. The
+connection is pinned to an address that passed policy while `server_name/1`
+retains the URI host for SNI and certificate verification. The explicit
+`allow_unverified_https(true)` escape hatch disables verification.
 */
 
 :- use_module(library(error)).
-:- use_module(library(socket), [tcp_host_to_address/2]).
+:- use_module(library(socket), [host_address/3]).
 :- use_module(library(sockets)).
 :- use_module(resource_policy).
 :- use_module(ip_policy, [ip_matches/2,peer_ip/2,valid_ip_pattern/1]).
@@ -184,13 +183,13 @@ fetch_source_uri_(URI, Origins, Redirects, AllowUnverifiedHTTPS,
                   AddressPolicy, Bytes) :-
     parse_http_uri(URI, Scheme, Host, Port, Path),
     require_allowed_origin(URI, Scheme, Host, Port, Origins),
-    resolve_source_host(URI, Host, Address),
-    require_source_address(URI, Address, AddressPolicy),
+    resolve_source_addresses(URI, Host, Addresses),
+    require_source_addresses(URI, Addresses, AddressPolicy),
+    Addresses = [Address|_],
     source_connection_route(URI, Scheme, Host, Port, Address,
                             ConnectScheme, ConnectAddress, ConnectPort),
-    require_supported_tls(URI, ConnectScheme, AllowUnverifiedHTTPS),
     open_source_connection(ConnectScheme, Host, ConnectAddress, ConnectPort,
-                           Stream),
+                           AllowUnverifiedHTTPS, Stream),
     catch(( send_source_request(Stream, Host, Port, Path),
             read_status(Stream, Status),
             read_headers(Stream, Headers),
@@ -274,19 +273,27 @@ require_allowed_origin(URI, Scheme, Host, Port, Origins) :-
                   source_policy:fetch_source_uri/2))
     ).
 
-require_supported_tls(_, http, _) :- !.
-require_supported_tls(_, https, true) :- !.
-require_supported_tls(URI, https, false) :-
-    throw(error(permission_error(load, unverified_https_source, URI),
-                context(source_policy:fetch_source_uri/2,
-                        'Trealla TLS lacks host-name verification; opt in explicitly or use a verified fetch proxy'))).
-
 resolve_source_host(URI, Host, Address) :-
-    ( catch(tcp_host_to_address(Host, Address0), _, fail)
-    -> peer_ip(Address0, Address)
+    resolve_source_addresses(URI, Host, [Address|_]).
+
+resolve_source_addresses(URI, Host, Addresses) :-
+    ( catch(findall(Address,
+                    ( host_address(Host, Address0, []),
+                      peer_ip(Address0, Address) ),
+                    Addresses0), _, fail)
+    -> true
+    ; Addresses0 = []
+    ),
+    sort(Addresses0, Addresses),
+    ( Addresses = [_|_] -> true
     ; throw(error(existence_error(source_host, Host),
                   context(source_policy:fetch_source_uri/2, URI)))
     ).
+
+require_source_addresses(_, [], _).
+require_source_addresses(URI, [Address|Addresses], Policy) :-
+    require_source_address(URI, Address, Policy),
+    require_source_addresses(URI, Addresses, Policy).
 
 require_source_address(URI, Address, Policy) :-
     ( source_address_allowed(Address, Policy) -> true
@@ -461,10 +468,15 @@ default_port(http, 80). default_port(https, 443).
                  *          HTTP CLIENT         *
                  *******************************/
 
-open_source_connection(http, _, Address, Port, Stream) :-
+open_source_connection(http, _, Address, Port, _, Stream) :-
     socket_client_open(Address:Port, Stream, [type(binary)]).
-open_source_connection(https, _, Address, Port, Stream) :-
-    socket_client_open(Address:Port, Stream, [ssl(true),type(binary)]).
+open_source_connection(https, Host, Address, Port, AllowUnverified, Stream) :-
+    tls_verification_options(AllowUnverified, VerifyOptions),
+    append([ssl(true),server_name(Host),type(binary)], VerifyOptions, Options),
+    socket_client_open(Address:Port, Stream, Options).
+
+tls_verification_options(false, []).
+tls_verification_options(true, [verify(false)]).
 
 send_source_request(Stream, Host, Port, Path) :-
     write_http(Stream, 'GET ~w HTTP/1.1\r\n', [Path]),

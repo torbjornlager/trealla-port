@@ -7,6 +7,8 @@
          reset_resource_policy/0,
          policy_time_limit/2,
          policy_idle_limit/2,
+         actor_thread_options/2,
+         call_with_policy_inference_limit/1,
          effective_time_limit/2,
          effective_idle_limit/2,
          effective_solution_limit/2,
@@ -21,22 +23,20 @@
 
 /** <module> Resource governance for a public Trealla node
 
-This module owns the resource ceilings that Trealla can currently enforce
-reliably: execution wall time, PTCP idle time, live actor count, result page
-size, and textual request/source/WebSocket sizes.  The policy is process-wide,
-matching the port's current single-node-per-process runtime state.
-
-Trealla v3.12.6 has neither `call_with_inference_limit/3` nor a supported
-`stack_limit/1` thread option.  Those SWI ceilings therefore remain deployment
-and upstream-runtime concerns; they are not silently approximated here. Its
-public time-limit wrapper also commits to one solution, so pageable calls use
-the reusable internal alarm for each active computation slice and cancel it
-while waiting for the next page command.
+This module owns execution wall-time, inference, per-actor stack, PTCP idle,
+live-actor, result-page, and textual request/source/WebSocket ceilings. The
+policy is process-wide, matching the port's single-node-per-process runtime.
+Pageable calls use Trealla's inference limiter around the suspended query and
+the reusable alarm for each active computation slice.
 */
 
 :- use_module(library(error)).
 
 :- dynamic active_resource_policy/1.
+:- dynamic active_inference_limit/1.
+:- dynamic active_stack_limit/1.
+
+:- meta_predicate(call_with_policy_inference_limit(0)).
 
 :- multifile actors:hook_admit_spawn/2.
 
@@ -53,7 +53,11 @@ default_resource_policy(
 reset_resource_policy :-
     default_resource_policy(Policy),
     retractall(active_resource_policy(_)),
-    assertz(active_resource_policy(Policy)).
+    assertz(active_resource_policy(Policy)),
+    retractall(active_inference_limit(_)),
+    assertz(active_inference_limit(unlimited)),
+    retractall(active_stack_limit(_)),
+    assertz(active_stack_limit(unlimited)).
 
 current_resource_policy(Policy) :-
     active_resource_policy(Policy),
@@ -71,6 +75,8 @@ configure_resource_policy(Options, Policy) :-
     option(max_term_text_bytes(Term0), Options, DTerm),
     option(max_source_text_bytes(Source0), Options, DSource),
     option(max_ws_frame_bytes(Frame0), Options, DFrame),
+    option(inference_limit(Inferences0), Options, unlimited),
+    option(stack_limit(Stack0), Options, unlimited),
     normalize_seconds(time_limit, Time0, Time),
     normalize_seconds(idle_limit, Idle0, Idle),
     normalize_count(max_actors, Actors0, Actors),
@@ -78,9 +84,15 @@ configure_resource_policy(Options, Policy) :-
     normalize_bytes(max_term_text_bytes, Term0, Term),
     normalize_bytes(max_source_text_bytes, Source0, Source),
     normalize_bytes(max_ws_frame_bytes, Frame0, Frame),
+    normalize_count(inference_limit, Inferences0, Inferences),
+    normalize_count(stack_limit, Stack0, Stack),
     Policy = resource_policy(Time,Idle,Actors,Solutions,Term,Source,Frame),
     retractall(active_resource_policy(_)),
-    assertz(active_resource_policy(Policy)).
+    assertz(active_resource_policy(Policy)),
+    retractall(active_inference_limit(_)),
+    assertz(active_inference_limit(Inferences)),
+    retractall(active_stack_limit(_)),
+    assertz(active_stack_limit(Stack)).
 
 normalize_seconds(_, infinite, infinite) :- !.
 normalize_seconds(_Name, Value, Value) :- number(Value), Value > 0, !.
@@ -104,6 +116,22 @@ normalize_bytes(Name, Value, _) :-
 
 policy_time_limit(resource_policy(Time,_,_,_,_,_,_), Time).
 policy_idle_limit(resource_policy(_,Idle,_,_,_,_,_), Idle).
+
+actor_thread_options(Options, ThreadOptions) :-
+    active_stack_limit(Stack),
+    ( Stack == unlimited -> ThreadOptions = Options
+    ; ThreadOptions = [stack_limit(Stack)|Options]
+    ).
+
+call_with_policy_inference_limit(Goal) :-
+    active_inference_limit(Limit),
+    ( Limit == unlimited -> call(Goal)
+    ; call_with_inference_limit(Goal, Limit, Result),
+      ( Result == inference_limit_exceeded
+      -> throw(error(resource_error(inferences), resource_policy))
+      ; true
+      )
+    ).
 
 effective_time_limit(Requested0, Effective) :-
     current_resource_policy(Policy), policy_time_limit(Policy, Owner),

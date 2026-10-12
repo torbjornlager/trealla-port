@@ -112,6 +112,7 @@ waits for their normal cleanup under a bounded timeout.
 
 :- use_module(library(sockets)).
 :- use_module(library(json), [json_chars//1]).
+:- use_module(library(uri), [www_form_encode/2]).
 :- use_module(actors).
 :- use_module(profile_policy).
 :- use_module(auth_policy).
@@ -164,28 +165,10 @@ cache_size(100).
 %     - `+`   -- replaced by a space character.
 %     - other -- passed through unchanged.
 
-url_decode_chars([], []).
-url_decode_chars(['%', H1, H2 | Rest], [C | Decoded]) :- !,
-    hex_val(H1, V1), hex_val(H2, V2),
-    Code is V1 * 16 + V2,
-    char_code(C, Code),
-    url_decode_chars(Rest, Decoded).
-url_decode_chars(['+' | Rest], [' ' | Decoded]) :- !,
-    url_decode_chars(Rest, Decoded).
-url_decode_chars([C | Rest], [C | Decoded]) :-
-    url_decode_chars(Rest, Decoded).
-
-%!  hex_val(+Digit, -Value) is det.
-%
-%   Convert a single hex digit character (0-9, a-f, A-F) to its
-%   integer value 0-15.
-
-hex_val(D, V) :-
-    char_code(D, Code),
-    ( Code >= 0'0, Code =< 0'9 -> V is Code - 0'0
-    ; Code >= 0'a, Code =< 0'f -> V is Code - 0'a + 10
-    ; Code >= 0'A, Code =< 0'F -> V is Code - 0'A + 10
-    ).
+url_decode_chars(EncodedChars, DecodedChars) :-
+    atom_chars(Encoded, EncodedChars),
+    www_form_encode(Decoded, Encoded),
+    atom_chars(Decoded, DecodedChars).
 
 %!  url_decode(+Chars, -Atom) is det.
 %
@@ -421,10 +404,8 @@ node_connection_exit(Key, Stream) :-
     safe_close_stream(Stream),
     unregister_node_connection(Key).
 
-% Older installed library(sockets) releases returned the accepted stream in
-% the Client argument.  The v3.12 runtime already records the actual peer on
-% that stream, so recover it directly and retain the public result as a
-% fallback.  Binding the listener to IPv4 avoids BUG-013's IPv6-family decode.
+% Recover the normalized peer recorded on the accepted stream and retain the
+% public accept result as a compatibility fallback.
 node_connection_peer(Stream, _Reported, Address:Port) :-
     catch('$peer_addr'(Stream, Address, Port), _, fail), !.
 node_connection_peer(_, Reported, Reported).
@@ -561,9 +542,9 @@ begin_node_shutdown(Port, Wake, Connections) :-
                   node_connection(Port, _, Stream, Thread), Connections) )).
 
 wake_node_listener(wake(BindAddress, SSL), Port) :-
-    % Trealla BUG-014: closing a listener from another thread does not wake
-    % its blocked accept. A local connection lets the owner observe the stop
-    % flag and close its own listening stream. Match TLS so accept can finish.
+    % Cross-thread listener close still does not release accept in v3.13.2.
+    % A local connection lets the owner observe the stop flag and close its
+    % own listener. Match TLS so the accept can finish.
     listener_wake_address(BindAddress, Address),
     listener_wake_options(SSL, Options),
     ( catch(socket_client_open(Address:Port, Stream, Options), _, fail)
@@ -1371,12 +1352,12 @@ compute_answer(Goal, Template, Offset, Limit, Answer) :-
 run_goal_producer(Goal, Template) :-
     current_resource_policy(Policy),
     policy_time_limit(Policy, TimeLimit),
-    bb_put('$http_resource_timer', none),
+    set_http_resource_timer(none),
     setup_call_cleanup(
         arm_http_timer(TimeLimit),
         catch(
         (   execution_goal(Goal, ExecutionGoal),
-            call(ExecutionGoal),
+            call_with_policy_inference_limit(ExecutionGoal),
             producer_solution_wait(Template, TimeLimit),
             fail                        % backtrack for next solution
         ;   producer_eos_wait
@@ -1403,14 +1384,17 @@ producer_eos_wait :-
 
 arm_http_timer(TimeLimit) :-
     create_resource_timer(TimeLimit, Timer),
-    bb_put('$http_resource_timer', Timer).
+    set_http_resource_timer(Timer).
 
 disarm_http_timer :-
-    ( bb_get('$http_resource_timer', Timer) -> true ; Timer = none ),
+    ( nb_current('$http_resource_timer', Timer) -> true ; Timer = none ),
     ( Timer == none -> true
     ; disarm_resource_timer(Timer),
-      bb_put('$http_resource_timer', none)
+      set_http_resource_timer(none)
     ).
+
+set_http_resource_timer(Timer) :-
+    nb_setval('$http_resource_timer', Timer).
 
 % Execute a producer while preserving exceptions as a reply to the next
 % outstanding page request.  Public sandbox runtime guards can reject a goal

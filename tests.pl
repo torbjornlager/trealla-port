@@ -34,6 +34,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t10 first_solution/2 -- race between slow and fast goal
   - t113 actors/1 returns a deterministic live-actor snapshot
   - t115 connection-scoped actors/1 hides internal relays and other shells
+  - t124 send/2 is the canonical non-operator message API
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -109,7 +110,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t119 sandboxed remote spawn requires an exact operator allowlist entry
   - t120 `between/3` is available to queries and submitted user programs
 
-## Tests: resource governance (t57-t62)
+## Tests: resource governance (t57-t62, t125-t126)
 
   - t57 node resource options normalize and client limits are clamped
   - t58 term, source, and WebSocket size ceilings reject oversized input
@@ -117,6 +118,8 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t60 the HTTP solution producer reports execution-time exhaustion
   - t61 PTCP execution timeout returns an error and preserves the session
   - t62 PTCP idle timeout reclaims an inactive session normally
+  - t125 native inference ceilings interrupt queries and preserve sessions
+  - t126 native stack ceilings are passed to actor threads
 
 ## Tests: authentication and origin policy (t63-t68)
 
@@ -132,7 +135,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t85 remote source loading is denied by default
   - t86 source origins are normalized and validated exactly
   - t87 relative redirects are resolved without weakening origin checks
-  - t88 unverified HTTPS requires an explicit operator opt-in
+  - t88 HTTPS verifies by default and exposes an explicit unsafe opt-out
   - t93 default source egress admits public addresses and rejects special-use ranges
   - t94 source destinations are resolved once and may be explicitly pinned
 
@@ -207,7 +210,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 run_test_group(actors) :-
     t1, t2, t3, t4, t5, t6, t7,
     t19, t20, t21, t23, t24, t25, t26,
-    t31, t32, t33, t98, t113, t115.
+    t31, t32, t33, t98, t113, t115, t124.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
     t22, t27, t28, t29, t99, t100, t101, t111, t112, t123.
@@ -221,7 +224,7 @@ run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119, t120,
     reset_source_policy.
 run_test_group(resources) :-
-    t57, t58, t59, t60, t61, t62, t110,
+    t57, t58, t59, t60, t61, t62, t110, t125, t126,
     reset_resource_policy.
 run_test_group(auth) :-
     t63, t64, t65, t66, t67, t68,
@@ -1346,7 +1349,8 @@ answer_expert_prompts(Session, N) :-
     answer_expert_prompts(Session, Next).
 
 t111 :-
-    sandbox_policy:portable_format('~~p', '~~p'),
+    format(atom(Rendered), '~p', [-2]),
+    Rendered == '-2',
     GoalText = 'self(Self), Self ! number(-2), receive({ number(N) if N > 0 -> format("Positive number: ~p~n", [N]) ; number(N) if N =< 0 -> format("Non-positive number: ~p~n", [N]) })',
     format(atom(QueryText), '(~w)-([])', [GoalText]),
     read_term_from_atom(QueryText, Goal0-[], [variable_names(Bindings)]),
@@ -1597,6 +1601,12 @@ t120 :-
     ProgramValues == [2,3,4],
     format("120. between/3 is available to sandboxed user code ok~n").
 
+t124 :-
+    self(Me),
+    send(Me, native_send),
+    receive({native_send -> true}),
+    format("124. native send/2 actor API ok~n").
+
 
                 /*******************************
                 *    RESOURCES (t57-t62)       *
@@ -1699,6 +1709,34 @@ t110 :-
     node:compute_answer(member(I,[t110a,t110b]), I, 1, 1,
                         success([t110b], false)),
     format("110. paging suspends execution timers and retains idle limit ok~n").
+
+t125 :-
+    configure_resource_policy(
+        [time_limit(2),idle_limit(2),inference_limit(500)], _),
+    self(Me),
+    toplevel_spawn(Pid, [target(Me),session(true),link(false)]),
+    toplevel_call(Pid, (repeat,fail), []),
+    receive({error(Pid, error(resource_error(inferences), _)) -> true},
+            [timeout(2),on_timeout(fail)]),
+    configure_resource_policy(
+        [time_limit(2),idle_limit(2),inference_limit(unlimited)], _),
+    toplevel_call(Pid, true, [template(ok)]),
+    receive({success(Pid, [ok], false) -> true},
+            [timeout(2),on_timeout(fail)]),
+    exit(Pid, resource_test_done),
+    format("125. native inference ceiling preserves session ok~n").
+
+t126 :-
+    configure_resource_policy([stack_limit(2000000)], _),
+    spawn(stack_burn([]), Pid, [monitor(true),link(false)]),
+    receive({down(Pid, Pid, exception(Error0)) -> true},
+            [timeout(2),on_timeout(fail)]),
+    normalize_resource_exception(Error0,
+                                 error(resource_error(space), resource_policy)),
+    format("126. native actor stack ceiling ok~n").
+
+stack_burn(Acc) :-
+    stack_burn([x|Acc]).
 
 
                 /*******************************
@@ -1930,7 +1968,7 @@ t80 :-
         '248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1'),
     secure_random_bytes(24, Bytes), length(Bytes, 24),
     bytes_hex(Bytes, Hex), atom_length(Hex, 48),
-    format("80. portable SHA-256 and OS CSPRNG ok~n").
+    format("80. portable SHA-256 and native CSPRNG ok~n").
 
 t81 :-
     clear_all_tokens, clear_tokens_file,
@@ -2024,16 +2062,16 @@ t87 :-
 
 t88 :-
     configure_source_policy(
-        [load_uri_allowed_origins(['https://example.com'])], _),
-    caught_source_permission(
-        fetch_source_uri('https://example.com/source.pl', _),
-        unverified_https_source),
+        [load_uri_allowed_origins(['https://example.com'])],
+        source_policy([origin(https,'example.com',443)],10,5,false,public)),
+    source_policy:tls_verification_options(false, []),
     configure_source_policy(
         [load_uri_allowed_origins(['https://example.com']),
          allow_unverified_https(true),source_fetch_timeout(2),
          max_source_redirects(1)],
         source_policy([origin(https,'example.com',443)],2,1,true,public)),
-    format("88. HTTPS source opt-in policy ok~n").
+    source_policy:tls_verification_options(true, [verify(false)]),
+    format("88. HTTPS verification policy ok~n").
 
 t93 :-
     source_address_allowed('8.8.8.8', public),

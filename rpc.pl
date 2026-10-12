@@ -50,21 +50,18 @@ is fetched automatically on backtracking.
   - The request URL is assembled from the base URI and handed directly to
     the current `http_open/3`. This avoids Trealla's removed private
     `'$parse_url'/2` predicate.
-  - `http_open/3` is wrapped in `once/1`: the current implementation leaves
-    internal socket-opening choicepoints that must not be revisited while
-    rpc/3 yields remote answers on backtracking.
   - The response body is read with getline/2, which reads one line.
     This works because the node sends the entire answer on a single
     line ending with `.\n`.  Multi-line terms in the response would be
     truncated.
-  - Goal and template atoms are URL-percent-encoded before embedding in
-    the query string.
+  - Goal and template atoms are encoded with Trealla's `www_form_encode/2`.
 
 @author Torbjorn Lager
 */
 
 
 :- use_module(library(http)).
+:- use_module(library(uri), [www_form_encode/2]).
 :- use_module(actors, [self/1,make_ref/1]).
 :- use_module(isolation, [actor_source_module/2,load_options_text/3]).
 
@@ -83,50 +80,11 @@ is fetched automatically on backtracking.
 
 %!  url_encode(+Plain, -Encoded) is det.
 %
-%   Percent-encode an atom for safe embedding as a URL query-parameter
-%   value.  Unreserved characters (A-Z, a-z, 0-9, `-`, `_`, `.`, `~`)
-%   are passed through unchanged; all other characters are replaced by
-%   `%XX` where XX is the uppercase hexadecimal byte value.
+%   Encode an atom as an UTF-8 HTML form/query value using the native URI
+%   library.
 
 url_encode(Plain, Encoded) :-
-    atom_chars(Plain, Chars),
-    maplist(encode_char, Chars, Parts),
-    atomic_list_concat(Parts, Encoded).
-
-%!  encode_char(+Char, -Encoded) is det.
-%
-%   Encode a single character.  Unreserved characters pass through;
-%   everything else is encoded as `%XX`.
-
-encode_char(C, E) :-
-    char_code(C, Code),
-    (   unreserved_code(Code)
-    ->  E = C
-    ;   Hi is Code >> 4,  Lo is Code /\ 0xf,
-        hex_digit(Hi, D1), hex_digit(Lo, D2),
-        atom_chars(E, ['%', D1, D2])
-    ).
-
-%!  unreserved_code(+Code) is semidet.
-%
-%   True if Code is an unreserved URL character (RFC 3986):
-%   A-Z (65-90), a-z (97-122), 0-9 (48-57), `-` (45), `_` (95),
-%   `.` (46), `~` (126).
-
-unreserved_code(C) :-
-    ( C >= 65, C =< 90  -> true   % A-Z
-    ; C >= 97, C =< 122 -> true   % a-z
-    ; C >= 48, C =< 57  -> true   % 0-9
-    ; memberchk(C, [45, 95, 46, 126])  % - _ . ~
-    ).
-
-%!  hex_digit(+N, -Digit) is det.
-%
-%   Convert an integer 0-15 to its uppercase hexadecimal digit character.
-
-hex_digit(N, D) :-
-    ( N < 10 -> Ch is N + 48 ; Ch is N - 10 + 65 ),
-    char_code(D, Ch).
+    www_form_encode(Plain, Encoded).
 
 
                 /*******************************
@@ -172,9 +130,8 @@ base_path_prefix(BasePath, Prefix) :-
 %       paging).
 %     - timeout(+Seconds), request_header(+Name=Value), and the remaining
 %       Trealla `http_open/3` client options are forwarded to the transport.
-%       The HTTP library parses `https://` when Trealla is built with TLS;
-%       hostname verification remains subject to BUG-005 in
-%       `UPSTREAM_REPORTS.md`.
+%       The HTTP library parses `https://` when Trealla is built with TLS and
+%       v3.13.2 verifies the certificate chain and host name by default.
 %     - src_text(+Text), src_list(+Terms), src_predicates(+PIs), src_uri(+URI)
 %       Materialize application code locally and send it as the request's
 %       src_text payload. src_uri fetching remains subject to source_policy.
@@ -225,7 +182,7 @@ rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options,
            [RootURI, GoalEnc, TemplEnc, Offset, Limit]),
     rpc_source_url(URL0, LoadText, URL),
     rpc_http_options(Options, HTTPOptions),
-    once(http_open(URL, S, HTTPOptions)),
+    http_open(URL, S, HTTPOptions),
     setup_call_cleanup(true, getline(S, BodyChars), close(S)),
     atom_chars(BodyAtom, BodyChars),
     read_term_from_atom(BodyAtom, Answer, []),
@@ -344,7 +301,7 @@ rpc_fetch_answer(BaseURI, GoalAtom, TemplateAtom, Offset, Limit, LoadText,
            '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog',
            [RootURI, GoalEnc, TemplateEnc, Offset, Limit]),
     rpc_source_url(URL0, LoadText, URL),
-    once(http_open(URL, Stream, HTTPOptions)),
+    http_open(URL, Stream, HTTPOptions),
     setup_call_cleanup(true, getline(Stream, BodyChars), close(Stream)),
     atom_chars(BodyAtom, BodyChars),
     read_term_from_atom(BodyAtom, Answer, []).
@@ -396,28 +353,3 @@ yield_wait(Timeout, Queue, Message) :-
         Message = Message0
     ; Message = '$promise_timeout'
     ).
-
-% Trealla does not propagate bindings reliably when yield/3 is nested in a
-% dynamically reconstructed private-module control term. Keep this standard
-% promise polling idiom in one compiled predicate so timeout bindings are
-% local to an iteration and the eventual answer reaches the caller.
-promise_poll(URI, RemoteGoal, Reference, Answer, Options0, TimeoutValue,
-             Module, TimeoutGoal) :-
-    promise_poll_options(Options0, Answer, TimeoutValue, Options),
-    promise(URI, RemoteGoal, Reference),
-    repeat,
-    yield(Reference, PollAnswer, Options),
-    ( var(PollAnswer) ->
-        isolation:run_actor_query(Module, TimeoutGoal)
-    ; Answer = PollAnswer,
-      !
-    ).
-
-promise_poll_options([], _, _, []).
-promise_poll_options([on_timeout(Answer = TimeoutValue)|Options0],
-                     Answer, TimeoutValue,
-                     [on_timeout(true)|Options]) :- !,
-    promise_poll_options(Options0, Answer, TimeoutValue, Options).
-promise_poll_options([Option|Options0], Answer, TimeoutValue,
-                     [Option|Options]) :-
-    promise_poll_options(Options0, Answer, TimeoutValue, Options).

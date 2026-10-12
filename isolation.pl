@@ -23,10 +23,9 @@ therefore invisible to other actors.  `src_predicates/1` is materialised in
 the spawning process, which also makes it portable over the distribution
 protocol.
 
-Trealla currently exposes module creation, but not module destruction, to
-Prolog.  Cleanup therefore retracts every dynamically installed source
-predicate and deletes the short-lived bootstrap file.  The now-empty module
-record remains in Trealla's module table until process exit.
+Trealla v3.13.2 exposes `destroy_module/1`. Cleanup removes the actor's
+temporary module after its bootstrap and source predicates are no longer in
+use, allowing the runtime to reuse the module record.
 
 `src_uri/1` is resolved to inline source by the node's controlled source
 policy before actor creation.
@@ -102,8 +101,11 @@ read_stream_bytes(Stream, Bytes) :-
 prepare_actor(Pid, _GoalModule, Options, Module) :-
     fresh_namespace(Module, File),
     catch(
-        ( write_bootstrap(File, Module),
-          load_files(File, []),
+        % in_temporary_module/3 cannot span the actor's asynchronous lifetime;
+        % use the constructor it wraps and the public destroy_module/1 cleanup.
+        ( '$create_module'(Module),
+          write_bootstrap(File, Module),
+          call_in_module(Module, load_files(File, [])),
           delete_file(File),
           assertz(actor_namespace(Pid, Module)),
           source_options(Options, Sources),
@@ -120,6 +122,7 @@ prepare_actor(Pid, _GoalModule, Options, Module) :-
         Error,
         ( catch(delete_file(File), _, true),
           catch(call_in_module(Module, '$actor_cleanup'), _, true),
+          catch(destroy_module(Module), _, true),
           retractall(actor_namespace(Pid, Module)),
           retractall(actor_source_namespace(Pid, Module)),
           throw(Error)
@@ -135,7 +138,8 @@ run_actor_goal(Module, Goal0, Options) :-
 cleanup_actor(Pid) :-
     retractall(actor_source_namespace(Pid, _)),
     forall(retract(actor_namespace(Pid, Module)),
-           catch(call_in_module(Module, '$actor_cleanup'), _, true)).
+           ( catch(call_in_module(Module, '$actor_cleanup'), _, true),
+             destroy_module(Module) )).
 
 actor_module(Pid, Module) :-
     actor_namespace(Pid, Module).
@@ -167,16 +171,6 @@ execution_goal(Goal, Qualified) :-
     Goal = yield(Reference, Answer, Options),
     !,
     Qualified = rpc:yield(Reference, Answer, Options).
-execution_goal(Goal, Qualified) :-
-    Goal = (promise(URI, RemoteGoal, Reference),
-            repeat,
-            yield(Reference, Answer, Options),
-            ((Answer == Timeout) -> Then ; !)),
-    actors:self(Pid),
-    actor_source_namespace(Pid, Module),
-    !,
-    Qualified = rpc:promise_poll(URI, RemoteGoal, Reference, Answer,
-                                 Options, Timeout, Module, Then).
 execution_goal(Goal, Qualified) :-
     actors:self(Pid),
     actor_source_namespace(Pid, Module),
@@ -432,44 +426,34 @@ predicates_to_terms(Module, PIs, Terms) :-
     must_be(list, PIs),
     maplist(valid_source_predicate_indicator, PIs),
     actors:make_ref(Id),
-    format(atom(HelperName), '$isolation_listing_~w', [Id]),
-    HelperHead =.. [HelperName, PI],
-    HelperClause = (HelperHead :- listing(PI)),
-    setup_call_cleanup(
-        call_in_module(Module, assertz(HelperClause)),
-        with_mutex('$isolation_listing',
-                   listed_predicate_terms(Module, HelperName, Id,
-                                          PIs, Terms)),
-        ( CleanupHead =.. [HelperName, _],
-          call_in_module(Module, retractall(CleanupHead))
-        )).
+    with_mutex('$isolation_listing',
+               listed_predicate_terms(Module, Id, PIs, Terms)).
 
 valid_source_predicate_indicator(PI) :-
     source_predicate_indicator(PI, _, _).
 
-listed_predicate_terms(Module, HelperName, Id, PIs, Terms) :-
+listed_predicate_terms(Module, Id, PIs, Terms) :-
     fresh_bootstrap_file(Id, File),
     setup_call_cleanup(
         true,
-        ( write_predicate_listings(File, Module, HelperName, PIs),
+        ( write_predicate_listings(File, Module, PIs),
           read_source_terms(File, Terms)
         ),
         catch(delete_file(File), _, true)).
 
-write_predicate_listings(File, Module, HelperName, PIs) :-
+write_predicate_listings(File, Module, PIs) :-
     setup_call_cleanup(
         open(File, write, Out),
         setup_call_cleanup(
             ( current_output(Previous), set_output(Out) ),
-            write_predicate_listings_(PIs, Module, HelperName),
+            write_predicate_listings_(PIs, Module),
             set_output(Previous)),
         close(Out)).
 
-write_predicate_listings_([], _, _).
-write_predicate_listings_([PI|PIs], Module, HelperName) :-
-    Call =.. [HelperName, PI],
-    call_in_module(Module, Call),
-    write_predicate_listings_(PIs, Module, HelperName).
+write_predicate_listings_([], _).
+write_predicate_listings_([PI|PIs], Module) :-
+    listing(Module:PI),
+    write_predicate_listings_(PIs, Module).
 
 read_source_terms(File, Terms) :-
     setup_call_cleanup(
@@ -524,7 +508,6 @@ write_bootstrap(File, Module) :-
 write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
                  SandboxFile, RpcFile) :-
     format(Out, '%% SPDX-License-Identifier: MIT~n', []),
-    format(Out, ':- module(~q, [\'$actor_load\'/1, \'$actor_load_shared\'/1, \'$actor_call\'/1, \'$actor_copy_predicates\'/2, \'$actor_cleanup\'/0]).~n', [Module]),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
     format(Out, ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
     format(Out, ':- use_module(~q, [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,yield/2,yield/3]).~n', [RpcFile]),

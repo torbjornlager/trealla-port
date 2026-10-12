@@ -13,6 +13,7 @@
          whereis/2,              % +Name, -Pid
          exit/1,                 % +Reason
          exit/2,                 % +Pid, +Reason
+         send/2,                 % +Pid, +Message
          (!)/2,                  % +Pid, +Message
          input/2,                % +Prompt, -Answer
          input/3,                % +Prompt, -Answer, +Options
@@ -90,8 +91,9 @@ goal choicepoint after optionally changing the page limit.
 
   - call_cleanup/2, offset/2 and nb_setarg/3 are Trealla built-ins.
   - Mutable `count/1` and `target/1` cells are constructed inside the same
-    catch frame as goal execution. Page values use thread-local blackboard
-    storage because Trealla's nb_setarg/3 accepts integer values only.
+    catch frame as goal execution. Page values use native per-thread
+    non-backtrackable state because Trealla's nb_setarg/3 accepts integer
+    values only.
 
 @author Torbjorn Lager
 */
@@ -184,8 +186,7 @@ session(Pid, Target, Continue, TimeLimit, IdleLimit) :-
     % Input belongs to the PTCP client, which can differ from an inherited
     % browser terminal for nested toplevels. Ordinary output keeps using the
     % inherited terminal target.
-    format(atom(InputTargetKey), '$actor_input_target_~w', [Pid]),
-    bb_put(InputTargetKey, Target),
+    actors:set_input_target(Target),
     catch(session_running(Pid, Target, Continue, TimeLimit, IdleLimit),
           '$resource_idle',
           true).
@@ -238,8 +239,8 @@ receive_with_idle_limit(Clauses, IdleLimit) :-
 run_call(Pid, Goal, Template, Offset, Limit0, Target1,
          TimeLimit, IdleLimit) :-
     catch(
-        ( % Explicit construction avoids Trealla v3.12.6 retaining an argument
-          % from a compound-literal cell used by an earlier actor thread.
+        ( % Compound-literal cells still retain cross-thread state in v3.13.2;
+          % explicit construction is covered by the paging regression suite.
           functor(PageCount, count, 1),
           arg(1, PageCount, Limit0),
           functor(Target, target, 1),
@@ -270,17 +271,11 @@ disarm_call_timer :-
       resource_timer_put(none)
     ).
 
-resource_timer_key(Key) :-
-    self(Pid),
-    format(atom(Key), '$ptcp_resource_timer_~w', [Pid]).
-
 resource_timer_put(Timer) :-
-    resource_timer_key(Key),
-    bb_put(Key, Timer).
+    nb_setval('$ptcp_resource_timer', Timer).
 
 resource_timer_get(Timer) :-
-    resource_timer_key(Key),
-    bb_get(Key, Timer).
+    nb_current('$ptcp_resource_timer', Timer).
 
 handle_error(_Pid, _Target, _Orig, '$abort_goal') :- !,
     throw('$abort_goal').
@@ -304,7 +299,8 @@ handle_error(Pid, Target, Orig, Error) :-
 
 drive(Pid, Goal, Template, Offset, PageCount, PageState, Target,
       TimeLimit, IdleLimit) :-
-    ( call_cleanup(offset(Offset, Goal), Det = true),
+    ( call_cleanup(call_with_policy_inference_limit(offset(Offset, Goal)),
+                   Det = true),
       drive_solution(Pid, Template, Det, PageCount, PageState, Target,
                      TimeLimit, IdleLimit)
     ; drive_exhausted(Pid, PageState, Target)
@@ -354,22 +350,11 @@ clear_page(PageState) :-
     page_values_put([]),
     nb_setarg(1, PageState, 0).
 
-% Trealla's blackboard is process-wide, despite bb_* values often appearing
-% thread-local in simple tests. A shell and a nested toplevel can therefore
-% compute pages concurrently and overwrite a fixed key. Key the accumulator
-% by logical actor PID so a child's rows can never leak into its caller's
-% result page.
-page_values_key(Key) :-
-    self(Pid),
-    format(atom(Key), '$ptcp_page_values_~w', [Pid]).
-
 page_values_put(Values) :-
-    page_values_key(Key),
-    bb_put(Key, Values).
+    nb_setval('$ptcp_page_values', Values).
 
 page_values_get(Values) :-
-    page_values_key(Key),
-    bb_get(Key, Values).
+    nb_current('$ptcp_page_values', Values).
 
 
 %!  page(+PageCount, +PageState, +Target, +IdleLimit) is semidet.
