@@ -254,6 +254,19 @@ actor_predicate(toplevel_halt, 2).
 actor_predicate(parallel, 1).
 actor_predicate(first_solution, 2).
 actor_predicate(first_solution, 3).
+actor_predicate(server_spawn, 3).
+actor_predicate(server_spawn, 4).
+actor_predicate(server_request, 3).
+actor_predicate(server_request, 4).
+actor_predicate(server_promise, 3).
+actor_predicate(server_promise, 4).
+actor_predicate(server_yield, 2).
+actor_predicate(server_yield, 3).
+actor_predicate(server_yield, 4).
+actor_predicate(server_upgrade, 2).
+actor_predicate(server_upgrade, 3).
+actor_predicate(server_halt, 2).
+actor_predicate(server_stop, 2).
 
 isotope_goal(Goal) :-
     functor(Goal, Name, Arity),

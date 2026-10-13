@@ -57,6 +57,9 @@ rpc_library_file(RpcFile) :-
 parallel_library_file(ParallelFile) :-
     absolute_file_name('parallel.pl', ParallelFile, []).
 
+server_actor_library_file(ServerActorFile) :-
+    absolute_file_name('server_actor.pl', ServerActorFile, []).
+
 
                 /*******************************
                 *       PUBLIC OPERATIONS      *
@@ -243,6 +246,32 @@ actor_query_goal(_, yield(Reference, Answer),
                  rpc:yield(Reference, Answer)) :- !.
 actor_query_goal(_, yield(Reference, Answer, Options),
                  rpc:yield(Reference, Answer, Options)) :- !.
+actor_query_goal(Module, server_spawn(Callback, State, Pid),
+                 server_actor:server_spawn(Module:Callback, State, Pid)) :- !.
+actor_query_goal(Module, server_spawn(Callback, State, Pid, Options),
+                 server_actor:server_spawn(Module:Callback, State, Pid, Options)) :- !.
+actor_query_goal(_, server_request(To, Request, Response),
+                 server_actor:server_request(To, Request, Response)) :- !.
+actor_query_goal(_, server_request(To, Request, Response, Options),
+                 server_actor:server_request(To, Request, Response, Options)) :- !.
+actor_query_goal(_, server_promise(To, Request, Ref),
+                 server_actor:server_promise(To, Request, Ref)) :- !.
+actor_query_goal(_, server_promise(To, Request, Ref, MonitorRef),
+                 server_actor:server_promise(To, Request, Ref, MonitorRef)) :- !.
+actor_query_goal(_, server_yield(Ref, Response),
+                 server_actor:server_yield(Ref, Response)) :- !.
+actor_query_goal(_, server_yield(Ref, Response, Options),
+                 server_actor:server_yield(Ref, Response, Options)) :- !.
+actor_query_goal(_, server_yield(Ref, MonitorRef, Response, Options),
+                 server_actor:server_yield(Ref, MonitorRef, Response, Options)) :- !.
+actor_query_goal(Module, server_upgrade(To, Callback),
+                 server_actor:server_upgrade(To, Module:Callback)) :- !.
+actor_query_goal(Module, server_upgrade(To, Callback, Options),
+                 server_actor:server_upgrade(To, Module:Callback, Options)) :- !.
+actor_query_goal(_, server_halt(To, Reply),
+                 server_actor:server_halt(To, Reply)) :- !.
+actor_query_goal(_, server_stop(To, Reply),
+                 server_actor:server_stop(To, Reply)) :- !.
 actor_query_goal(_, Qualified:Goal, Qualified:Goal) :-
     atom(Qualified),
     !.
@@ -503,18 +532,20 @@ write_bootstrap(File, Module) :-
     sandbox_library_file(SandboxFile),
     rpc_library_file(RpcFile),
     parallel_library_file(ParallelFile),
+    server_actor_library_file(ServerActorFile),
     setup_call_cleanup(
         open(File, write, Out),
         write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
-                         SandboxFile, RpcFile, ParallelFile),
+                         SandboxFile, RpcFile, ParallelFile, ServerActorFile),
         close(Out)).
 
 write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
-                 SandboxFile, RpcFile, ParallelFile) :-
+                 SandboxFile, RpcFile, ParallelFile, ServerActorFile) :-
     format(Out, '%% SPDX-License-Identifier: MIT~n', []),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
     format(Out, ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
     format(Out, ':- use_module(~q, [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,yield/2,yield/3]).~n', [RpcFile]),
+    format(Out, ':- use_module(~q, [server_spawn/3,server_spawn/4,server_request/3,server_request/4,server_promise/3,server_promise/4,server_yield/2,server_yield/3,server_yield/4,server_upgrade/2,server_upgrade/3,server_halt/2,server_stop/2]).~n', [ServerActorFile]),
     format(Out, ':- use_module(~q, []).~n', [ParallelFile]),
     format(Out, 'parallel(Goals) :- parallel:parallel_in(~q,Goals).~n', [Module]),
     format(Out, 'first_solution(Solution,Goals) :- parallel:first_solution_in(~q,Solution,Goals,[on_fail(continue),on_error(stop)]).~n', [Module]),
@@ -615,6 +646,19 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_call\'(yield(Reference,Answer)) :- !, rpc:yield(Reference,Answer).~n', []),
     format(Out, '\'$actor_call\'(yield(Reference,Answer,Options)) :- !, rpc:yield(Reference,Answer,Options).~n', []),
     format(Out, '\'$actor_call\'(promise_cleanup(Reference)) :- !, rpc:promise_cleanup(Reference).~n', []),
+    format(Out, '\'$actor_call\'(server_spawn(Callback,State,Pid)) :- !, server_actor:server_spawn(~q:Callback,State,Pid).~n', [Module]),
+    format(Out, '\'$actor_call\'(server_spawn(Callback,State,Pid,Options)) :- !, server_actor:server_spawn(~q:Callback,State,Pid,Options).~n', [Module]),
+    format(Out, '\'$actor_call\'(server_request(To,Request,Response)) :- !, server_actor:server_request(To,Request,Response).~n', []),
+    format(Out, '\'$actor_call\'(server_request(To,Request,Response,Options)) :- !, server_actor:server_request(To,Request,Response,Options).~n', []),
+    format(Out, '\'$actor_call\'(server_promise(To,Request,Ref)) :- !, server_actor:server_promise(To,Request,Ref).~n', []),
+    format(Out, '\'$actor_call\'(server_promise(To,Request,Ref,MonitorRef)) :- !, server_actor:server_promise(To,Request,Ref,MonitorRef).~n', []),
+    format(Out, '\'$actor_call\'(server_yield(Ref,Response)) :- !, server_actor:server_yield(Ref,Response).~n', []),
+    format(Out, '\'$actor_call\'(server_yield(Ref,Response,Options)) :- !, server_actor:server_yield(Ref,Response,Options).~n', []),
+    format(Out, '\'$actor_call\'(server_yield(Ref,MonitorRef,Response,Options)) :- !, server_actor:server_yield(Ref,MonitorRef,Response,Options).~n', []),
+    format(Out, '\'$actor_call\'(server_upgrade(To,Callback)) :- !, server_actor:server_upgrade(To,~q:Callback).~n', [Module]),
+    format(Out, '\'$actor_call\'(server_upgrade(To,Callback,Options)) :- !, server_actor:server_upgrade(To,~q:Callback,Options).~n', [Module]),
+    format(Out, '\'$actor_call\'(server_halt(To,Reply)) :- !, server_actor:server_halt(To,Reply).~n', []),
+    format(Out, '\'$actor_call\'(server_stop(To,Reply)) :- !, server_actor:server_stop(To,Reply).~n', []),
     format(Out, '\'$actor_call\'(sandbox_policy:sandbox_spawn(M,P,C,A,Goal,Pid,Options)) :- !, \'$actor_sandbox_spawn\'(M,P,C,A,Goal,Pid,Options).~n', []),
     format(Out, '\'$actor_call\'(receive({})) :- !, actors:receive_empty.~n', []),
     format(Out, '\'$actor_call\'(parallel(Goals)) :- !, parallel:parallel_in(~q,Goals).~n', [Module]),

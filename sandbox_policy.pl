@@ -485,6 +485,13 @@ reserved_source_name(term_expansion).
 reserved_source_name(goal_expansion).
 reserved_source_name(parallel).
 reserved_source_name(first_solution).
+reserved_source_name(server_spawn).
+reserved_source_name(server_request).
+reserved_source_name(server_promise).
+reserved_source_name(server_yield).
+reserved_source_name(server_upgrade).
+reserved_source_name(server_halt).
+reserved_source_name(server_stop).
 reserved_source_name(sandbox_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_toplevel_call).
@@ -870,6 +877,12 @@ actor_safe_pi(toplevel_next/1). actor_safe_pi(toplevel_next/2).
 actor_safe_pi(toplevel_halt/1). actor_safe_pi(toplevel_halt/2).
 actor_safe_pi(toplevel_stop/1). actor_safe_pi(toplevel_abort/1).
 actor_safe_pi(parallel/1). actor_safe_pi(first_solution/2). actor_safe_pi(first_solution/3).
+actor_safe_pi(server_spawn/3). actor_safe_pi(server_spawn/4).
+actor_safe_pi(server_request/3). actor_safe_pi(server_request/4).
+actor_safe_pi(server_promise/3). actor_safe_pi(server_promise/4).
+actor_safe_pi(server_yield/2). actor_safe_pi(server_yield/3). actor_safe_pi(server_yield/4).
+actor_safe_pi(server_upgrade/2). actor_safe_pi(server_upgrade/3).
+actor_safe_pi(server_halt/2). actor_safe_pi(server_stop/2).
 
 reject_format_meta_call(Format) :-
     format_text_atom(Format, Atom),

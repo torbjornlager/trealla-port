@@ -31,11 +31,23 @@ The port lives alongside this report:
 | `NOTICE.md`            | Source provenance and third-party attribution   |
 | `Deployment/`          | Fail-closed Docker/Caddy private-pilot bundle   |
 | `parallel.pl`         | `parallel/1` and `first_solution/2-3` actor generics |
+| `server_actor.pl`     | Generic stateful server actor behaviour             |
+| `server_actor_tests.pl` | SWI-parity and private-namespace behaviour tests  |
 | `tests.pl`            | Manual test suite (no plunit on Trealla)            |
 
 `parallel.pl` is the native Trealla implementation of the shared actor
 generics. Workers exchange compact variable templates, validate correlated
 worker replies, and use monitor barriers for race-free cleanup.
+
+`server_actor.pl` ports the SWI generic server behaviour. A callback of the
+form `Callback(Request, OldState, Response, NewState)` is copied into the
+server's private actor namespace. The API includes synchronous requests,
+asynchronous promise/yield pairs, fail-fast monitoring, named servers,
+graceful halt, and state-preserving callback upgrades. It is an ACTOR-profile
+facility and is available both in submitted source and directly at a private
+toplevel. The dedicated suite mirrors the 27 SWI semantic cases and adds
+callback-closure, private-namespace, and sandbox/profile integration checks
+(31 tests total).
 
 ## Test results
 

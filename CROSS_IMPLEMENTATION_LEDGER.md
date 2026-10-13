@@ -25,6 +25,7 @@ Status terms:
 | One-sided receive matching, guard control propagation, and pre-guard message preservation | SWI | Implemented | Implemented | Not assessed | Core matching and variable-preservation cases run bidirectionally against real nodes |
 | First-exit-wins, reserved control filtering, pre-start lifecycle relations, and exact monitor teardown | SWI | Implemented | Implemented | Not assessed | Exit, monitor, demonitor, and remote-link cases run bidirectionally against real nodes |
 | Template-based `parallel/1`, correlated worker guards, cleanup barriers, and `first_solution/3` policies | SWI | Implemented | Implemented | Not assessed | Candidate behaviour contract |
+| Generic stateful server behaviour: request, promise/yield, fail-fast monitors, naming, halt, and callback upgrade | SWI | Implemented | Implemented; 27 SWI-derived semantic cases plus private-module/policy integration | Not assessed | Candidate behaviour contract |
 | Toplevel stale-command discard limited to already-deferred messages | SWI | Implemented | Implemented | Not assessed | Candidate PTCP contract |
 | Stateless `/call` JSON named-binding response format | SWI | Implemented | Implemented | Not assessed | Candidate |
 | `/healthz`, `/readyz`, `/version`, `/node_info`, and maintenance/drain semantics | SWI | Implemented | Implemented (native core fields) | Not assessed | Candidate operational profile |
