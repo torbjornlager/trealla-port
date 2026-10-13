@@ -59,6 +59,10 @@ These should not yet be filed as Trealla bugs:
   `receive/1,2` closures and their bodies.  The original failure remains
   covered, but an ordinary dynamically asserted imported meta-call now passes;
   the narrower trigger has not been isolated.
+- A list passed to an imported predicate argument declared with `:` is not
+  consistently qualified with the caller module. The supervisor port
+  currently supplies `Module:ChildSpecs` explicitly; this needs a small
+  standalone reproducer before filing.
 - Old 10,000-iteration actor benchmarks crashed intermittently on pre-3.0
   versions. On v3.13.4, ten 10,000-message ping-pong runs passed; the spawning
   benchmark passed at 1,000 and 2,000 generations but did not finish its

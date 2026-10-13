@@ -75,9 +75,18 @@ non_server_options([Option|Options], [Option|Rest]) :-
 server_private_option(name(_)).
 
 normalize_server_callback(Callback0, Callback) :-
-    strip_module(Callback0, Module0, PlainCallback),
+    strip_module(Callback0, Module1, Plain0),
+    innermost_callback_module(Plain0, Module1, Module0, PlainCallback),
     callback_definition_module(Module0, PlainCallback, Module),
     Callback = Module:PlainCallback.
+
+innermost_callback_module(Module:Callback0, _Fallback,
+                          EffectiveModule, Callback) :-
+    atom(Module),
+    !,
+    innermost_callback_module(Callback0, Module,
+                              EffectiveModule, Callback).
+innermost_callback_module(Callback, Module, Module, Callback).
 
 callback_definition_module(Module0, PlainCallback, Module) :-
     callback_head(PlainCallback, Head),

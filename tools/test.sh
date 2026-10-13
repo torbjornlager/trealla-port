@@ -112,6 +112,8 @@ run_unit() {
     run_tpl_goal "parallel behaviours" "run_test_group(parallel)"
     run_with_timeout "generic server behaviour" \
         "$TPL" -g "(catch((consult('$ROOT/server_actor_tests.pl'),server_actor_tests:run_server_actor_tests),_,fail)->halt(0);halt(1))"
+    run_with_timeout "supervisor behaviour" \
+        "$TPL" -g "(catch((consult('$ROOT/supervisor_actor_tests.pl'),supervisor_actor_tests:run_supervisor_actor_tests),_,fail)->halt(0);halt(1))"
     run_tpl_goal "private source isolation" "run_test_group(isolation)"
     run_tpl_goal "execution profile policy" "run_test_group(profiles)"
     run_tpl_goal "sandbox and public source policy" "run_test_group(sandbox)"

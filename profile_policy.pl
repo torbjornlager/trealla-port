@@ -196,6 +196,28 @@ meta_goal_arguments(first_solution(_, Goals), Goals) :- is_list(Goals).
 meta_goal_arguments(first_solution(_, Goals, _), Goals) :- is_list(Goals).
 meta_goal_arguments(toplevel_call(_, Goal), [Goal]).
 meta_goal_arguments(toplevel_call(_, Goal, _), [Goal]).
+meta_goal_arguments(supervisor_spawn(Specs, _), Goals) :-
+    supervisor_spec_goals(Specs, Goals).
+meta_goal_arguments(supervisor_spawn(Specs, _, _), Goals) :-
+    supervisor_spec_goals(Specs, Goals).
+meta_goal_arguments(supervisor_spawn_child(_, Spec, _), Goals) :-
+    supervisor_spec_goals([Spec], Goals).
+
+supervisor_spec_goals(Specs, [Specs]) :- var(Specs), !.
+supervisor_spec_goals([], []).
+supervisor_spec_goals([child(_, Options)|Specs], Goals) :-
+    ( memberchk(start(Start), Options)
+    -> supervisor_start_goals(Start, Here)
+    ; Here = []
+    ),
+    supervisor_spec_goals(Specs, Rest),
+    append(Here, Rest, Goals).
+supervisor_spec_goals(_, []).
+
+supervisor_start_goals(server(_, _), []) :- !.
+supervisor_start_goals(start_sub_supervisor(Specs, _), Goals) :- !,
+    supervisor_spec_goals(Specs, Goals).
+supervisor_start_goals(Goal, [Goal]).
 
 ensure_goal_profile(Profile, Goal) :-
     ( goal_required_profile(Goal, Required),
@@ -267,6 +289,16 @@ actor_predicate(server_upgrade, 2).
 actor_predicate(server_upgrade, 3).
 actor_predicate(server_halt, 2).
 actor_predicate(server_stop, 2).
+actor_predicate(supervisor_spawn, 2).
+actor_predicate(supervisor_spawn, 3).
+actor_predicate(supervisor_spawn_child, 3).
+actor_predicate(supervisor_terminate_child, 3).
+actor_predicate(supervisor_delete_child, 3).
+actor_predicate(supervisor_respawn_child, 3).
+actor_predicate(supervisor_which_children, 2).
+actor_predicate(supervisor_count_children, 2).
+actor_predicate(supervisor_halt, 1).
+actor_predicate(supervisor_stop, 1).
 
 isotope_goal(Goal) :-
     functor(Goal, Name, Arity),

@@ -24,7 +24,17 @@
       server_upgrade/2,
       server_upgrade/3,
       server_halt/2,
-      server_stop/2
+      server_stop/2,
+      supervisor_spawn/2,
+      supervisor_spawn/3,
+      supervisor_spawn_child/3,
+      supervisor_terminate_child/3,
+      supervisor_delete_child/3,
+      supervisor_respawn_child/3,
+      supervisor_which_children/2,
+      supervisor_count_children/2,
+      supervisor_halt/1,
+      supervisor_stop/1
     ]).
 
 /** <module> Web Prolog actor protocol over native Trealla WebSockets
@@ -67,6 +77,7 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- use_module(ip_policy, [record_ip_offense_address/1]).
 :- use_module(toplevel_actors).
 :- use_module(server_actor).
+:- use_module(supervisor_actor).
 :- use_module(node).
 :- use_module(websocket).
 

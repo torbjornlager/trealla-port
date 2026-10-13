@@ -242,6 +242,28 @@ meta_goal_parts(first_solution(_,Goals), Goals) :- is_list(Goals).
 meta_goal_parts(first_solution(_,Goals,_), Goals) :- is_list(Goals).
 meta_goal_parts(toplevel_call(_,Goal), [Goal]).
 meta_goal_parts(toplevel_call(_,Goal,_), [Goal]).
+meta_goal_parts(supervisor_spawn(Specs,_), Goals) :-
+    supervisor_spec_goals(Specs, Goals).
+meta_goal_parts(supervisor_spawn(Specs,_,_), Goals) :-
+    supervisor_spec_goals(Specs, Goals).
+meta_goal_parts(supervisor_spawn_child(_,Spec,_), Goals) :-
+    supervisor_spec_goals([Spec], Goals).
+
+supervisor_spec_goals(Specs, [Specs]) :- var(Specs), !.
+supervisor_spec_goals([], []).
+supervisor_spec_goals([child(_,Options)|Specs], Goals) :-
+    ( memberchk(start(Start), Options)
+    -> supervisor_start_goals(Start, Here)
+    ; Here = []
+    ),
+    supervisor_spec_goals(Specs, Rest),
+    append(Here, Rest, Goals).
+supervisor_spec_goals(_, []).
+
+supervisor_start_goals(server(_,_), []) :- !.
+supervisor_start_goals(start_sub_supervisor(Specs,_), Goals) :- !,
+    supervisor_spec_goals(Specs, Goals).
+supervisor_start_goals(Goal, [Goal]).
 
 check_nested_spawn(whitelist, _Profile, _Module, _AppPIs, _Goal, Options) :-
     var(Options), !,
@@ -492,6 +514,15 @@ reserved_source_name(server_yield).
 reserved_source_name(server_upgrade).
 reserved_source_name(server_halt).
 reserved_source_name(server_stop).
+reserved_source_name(supervisor_spawn).
+reserved_source_name(supervisor_spawn_child).
+reserved_source_name(supervisor_terminate_child).
+reserved_source_name(supervisor_delete_child).
+reserved_source_name(supervisor_respawn_child).
+reserved_source_name(supervisor_which_children).
+reserved_source_name(supervisor_count_children).
+reserved_source_name(supervisor_halt).
+reserved_source_name(supervisor_stop).
 reserved_source_name(sandbox_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_toplevel_call).
@@ -883,6 +914,12 @@ actor_safe_pi(server_promise/3). actor_safe_pi(server_promise/4).
 actor_safe_pi(server_yield/2). actor_safe_pi(server_yield/3). actor_safe_pi(server_yield/4).
 actor_safe_pi(server_upgrade/2). actor_safe_pi(server_upgrade/3).
 actor_safe_pi(server_halt/2). actor_safe_pi(server_stop/2).
+actor_safe_pi(supervisor_spawn/2). actor_safe_pi(supervisor_spawn/3).
+actor_safe_pi(supervisor_spawn_child/3).
+actor_safe_pi(supervisor_terminate_child/3). actor_safe_pi(supervisor_delete_child/3).
+actor_safe_pi(supervisor_respawn_child/3). actor_safe_pi(supervisor_which_children/2).
+actor_safe_pi(supervisor_count_children/2). actor_safe_pi(supervisor_halt/1).
+actor_safe_pi(supervisor_stop/1).
 
 reject_format_meta_call(Format) :-
     format_text_atom(Format, Atom),

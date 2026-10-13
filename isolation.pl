@@ -60,6 +60,9 @@ parallel_library_file(ParallelFile) :-
 server_actor_library_file(ServerActorFile) :-
     absolute_file_name('server_actor.pl', ServerActorFile, []).
 
+supervisor_actor_library_file(SupervisorActorFile) :-
+    absolute_file_name('supervisor_actor.pl', SupervisorActorFile, []).
+
 
                 /*******************************
                 *       PUBLIC OPERATIONS      *
@@ -272,6 +275,33 @@ actor_query_goal(_, server_halt(To, Reply),
                  server_actor:server_halt(To, Reply)) :- !.
 actor_query_goal(_, server_stop(To, Reply),
                  server_actor:server_stop(To, Reply)) :- !.
+actor_query_goal(Module, supervisor_spawn(Specs, Pid),
+                 supervisor_actor:supervisor_spawn(Module:Specs, Pid)) :- !.
+actor_query_goal(Module, supervisor_spawn(Specs, Pid, Options),
+                 supervisor_actor:supervisor_spawn(Module:Specs, Pid,
+                                                   Options)) :- !.
+actor_query_goal(Module, supervisor_spawn_child(Sup, Spec, Reply),
+                 supervisor_actor:supervisor_spawn_child(Sup, Module:Spec,
+                                                         Reply)) :- !.
+actor_query_goal(_, supervisor_terminate_child(Sup, Id, Reply),
+                 supervisor_actor:supervisor_terminate_child(Sup, Id,
+                                                             Reply)) :- !.
+actor_query_goal(_, supervisor_delete_child(Sup, Id, Reply),
+                 supervisor_actor:supervisor_delete_child(Sup, Id,
+                                                          Reply)) :- !.
+actor_query_goal(_, supervisor_respawn_child(Sup, Id, Reply),
+                 supervisor_actor:supervisor_respawn_child(Sup, Id,
+                                                           Reply)) :- !.
+actor_query_goal(_, supervisor_which_children(Sup, Children),
+                 supervisor_actor:supervisor_which_children(Sup,
+                                                            Children)) :- !.
+actor_query_goal(_, supervisor_count_children(Sup, Counts),
+                 supervisor_actor:supervisor_count_children(Sup,
+                                                            Counts)) :- !.
+actor_query_goal(_, supervisor_halt(Sup),
+                 supervisor_actor:supervisor_halt(Sup)) :- !.
+actor_query_goal(_, supervisor_stop(Sup),
+                 supervisor_actor:supervisor_stop(Sup)) :- !.
 actor_query_goal(_, Qualified:Goal, Qualified:Goal) :-
     atom(Qualified),
     !.
@@ -533,19 +563,23 @@ write_bootstrap(File, Module) :-
     rpc_library_file(RpcFile),
     parallel_library_file(ParallelFile),
     server_actor_library_file(ServerActorFile),
+    supervisor_actor_library_file(SupervisorActorFile),
     setup_call_cleanup(
         open(File, write, Out),
         write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
-                         SandboxFile, RpcFile, ParallelFile, ServerActorFile),
+                         SandboxFile, RpcFile, ParallelFile, ServerActorFile,
+                         SupervisorActorFile),
         close(Out)).
 
 write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
-                 SandboxFile, RpcFile, ParallelFile, ServerActorFile) :-
+                 SandboxFile, RpcFile, ParallelFile, ServerActorFile,
+                 SupervisorActorFile) :-
     format(Out, '%% SPDX-License-Identifier: MIT~n', []),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
     format(Out, ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
     format(Out, ':- use_module(~q, [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,yield/2,yield/3]).~n', [RpcFile]),
     format(Out, ':- use_module(~q, [server_spawn/3,server_spawn/4,server_request/3,server_request/4,server_promise/3,server_promise/4,server_yield/2,server_yield/3,server_yield/4,server_upgrade/2,server_upgrade/3,server_halt/2,server_stop/2]).~n', [ServerActorFile]),
+    format(Out, ':- use_module(~q, [supervisor_spawn/2,supervisor_spawn/3,supervisor_spawn_child/3,supervisor_terminate_child/3,supervisor_delete_child/3,supervisor_respawn_child/3,supervisor_which_children/2,supervisor_count_children/2,supervisor_halt/1,supervisor_stop/1]).~n', [SupervisorActorFile]),
     format(Out, ':- use_module(~q, []).~n', [ParallelFile]),
     format(Out, 'parallel(Goals) :- parallel:parallel_in(~q,Goals).~n', [Module]),
     format(Out, 'first_solution(Solution,Goals) :- parallel:first_solution_in(~q,Solution,Goals,[on_fail(continue),on_error(stop)]).~n', [Module]),
@@ -580,6 +614,9 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_qualify_goal\'(sandbox_policy:sandbox_spawn(M,P,C,A,Goal0,Pid,Options), \'$actor_sandbox_spawn\'(M,P,C,A,Goal,Pid,Options)) :- !, \'$actor_qualify_goal\'(Goal0,Goal).~n', []),
     format(Out, '\'$actor_qualify_goal\'(toplevel_spawn(Pid), \'$actor_toplevel_spawn\'(Pid,[])) :- !.~n', []),
     format(Out, '\'$actor_qualify_goal\'(toplevel_spawn(Pid,Options), \'$actor_toplevel_spawn\'(Pid,Options)) :- !.~n', []),
+    format(Out, '\'$actor_qualify_goal\'(supervisor_spawn(Specs,Pid), supervisor_actor:supervisor_spawn(~q:Specs,Pid)) :- !.~n', [Module]),
+    format(Out, '\'$actor_qualify_goal\'(supervisor_spawn(Specs,Pid,Options), supervisor_actor:supervisor_spawn(~q:Specs,Pid,Options)) :- !.~n', [Module]),
+    format(Out, '\'$actor_qualify_goal\'(supervisor_spawn_child(Sup,Spec,Reply), supervisor_actor:supervisor_spawn_child(Sup,~q:Spec,Reply)) :- !.~n', [Module]),
     format(Out, '\'$actor_qualify_goal\'(receive({}), actors:receive_empty) :- !.~n', []),
     format(Out, '\'$actor_qualify_goal\'(receive(Clauses0), receive(~q:Clauses)) :- !, \'$actor_qualify_receive\'(Clauses0, Clauses).~n', [Module]),
     format(Out, '\'$actor_qualify_goal\'(receive(Clauses0,Options0), receive(~q:Clauses,Options)) :- !, \'$actor_qualify_receive\'(Clauses0, Clauses), \'$actor_qualify_receive_options\'(Options0,Options).~n', [Module]),
@@ -659,6 +696,16 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_call\'(server_upgrade(To,Callback,Options)) :- !, server_actor:server_upgrade(To,~q:Callback,Options).~n', [Module]),
     format(Out, '\'$actor_call\'(server_halt(To,Reply)) :- !, server_actor:server_halt(To,Reply).~n', []),
     format(Out, '\'$actor_call\'(server_stop(To,Reply)) :- !, server_actor:server_stop(To,Reply).~n', []),
+    format(Out, '\'$actor_call\'(supervisor_spawn(Specs,Pid)) :- !, supervisor_actor:supervisor_spawn(~q:Specs,Pid).~n', [Module]),
+    format(Out, '\'$actor_call\'(supervisor_spawn(Specs,Pid,Options)) :- !, supervisor_actor:supervisor_spawn(~q:Specs,Pid,Options).~n', [Module]),
+    format(Out, '\'$actor_call\'(supervisor_spawn_child(Sup,Spec,Reply)) :- !, supervisor_actor:supervisor_spawn_child(Sup,~q:Spec,Reply).~n', [Module]),
+    format(Out, '\'$actor_call\'(supervisor_terminate_child(Sup,Id,Reply)) :- !, supervisor_actor:supervisor_terminate_child(Sup,Id,Reply).~n', []),
+    format(Out, '\'$actor_call\'(supervisor_delete_child(Sup,Id,Reply)) :- !, supervisor_actor:supervisor_delete_child(Sup,Id,Reply).~n', []),
+    format(Out, '\'$actor_call\'(supervisor_respawn_child(Sup,Id,Reply)) :- !, supervisor_actor:supervisor_respawn_child(Sup,Id,Reply).~n', []),
+    format(Out, '\'$actor_call\'(supervisor_which_children(Sup,Children)) :- !, supervisor_actor:supervisor_which_children(Sup,Children).~n', []),
+    format(Out, '\'$actor_call\'(supervisor_count_children(Sup,Counts)) :- !, supervisor_actor:supervisor_count_children(Sup,Counts).~n', []),
+    format(Out, '\'$actor_call\'(supervisor_halt(Sup)) :- !, supervisor_actor:supervisor_halt(Sup).~n', []),
+    format(Out, '\'$actor_call\'(supervisor_stop(Sup)) :- !, supervisor_actor:supervisor_stop(Sup).~n', []),
     format(Out, '\'$actor_call\'(sandbox_policy:sandbox_spawn(M,P,C,A,Goal,Pid,Options)) :- !, \'$actor_sandbox_spawn\'(M,P,C,A,Goal,Pid,Options).~n', []),
     format(Out, '\'$actor_call\'(receive({})) :- !, actors:receive_empty.~n', []),
     format(Out, '\'$actor_call\'(parallel(Goals)) :- !, parallel:parallel_in(~q,Goals).~n', [Module]),
@@ -685,6 +732,9 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_strip_source_module\'(actors:receive_empty, receive({})) :- !.~n', []),
     format(Out, '\'$actor_strip_source_module\'(\'$actor_sandbox_spawn\'(_M,_P,_C,_A,Goal0,Pid,Options0), spawn(Goal,Pid,Options)) :- !, \'$actor_strip_source_module\'(Goal0,Goal), \'$actor_strip_source_module\'(Options0,Options).~n', []),
     format(Out, '\'$actor_strip_source_module\'(\'$actor_toplevel_spawn\'(Pid,Options0), toplevel_spawn(Pid,Options)) :- !, \'$actor_strip_source_module\'(Options0,Options).~n', []),
+    format(Out, '\'$actor_strip_source_module\'(supervisor_actor:supervisor_spawn(_Source:Specs0,Pid), supervisor_spawn(Specs,Pid)) :- !, \'$actor_strip_source_module\'(Specs0,Specs).~n', []),
+    format(Out, '\'$actor_strip_source_module\'(supervisor_actor:supervisor_spawn(_Source:Specs0,Pid,Options0), supervisor_spawn(Specs,Pid,Options)) :- !, \'$actor_strip_source_module\'(Specs0,Specs), \'$actor_strip_source_module\'(Options0,Options).~n', []),
+    format(Out, '\'$actor_strip_source_module\'(supervisor_actor:supervisor_spawn_child(Sup,_Source:Spec0,Reply), supervisor_spawn_child(Sup,Spec,Reply)) :- !, \'$actor_strip_source_module\'(Spec0,Spec).~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_spawn(_M,_P,_C,_A,Goal0,Pid,Options0), spawn(Goal,Pid,Options)) :- !, \'$actor_strip_source_module\'(Goal0,Goal), \'$actor_strip_source_module\'(Options0,Options).~n', []),
     format(Out, '\'$actor_strip_source_module\'(actors:input(\'|:\',Term0), read(Term)) :- !, \'$actor_strip_source_module\'(Term0,Term).~n', []),
     format(Out, '\'$actor_strip_source_module\'(Source:Inner0, Inner) :- Source == ~q, !, \'$actor_strip_source_module\'(Inner0,Inner).~n', [Module]),
