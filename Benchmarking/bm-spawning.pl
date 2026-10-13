@@ -1,6 +1,6 @@
 % SPDX-License-Identifier: MIT
 
-:- use_module(actors).
+:- use_module('../actors').
 
 start(Num) :-
     self(Self),

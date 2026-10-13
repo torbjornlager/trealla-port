@@ -555,7 +555,7 @@ rewrite_goal_(M,P,C,A,time(Goal0),
               sandbox_policy:sandbox_time(C,Goal)) :-
     rewrite_goal(M,P,C,A,Goal0,Goal).
 % random_member/2 is provided by SWI's library(random), which is part of the
-% demonstrator's normal environment, but Trealla v3.13.3 has no equivalent.
+% demonstrator's normal environment, but Trealla v3.13.4 has no equivalent.
 rewrite_goal_(_M,_P,_C,_A,random_member(Element,List),
               sandbox_policy:sandbox_random_member(Element,List)).
 % sleep/1 is available in Trealla's user module but is not inherited by the
@@ -922,7 +922,7 @@ sandbox_time_report(time_state(Wall0, CPU0, Inferences0)) :-
     actors:terminal_output(Text, [source(io)]).
 
 sandbox_sleep(Seconds) :-
-    % Trealla v3.13.3's native sleep/1 uses the process alarm machinery;
+    % Trealla v3.13.4's native sleep/1 uses the process alarm machinery;
     % concurrent actor sleeps interrupt and lengthen one another.  The actor
     % mailbox timeout is per-thread and leaves every message untouched because
     % this clause's guard can never commit.  It also lets actor exit controls

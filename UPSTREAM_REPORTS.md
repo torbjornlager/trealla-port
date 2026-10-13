@@ -6,9 +6,11 @@ reports to send upstream: entries should retain the smallest reproducer we can
 produce, the affected Trealla version, the practical impact, and the workaround
 currently used in this repository.
 
-Unless stated otherwise, the latest observation was made with Trealla Prolog
-v3.12.6 on macOS.  Before filing, rerun the reproducer with the latest upstream
-build and search the upstream tracker for duplicates.
+Unless stated otherwise, historical observations were made with Trealla Prolog
+v3.12.6 on macOS. Current outstanding items were audited with v3.13.4. Before
+filing, rerun the reproducer with the latest upstream build and search the
+upstream tracker for duplicates. `UPSTREAM_OUTSTANDING.md` is the short,
+maintainer-ready summary of this ledger.
 
 Status meanings:
 
@@ -16,6 +18,23 @@ Status meanings:
 - **Needs minimization** — real application evidence exists, but the report
   should first be reduced to a small standalone program.
 - **Retest** — observed on an older release; establish whether it remains.
+
+## v3.13.4 upstream audit
+
+Trealla v3.13.4 pins frames referenced by attributed-variable, blackboard, and
+`b_setval/2` stores, and corrects tail-call eligibility. Its new store-pinning
+and accumulator regressions pass locally. These changes address the class of
+engine lifetime problem suspected in BUG-020, but that historical application
+failure was already not reproducible on a clean v3.13.2 build; it remains a
+historical record rather than a report retroactively claimed as fixed.
+
+The complete Web Prolog unit and bidirectional SWI interoperability suites pass
+against v3.13.4 on macOS arm64. FR-010 remains open, and BUG-021 remains
+reproducible: three concurrent one-, three-, and two-second sleeps took
+4.196, 4.167, and 4.134 seconds. Ten 10,000-message ping-pong stress runs also
+passed. The recursive spawning benchmark passed at 1,000 and 2,000 generations
+but exceeded a 20-second probe at 5,000; that is not yet a minimized runtime
+report.
 
 ## v3.13.3 upstream audit
 
@@ -285,7 +304,7 @@ tpl -q -f reproducers/fr-010-thread-get-message-deadline.pl \
     -g "reproducer,halt"
 ```
 
-Trealla v3.13.2 and v3.13.3 report:
+Trealla v3.13.2 through v3.13.4 report:
 
 ```text
 error(domain_error(read_option,deadline(...)),thread_get_message/3)
@@ -333,7 +352,7 @@ harness boundary.
 
 ### BUG-002: `thread_detach/1` hangs inside a thread's `at_exit` hook
 
-**Status:** Needs minimization
+**Status:** Resolved in v3.13.3
 **Priority:** High
 
 Calling `thread_detach/1` from the terminating thread's `at_exit` hook does not
@@ -344,11 +363,13 @@ Current workaround: every actor is created with `detached(true)` up front, and
 the `at_exit` cleanup in `actors:stop/2` never calls `thread_detach/1`.
 
 Evidence: `actors.pl` documents the workaround immediately above `stop/2`.
-A standalone two-predicate reproducer should be prepared before filing.
+Trealla's current regression test refuses self-detach with
+`permission_error(detach, thread, ...)` and allows an existing join to obtain
+the real status; it no longer hangs.
 
 ### BUG-003: `thread_property/2` reports `status(running)` inside `at_exit`
 
-**Status:** Needs minimization
+**Status:** Resolved in v3.13.3
 **Priority:** Medium
 
 Inside a terminating thread's `at_exit` hook, querying its status still yields
@@ -361,6 +382,10 @@ construct `down/3`.
 
 Upstream question: if `running` is intentional during the hook, Trealla needs
 another supported way for an exit hook to inspect the thread's final outcome.
+
+v3.13.3 retest: `thread_property(Me, status(Status))` inside the hook reports
+`status(true)` for a successfully completed thread, and `thread_join/2` also
+returns `true`.
 
 ### BUG-004: `http_open/3` leaves socket-opening choicepoints
 
@@ -508,7 +533,7 @@ Output capture remains serialized because `listing/1` has no stream argument.
 
 ### BUG-011: `call_with_time_limit/2` discards goal choicepoints
 
-**Status:** Ready
+**Status:** Not a bug (SWI-compatible)
 **Priority:** Medium
 
 Trealla v3.12.6 implements `call_with_time_limit/2` by applying `once/1` to
@@ -519,8 +544,9 @@ its goal. A nondeterministic goal consequently exposes only its first answer:
 Xs = [a].
 ```
 
-Expected for compatibility with the SWI interface is `Xs = [a,b]`, with the
-timer applying while each resumed branch executes.
+The historical expectation was `Xs = [a,b]`. A clean audit found that
+SWI-Prolog 10.1.3 also returns `Xs = [a]`: `call_with_time_limit/2` is
+semidet in both systems. This item must not be filed as a compatibility bug.
 
 Current workaround: the PTCP and HTTP producer paths use Trealla's internal
 reusable `$alarm` primitive. The PTCP cancels its alarm while a result page is
@@ -600,7 +626,7 @@ may select another interface with `bind_address/1`.
 
 ### BUG-014: Cross-thread server close does not wake a blocked accept
 
-**Status:** Ready
+**Status:** Resolved in v3.13.3
 **Priority:** Medium
 
 On macOS with Trealla v3.12.6, one thread can call
@@ -637,6 +663,11 @@ its listening stream from a control thread.
 Current workaround: `node.pl` marks the listener as stopping and makes one
 local wake-up connection. The accept loop observes the flag, closes the wake
 connection, and closes its own listener from the owning thread.
+
+v3.13.3 retest: the upstream `socket_accept_closed.pl` regression passes.
+Closing the listener wakes the blocked accept with an `existence_error`, and a
+new connection is refused. The node's explicit wake connection can remain an
+application-level shutdown mechanism, but this is no longer an upstream bug.
 
 ### BUG-015: A TLS-disabled build reports `resource_error(memory)` for SSL
 
@@ -867,14 +898,14 @@ rejection or exceptional propagation.
 
 ### BUG-021: Concurrent `sleep/1` calls lengthen one another
 
-**Status:** Reproduced in v3.13.3
+**Status:** Reproduced in v3.13.4
 **Priority:** High
 
 Independent threads sleeping for one, three, and two seconds should all have
-finished after approximately three seconds. On Trealla v3.13.3 they regularly
-take about 4.1–4.5 seconds in total. Instrumenting each thread shows that all
-three enter `sleep/1` promptly, but their actual waits are lengthened when the
-other process-wide alarms fire.
+finished after approximately three seconds. On Trealla v3.13.3 and v3.13.4
+they regularly take about 4.1–4.5 seconds in total. Instrumenting each thread
+shows that all three enter `sleep/1` promptly, but their actual waits are
+lengthened when the other process-wide alarms fire.
 
 Standalone reproducer (`reproducers/bug-021-concurrent-sleep.pl`):
 
@@ -919,9 +950,10 @@ These missing facilities increase porting work but need a clearer upstream
 scope or an existing-library survey before becoming individual requests:
 
 - `library(settings)`
-- `library(debug)`
 - a PlUnit-compatible test framework
-- `predicate_property(_, number_of_clauses(N))`
+
+Trealla v3.13.4 supplies both `library(debug)` and
+`predicate_property(_, number_of_clauses(N))`; they are no longer gaps.
 
 ## Resolved or obsolete observations
 

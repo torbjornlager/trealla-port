@@ -1,4 +1,4 @@
-% Trealla v3.13.3: concurrent sleep/1 calls lengthen one another.
+% Trealla v3.13.3 and v3.13.4: concurrent sleep/1 calls lengthen one another.
 
 reproducer :-
     get_time(Start),

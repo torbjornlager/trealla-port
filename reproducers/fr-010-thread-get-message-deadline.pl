@@ -1,6 +1,6 @@
 % SPDX-License-Identifier: MIT
 
-% Trealla v3.13.2 and v3.13.3 reject SWI-Prolog's absolute deadline/1 option.
+% Trealla v3.13.2 through v3.13.4 reject SWI-Prolog's deadline/1 option.
 %
 % Run with:
 %

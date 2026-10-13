@@ -1,6 +1,6 @@
 % SPDX-License-Identifier: MIT
 
-:- use_module(actors).
+:- use_module('../actors').
 
 bm_ping(0, Pong_Pid) :-
     Pong_Pid ! finished.

@@ -2,7 +2,7 @@
 
 # SPDX-License-Identifier: MIT
 
-ARG TREALLA_VERSION=v3.13.3
+ARG TREALLA_VERSION=v3.13.4
 
 FROM debian:bookworm-slim AS trealla-build
 ARG TREALLA_VERSION
