@@ -772,13 +772,17 @@ logical_pid(Pid) :-
 %
 %     - timeout(+Seconds)
 %       Maximum time in seconds to wait for a matching message.
-%       `timeout(0)` makes the call a non-blocking poll.  Positive
-%       numeric values are emulated via a short-lived timer actor
-%       (see Trealla port notes above).  When the timeout expires
-%       with no match, the goal given by on_timeout/1 is called.
-%       Default: wait indefinitely.
+%       `timeout(0)` makes the call a non-blocking poll. A positive value is
+%       converted once to an absolute deadline, so skipped messages do not
+%       restart the timeout. When the timeout expires with no match, the goal
+%       given by on_timeout/1 is called. Default: wait indefinitely.
+%     - deadline(+AbsoluteTime)
+%       Absolute deadline, in the same time scale as get_time/1. This is
+%       useful when several operations must share one time budget. A deadline
+%       that has already passed times out immediately. If both timeout/1 and
+%       deadline/1 are present, timeout/1 takes precedence.
 %     - on_timeout(:Goal)
-%       Goal called when the timeout expires.  Default: `true`.
+%       Goal called when timeout/1 or deadline/1 expires. Default: `true`.
 %
 %   Examples:
 %
@@ -796,6 +800,12 @@ logical_pid(Pid) :-
 %
 %   % Non-blocking poll; do nothing if nothing is waiting.
 %   receive({ Msg -> use(Msg) }, [timeout(0), on_timeout(true)])
+%
+%   % Share an absolute deadline with other operations.
+%   get_time(Now),
+%   Deadline is Now + 5,
+%   receive({ Reply -> use(Reply) },
+%           [deadline(Deadline), on_timeout(handle_timeout)])
 %   ==
 %
 %   Deferred messages live in a native per-thread non-backtrackable value.
@@ -845,23 +855,36 @@ receive_qualified(Clauses, Options) :-
 
 %!  receive_loop(+Mailbox, +Clauses, +Options, +Deferred) is semidet.
 %
-%   Dispatcher for the three timeout regimes:
+%   Dispatcher for the four wait regimes:
 %
 %     - `timeout(0)`     -- non-blocking poll (receive_loop_poll/4).
 %     - `timeout(T)`, T>0 -- block using thread_get_message/3's native
 %       absolute deadline (receive_loop_timed/5).
+%     - `deadline(D)`    -- block until caller-supplied absolute time D
+%       (receive_loop_timed_/5).
 %     - no timeout / `infinite` -- block forever (receive_loop_blocking/4).
 
 receive_loop(Mailbox, Clauses, Options, Deferred) :-
-    option(timeout(T), Options, infinite),
-    (   T == 0
-    ->  receive_loop_poll(Mailbox, Clauses, Options, Deferred)
-    ;   T == infinite
-    ->  receive_loop_blocking(Mailbox, Clauses, Options, Deferred)
-    ;   number(T), T > 0
-    ->  receive_loop_timed(Mailbox, Clauses, Options, Deferred, T)
-    ;   throw(error(domain_error(timeout, T), receive/2))
+    (   option(timeout(T), Options)
+    ->  receive_loop_timeout(T, Mailbox, Clauses, Options, Deferred)
+    ;   option(deadline(Deadline), Options)
+    ->  (   number(Deadline)
+        ->  receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline)
+        ;   throw(error(type_error(number, Deadline), receive/2))
+        )
+    ;   receive_loop_blocking(Mailbox, Clauses, Options, Deferred)
     ).
+
+receive_loop_timeout(0, Mailbox, Clauses, Options, Deferred) :-
+    !,
+    receive_loop_poll(Mailbox, Clauses, Options, Deferred).
+receive_loop_timeout(T, Mailbox, Clauses, Options, Deferred) :-
+    number(T),
+    T > 0,
+    !,
+    receive_loop_timed(Mailbox, Clauses, Options, Deferred, T).
+receive_loop_timeout(T, _, _, _, _) :-
+    throw(error(domain_error(timeout, T), receive/2)).
 
 %!  receive_loop_poll(+Mailbox, +Clauses, +Options, +Deferred) is semidet.
 %

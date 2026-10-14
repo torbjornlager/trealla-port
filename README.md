@@ -797,10 +797,13 @@ the defaults can be replaced with explicit `header/2` options.
 - `send/3` with `delay(Seconds)` and optional actor-scoped `id(Id)`, plus
   `cancel/1` to withdraw all of the caller's pending sends with that ID
 - `receive/1-2` with one-sided `subsumes_term/2` matching, guards
-  (`Pattern if Guard -> Body`), `timeout(0)` polling, and positive
-  `timeout(T)` deadlines. Patterns cannot instantiate variables inside a
-  message; ordinary guard exceptions reject a candidate, while lifecycle and
-  resource-control exceptions propagate without losing the message.
+  (`Pattern if Guard -> Body`), `timeout(0)` polling, positive relative
+  `timeout(T)` values, and absolute `deadline(D)` values in the `get_time/1`
+  time scale. `on_timeout(Goal)` handles expiry for either form; `timeout/1`
+  takes precedence if both are supplied. Patterns cannot instantiate variables
+  inside a message; ordinary guard exceptions reject a candidate, while
+  lifecycle and resource-control exceptions propagate without losing the
+  message.
 - `monitor/2`, `demonitor/1-2`
 - `register/2`, `unregister/1`, `whereis/2`
 - `exit/1`, `exit/2`

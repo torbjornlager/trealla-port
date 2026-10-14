@@ -47,6 +47,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t150 constructs proof trees whose reflected clause bodies contain variables
   - t151 provides SWI-compatible `random_member/2` to submitted programs
   - t153 provides SWI-compatible `atom_string/2` and string-valued `src_text/1`
+  - t154 exercises absolute `deadline/1` receives and timeout callbacks
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -226,7 +227,7 @@ run_test_group(actors) :-
     t19, t20, t21, t23, t24, t25, t26,
     t31, t32, t33, t98, t113, t115, t124,
     t127, t128, t129, t130, t132, t133, t134, t135,
-    t140, t141, t142, t143.
+    t140, t141, t142, t143, t154.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
     t22, t27, t28, t29, t99, t100, t101, t111, t112, t123, t131, t152.
@@ -620,6 +621,28 @@ t21 :-
            ( spawn((sleep(0.02), Me ! tick), _, [link(false)]),
              receive({tick -> true}, [timeout(1.0)]) )),
     format("21. repeated timed receives ok~n").
+
+%!  t154 is det.
+%
+%   deadline/1 accepts an absolute get_time/1 value. Verify both delivery
+%   before a future deadline and immediate expiry of a past deadline.
+
+t154 :-
+    self(Me),
+    spawn((sleep(0.02), Me ! before_deadline), _, [link(false)]),
+    get_time(Now),
+    Future is Now + 1.0,
+    receive({before_deadline -> true},
+            [deadline(Future),on_timeout(fail)]),
+    get_time(BeforePast),
+    Past is BeforePast - 0.01,
+    receive({_ -> fail},
+            [deadline(Past),on_timeout(Expired = true)]),
+    Expired == true,
+    get_time(AfterPast),
+    Elapsed is AfterPast - BeforePast,
+    Elapsed < 0.1,
+    format("154. absolute receive deadline and expiry callback ok~n").
 
 
                 /*******************************
