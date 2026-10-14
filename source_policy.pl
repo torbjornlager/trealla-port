@@ -645,7 +645,7 @@ ascii_lower_atom(Atom, Lower) :-
     atom_codes(Lower, LowerCodes).
 
 source_text_atom(Text, Text) :- atom(Text), !.
-source_text_atom(Text, Atom) :- string(Text), !, atom_string(Atom, Text).
+source_text_atom(Text, Atom) :- string(Text), !, atom_chars(Atom, Text).
 source_text_atom(Text, Atom) :- is_list(Text), !,
     ( Text = [Code|_], integer(Code) -> atom_codes(Atom, Text)
     ; atom_chars(Atom, Text)

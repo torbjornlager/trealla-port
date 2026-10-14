@@ -20,6 +20,7 @@
          sandbox_format/2,
          sandbox_time/2,
          sandbox_sleep/1,
+         sandbox_atom_string/2,
          sandbox_random_member/2,
          sandbox_clause/6,
          sandbox_assert/5,
@@ -142,6 +143,9 @@ sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
     reject_format_meta_call(Format).
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     sandbox_policy:sandbox_sleep(_Seconds)) :-
+    !.
+sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
+                    sandbox_policy:sandbox_atom_string(_Atom, _String)) :-
     !.
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     sandbox_policy:sandbox_random_member(_Element, _List)) :-
@@ -412,7 +416,7 @@ source_text_terms(Text0, Terms) :-
                        read_source_terms(Stream, Terms), close(Stream)).
 
 source_text_atom(Text, Text) :- atom(Text), !.
-source_text_atom(Text, Atom) :- string(Text), !, atom_string(Atom, Text).
+source_text_atom(Text, Atom) :- string(Text), !, atom_chars(Atom, Text).
 source_text_atom(Text, Atom) :- is_list(Text), !,
     ( Text = [C|_], integer(C) -> atom_codes(Atom, Text)
     ; atom_chars(Atom, Text)
@@ -529,6 +533,7 @@ reserved_source_name(sandbox_toplevel_call).
 reserved_source_name(sandbox_format).
 reserved_source_name(sandbox_time).
 reserved_source_name(sandbox_sleep).
+reserved_source_name(sandbox_atom_string).
 reserved_source_name(sandbox_random_member).
 reserved_source_name(sandbox_builtin_call).
 reserved_source_name(sandbox_clause).
@@ -600,6 +605,11 @@ rewrite_goal_(_M,_P,_C,_A,random_member(Element,List),
 % short-lived private modules used for actor sessions.
 rewrite_goal_(_M,_P,_C,_A,sleep(Seconds),
               sandbox_policy:sandbox_sleep(Seconds)).
+% Trealla represents strings as character lists but does not provide SWI's
+% atom_string/2 compatibility predicate.  Route it through atom_chars/2 so
+% shared tutorial and application source retains the SWI spelling.
+rewrite_goal_(_M,_P,_C,_A,atom_string(Atom,String),
+              sandbox_policy:sandbox_atom_string(Atom,String)).
 % Session input is an actor protocol operation, never a read from the node's
 % process-local standard input.  This matches SWI's isotope goal rewrite.
 rewrite_goal_(_M,_P,_C,_A,read(Term),actors:input('|:',Term)).
@@ -870,6 +880,7 @@ safe_pi(memberchk/2). safe_pi(append/3). safe_pi(reverse/2). safe_pi(select/3).
 safe_pi(nth0/3). safe_pi(nth1/3). safe_pi(sort/2). safe_pi(msort/2). safe_pi(keysort/2).
 safe_pi(atom_length/2). safe_pi(atom_concat/3). safe_pi(sub_atom/5).
 safe_pi(atom_chars/2). safe_pi(atom_codes/2). safe_pi(char_code/2).
+safe_pi(atom_string/2).
 safe_pi(number_chars/2). safe_pi(number_codes/2). safe_pi(atom_number/2).
 safe_pi(atomic_list_concat/2). safe_pi(atomic_list_concat/3).
 safe_pi(read_term_from_atom/3). safe_pi(random_between/3). safe_pi(sleep/1).
@@ -978,6 +989,9 @@ sandbox_sleep(Seconds) :-
     % interruption, so no mailbox-based timing workaround is needed.
     sleep(Seconds).
 
+sandbox_atom_string(Atom, String) :-
+    atom_chars(Atom, String).
+
 sandbox_random_member(Element, List) :-
     must_be(list, List),
     length(List, Length),
@@ -1031,6 +1045,8 @@ restore_clause_body(Module, Module:Inner0, Inner) :-
     restore_clause_body(Module, Inner0, Inner).
 restore_clause_body(_Module, sandbox_policy:sandbox_sleep(Seconds),
                     sleep(Seconds)) :- !.
+restore_clause_body(_Module, sandbox_policy:sandbox_atom_string(Atom,String),
+                    atom_string(Atom,String)) :- !.
 restore_clause_body(_Module,
                     sandbox_policy:sandbox_random_member(Element,List),
                     random_member(Element,List)) :- !.

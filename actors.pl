@@ -124,7 +124,8 @@ Reply = hello.
 
 ## Trealla port notes {#actors-trealla}
 
-  - `library(debug)` is absent and has been dropped (it was unused).
+  - Trealla now provides `library(debug)`; this module does not import it
+    because its former SWI debug calls were unused by the port.
   - `thread_signal/2` and `thread_send_message/2` on a dead detached
     thread raise a catchable domain_error; exit/2 and send/2 use a
     bare `catch/3` and treat the error as a silent drop.

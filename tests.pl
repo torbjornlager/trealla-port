@@ -46,6 +46,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t149 copies and drives the hand-built toplevel session protocol
   - t150 constructs proof trees whose reflected clause bodies contain variables
   - t151 provides SWI-compatible `random_member/2` to submitted programs
+  - t153 provides SWI-compatible `atom_string/2` and string-valued `src_text/1`
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -237,7 +238,7 @@ run_test_group(profiles) :-
     t42, t43, t44, t45, t46.
 run_test_group(sandbox) :-
     t47, t48, t49, t50, t51, t52, t53, t54, t55, t56, t119, t120,
-    t144, t145, t146, t147, t148, t149, t150, t151,
+    t144, t145, t146, t147, t148, t149, t150, t151, t153,
     reset_source_policy.
 run_test_group(resources) :-
     t57, t58, t59, t60, t61, t62, t110, t125, t126,
@@ -1900,6 +1901,21 @@ t152 :-
             [timeout(2),on_timeout(throw(t152_once_timeout))]),
     toplevel_halt(Session, true),
     format("152. toplevel once(true) commits the first answer ok~n").
+
+t153 :-
+    format(string(Source), 'p(a). p(b).', []),
+    string(Source),
+    isolation:load_options_text(user, [src_text(Source)], Text),
+    Text == 'p(a). p(b).',
+    sandbox_prepare_goal(blacklist, actor, actor_context,
+                         atom_string(hello, Chars), ToChars),
+    call(ToChars),
+    Chars == [h,e,l,l,o],
+    sandbox_prepare_goal(blacklist, actor, actor_context,
+                         atom_string(Atom, [w,o,r,l,d]), FromChars),
+    call(FromChars),
+    Atom == world,
+    format("153. atom_string/2 and string src_text compatibility ok~n").
 
 t127 :-
     self(Me),

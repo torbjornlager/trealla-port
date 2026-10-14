@@ -180,6 +180,7 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 150 | variable-bearing reflective clause bodies and proof trees | ok |
 | 151 | SWI-compatible `random_member/2` in submitted programs | ok |
 | 152 | toplevel `once(true)` commits the first answer | ok |
+| 153 | SWI-compatible `atom_string/2` and string-valued `src_text/1` | ok |
 
 All four demos from `parallel.pl` also run unchanged. The isolated suite and
 the interoperability matrix exercise `node.pl` and `rpc.pl` automatically.
@@ -1067,8 +1068,8 @@ RPC request values and node query decoding use v3.13.2's
 The actor/RPC modules are ported and exercised through Trealla v3.13.10:
 
 - **`actors.pl`** — feature-complete, including positive `receive`
-  timeouts via the native `thread_get_message/3` `timeout(Float)`
-  option.
+  timeouts via the native `thread_get_message/3`
+  `deadline(AbsoluteTime)` option.
 - **`toplevel_actors.pl`** — paged enumeration uses `call_cleanup/2` around
   the original goal to detect its deterministic final solution without an
   N+1 probe. Mid-enumeration `limit(N)` / `target(P)` changes use mutable
@@ -1078,6 +1079,11 @@ The actor/RPC modules are ported and exercised through Trealla v3.13.10:
   The producer-actor cache works particularly cleanly thanks to
   Trealla's stack-preserving `receive/1`.
 - **`rpc.pl`** — native `http://` and hostname-verified `https://` transport.
+
+Submitted programs also receive a narrow SWI-compatibility mapping for
+`atom_string/2`. Trealla's double-quoted text is represented as character
+lists, so the mapping delegates to `atom_chars/2`; source-loading internals do
+the same when browser-originated `src_text/1` values are strings.
 - **`websocket.pl` / `web_prolog.pl`** — native `ws://` and `wss://`
   transport with the Trinity version-1 actor vocabulary, tested in both
   Trealla-to-SWI and SWI-to-Trealla directions.

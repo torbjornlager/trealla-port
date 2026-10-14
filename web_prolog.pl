@@ -1301,5 +1301,5 @@ term_wire_atom(Term, Atom) :-
     format(atom(Atom), '~q', [Copy]).
 
 display_atom(Term, Atom) :- atom(Term), !, Atom = Term.
-display_atom(Term, Atom) :- string(Term), !, atom_string(Atom, Term).
+display_atom(Term, Atom) :- string(Term), !, atom_chars(Atom, Term).
 display_atom(Term, Atom) :- term_wire_atom(Term, Atom).

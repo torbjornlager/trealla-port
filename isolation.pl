@@ -97,7 +97,7 @@ shared_files_text([File0|Files], Acc, Text) :-
     shared_files_text(Files, Next, Text).
 
 shared_file_atom(File, File) :- atom(File), !.
-shared_file_atom(File, Atom) :- string(File), !, atom_string(Atom, File).
+shared_file_atom(File, Atom) :- string(File), !, atom_chars(Atom, File).
 shared_file_atom(File, _) :-
     throw(error(type_error(source_sink, File), configure_shared_db/1)).
 
@@ -449,7 +449,7 @@ load_option_text(src_uri(URI), _, Text) :- !,
     fetch_source_uri(URI, Text).
 
 source_text_atom(Text, Text) :- atom(Text), !.
-source_text_atom(Text, Atom) :- string(Text), !, atom_string(Atom, Text).
+source_text_atom(Text, Atom) :- string(Text), !, atom_chars(Atom, Text).
 source_text_atom(Text, Atom) :- is_list(Text), !,
     ( Text = [C|_], integer(C) -> atom_codes(Atom, Text)
     ; atom_chars(Atom, Text)
@@ -584,7 +584,7 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, 'parallel(Goals) :- parallel:parallel_in(~q,Goals).~n', [Module]),
     format(Out, 'first_solution(Solution,Goals) :- parallel:first_solution_in(~q,Solution,Goals,[on_fail(continue),on_error(stop)]).~n', [Module]),
     format(Out, 'first_solution(Solution,Goals,Options) :- parallel:first_solution_in(~q,Solution,Goals,Options).~n', [Module]),
-    format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_control_catch/4,sandbox_format/2,sandbox_sleep/1,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
+    format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_control_catch/4,sandbox_format/2,sandbox_sleep/1,sandbox_atom_string/2,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     format(Out, ':- dynamic \'$actor_source_pi\'/1.~n', []),
     format(Out, ':- dynamic \'$actor_dynamic_pi\'/1.~n', []),
     format(Out, ':- dynamic \'$actor_shared_pi\'/1.~n', []),
@@ -596,7 +596,7 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_load\'([Bad|_]) :- throw(error(domain_error(source_option, Bad), \'$actor_load\'/1)).~n', []),
     format(Out, '\'$actor_text\'(Text0) :- \'$actor_source_atom\'(Text0, Text), open_string(Text, In), setup_call_cleanup(true, \'$actor_read\'(In), close(In)).~n', []),
     format(Out, '\'$actor_source_atom\'(Text, Text) :- atom(Text), !.~n', []),
-    format(Out, '\'$actor_source_atom\'(Text, Atom) :- string(Text), !, atom_string(Atom, Text).~n', []),
+    format(Out, '\'$actor_source_atom\'(Text, Atom) :- string(Text), !, atom_chars(Atom, Text).~n', []),
     format(Out, '\'$actor_source_atom\'(Text, Atom) :- Text = [C|_], integer(C), !, atom_codes(Atom, Text).~n', []),
     format(Out, '\'$actor_source_atom\'(Text, Atom) :- atom_chars(Atom, Text).~n', []),
     format(Out, '\'$actor_read\'(In) :- read_term(In, Term, []), ( Term == end_of_file -> true ; \'$actor_term\'(Term), \'$actor_read\'(In) ).~n', []),
@@ -725,6 +725,7 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_strip_source_module\'(Term, Term) :- var(Term), !.~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0), clause(Head,Body)) :- !, \'$actor_strip_source_module\'(Head0,Head), \'$actor_strip_source_module\'(Body0,Body).~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_sleep(Seconds), sleep(Seconds)) :- !.~n', []),
+    format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_atom_string(Atom,String), atom_string(Atom,String)) :- !.~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_random_member(Element,List), random_member(Element,List)) :- !.~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_time(_Context,Goal0), time(Goal)) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:Call0, Call) :- nonvar(Call0), functor(Call0,sandbox_call,Arity), Arity >= 5, Arity =< 12, !, Call0 =.. [sandbox_call,_M,_P,_C,_A,Closure0|Extra0], \'$actor_strip_source_module\'(Closure0,Closure), \'$actor_strip_source_args\'(Extra0,Extra), Call =.. [call,Closure|Extra].~n', []),

@@ -285,7 +285,7 @@ drop_space([Code|Codes], Rest) :-
 drop_space(Codes, Codes).
 
 text_atom(Value, Value) :- atom(Value), !.
-text_atom(Value, Atom) :- string(Value), !, atom_string(Atom, Value).
+text_atom(Value, Atom) :- string(Value), !, atom_chars(Atom, Value).
 text_atom(Value, Atom) :- is_list(Value), !, atom_chars(Atom, Value).
 
 lower_atom(Atom, Lower) :-
