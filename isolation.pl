@@ -1,7 +1,8 @@
 % SPDX-License-Identifier: MIT
 
 :- module(isolation,
-       [ prepare_actor/4,          % +Pid, +GoalModule, +Options, -Module
+       [ run_actor/5,              % +Pid, +GoalModule, :Goal, +Options, +Parent
+         prepare_actor/4,          % +Pid, +GoalModule, +Options, -Module
          run_actor_goal/3,         % +Module, :Goal, +Options
          cleanup_actor/1,          % +Pid
          configure_shared_db/1,    % +Files
@@ -23,9 +24,11 @@ therefore invisible to other actors.  `src_predicates/1` is materialised in
 the spawning process, which also makes it portable over the distribution
 protocol.
 
-Trealla v3.13.2 exposes `destroy_module/1`. Cleanup removes the actor's
-temporary module after its bootstrap and source predicates are no longer in
-use, allowing the runtime to reuse the module record.
+Trealla v3.13.2 exposes `in_temporary_module/3`, `destroy_module/1`, and
+`load_text/2`.  The complete child-side actor goal runs inside the scoped
+temporary module, so cleanup follows normal success, failure, exceptions, and
+actor-exit unwinds.  The actor bootstrap is loaded from memory rather than
+through a per-actor file.
 
 `src_uri/1` is resolved to inline source by the node's controlled source
 policy before actor creation.
@@ -62,6 +65,9 @@ server_actor_library_file(ServerActorFile) :-
 
 supervisor_actor_library_file(SupervisorActorFile) :-
     absolute_file_name('supervisor_actor.pl', SupervisorActorFile, []).
+
+actor_api_library_file(ActorApiFile) :-
+    absolute_file_name('actor_api.pl', ActorApiFile, []).
 
 
                 /*******************************
@@ -107,35 +113,73 @@ read_stream_bytes(Stream, Bytes) :-
     ; Bytes = [Byte|Rest], read_stream_bytes(Stream, Rest)
     ).
 
-prepare_actor(Pid, _GoalModule, Options, Module) :-
-    fresh_namespace(Module, File),
+run_actor(Pid, GoalModule, Goal, Options, Parent) :-
+    fresh_namespace(Module),
+    actors:make_ref(PrepareToken),
     catch(
-        % in_temporary_module/3 cannot span the actor's asynchronous lifetime;
-        % use the constructor it wraps and the public destroy_module/1 cleanup.
-        ( '$create_module'(Module),
-          write_bootstrap(File, Module),
-          call_in_module(Module, load_files(File, [])),
-          delete_file(File),
-          assertz(actor_namespace(Pid, Module)),
-          source_options(Options, Sources),
-          ( shared_db_text(SharedText)
-          -> call_in_module(Module, '$actor_load_shared'(SharedText)),
-             HasShared = true
-          ; HasShared = false
-          ),
-          call_in_module(Module, '$actor_load'(Sources)),
-          ( Sources == [], HasShared == false -> true
-          ; assertz(actor_source_namespace(Pid, Module))
-          )
-        ),
-        Error,
-        ( catch(delete_file(File), _, true),
-          catch(call_in_module(Module, '$actor_cleanup'), _, true),
-          catch(destroy_module(Module), _, true),
-          retractall(actor_namespace(Pid, Module)),
-          retractall(actor_source_namespace(Pid, Module)),
+        setup_call_cleanup(
+            true,
+            in_temporary_module(
+                Module,
+                isolation:prepare_actor_and_signal(
+                    Pid, GoalModule, Options, Module, Parent, PrepareToken),
+                isolation:run_actor_goal(Module, Goal, Options)),
+            forget_actor_module(Pid, Module)),
+        '$actor_prepare_error'(PrepareToken, Error),
+        ( actors:actor_send(
+              Parent, '$actor_started'(Pid, error(Error))),
           throw(Error)
         )).
+
+prepare_actor_and_signal(Pid, GoalModule, Options, Module, Parent,
+                         PrepareToken) :-
+    catch(prepare_actor_module(Pid, GoalModule, Options, Module),
+          Error,
+          throw('$actor_prepare_error'(PrepareToken, Error))),
+    actors:actor_send(Parent, '$actor_started'(Pid, ok)).
+
+% Explicit lifecycle retained for diagnostics and callers that prepare a
+% module independently of an actor goal. Actor threads use run_actor/5.
+prepare_actor(Pid, GoalModule, Options, Module) :-
+    fresh_namespace(Module),
+    catch(
+        ( '$create_module'(Module),
+          prepare_actor_module(Pid, GoalModule, Options, Module)
+        ),
+        Error,
+        ( catch(call_in_module(Module, '$actor_cleanup'), _, true),
+          catch(destroy_module(Module), _, true),
+          forget_actor_module(Pid, Module),
+          throw(Error)
+        )).
+
+prepare_actor_module(Pid, _GoalModule, Options, Module) :-
+    source_options(Options, Sources),
+    ( shared_db_text(SharedText)
+    -> Shared = shared(SharedText)
+    ; Shared = none
+    ),
+    prepare_actor_bootstrap(Module, Sources, Shared),
+    assertz(actor_namespace(Pid, Module)),
+    ( Shared = shared(SharedText)
+    -> call_in_module(Module, '$actor_load_shared'(SharedText)),
+       HasShared = true
+    ; HasShared = false
+    ),
+    ( Sources == []
+    -> true
+    ; call_in_module(Module, '$actor_load'(Sources))
+    ),
+    ( Sources == [], HasShared == false -> true
+    ; assertz(actor_source_namespace(Pid, Module))
+    ).
+
+prepare_actor_bootstrap(Module, [], none) :- !,
+    minimal_bootstrap_text(Module, Bootstrap),
+    load_text(Bootstrap, [module(Module)]).
+prepare_actor_bootstrap(Module, _, _) :-
+    bootstrap_text(Module, Bootstrap),
+    load_text(Bootstrap, [module(Module)]).
 
 run_actor_goal(Module, Goal0, Options) :-
     ( memberchk('$entry_context'(caller), Options)
@@ -149,6 +193,10 @@ cleanup_actor(Pid) :-
     forall(retract(actor_namespace(Pid, Module)),
            ( catch(call_in_module(Module, '$actor_cleanup'), _, true),
              destroy_module(Module) )).
+
+forget_actor_module(Pid, Module) :-
+    retractall(actor_source_namespace(Pid, Module)),
+    retractall(actor_namespace(Pid, Module)).
 
 actor_module(Pid, Module) :-
     actor_namespace(Pid, Module).
@@ -495,13 +543,21 @@ valid_source_predicate_indicator(PI) :-
     source_predicate_indicator(PI, _, _).
 
 listed_predicate_terms(Module, Id, PIs, Terms) :-
-    fresh_bootstrap_file(Id, File),
+    fresh_listing_file(Id, File),
     setup_call_cleanup(
         true,
         ( write_predicate_listings(File, Module, PIs),
           read_source_terms(File, Terms)
         ),
         catch(delete_file(File), _, true)).
+
+fresh_listing_file(Id, File) :-
+    random_between(1000000000, 9999999999, Random),
+    format(atom(Candidate), '/tmp/trealla-listing-~w-~w.pl', [Random, Id]),
+    ( exists_file(Candidate)
+    -> fresh_listing_file(Id, File)
+    ; File = Candidate
+    ).
 
 write_predicate_listings(File, Module, PIs) :-
     setup_call_cleanup(
@@ -543,20 +599,11 @@ source_predicate_indicator(PI, Name, Arity) :-
                 *       MODULE BOOTSTRAP       *
                 *******************************/
 
-fresh_namespace(Module, File) :-
+fresh_namespace(Module) :-
     actors:make_ref(Id),
-    format(atom(Module), '$trealla_actor_~w', [Id]),
-    fresh_bootstrap_file(Id, File).
+    format(atom(Module), '$trealla_actor_~w', [Id]).
 
-fresh_bootstrap_file(Id, File) :-
-    random_between(1000000000, 9999999999, Random),
-    format(atom(Candidate), '/tmp/trealla-actor-~w-~w.pl', [Random, Id]),
-    ( exists_file(Candidate)
-    -> fresh_bootstrap_file(Id, File)
-    ; File = Candidate
-    ).
-
-write_bootstrap(File, Module) :-
+bootstrap_text(Module, Text) :-
     actors_library_file(ActorsFile),
     toplevel_library_file(ToplevelFile),
     sandbox_library_file(SandboxFile),
@@ -564,12 +611,23 @@ write_bootstrap(File, Module) :-
     parallel_library_file(ParallelFile),
     server_actor_library_file(ServerActorFile),
     supervisor_actor_library_file(SupervisorActorFile),
-    setup_call_cleanup(
-        open(File, write, Out),
-        write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
-                         SandboxFile, RpcFile, ParallelFile, ServerActorFile,
-                         SupervisorActorFile),
-        close(Out)).
+    with_output_to(
+        atom(Text),
+        ( current_output(Out),
+          write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
+                           SandboxFile, RpcFile, ParallelFile,
+                           ServerActorFile, SupervisorActorFile)
+        )).
+
+minimal_bootstrap_text(_Module, Text) :-
+    actors_library_file(ActorsFile),
+    actor_api_library_file(ActorApiFile),
+    with_output_to(
+        atom(Text),
+        ( format(':- use_module(~q).~n', [ActorsFile]),
+          format(':- use_module(~q).~n', [ActorApiFile]),
+          format('\'$actor_call\'(Goal) :- call(Goal).~n', [])
+        )).
 
 write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
                  SandboxFile, RpcFile, ParallelFile, ServerActorFile,

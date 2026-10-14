@@ -323,17 +323,12 @@ start(Parent, Pid, GoalModule, Goal, Options) :-
     set_spawn_io_target(Parent, Options),
     option(link(Link), Options, true),
     ( Link == true, \+ link(Parent, Pid) -> exit(kill) ; true ),
-    catch(isolation:prepare_actor(Pid, GoalModule, Options, Module),
-          PrepError, true),
-    ( nonvar(PrepError)
-    -> actor_send(Parent, '$actor_started'(Pid, error(PrepError))),
-       throw(PrepError)
-    ; actor_send(Parent, '$actor_started'(Pid, ok)),
-      % exit/1 records the public reason before throwing this private unwind.
-      % Swallow only that control token; all ordinary exceptions must reach
-      % Trealla's final thread status for monitor delivery.
-      catch(isolation:run_actor_goal(Module, Goal, Options), actor_exit, true)
-    ).
+    % exit/1 records the public reason before throwing this private unwind.
+    % Swallow only that control token; all ordinary exceptions must reach
+    % Trealla's final thread status for monitor delivery. run_actor/5 signals
+    % startup only after its scoped temporary module has been prepared.
+    catch(isolation:run_actor(Pid, GoalModule, Goal, Options, Parent),
+          actor_exit, true).
 
 set_spawn_io_target(_Parent, Options) :-
     option(io_target(Target), Options),
