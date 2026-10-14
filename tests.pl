@@ -124,7 +124,8 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t55 producer exceptions return to the HTTP worker instead of deadlocking
   - t56 the portable abolish/2 form stays scoped to the actor module
   - t119 sandboxed remote spawn requires an exact operator allowlist entry
-  - t120 `between/3` is available to queries and submitted user programs
+  - t120 `between/3` is available to queries and submitted user programs,
+    including SWI's unbounded `infinite` upper limit
 
 ## Tests: resource governance (t57-t62, t125-t126)
 
@@ -1688,16 +1689,31 @@ t120 :-
     sandbox_prepare_goal(whitelist, isobase, user,
                          between(1, 3, QueryValue), QueryGoal),
     findall(QueryValue, call(QueryGoal), [1,2,3]),
+    sandbox_prepare_goal(whitelist, isobase, user,
+                         findnsols(5, InfiniteValue,
+                                   between(3, infinite, InfiniteValue),
+                                   InfiniteValues),
+                         InfiniteGoal),
+    call(InfiniteGoal),
+    InfiniteValues == [3,4,5,6,7],
+    sandbox_prepare_goal(whitelist, isobase, user,
+                         between(3, infinite, 5), BoundTrue),
+    call(BoundTrue),
+    sandbox_prepare_goal(whitelist, isobase, user,
+                         between(3, infinite, 2), BoundFalse),
+    \+ call(BoundFalse),
     self(Me),
-    Source = 'between_values(Values) :- findall(X, between(2, 4, X), Values).',
-    Goal0 = (between_values(Values), Me ! between_values(Values)),
+    Source = 'between_values(Values) :- findall(X, between(2, 4, X), Values). infinite_values(Values) :- findnsols(4, X, between(7, infinite, X), Values).',
+    Goal0 = (between_values(Values), infinite_values(Unbounded),
+             Me ! between_values(Values, Unbounded)),
     sandbox_prepare_spawn(whitelist, actor, actor_context, Goal0,
                           [src_text(Source)], Goal, Options0),
     append(Options0, [link(false)], Options),
     spawn(Goal, _, Options),
-    receive({between_values(ProgramValues) -> true}),
+    receive({between_values(ProgramValues, ProgramUnbounded) -> true}),
     ProgramValues == [2,3,4],
-    format("120. between/3 is available to sandboxed user code ok~n").
+    ProgramUnbounded == [7,8,9,10],
+    format("120. between/3 supports finite and infinite sandbox bounds ok~n").
 
 t124 :-
     self(Me),

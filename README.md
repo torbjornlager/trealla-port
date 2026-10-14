@@ -165,6 +165,7 @@ allowlist, drains on shutdown, and has an end-to-end smoke test:
 | 114 | shared database visibility and actor-local shadowing | ok |
 | 115 | connection-scoped `actors/1` hides relays and other shells | ok |
 | 116 | private actor modules expose the toplevel actor API | ok |
+| 120 | `between/3` supports SWI's `infinite` upper bound | ok |
 | 104 | sandboxed nested spawn retains its runtime module in source sessions | ok |
 | 105 | nested `src_predicates/1` copies source from its private parent session | ok |
 | 127–130 | one-sided receive, correlation safety, and guard control semantics | ok |
@@ -1077,10 +1078,13 @@ The actor/RPC modules are ported and exercised through Trealla v3.13.10:
   routing to local actor mailboxes using Trinity-compatible `Pid@NodeURL`
   identifiers.
 
-Submitted programs also receive a narrow SWI-compatibility mapping for
-`atom_string/2`. Trealla's double-quoted text is represented as character
-lists, so the mapping delegates to `atom_chars/2`; source-loading internals do
-the same when browser-originated `src_text/1` values are strings.
+Submitted programs also receive narrow SWI-compatibility mappings for
+`atom_string/2` and `between/3`. Trealla's double-quoted text is represented
+as character lists, so `atom_string/2` delegates to `atom_chars/2`;
+source-loading internals do the same when browser-originated `src_text/1`
+values are strings. For `between/3`, both `infinite` and SWI's `inf` alias are
+accepted as an unbounded upper limit while finite bounds continue to use
+Trealla's native predicate.
 
 The remaining runtime-specific adaptations are recorded in
 `UPSTREAM_REPORTS.md`; compatibility paths are kept only where the documented

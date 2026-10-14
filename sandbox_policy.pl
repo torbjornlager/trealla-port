@@ -20,6 +20,7 @@
          sandbox_format/2,
          sandbox_time/2,
          sandbox_sleep/1,
+         sandbox_between/3,
          sandbox_atom_string/2,
          sandbox_random_member/2,
          sandbox_clause/6,
@@ -143,6 +144,9 @@ sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
     reject_format_meta_call(Format).
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     sandbox_policy:sandbox_sleep(_Seconds)) :-
+    !.
+sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
+                    sandbox_policy:sandbox_between(_Low, _High, _Value)) :-
     !.
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     sandbox_policy:sandbox_atom_string(_Atom, _String)) :-
@@ -533,6 +537,7 @@ reserved_source_name(sandbox_toplevel_call).
 reserved_source_name(sandbox_format).
 reserved_source_name(sandbox_time).
 reserved_source_name(sandbox_sleep).
+reserved_source_name(sandbox_between).
 reserved_source_name(sandbox_atom_string).
 reserved_source_name(sandbox_random_member).
 reserved_source_name(sandbox_builtin_call).
@@ -605,6 +610,11 @@ rewrite_goal_(_M,_P,_C,_A,random_member(Element,List),
 % short-lived private modules used for actor sessions.
 rewrite_goal_(_M,_P,_C,_A,sleep(Seconds),
               sandbox_policy:sandbox_sleep(Seconds)).
+% SWI accepts `infinite` (and its `inf` alias) as the upper bound of
+% between/3.  Trealla currently requires an integer, so keep portable actor
+% programs on SWI's public contract through this small compatibility bridge.
+rewrite_goal_(_M,_P,_C,_A,between(Low,High,Value),
+              sandbox_policy:sandbox_between(Low,High,Value)).
 % Trealla represents strings as character lists but does not provide SWI's
 % atom_string/2 compatibility predicate.  Route it through atom_chars/2 so
 % shared tutorial and application source retains the SWI spelling.
@@ -989,6 +999,23 @@ sandbox_sleep(Seconds) :-
     % interruption, so no mailbox-based timing workaround is needed.
     sleep(Seconds).
 
+sandbox_between(Low, High, Value) :-
+    ( High == infinite ; High == inf ),
+    !,
+    must_be(integer, Low),
+    ( var(Value)
+    -> integers_from(Low, Value)
+    ; must_be(integer, Value),
+      Value >= Low
+    ).
+sandbox_between(Low, High, Value) :-
+    between(Low, High, Value).
+
+integers_from(Value, Value).
+integers_from(Low, Value) :-
+    Next is Low + 1,
+    integers_from(Next, Value).
+
 sandbox_atom_string(Atom, String) :-
     atom_chars(Atom, String).
 
@@ -1045,6 +1072,9 @@ restore_clause_body(Module, Module:Inner0, Inner) :-
     restore_clause_body(Module, Inner0, Inner).
 restore_clause_body(_Module, sandbox_policy:sandbox_sleep(Seconds),
                     sleep(Seconds)) :- !.
+restore_clause_body(_Module,
+                    sandbox_policy:sandbox_between(Low,High,Value),
+                    between(Low,High,Value)) :- !.
 restore_clause_body(_Module, sandbox_policy:sandbox_atom_string(Atom,String),
                     atom_string(Atom,String)) :- !.
 restore_clause_body(_Module,
