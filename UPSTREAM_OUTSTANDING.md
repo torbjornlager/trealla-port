@@ -88,11 +88,6 @@ These should not yet be filed as Trealla bugs:
   application accept loop blocked on v3.13.10, even though the smaller
   upstream regression passes. Test t95 hangs without the existing local wake
   connection, so that shutdown mechanism remains.
-- Old 10,000-iteration actor benchmarks crashed intermittently on pre-3.0
-  versions. On v3.13.4, ten 10,000-message ping-pong runs passed; the spawning
-  benchmark passed at 1,000 and 2,000 generations but did not finish its
-  5,000-generation run within a 20-second probe. This is not currently a crash
-  report, but a bounded performance/stability test is still needed.
 
 ## Lower-priority portability requests
 
@@ -123,5 +118,9 @@ longer requests.
   qualification bridge. Removing only that bridge, without porting SWI's
   associated control-guard and distributed-goal rewriting, is not a valid
   runtime comparison.
+- The old high-volume actor crash did not reproduce on v3.13.10. Ten fresh
+  10,000-message ping-pong runs and five fresh 10,000-generation recursive
+  spawning runs all completed. The earlier 5,000-generation 20-second probe
+  was simply too short; that workload completes in about 41 seconds.
 
 Full historical details and resolved reports remain in `UPSTREAM_REPORTS.md`.

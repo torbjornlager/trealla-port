@@ -479,7 +479,7 @@ and issue identity before filing a new report.
 
 ### BUG-007: High-volume actor thread benchmarks crash intermittently
 
-**Status:** Retest  
+**Status:** Not reproduced on v3.13.10
 **Priority:** High if still present
 
 `Benchmarking/bm-ping-pong.pl` and `Benchmarking/bm-spawning.pl` were stable at
@@ -491,6 +491,21 @@ use far fewer actor round trips and are unaffected.  Rerun on v3.12.6 and the
 latest upstream build, capture the smallest failing iteration count and stack
 trace, and confirm whether this is the same defect as BUG-006 or a separate
 threading/GC issue.
+
+v3.13.10 retest on macOS arm64:
+
+- ten fresh 10,000-message ping-pong processes all completed in 2.28–2.29
+  seconds;
+- recursive spawning completed at depths 1,000, 2,000, 3,000, and 5,000 in
+  9.47, 17.42, 25.35, and 40.67 seconds respectively;
+- five fresh 10,000-generation spawning processes all completed in
+  79.15–79.91 seconds; and
+- one instrumented 10,000-generation run used 232,144,896 bytes maximum RSS.
+
+There were no crashes, signals, or runtime diagnostics. The v3.13.4 result at
+5,000 generations was not a hang: its 20-second observation window was shorter
+than the workload's normal completion time. BUG-007 should not be sent
+upstream unless a new failure appears.
 
 ### BUG-008: `thread_signal/2` intermittently fails to interrupt a CPU-bound thread
 
