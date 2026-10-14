@@ -1090,3 +1090,12 @@ benchmarks (`bm-ping-pong.pl`, `bm-spawning.pl`). On v3.13.10, ten fresh
 spawning runs all completed on macOS arm64. The spawning workload takes about
 79 seconds and roughly 232 MB maximum RSS at that depth; this is a stability
 result rather than a claim that creating 10,000 simultaneous actors is cheap.
+
+### Comparative performance
+
+A reproducible same-host comparison with the composed SWI implementation is in
+[`Benchmarking/SWI_TREALLA_COMPARISON.md`](Benchmarking/SWI_TREALLA_COMPARISON.md).
+On the recorded SWI 10.1.3 and Trealla 3.13.10 revisions, Trealla actor creation
+is substantially more expensive, while its warmed local ping-pong path is about
+20% faster. The raw samples and runner are retained with the report so the
+comparison can be repeated after either implementation changes.
