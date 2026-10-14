@@ -865,8 +865,8 @@ receive_qualified(Clauses, Options) :-
 %   Dispatcher for the three timeout regimes:
 %
 %     - `timeout(0)`     -- non-blocking poll (receive_loop_poll/4).
-%     - `timeout(T)`, T>0 -- block with deadline using
-%       thread_get_message/3's native timeout (receive_loop_timed/5).
+%     - `timeout(T)`, T>0 -- block using thread_get_message/3's native
+%       absolute deadline (receive_loop_timed/5).
 %     - no timeout / `infinite` -- block forever (receive_loop_blocking/4).
 
 receive_loop(Mailbox, Clauses, Options, Deferred) :-
@@ -904,9 +904,9 @@ receive_loop_blocking(Mailbox, Clauses, Options, Deferred) :-
 
 %!  receive_loop_timed(+Mailbox, +Clauses, +Options, +Deferred, +T) is semidet.
 %
-%   Positive timeout. Each iteration recomputes the remaining time so
-%   draining a non-matching message doesn't reset the deadline. Uses
-%   thread_get_message/3 with the native timeout(Float) option.
+%   Positive timeout. Convert it once to an absolute deadline so draining a
+%   non-matching message cannot reset or extend the requested wait.  Trealla
+%   v3.13.10 implements the SWI-compatible deadline/1 option natively.
 
 receive_loop_timed(Mailbox, Clauses, Options, Deferred, T) :-
     get_time(T0),
@@ -914,9 +914,7 @@ receive_loop_timed(Mailbox, Clauses, Options, Deferred, T) :-
     receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline).
 
 receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline) :-
-    get_time(Now),
-    Remaining is max(0.0, Deadline - Now),
-    (   thread_get_message(Mailbox, Msg, [timeout(Remaining)])
+    (   thread_get_message(Mailbox, Msg, [deadline(Deadline)])
     ->  copy_term(Msg, SavedMsg),
         (   catch(select_body(Clauses, Msg, Body), Error,
                   preserve_control_exception(Deferred, SavedMsg, Error))

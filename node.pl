@@ -103,8 +103,9 @@ waits for their normal cleanup under a bounded timeout.
   - `compute_answer/5` uses `receive/1` (unlimited wait) because
     producer replies are guaranteed: the producer is a local actor
     we just spawned or resumed.  No timeout is needed.
-  - `predicate_property(..., number_of_clauses(N))` is absent; the
-    cache size is counted with `findall/3`.
+  - `predicate_property(..., number_of_clauses(N))` is available since
+    Trealla v3.13.4 and is used by the actor source-discovery code.  The
+    cache size is still counted directly with `findall/3` and `length/2`.
   - JSON responses use Trinity's named-binding shape and ignore the explicit
     template parameter, as the SWI implementation does.
 */

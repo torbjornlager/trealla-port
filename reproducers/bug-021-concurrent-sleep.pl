@@ -1,4 +1,6 @@
-% Trealla v3.13.3 and v3.13.4: concurrent sleep/1 calls lengthen one another.
+% Trealla v3.13.3 and v3.13.4: concurrent sleep/1 calls lengthened one another.
+% Fixed in v3.13.10; this file is retained as a regression probe and should
+% print elapsed time close to three seconds.
 
 reproducer :-
     get_time(Start),

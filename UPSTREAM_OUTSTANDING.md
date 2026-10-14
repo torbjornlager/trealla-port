@@ -1,49 +1,38 @@
 # Outstanding Trealla reports from the Web Prolog port
 
-Prepared 2026-10-13 from the `trealla-port` work, using Trealla v3.13.4 on
+Updated 2026-10-14 from the `trealla-port` work, using Trealla v3.13.10 on
 macOS arm64.  Thank you for the substantial set of fixes and additions already
-made for this port.  After retesting, only the following two items are ready to
-send upstream.
+made for this port.  No minimized bug report or feature request is currently
+ready to send upstream.
 
-## Ready reports
+## Resolved in v3.13.10
 
-### 1. Feature request: absolute message-queue deadlines
+### Absolute message-queue deadlines
 
-`thread_get_message/3` accepts `timeout(Seconds)`, but rejects the
-SWI-compatible `deadline(AbsoluteTime)` option with
-`domain_error(read_option, deadline(...))`.
+`thread_get_message/3` now accepts the SWI-compatible
+`deadline(AbsoluteTime)` option.  The standalone reproducer's already-expired
+deadline fails immediately and prints `none`, matching SWI-Prolog.  The actor
+receive loop now passes its absolute deadline directly to Trealla.
 
-Absolute deadlines are useful in selective-receive loops: unrelated messages
-can be skipped without repeatedly converting the original deadline into a
-shrinking relative timeout.  The requested time basis is the one used by
-`get_time/1`.
-
-Reproducer:
+Regression command:
 
 ```sh
 tpl -q -f reproducers/fr-010-thread-get-message-deadline.pl \
     -g "reproducer,halt"
 ```
 
-Trealla v3.13.4 raises the domain error.  SWI-Prolog fails immediately and the
-reproducer prints `none`, because its deadline is already expired.
+### Independent concurrent sleeps
 
-### 2. Bug: concurrent `sleep/1` calls lengthen one another
+Independent one-, three-, and two-second sleeps now finish in approximately
+three seconds.  Five clean `sleep/1` runs took 3.001, 3.001, 3.004, 3.003, and
+3.004 seconds; a `thread_sleep/1` run took 3.002 seconds.  The port now uses
+native `sleep/1` for sandboxed actor code instead of its mailbox workaround.
 
-Independent sleeps in separate threads interfere.  Threads sleeping for one,
-three, and two seconds concurrently should finish in about three seconds, but
-three clean v3.13.4 runs took 4.196, 4.167, and 4.134 seconds.  `thread_sleep/1`
-has the same behavior.
-
-Reproducer:
+Regression command:
 
 ```sh
 tpl -q -f reproducers/bug-021-concurrent-sleep.pl
 ```
-
-This matters for actor timeouts, races, and concurrent teaching examples.  The
-port currently works around it with a per-thread mailbox deadline, so the
-one/three/two-second parallel example completes in about three seconds.
 
 ## Observations still needing a small reproducer
 

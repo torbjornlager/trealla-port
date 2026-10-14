@@ -972,13 +972,11 @@ sandbox_time_report(time_state(Wall0, CPU0, Inferences0)) :-
     actors:terminal_output(Text, [source(io)]).
 
 sandbox_sleep(Seconds) :-
-    % Trealla v3.13.4's native sleep/1 uses the process alarm machinery;
-    % concurrent actor sleeps interrupt and lengthen one another.  The actor
-    % mailbox timeout is per-thread and leaves every message untouched because
-    % this clause's guard can never commit.  It also lets actor exit controls
-    % interrupt the wait normally.
-    actors:receive({_Message if fail -> true},
-                   [timeout(Seconds),on_timeout(true)]).
+    % Private actor modules do not inherit sleep/1, so sandboxed source is
+    % still rewritten through this bridge.  Trealla v3.13.10 makes native
+    % sleeps independent across threads and preserves thread_signal/2
+    % interruption, so no mailbox-based timing workaround is needed.
+    sleep(Seconds).
 
 sandbox_random_member(Element, List) :-
     must_be(list, List),

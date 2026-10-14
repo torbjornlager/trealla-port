@@ -1,6 +1,7 @@
 % SPDX-License-Identifier: MIT
 
-% Trealla v3.13.2 through v3.13.4 reject SWI-Prolog's deadline/1 option.
+% Trealla v3.13.2 through v3.13.4 rejected SWI-Prolog's deadline/1 option.
+% Fixed in v3.13.10; this file is retained as a regression probe.
 %
 % Run with:
 %
@@ -8,9 +9,7 @@
 %       -g "reproducer,halt"
 %
 % Expected portable behavior: the already-expired deadline makes
-% thread_get_message/3 fail immediately.  Current Trealla behavior:
-%
-%   error(domain_error(read_option,deadline(...)),thread_get_message/3)
+% thread_get_message/3 fail immediately, so the program prints `none`.
 
 reproducer :-
     thread_self(Self),

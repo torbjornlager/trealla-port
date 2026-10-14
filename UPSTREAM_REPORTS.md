@@ -7,7 +7,7 @@ produce, the affected Trealla version, the practical impact, and the workaround
 currently used in this repository.
 
 Unless stated otherwise, historical observations were made with Trealla Prolog
-v3.12.6 on macOS. Current outstanding items were audited with v3.13.4. Before
+v3.12.6 on macOS. Current outstanding items were audited with v3.13.10. Before
 filing, rerun the reproducer with the latest upstream build and search the
 upstream tracker for duplicates. `UPSTREAM_OUTSTANDING.md` is the short,
 maintainer-ready summary of this ledger.
@@ -18,6 +18,17 @@ Status meanings:
 - **Needs minimization** — real application evidence exists, but the report
   should first be reduced to a small standalone program.
 - **Retest** — observed on an older release; establish whether it remains.
+
+## v3.13.10 upstream audit
+
+Trealla v3.13.10 implements SWI-compatible absolute `deadline/1` options for
+`thread_get_message/3` and corrects interference between concurrent sleeps.
+The expired-deadline reproducer now prints `none`. Five runs of the concurrent
+one-, three-, and two-second `sleep/1` reproducer took 3.001–3.004 seconds, and
+the equivalent `thread_sleep/1` probe took 3.002 seconds. FR-010 and BUG-021
+are therefore resolved. The port now uses the native deadline and sleep
+facilities, and its complete unit and bidirectional SWI interoperability suite
+passes on macOS arm64.
 
 ## v3.13.4 upstream audit
 
@@ -287,7 +298,7 @@ certificate identity verification.
 
 ### FR-010: Support absolute deadlines in `thread_get_message/3`
 
-**Status:** Ready
+**Status:** Resolved in v3.13.10
 **Priority:** Medium
 
 Trealla's SWI-compatible `thread_get_message/3` accepts `timeout(Seconds)` but
@@ -316,11 +327,15 @@ behavior: accept `deadline(Time)` as an alternative to `timeout(Seconds)`,
 using the same absolute time basis as `get_time/1`. No matching Trealla issue
 was found in an upstream issue search on 2026-10-12.
 
+v3.13.10 result: the reproducer prints `none`, matching SWI-Prolog. The actor
+receive loop now passes its absolute deadline directly to
+`thread_get_message/3`.
+
 ## Bug reports
 
 ### BUG-001: Abrupt in-process WebSocket teardown can crash Trealla
 
-**Status:** Ready  
+**Status:** Retest
 **Priority:** High
 
 When the test process contains both the WebSocket server and client and the
@@ -898,7 +913,7 @@ rejection or exceptional propagation.
 
 ### BUG-021: Concurrent `sleep/1` calls lengthen one another
 
-**Status:** Reproduced in v3.13.4
+**Status:** Resolved in v3.13.10
 **Priority:** High
 
 Independent threads sleeping for one, three, and two seconds should all have
@@ -937,12 +952,10 @@ Impact: actor programs use sleeps concurrently for timeouts, races, and
 teaching examples. The three-way parallel example that should take as long as
 its slowest three-second branch instead takes roughly 4.2 seconds.
 
-Current workaround: sandboxed `sleep/1` is implemented as a per-thread actor
-mailbox deadline whose receive guard always fails. It preserves all queued
-messages, remains interruptible by actor termination, and completes the
-one/three/two-second parallel example in approximately three seconds.
-Regression tests 147 and 148 cover both the primitive and tutorial-level
-behavior.
+v3.13.10 result: five `sleep/1` runs completed in 3.001–3.004 seconds, and the
+equivalent `thread_sleep/1` probe completed in 3.002 seconds. Sandboxed code
+now uses native `sleep/1`; regression tests 147 and 148 continue to cover both
+the primitive and tutorial-level behavior.
 
 ## Compatibility gaps worth tracking, but not yet bug reports
 
