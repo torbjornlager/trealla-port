@@ -956,33 +956,19 @@ deferred_put(L) :-
 This directly matches the state lifetime instead of encoding thread IDs into
 process-wide blackboard keys.
 
-#### 2. `thread_detach/1` in `at_exit` hangs
+#### 2. Actor threads are detached at creation
 
-Calling `thread_detach/1` inside the `at_exit` hook never returns
-on Trealla. Threads are therefore created with `detached(true)` up
-front, and the `at_exit` hook does not call `thread_detach/1`.
+Trealla v3.13.10 refuses `thread_detach/1` when a terminating thread calls it
+from its own `at_exit` hook. Actor threads are therefore created with
+`detached(true)` up front, and the hook does not attempt self-detach.
 
-#### 3. `thread_property` status is `running` inside `at_exit`
+#### 3. Final thread status is native
 
-In SWI, the `at_exit` hook can read the thread's final outcome
-from `thread_property(Me, status(...))`. On Trealla the status is
-still `running` when the hook fires. The `start/4` wrapper records
-the outcome explicitly into a `exit_reason/2` fact, which the
-`stop/2` hook then retracts to build the `down/3` message:
-
-```prolog
-catch(
-    ( call(Goal)
-    ->  assertz(exit_reason(Pid, true))
-    ;   assertz(exit_reason(Pid, false))
-    ),
-    E,
-    ( E == actor_exit
-    ->  true
-    ;   assertz(exit_reason(Pid, exception(E)))
-    )
-).
-```
+Trealla v3.13.10 exposes the final success, failure, or exception through
+`thread_property(Me, status(Status))` inside `at_exit`. The port now uses that
+native status for ordinary monitor notifications. Only an explicit `exit/1`
+reason is recorded separately, because first-exit-wins is actor semantics and
+the internal unwind exception is not the public termination reason.
 
 #### 4. `output/1-2`, `input/2-3`, `respond/2` are added explicitly
 
@@ -1079,17 +1065,17 @@ The actor/RPC modules are ported and exercised through Trealla v3.13.10:
   The producer-actor cache works particularly cleanly thanks to
   Trealla's stack-preserving `receive/1`.
 - **`rpc.pl`** — native `http://` and hostname-verified `https://` transport.
-
-Submitted programs also receive a narrow SWI-compatibility mapping for
-`atom_string/2`. Trealla's double-quoted text is represented as character
-lists, so the mapping delegates to `atom_chars/2`; source-loading internals do
-the same when browser-originated `src_text/1` values are strings.
 - **`websocket.pl` / `web_prolog.pl`** — native `ws://` and `wss://`
   transport with the Trinity version-1 actor vocabulary, tested in both
   Trealla-to-SWI and SWI-to-Trealla directions.
 - **`distribution.pl`** — persistent remote-node connections and asynchronous
   routing to local actor mailboxes using Trinity-compatible `Pid@NodeURL`
   identifiers.
+
+Submitted programs also receive a narrow SWI-compatibility mapping for
+`atom_string/2`. Trealla's double-quoted text is represented as character
+lists, so the mapping delegates to `atom_chars/2`; source-loading internals do
+the same when browser-originated `src_text/1` values are strings.
 
 The remaining runtime-specific adaptations are recorded in
 `UPSTREAM_REPORTS.md`; compatibility paths are kept only where the documented

@@ -543,9 +543,10 @@ begin_node_shutdown(Port, Wake, Connections) :-
                   node_connection(Port, _, Stream, Thread), Connections) )).
 
 wake_node_listener(wake(BindAddress, SSL), Port) :-
-    % Cross-thread listener close still does not release accept in v3.13.2.
-    % A local connection lets the owner observe the stop flag and close its
-    % own listener. Match TLS so the accept can finish.
+    % Cross-thread listener close still does not release this accept loop in
+    % the v3.13.10 application build. A local connection lets the owner
+    % observe the stop flag and close its own listener. Match TLS so the
+    % accept can finish.
     listener_wake_address(BindAddress, Address),
     listener_wake_options(SSL, Options),
     ( catch(socket_client_open(Address:Port, Stream, Options), _, fail)

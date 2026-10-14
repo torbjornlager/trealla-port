@@ -309,11 +309,9 @@ inherit_spawn_io_target(Options, Options).
 %
 %   Internal entry point for a newly created actor thread.  Sets up
 %   any link/monitor, signals the parent that initialisation is
-%   complete, then calls Goal.  The exit reason is recorded
-%   explicitly in exit_reason/2 because Trealla's at_exit hook runs
-%   while `thread_property/2` still reports `status(running)`,
-%   making the usual SWI approach of reading the status in stop/2
-%   unreliable.
+%   complete, then calls Goal. Explicit exit/1 reasons are recorded when the
+%   actor commits to termination; ordinary success, failure, and exceptions
+%   are read from Trealla's final thread status by stop/2.
 
 start(Parent, Pid, GoalModule, Goal, Options) :-
     thread_self(Thread),
@@ -329,22 +327,12 @@ start(Parent, Pid, GoalModule, Goal, Options) :-
           PrepError, true),
     ( nonvar(PrepError)
     -> actor_send(Parent, '$actor_started'(Pid, error(PrepError))),
-       record_exit_reason(Pid, exception(PrepError))
+       throw(PrepError)
     ; actor_send(Parent, '$actor_started'(Pid, ok)),
-    % Record outcome explicitly: Trealla's thread_property/2 still
-    % reports status(running) inside the at_exit hook, so we can't
-    % read the outcome from it the way SWI does.
-    catch(
-        ( isolation:run_actor_goal(Module, Goal, Options)
-        ->  record_exit_reason(Pid, true)
-        ;   record_exit_reason(Pid, false)
-        ),
-        E,
-        ( E == actor_exit
-        ->  true                % exit/1 already asserted the reason
-        ;   record_exit_reason(Pid, exception(E))
-        )
-    )
+      % exit/1 records the public reason before throwing this private unwind.
+      % Swallow only that control token; all ordinary exceptions must reach
+      % Trealla's final thread status for monitor delivery.
+      catch(isolation:run_actor_goal(Module, Goal, Options), actor_exit, true)
     ).
 
 set_spawn_io_target(_Parent, Options) :-
@@ -368,8 +356,8 @@ set_spawn_io_target(Parent, _) :-
 
 stop(Pid, Parent) :-
     % No thread_detach here: the thread was spawned with detached(true)
-    % because calling thread_detach from inside at_exit hangs the
-    % hook on Trealla.
+    % because Trealla refuses self-detach from inside at_exit.
+    down_reason(Pid, Reason),
     with_mutex('$actor_registry',
         ( retractall(link(Parent, Pid)),
           retractall(registered(_Name, Pid)),
@@ -386,7 +374,6 @@ stop(Pid, Parent) :-
     isolation:cleanup_actor(Pid),
     exit_linked_children(ChildPids),
     forall(hook_stop(Pid), true),
-    down_reason(Pid, Reason),
     deliver_downs(Watchers, Pid, Reason).
 
 exit_linked_children([]).
@@ -437,12 +424,16 @@ actors_unlocked(Namespace, Pids) :-
 
 %!  down_reason(+Pid, -Reason) is det.
 %
-%   Retrieve and retract the recorded exit reason for Pid.  Falls back
-%   to `noproc` if no reason was recorded (e.g. the thread was
-%   terminated externally before it could call assertz).
+%   Retrieve an explicit exit/1 reason, or use the final native thread status
+%   for ordinary success, failure, and exceptions. Falls back to `noproc` if
+%   the thread disappeared before either form became observable.
 
 down_reason(Pid, Reason) :-
     retract(exit_reason(Pid, Reason)),
+    !.
+down_reason(Pid, Reason) :-
+    pid_thread(Pid, Thread),
+    catch(thread_property(Thread, status(Reason)), _, fail),
     !.
 down_reason(_, noproc).
 
@@ -641,10 +632,6 @@ commit_exit(Self, Reason, Committed) :-
     ( exit_reason(Self, _) -> Committed = false
     ; assertz(exit_reason(Self, Reason)), Committed = true
     ).
-
-record_exit_reason(Pid, Reason) :-
-    with_mutex('$actor_registry',
-        ( exit_reason(Pid, _) -> true ; assertz(exit_reason(Pid, Reason)) )).
 
 %!  actor_terminating is semidet.
 %

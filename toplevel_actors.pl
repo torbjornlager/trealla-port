@@ -259,7 +259,7 @@ receive_with_idle_limit(Clauses, IdleLimit) :-
 run_call(Pid, Goal, Template, Offset, Limit0, Target1,
          TimeLimit, IdleLimit) :-
     catch(
-        ( % Compound-literal cells still retain cross-thread state in v3.13.2;
+        ( % Compound-literal cells still retain cross-thread state in v3.13.10;
           % explicit construction is covered by the paging regression suite.
           functor(PageCount, count, 1),
           arg(1, PageCount, Limit0),

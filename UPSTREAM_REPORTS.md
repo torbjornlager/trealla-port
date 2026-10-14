@@ -400,7 +400,10 @@ another supported way for an exit hook to inspect the thread's final outcome.
 
 v3.13.3 retest: `thread_property(Me, status(Status))` inside the hook reports
 `status(true)` for a successfully completed thread, and `thread_join/2` also
-returns `true`.
+returns `true`. In v3.13.10 the port removed its normal-outcome recording
+wrapper and now reads success, failure, and exceptions from native thread
+status. It records only explicit actor `exit/1` reasons, which must hide the
+internal unwind exception and obey first-exit-wins semantics.
 
 ### BUG-004: `http_open/3` leaves socket-opening choicepoints
 
@@ -464,6 +467,11 @@ Current workaround: `toplevel_actors:run_call/8` deliberately keeps the
 complete paged enumeration and both mutable cells in one catch frame, and
 constructs those cells with `functor/3` plus `arg/3` rather than unification
 with a compound literal.
+
+v3.13.10 retest: replacing the explicit construction with `count(Limit)`,
+`target(Target)`, and `count(0)` reproducibly stalls the paging group as t14
+resumes the suspended enumeration through `toplevel_next/1`. The workaround
+therefore remains required.
 
 This area changed around Trealla v2.99.12 and has been associated in the
 project notes with upstream issue #1026.  Confirm the exact current behavior
@@ -684,6 +692,11 @@ Closing the listener wakes the blocked accept with an `existence_error`, and a
 new connection is refused. The node's explicit wake connection can remain an
 application-level shutdown mechanism, but this is no longer an upstream bug.
 
+v3.13.10 application retest: removing the explicit wake connection and closing
+the listener directly makes node lifecycle test t95 hang in the blocked accept
+loop. The smaller upstream regression and the application still differ, so the
+node retains its owner-thread wake-and-close sequence pending minimization.
+
 ### BUG-015: A TLS-disabled build reports `resource_error(memory)` for SSL
 
 **Status:** Resolved in v3.13.2
@@ -782,6 +795,10 @@ meta-predicate claim above is therefore not ready to file. The application
 regression still requires its qualification bridge, so any future report must
 first isolate the additional temporary-module, runtime-term, or receive-DSL
 condition that distinguishes it from the passing minimal case.
+
+v3.13.10 retest: removing the bridge makes regression t102 fail with
+`existence_error(procedure,wait_goodbye/0)` after the first receive body calls
+the next private predicate. The bridge is still required.
 
 ### BUG-018: `format/3` segfaults on the `~p` directive
 
