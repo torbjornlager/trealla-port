@@ -756,9 +756,9 @@ in BUG-006, but the exact runtime mechanism has not yet been isolated.
 v3.13.2 port status: `flush/0` again receives and emits each message in one
 recursive pass. The acknowledged browser interoperability regression passes.
 
-### BUG-017: Dynamically asserted calls to an imported meta-predicate lose the caller module
+### BUG-017: Receive bodies were invoked without their caller module
 
-**Status:** Needs minimization
+**Status:** Not an independently demonstrated Trealla bug
 **Priority:** High
 
 An actor-private module dynamically asserts a clause whose body calls the
@@ -796,9 +796,14 @@ regression still requires its qualification bridge, so any future report must
 first isolate the additional temporary-module, runtime-term, or receive-DSL
 condition that distinguishes it from the passing minimal case.
 
-v3.13.10 retest: removing the bridge makes regression t102 fail with
-`existence_error(procedure,wait_goodbye/0)` after the first receive body calls
-the next private predicate. The bridge is still required.
+v3.13.10 audit: current SWI actor code explicitly extracts the module from the
+receive clause set, evaluates guards in that module, and calls the selected
+body and timeout handler as `Module:Goal`. Its control guard and distributed
+goal serialization preserve the corresponding module context. The Trealla
+private-source loader obtains the same observable result by qualifying the
+receive DSL before assertion. Removing that bridge in isolation compares two
+different application implementations rather than isolating a Trealla defect,
+so this item should not be sent upstream.
 
 ### BUG-018: `format/3` segfaults on the `~p` directive
 
@@ -973,6 +978,48 @@ v3.13.10 result: five `sleep/1` runs completed in 3.001–3.004 seconds, and the
 equivalent `thread_sleep/1` probe completed in 3.002 seconds. Sandboxed code
 now uses native `sleep/1`; regression tests 147 and 148 continue to cover both
 the primitive and tutorial-level behavior.
+
+### BUG-022: A list-valued `:` meta-argument is not caller-qualified
+
+**Status:** Ready to file
+**Priority:** High
+
+Trealla v3.13.10 qualifies a callable argument passed to an imported predicate
+whose argument is declared `:`, but does not qualify a list passed through the
+same argument position. The library-side `strip_module/3` call consequently
+returns the caller for the callable and leaves the module unbound for the
+list. SWI-Prolog returns the importing caller module in both cases.
+
+Standalone reproducer:
+
+- `reproducers/bug-022-list-meta-library.pl`
+- `reproducers/bug-022-list-meta-caller.pl`
+
+Run:
+
+```sh
+cd reproducers
+tpl -q -f bug-022-list-meta-caller.pl \
+    -g "bug_022_list_meta_caller:reproducer,halt"
+```
+
+Observed on Trealla v3.13.10:
+
+```text
+contexts(bug_022_list_meta_caller,_1)
+```
+
+Expected, and observed with SWI-Prolog:
+
+```text
+contexts(bug_022_list_meta_caller,bug_022_list_meta_caller)
+```
+
+The `:` specifier denotes an arbitrary module-sensitive argument; it is also
+used for structured data containing callbacks, not only for a directly
+callable term. This affected supervisor child specifications: a nested server
+callback inside the child-specification list was resolved in the wrong module.
+The port works around the defect by explicitly passing `Module:ChildSpecs`.
 
 ## Compatibility gaps worth tracking, but not yet bug reports
 

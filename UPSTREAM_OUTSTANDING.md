@@ -2,8 +2,48 @@
 
 Updated 2026-10-14 from the `trealla-port` work, using Trealla v3.13.10 on
 macOS arm64.  Thank you for the substantial set of fixes and additions already
-made for this port.  No minimized bug report or feature request is currently
-ready to send upstream.
+made for this port. One minimized module-context bug is ready to send
+upstream.
+
+## Ready to send
+
+### A list-valued `:` meta-argument is not caller-qualified
+
+An imported predicate declares its first argument using the standard `:`
+meta-argument specifier and uses `strip_module/3` to recover the caller. On
+Trealla v3.13.10 a callable argument is correctly qualified, but a list passed
+in the same position has no module qualification at all:
+
+```text
+contexts(bug_022_list_meta_caller,_1)
+```
+
+SWI-Prolog qualifies both values with the importing caller module:
+
+```text
+contexts(bug_022_list_meta_caller,bug_022_list_meta_caller)
+```
+
+The two-file reproducer deliberately tests both shapes through the same
+predicate declaration:
+
+```sh
+cd reproducers
+tpl -q -f bug-022-list-meta-caller.pl \
+    -g "bug_022_list_meta_caller:reproducer,halt"
+```
+
+Files:
+
+- `reproducers/bug-022-list-meta-library.pl`
+- `reproducers/bug-022-list-meta-caller.pl`
+
+Expected behavior: `:` qualifies an arbitrary module-sensitive argument, not
+only callable terms. Structured callback specifications commonly place goals
+inside lists or other containers. The missing qualification caused nested
+server callbacks in the port's supervisor child-specification list to be
+looked up in the wrong module. The port currently works around this by passing
+`Module:ChildSpecs` explicitly.
 
 ## Resolved in v3.13.10
 
@@ -44,16 +84,6 @@ These should not yet be filed as Trealla bugs:
   `target/1` cells. On v3.13.10, replacing it with ordinary compound literals
   reproducibly stalls the paging suite when `toplevel_next/1` resumes test
   t14. A standalone runtime-only reproducer is still needed.
-- Dynamically loaded actor source still explicitly qualifies the imported
-  `receive/1,2` closures and their bodies. On v3.13.10, removing the bridge
-  makes test t102 fail again with `existence_error(procedure,wait_goodbye/0)`;
-  an ordinary dynamically asserted imported meta-call still passes, so the
-  narrower trigger has not been isolated.
-- A list passed to an imported predicate argument declared with `:` is not
-  consistently qualified with the caller module. Simple supervisor workers
-  pass unqualified on v3.13.10, but a nested server callback then fails with
-  `supervisor_down(init_failed)`. The port must continue supplying
-  `Module:ChildSpecs`; this needs a small standalone reproducer before filing.
 - Closing the node listener from a control thread still leaves the real
   application accept loop blocked on v3.13.10, even though the smaller
   upstream regression passes. Test t95 hangs without the existing local wake
@@ -86,5 +116,12 @@ longer requests.
   `exit/1` reasons. BUG-002 and BUG-003 are resolved; BUG-014's minimal
   reproducer is resolved, but the node's application-level accept loop still
   requires its wake connection as noted above.
+- The former receive-specific module-context candidate was a port difference,
+  not an independently demonstrated Trealla bug. Current SWI explicitly
+  carries the clause module into receive guards, bodies, and timeout handlers;
+  the Trealla private-source loader obtains the same result through its
+  qualification bridge. Removing only that bridge, without porting SWI's
+  associated control-guard and distributed-goal rewriting, is not a valid
+  runtime comparison.
 
 Full historical details and resolved reports remain in `UPSTREAM_REPORTS.md`.
