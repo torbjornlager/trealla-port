@@ -89,7 +89,24 @@ These should not yet be filed as Trealla bugs:
   upstream regression passes. Test t95 hangs without the existing local wake
   connection, so that shutdown mechanism remains.
 
-## Lower-priority portability requests
+## Portability feature requests
+
+### SWI-compatible XML parser
+
+The statechart layer needs an XML reader compatible with the useful core of
+SWI-Prolog's `library(sgml)`, especially `load_structure/3` with
+`dialect(xml)`, `space(remove)`, and the conventional
+`element(Name, Attributes, Children)` result representation. DTD loading and
+validation (`new_dtd/2`, `open_dtd/3`, and `free_dtd/1`) would let Trealla run
+the same SXML validation path as SWI rather than maintaining a profile-specific
+pure-Prolog parser.
+
+The immediate use case is SXML 0.2 statechart documents, including comments,
+CDATA, entity decoding, nested elements, and validation diagnostics. A smaller
+XML-only library that preserves the SWI result representation would already
+remove most of the porting layer; full SGML support is not required.
+
+### Other lower-priority requests
 
 Two larger SWI-porting conveniences remain absent and may be worth discussing,
 rather than filing as narrowly specified requests yet:

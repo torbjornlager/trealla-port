@@ -5,9 +5,9 @@
 `trealla-port` is copyright (c) 2026 Torbjörn Lager and is distributed under
 the MIT License in [`LICENSE`](LICENSE).
 
-The actor, generic behaviour, toplevel, HTTP, Web Prolog protocol, and
-distribution layers are a native Trealla Prolog port and continuing adaptation
-of code and protocol work from Torbjörn Lager's
+The actor, generic behaviour, statechart/SXML, toplevel, HTTP, Web Prolog
+protocol, and distribution layers are a native Trealla Prolog port and
+continuing adaptation of code and protocol work from Torbjörn Lager's
 [`trinity-demonstrator`](https://github.com/torbjornlager/trinity-demonstrator),
 which is also distributed under the MIT License. The implementation has been
 substantially changed to accommodate Trealla's runtime, module, thread,

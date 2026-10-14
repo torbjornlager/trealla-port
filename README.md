@@ -36,6 +36,9 @@ The port lives alongside this report:
 | `server_actor_tests.pl` | SWI-parity and private-namespace behaviour tests  |
 | `supervisor_actor.pl` | Restart strategies and supervised actor trees       |
 | `supervisor_actor_tests.pl` | SWI-parity supervisor behaviour tests        |
+| `sxml_parser.pl`      | SWI-shaped XML reader and SXML 0.2 validator         |
+| `statechart_model.pl` | Pure SXML statechart model compiler                  |
+| `sxml_parser_tests.pl` | XML, validation, and model compiler regressions     |
 | `tests.pl`            | Manual test suite (no plunit on Trealla)            |
 
 `parallel.pl` is the native Trealla implementation of the shared actor
@@ -51,6 +54,14 @@ facility and is available both in submitted source and directly at a private
 toplevel. The dedicated suite mirrors the 27 SWI semantic cases and adds
 callback-closure, private-namespace, and sandbox/profile integration checks
 (31 tests total).
+
+The native statechart port has begun with a pure-Prolog XML/SXML foundation.
+`sxml_parser.pl` returns the same `element(Name,Attributes,Children)` terms as
+SWI's `library(sgml)` XML mode and validates the SXML 0.2 grammar and semantic
+references. `statechart_model.pl` compiles validated documents into isolated
+model terms without modifying runtime state. Its parser output matches SWI
+for every current demonstrator statechart example; actor execution is the
+next tranche.
 
 `supervisor_actor.pl` ports the SWI supervisor behaviour on top of actors and
 generic servers. It supports `one_for_one`, `one_for_all`, and `rest_for_one`;

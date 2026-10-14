@@ -27,6 +27,7 @@ Status terms:
 | Template-based `parallel/1`, correlated worker guards, cleanup barriers, and `first_solution/3` policies | SWI | Implemented | Implemented | Not assessed | Candidate behaviour contract |
 | Generic stateful server behaviour: request, promise/yield, fail-fast monitors, naming, halt, and callback upgrade | SWI | Implemented | Implemented; 27 SWI-derived semantic cases plus private-module/policy integration | Not assessed | Candidate behaviour contract |
 | OTP-style supervisor behaviour with three restart strategies, child policies, intensity limits, dynamic management, server children, and nested trees | SWI | Implemented | Implemented; 18 SWI-derived semantic cases plus private-source/policy integration | Not assessed | Candidate behaviour contract |
+| SXML 0.2 XML parsing, structural/semantic validation, and pure model compilation | SWI | Implemented with `library(sgml)` | Parser and validator implemented in pure Prolog; model compiler implemented; actor execution pending | Not assessed | Parser output matches SWI for all current tutorial charts |
 | Toplevel stale-command discard limited to already-deferred messages | SWI | Implemented | Implemented | Not assessed | Candidate PTCP contract |
 | Stateless `/call` JSON named-binding response format | SWI | Implemented | Implemented | Not assessed | Candidate |
 | `/healthz`, `/readyz`, `/version`, `/node_info`, and maintenance/drain semantics | SWI | Implemented | Implemented (native core fields) | Not assessed | Candidate operational profile |
