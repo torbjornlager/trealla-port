@@ -18,6 +18,11 @@ benchmark_run(lifecycle, Actors) :-
     benchmark_lifecycles(Actors),
     get_time(T1),
     benchmark_report(lifecycle, Actors, T0, T1).
+benchmark_run(source_free_lifecycle, Actors) :-
+    get_time(T0),
+    benchmark_source_free_lifecycles(Actors),
+    get_time(T1),
+    benchmark_report(source_free_lifecycle, Actors, T0, T1).
 benchmark_run(chain, Actors) :-
     get_time(T0),
     self(Root),
@@ -54,6 +59,13 @@ benchmark_lifecycles(N) :-
     receive({down(Pid, _, true) -> true}),
     N1 is N - 1,
     benchmark_lifecycles(N1).
+
+benchmark_source_free_lifecycles(0) :- !.
+benchmark_source_free_lifecycles(N) :-
+    spawn(true, Pid, [link(false), monitor(true)]),
+    receive({down(Pid, _, true) -> true}),
+    N1 is N - 1,
+    benchmark_source_free_lifecycles(N1).
 
 benchmark_idle :-
     receive({stop -> true}).

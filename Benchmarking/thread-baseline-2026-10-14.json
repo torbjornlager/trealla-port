@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "timestamp": "2026-10-14",
+  "host": "2023 Apple iMac, Apple M3, 16 GB RAM, macOS 26.5.1, arm64",
+  "engines": {
+    "trealla": "Trealla Prolog 3.13.10",
+    "swi": "SWI-Prolog 10.1.3"
+  },
+  "results": [
+    {
+      "name": "raw_thread_lifecycle",
+      "count": 1000,
+      "samples_us": {
+        "trealla": [18991, 18076, 19470, 19515, 18172],
+        "swi": [28110, 27176, 26381, 26790, 27333]
+      },
+      "median_us": {
+        "trealla": 18991,
+        "swi": 27176
+      }
+    },
+    {
+      "name": "raw_thread_ping_pong",
+      "count": 10000,
+      "samples_us": {
+        "trealla": [419022, 496715, 59138, 57959, 178033, 57533, 57813],
+        "swi": [47113, 55541, 53785, 52823, 52405, 53493, 53246]
+      },
+      "median_us": {
+        "trealla": 59138,
+        "swi": 53246
+      }
+    },
+    {
+      "name": "source_free_actor_lifecycle",
+      "count": 100,
+      "samples_us": {
+        "trealla": [730373, 750620, 743581, 747971, 762604],
+        "swi": [8294, 9387, 9704, 9416, 9263]
+      },
+      "median_us": {
+        "trealla": 747971,
+        "swi": 9387
+      }
+    },
+    {
+      "name": "trealla_namespace_lifecycle_without_threads",
+      "count": 100,
+      "samples_us": {
+        "trealla": [729972, 730476, 743279, 754076, 755746]
+      },
+      "median_us": {
+        "trealla": 743279
+      }
+    }
+  ]
+}

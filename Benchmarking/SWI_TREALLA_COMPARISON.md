@@ -21,6 +21,9 @@ engine order alternates between observations.
 The common source is [`comparative.pl`](comparative.pl). The runner and raw
 results are [`benchmark-swi-trealla.py`](../tools/benchmark-swi-trealla.py) and
 [`swi-trealla-2026-10-14.json`](swi-trealla-2026-10-14.json).
+The follow-up primitive baselines are in
+[`thread_baseline.pl`](thread_baseline.pl) and
+[`thread-baseline-2026-10-14.json`](thread-baseline-2026-10-14.json).
 
 ## Workloads
 
@@ -47,15 +50,40 @@ Times are medians of five elapsed-wall-time observations.
 The ping-pong medians correspond to approximately 40,411 round trips per second
 for Trealla and 33,539 for SWI.
 
+## Thread and namespace baselines
+
+A follow-up decomposition distinguishes engine thread primitives from actor
+construction. The source-free actor test sequentially spawns and monitors
+`true`; the Trealla namespace test calls the port's internal `prepare_actor/4`
+and cleanup directly, without creating an actor thread.
+
+| Workload | Trealla | SWI |
+|---|---:|---:|
+| Create and join 1,000 raw threads | 18.991 ms | 27.176 ms |
+| 10,000 raw-thread ping-pong round trips | 59.138 ms | 53.246 ms |
+| 100 source-free actor lifecycles | 747.971 ms | 9.387 ms |
+| 100 Trealla namespace lifecycles, no threads | 743.279 ms | — |
+
+Raw Trealla thread creation is faster than SWI in this test. Its raw mailbox
+median is about 11% slower and showed several large scheduling outliers, but
+neither primitive accounts for the actor-creation result. At the measured
+rates, raw creation and joining of 100 Trealla threads would take about 1.9 ms,
+or 0.25% of the 748 ms source-free actor result. Namespace preparation and
+cleanup alone take 99.4% of that actor time.
+
 ## Interpretation
 
-Actor creation is the clear Trealla bottleneck. Both Trealla creation workloads
+Actor creation is the clear Trealla-port bottleneck. Both Trealla creation workloads
 cost about 7.8 ms per actor, even though the lifecycle test explicitly installs
 source and the chain uses source-free spawn. By comparison, SWI costs about
 0.465 ms per source-installing lifecycle and 0.071 ms per source-free chain
-actor. The first Trealla optimization target should therefore be the common
-per-actor construction path—private namespace/bootstrap creation and cleanup—
-rather than message delivery.
+actor. The primitive decomposition locates almost all of this time in the port's
+private namespace/bootstrap creation and cleanup, not in Trealla's `thread_*`
+predicates. That path currently writes, loads, and deletes a generated bootstrap
+file containing the actor API for every actor. The first optimization target
+should be that design. This does not yet distinguish avoidable work in the port
+from the cost of Trealla's module and source-loading primitives, so those steps
+should be profiled separately before choosing the replacement architecture.
 
 Once actors exist, Trealla's local mailbox path is already competitive in this
 test. It completed the warmed ping-pong workload about 20% faster than SWI's
