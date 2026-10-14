@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "timestamp": "2026-10-14T10:17:48.136601+00:00",
+  "timestamp": "2026-10-14T10:36:13.670712+00:00",
   "host": {
     "platform": "macOS-26.5.1-arm64-arm-64bit",
     "machine": "arm64",
@@ -12,7 +12,7 @@
     "trealla": {
       "version": "Trealla Prolog (c) Infradig 2020, v3.13.10",
       "executable": "/Users/lager/trealla-port/.build/trealla-v3.13.10/tpl",
-      "revision": "a667b9fdee4019be7742764d460277b70ce45150"
+      "revision": "b495cd344f4391784e0ccb71fcd6f48f022f7d71"
     },
     "swi": {
       "version": "SWI-Prolog version 10.1.3 for fat-darwin",
@@ -27,75 +27,75 @@
       "count": 100,
       "samples_us": {
         "trealla": [
-          764390,
-          771972,
-          780072,
-          781045,
-          779628
+          736639,
+          739834,
+          731889,
+          733442,
+          739216
         ],
         "swi": [
-          51842,
-          46147,
-          46452,
-          46089,
-          46535
+          47615,
+          46377,
+          50201,
+          46952,
+          47137
         ]
       },
       "median_us": {
-        "trealla": 779628,
-        "swi": 46452
+        "trealla": 736639,
+        "swi": 47137
       },
-      "trealla_over_swi": 16.78351847067941
+      "trealla_over_swi": 15.62761737064302
     },
     {
       "name": "chain",
       "count": 1000,
       "samples_us": {
         "trealla": [
-          7606148,
-          7764489,
-          7917599,
-          7844604,
-          7772875
+          1905839,
+          1888369,
+          1914558,
+          1911632,
+          1920481
         ],
         "swi": [
-          71373,
-          70989,
-          70218,
-          70838,
-          69965
+          70946,
+          71816,
+          73325,
+          70648,
+          72176
         ]
       },
       "median_us": {
-        "trealla": 7772875,
-        "swi": 70838
+        "trealla": 1911632,
+        "swi": 71816
       },
-      "trealla_over_swi": 109.72747677800051
+      "trealla_over_swi": 26.618469421855853
     },
     {
       "name": "ping_pong",
       "count": 10000,
       "samples_us": {
         "trealla": [
-          245193,
-          247767,
-          254093,
-          247455,
-          246709
+          252397,
+          545270,
+          247777,
+          248810,
+          246861
         ],
         "swi": [
-          298156,
-          296295,
-          299051,
-          296703,
-          299155
+          303264,
+          300623,
+          296033,
+          299172,
+          297877
         ]
       },
       "median_us": {
-        "trealla": 247455,
-        "swi": 298156
+        "trealla": 248810,
+        "swi": 299172
       },
-      "trealla_over_swi": 0.8299514348193563
+      "trealla_over_swi": 0.8316620539355287
     }
   ]
 }

@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "date": "2026-10-14",
+  "trealla": "3.13.10",
+  "trealla_port_revision": "b495cd344f4391784e0ccb71fcd6f48f022f7d71",
+  "results": [
+    {
+      "name": "source_free_actor_lifecycle",
+      "count": 100,
+      "before_median_us": 747971,
+      "after_samples_us": [194623, 192985, 193925, 194424, 193861],
+      "after_median_us": 193925
+    },
+    {
+      "name": "namespace_lifecycle_without_actor_threads",
+      "count": 100,
+      "before_median_us": 743279,
+      "after_samples_us": [190886, 185932, 186160, 186591, 187712],
+      "after_median_us": 186591
+    },
+    {
+      "name": "actor_chain",
+      "count": 1000,
+      "before_median_us": 7772875,
+      "after_samples_us": [1905839, 1888369, 1914558, 1911632, 1920481],
+      "after_median_us": 1911632
+    }
+  ]
+}

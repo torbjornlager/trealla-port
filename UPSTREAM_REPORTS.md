@@ -227,8 +227,9 @@ Desired behavior: a scoped temporary-module operation, or explicit supported
 create/delete operations, that remove the module's predicates, operators,
 imports, and module-table entry after use.
 
-v3.13.2 port status: actor modules are explicitly created and reclaimed with
-public `destroy_module/1` at actor termination.
+v3.13.10 port status: the complete child-side actor goal is scoped by native
+`in_temporary_module/3`; the explicit `destroy_module/1` path remains only for
+the diagnostic preparation API.
 
 ### FR-007: Provide an extensible goal-safety analysis library
 
@@ -506,6 +507,12 @@ There were no crashes, signals, or runtime diagnostics. The v3.13.4 result at
 5,000 generations was not a hang: its 20-second observation window was shorter
 than the workload's normal completion time. BUG-007 should not be sent
 upstream unless a new failure appears.
+
+After the port replaced its per-actor disk bootstrap with native temporary
+modules and a precompiled source-free API facade, a fresh 10,000-generation
+run completed in 13.32 seconds with 134,217,728 bytes maximum RSS. This confirms
+that most of the former time belonged to the port's actor-isolation setup, not
+to Trealla's raw thread primitives.
 
 ### BUG-008: `thread_signal/2` intermittently fails to interrupt a CPU-bound thread
 

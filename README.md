@@ -10,6 +10,7 @@ The port lives alongside this report:
 | File                  | Role                                                |
 |-----------------------|-----------------------------------------------------|
 | `actors.pl`           | Actor runtime, local names, and published services  |
+| `actor_api.pl`        | Precompiled API facade imported by private actors   |
 | `toplevel_actors.pl`  | Shell-style PTCP for paged goal execution           |
 | `node.pl`             | HTTP server exposing `/call` for remote queries     |
 | `auth_policy.pl`      | Authentication, authorization, and WS origin policy |
@@ -979,11 +980,12 @@ in delta #1.
 
 #### 5. Private modules use the native lifecycle
 
-`isolation.pl` creates a temporary actor module and calls Trealla v3.13.2's
-`destroy_module/1` when the actor terminates. Module records can therefore be
-reused instead of accumulating empty bootstrap modules. The actor lifetime is
-asynchronous, so it cannot be expressed directly by scoped
-`in_temporary_module/3`.
+`isolation.pl` runs the complete child-side actor lifecycle inside Trealla
+v3.13.2's `in_temporary_module/3`. Module records can therefore be reused
+without accumulating empty actor modules, and cleanup follows success, failure,
+exceptions, and actor-exit unwinds. Source-free actors import a small
+precompiled API facade; source-bearing actors load their private source support
+from an in-memory bootstrap.
 
 ### `toplevel_actors.pl`
 
@@ -1088,8 +1090,11 @@ Older v2.x builds crashed intermittently in the high-volume threading
 benchmarks (`bm-ping-pong.pl`, `bm-spawning.pl`). On v3.13.10, ten fresh
 10,000-message ping-pong runs and five fresh 10,000-generation recursive
 spawning runs all completed on macOS arm64. The spawning workload takes about
-79 seconds and roughly 232 MB maximum RSS at that depth; this is a stability
-result rather than a claim that creating 10,000 simultaneous actors is cheap.
+79 seconds and roughly 232 MB maximum RSS at that depth in the pre-optimization
+implementation. After adopting native temporary modules and a precompiled API
+facade, a fresh 10,000-generation validation completed in 13.32 seconds with
+134 MB maximum RSS. These are stability and implementation measurements rather
+than claims about Trealla's raw thread cost.
 
 ### Comparative performance
 
