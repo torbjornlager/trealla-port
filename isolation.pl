@@ -185,7 +185,10 @@ run_actor_goal(Module, Goal0, Options) :-
     ( memberchk('$entry_context'(caller), Options)
     -> call(Goal0)
     ; strip_module(Goal0, _, Goal),
-      call_in_module(Module, '$actor_call'(Goal))
+      ( actor_source_namespace(_, Module)
+      -> run_actor_query(Module, Goal)
+      ;  call_in_module(Module, '$actor_call'(Goal))
+      )
     ).
 
 cleanup_actor(Pid) :-

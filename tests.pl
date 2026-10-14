@@ -48,6 +48,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
   - t151 provides SWI-compatible `random_member/2` to submitted programs
   - t153 provides SWI-compatible `atom_string/2` and string-valued `src_text/1`
   - t154 exercises absolute `deadline/1` receives and timeout callbacks
+  - t155 runs a guarded receive over the node-wide shared database in a child
 
 ## Tests: toplevel_actors.pl (t11-t18) {#tests-toplevel}
 
@@ -227,7 +228,7 @@ run_test_group(actors) :-
     t19, t20, t21, t23, t24, t25, t26,
     t31, t32, t33, t98, t113, t115, t124,
     t127, t128, t129, t130, t132, t133, t134, t135,
-    t140, t141, t142, t143, t154.
+    t140, t141, t142, t143, t154, t155.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
     t22, t27, t28, t29, t99, t100, t101, t111, t112, t123, t131, t152.
@@ -643,6 +644,39 @@ t154 :-
     Elapsed is AfterPast - BeforePast,
     Elapsed < 0.1,
     format("154. absolute receive deadline and expiry callback ok~n").
+
+%!  t155 is det.
+%
+%   A nested actor goal containing a guarded receive must survive Trealla's
+%   temporary-module boundary and resolve its guard against the shared DB.
+
+t155 :-
+    setup_call_cleanup(
+        isolation:configure_shared_db(
+            ['Deployment/shared_db_actor_common.pl']),
+        ( self(Me),
+          spawn(
+              receive({
+                  print(User, File0, ReplyTo)
+                  if ( authorized(User),
+                       owns(User, Printer0),
+                       online(Printer0)
+                     ) ->
+                      ReplyTo ! routed(File0, Printer0)
+              }),
+              Child,
+              [monitor(true),link(false)]),
+          Child ! print(alice, report_pdf, Me),
+          receive({routed(File, Printer) -> true;
+                   down(Child, _, Reason) -> throw(t155_child_down(Reason))},
+                  [timeout(1),on_timeout(throw(t155_route_timeout))]),
+          File == report_pdf,
+          Printer == printer2,
+          receive({down(Child, _, true) -> true},
+                  [timeout(1),on_timeout(throw(t155_down_timeout))]),
+          format("155. guarded child receive uses shared database ok~n")
+        ),
+        isolation:clear_shared_db).
 
 
                 /*******************************
