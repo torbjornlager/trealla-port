@@ -12,6 +12,10 @@
       remote_demonitor/2,
       remote_toplevel_spawn/3,
       remote_toplevel_call/4,
+      remote_toplevel_call_synch/4,
+      remote_toplevel_call_synch/5,
+      remote_toplevel_next_synch/3,
+      remote_toplevel_next_synch/4,
       remote_toplevel_next/2,
       remote_toplevel_next/3,
       remote_toplevel_stop/2,
@@ -77,8 +81,10 @@ remote_node_open(URL0, remote_node(URL, Reader, Writer), Options) :-
     node_websocket_url(URL, WebSocketURL),
     self(Owner),
     node_connection_options(Options, WebSocketOptions),
-    web_prolog_connect(WebSocketURL, WS, WebSocketOptions),
-    spawn(remote_writer_start(WS, URL, Owner), Writer, [link(false)]),
+    web_prolog_connect(WebSocketURL, WS,
+        [optional_subprotocols(['web-prolog-sync-v1']),selected_subprotocol(Selected)|WebSocketOptions]),
+    ( Selected == 'web-prolog-sync-v1' -> Sync = true ; Sync = false ),
+    spawn(remote_writer_start(WS, URL, Owner, Sync), Writer, [link(false)]),
     spawn(remote_reader_loop(WS, URL, Writer), Reader, [link(false)]).
 
 node_url_atom(URL, URL) :- atom(URL), !.
@@ -117,13 +123,16 @@ default_header(Name, Value, Options, [header(Name, Value)|Options]).
 remote_node_close(Node) :-
     Node = remote_node(_URL, Reader, Writer),
     manager_forget_endpoints_if_running(Writer),
-    Writer ! '$remote_close',
-    ( actors:actor_thread(Reader, ReaderThread),
-      catch(thread_property(ReaderThread, status(running)), _, fail) ->
-        catch(thread_cancel(ReaderThread), _, true)
+    % Cancellation is cooperative: never close the shared stream while the
+    % reader can still be inside get_byte/2. Its registry entry is removed
+    % by at_exit, after the reader goal has unwound.
+    ( actors:actor_thread(Reader, ReaderThread) ->
+        catch(thread_cancel(ReaderThread),
+              error(existence_error(thread_object, _), _), true)
     ; true
     ),
     wait_thread_end(Reader, 100),
+    Writer ! '$remote_close',
     wait_thread_end(Writer, 100).
 
 %! remote_drop_connection(+URL) is det.
@@ -140,12 +149,14 @@ remote_drop_connection(URL0) :-
     receive({ '$node_lookup_reply'(Manager, URL, Node) -> true }, []),
     ( Node == none -> true ; remote_node_close(Node) ).
 
-wait_thread_end(_, 0) :- !.
 wait_thread_end(Thread, Attempts) :-
-    ( actors:actor_thread(Thread, Native),
-      thread_property(Native, status(running)) ->
-        sleep(0.01), Next is Attempts - 1,
-        wait_thread_end(Thread, Next)
+    ( actors:actor_thread(Thread, _) ->
+        ( Attempts > 0 ->
+            sleep(0.01), Next is Attempts - 1,
+            wait_thread_end(Thread, Next)
+        ; throw(error(resource_error(remote_node_close_timeout(Thread)),
+                      remote_node_close/1))
+        )
     ; true
     ).
 
@@ -260,9 +271,97 @@ remote_toplevel_call(Node, RemotePid, Goal0, Options0) :-
     web_prolog:object([command-string_atom(toplevel_call), pid-number(WirePid),
                        goal-string_atom(GoalText),
                        options-string_atom(OptionsText)], JSON),
-    enqueue_json(Node, JSON).
+    goal_options_wire_atoms(Goal, [format(prolog)|PortableOptions], ExactGoal, ExactOptions),
+    web_prolog:object([command-string_atom(toplevel_call),pid-number(WirePid),
+                       goal-string_atom(ExactGoal),options-string_atom(ExactOptions)], ExactJSON),
+    Writer ! '$remote_toplevel_call'(JSON, ExactJSON).
 
 local_call_option(target(_)).
+
+:- meta_predicate(remote_toplevel_call_synch(+,+,0,-)).
+:- meta_predicate(remote_toplevel_call_synch(+,+,0,-,:)).
+:- meta_predicate(remote_toplevel_next_synch(+,+,-,:)).
+
+remote_toplevel_call_synch(Node,Pid,Goal,Answer) :-
+    remote_toplevel_call_synch(Node,Pid,Goal,Answer,[]).
+remote_toplevel_call_synch(Node,Pid,Goal0,Answer,Options) :-
+    strip_module(Goal0,GoalModule,Goal),
+    synchronous_remote(call,Node,Pid,Goal,GoalModule,Answer,Options).
+remote_toplevel_next_synch(Node,Pid,Answer) :-
+    remote_toplevel_next_synch(Node,Pid,Answer,[]).
+remote_toplevel_next_synch(Node,Pid,Answer,Options) :-
+    synchronous_remote(next,Node,Pid,true,user,Answer,Options).
+
+synchronous_remote(Kind,Node,Pid,Goal,FallbackModule,Answer,Options0) :-
+    strip_module(Options0,Caller0,Options), must_be(list,Options),
+    ( nonvar(Caller0) -> Caller=Caller0
+    ; self(Actor),isolation:actor_source_module(Actor,Source) -> Caller=Source
+    ; Caller=FallbackModule ),
+    self(Self), sync_options(Options,Kind,Self,Query,Wait),
+    node_wire_pid(Node,Pid,WirePid), Node=remote_node(URL,_,Writer),
+    make_ref(RequestRef), MonitorRef='$sync_monitor'(RequestRef),
+    portable_term_for_writer(Writer,Goal-Query,PortableGoal-PortableOptions),
+    ( Kind == call -> Message='$call'(PortableGoal,['$request_ref'(RequestRef)|PortableOptions])
+    ; Message='$next'(['$request_ref'(RequestRef)|PortableOptions]) ),
+    web_prolog:canonical_answer_text(Message,Text),
+    web_prolog:object([command-string_atom(send),pid-number(WirePid),message-string_atom(Text)],JSON),
+    setup_call_cleanup(monitor(Writer,LocalRef),
+        setup_call_cleanup(true,
+            ( Writer ! '$sync_request'(RequestRef,WirePid,MonitorRef,Self,JSON),
+              receive({
+                '$sync_ready'(RequestRef,Status) -> distribution:sync_ready(Status,URL) ;
+                down(_,LocalRef,_) -> throw(toplevel_down(connection_closed))
+              },[]),
+              sync_wait(RequestRef,LocalRef,Answer,Caller,Wait) ),
+            sync_cleanup(Writer,RequestRef,LocalRef)),
+        demonitor(LocalRef,[flush])).
+
+sync_ready(ok,_) :- !.
+sync_ready(unsupported,URL) :- !,
+    throw(error(permission_error(use,toplevel_correlation,URL),remote_toplevel_call_synch/5)).
+sync_ready(error(Error),_) :- throw(Error).
+
+sync_options([],_,_,[],[]).
+sync_options([Option|Options],Kind,Self,Query,Wait) :-
+    must_be(nonvar,Option),
+    ( Option=timeout(T) -> must_be(number,T), (T>=0->true;throw(error(domain_error(not_less_than_zero,T),sync_options/5))),
+        Wait=[Option|RestWait],Query=RestQuery
+    ; Option=on_timeout(G) -> must_be(callable,G),Wait=[Option|RestWait],Query=RestQuery
+    ; Option=target(Target) -> must_be(nonvar,Target),
+        (Target==Self->true;throw(error(domain_error(synchronous_toplevel_target,Target),sync_options/5))),
+        Wait=RestWait,Query=RestQuery
+    ; sync_query_option(Kind,Option), Wait=RestWait,Query=[Option|RestQuery] ),
+    sync_options(Options,Kind,Self,RestQuery,RestWait).
+sync_query_option(_,limit(N)) :- !,must_be(integer,N),(N>0->true;throw(error(domain_error(positive_integer,N),sync_options/5))).
+sync_query_option(call,offset(N)) :- !,must_be(integer,N),(N>=0->true;throw(error(domain_error(not_less_than_zero,N),sync_options/5))).
+sync_query_option(call,once(B)) :- !,must_be(boolean,B).
+sync_query_option(call,template(_)) :- !.
+sync_query_option(_,Option) :- throw(error(domain_error(synchronous_toplevel_option,Option),sync_options/5)).
+
+sync_wait(Ref,LocalRef,Answer,Caller,Options) :-
+    option(on_timeout(Callback),Options,true),
+    ( option(timeout(T),Options) -> Wait=[timeout(T)] ; Wait=[] ),
+    once(receive({
+        '$sync_answer'(Ref,Reply) -> Answer=Reply ;
+        '$sync_down'(Ref,Reason) -> throw(toplevel_down(Reason)) ;
+        down(_,LocalRef,_) -> throw(toplevel_down(connection_closed))
+    },[on_timeout(distribution:sync_callback(Caller,Callback))|Wait])).
+sync_callback(Caller,Callback) :-
+    ( nonvar(Caller) -> call(Caller:Callback) ; call(Callback) ).
+
+sync_cleanup(Writer,Ref,LocalRef) :-
+    ( actors:actor_thread(Writer,Thread),catch(thread_property(Thread,status(running)),_,fail)
+    -> self(Self), Writer ! '$sync_release'(Ref,Self),
+       once(receive({ '$sync_released'(Ref) -> true ; down(_,LocalRef,_) -> true },[]))
+    ; true ),
+    actors:discard_deferred(distribution:sync_private_message(Ref)),
+    sync_flush(Ref).
+sync_flush(Ref) :-
+    receive({Message if distribution:sync_private_message(Ref,Message) -> distribution:sync_flush(Ref)},
+        [timeout(0),on_timeout(true)]).
+sync_private_message(Ref,'$sync_answer'(Other,_)) :- Ref==Other.
+sync_private_message(Ref,'$sync_down'(Other,_)) :- Ref==Other.
+sync_private_message(Ref,'$sync_ready'(Other,_)) :- Ref==Other.
 
 remote_toplevel_next(Node, RemotePid) :-
     remote_toplevel_next(Node, RemotePid, []).
@@ -326,18 +425,28 @@ await_spawn_reply(Writer, URL, Mode, Options, Target, RemotePid) :-
 enqueue_json(remote_node(_URL, _Reader, Writer), JSON) :-
     Writer ! '$remote_json'(JSON).
 
-remote_writer_start(WS, URL, Owner) :-
+remote_writer_start(WS, URL, Owner, Sync) :-
     nb_setval('$distribution_owner', Owner),
     nb_setval('$distribution_targets', []),
     nb_setval('$distribution_monitors', []),
     nb_setval('$distribution_io_requests', []),
+    nb_setval('$distribution_answer_terms', false),
+    nb_setval('$distribution_sync_supported', Sync),
+    nb_setval('$distribution_waiters', []),
     send_transport_hello(WS),
-    remote_writer_loop(WS, URL).
+    % The existing welcome completes negotiation, including legacy peers
+    % whose welcome omits answer_terms. Do not send the first query early.
+    receive({
+        '$wire_capabilities'(Exact) -> nb_setval('$distribution_answer_terms', Exact), Ready = true ;
+        '$remote_close' -> distribution:writer_message('$remote_close',WS,URL,Ready) ;
+        '$remote_lost'(URL, Reason) -> distribution:writer_message('$remote_lost'(URL,Reason),WS,URL,Ready)
+    }, []),
+    ( Ready == true -> remote_writer_loop(WS, URL) ; true ).
 
 send_transport_hello(WS) :-
     web_prolog:object([command-string_atom(transport_hello),
                        version-number(1),browser_pids-boolean(true),
-                       io_ack-boolean(true)], JSON),
+                       io_ack-boolean(true),answer_terms-boolean(true)], JSON),
     web_prolog_send(WS, JSON).
 
 remote_writer_loop(WS, URL) :-
@@ -347,6 +456,26 @@ remote_writer_loop(WS, URL) :-
 
 writer_message('$remote_json'(JSON), WS, _, true) :- !,
     web_prolog_send(WS, JSON).
+writer_message('$remote_toplevel_call'(JSON, ExactJSON), WS, _, true) :- !,
+    nb_getval('$distribution_answer_terms', Exact),
+    ( Exact == true
+    -> Request = ExactJSON
+    ; Request = JSON ),
+    web_prolog_send(WS, Request).
+writer_message('$wire_capabilities'(Exact), _, _, true) :- !,
+    nb_setval('$distribution_answer_terms', Exact).
+writer_message('$sync_request'(Ref,Pid,Mon,Caller,JSON),WS,_,true) :- !,
+    ( nb_getval('$distribution_sync_supported',true)
+    -> catch((writer_add_waiter(Ref,Pid,Mon,Caller),
+              sync_monitor_command(monitor,Pid,Mon,Monitor),web_prolog_send(WS,Monitor),
+              web_prolog_send(WS,JSON),Caller ! '$sync_ready'(Ref,ok)),
+             Error,(writer_release_waiter(Ref,WS),Caller ! '$sync_ready'(Ref,error(Error))))
+    ; Caller ! '$sync_ready'(Ref,unsupported) ).
+writer_message('$sync_release'(Ref,Caller),WS,_,true) :- !,
+    writer_release_waiter(Ref,WS), Caller ! '$sync_released'(Ref).
+writer_message('$wire_sync_reply'(Ref,Pid,Answer),_,_,true) :- !,
+    nb_getval('$distribution_waiters',Waiters),
+    ( memberchk(waiter(Ref,Pid,_,Caller),Waiters) -> Caller ! '$sync_answer'(Ref,Answer) ; true ).
 writer_message('$spawn_request'(JSON, Mode, Options, Target, Caller), WS, URL,
                Continue) :- !,
     self(Writer),
@@ -373,7 +502,9 @@ writer_message('$spawn_request'(JSON, Mode, Options, Target, Caller), WS, URL,
 writer_message('$remote_lost'(URL, _Reason), _, _, false) :- !,
     writer_notify_connection_closed(URL).
 writer_message('$wire_event'(WirePid, Type, Event), _, _, true) :- !,
-    writer_deliver_event(WirePid, Event),
+    ( Event=down(_,Ref,Reason),nonvar(Ref),Ref='$sync_monitor'(_)
+    -> (writer_sync_down(WirePid,Ref,Reason)->true;true)
+    ; writer_deliver_event(WirePid, Event) ),
     writer_note_terminal(Type, WirePid).
 writer_message('$local_actor_message'(TargetId, Message), _, _, true) :- !,
     self(Writer),
@@ -403,6 +534,28 @@ writer_message(_, _, _, true).
 
 writer_owner(Owner) :-
     nb_getval('$distribution_owner', Owner).
+
+writer_add_waiter(Ref,Pid,Mon,Caller) :-
+    nb_getval('$distribution_waiters',Waiters),
+    nb_setval('$distribution_waiters',[waiter(Ref,Pid,Mon,Caller)|Waiters]).
+writer_release_waiter(Ref,WS) :-
+    nb_getval('$distribution_waiters',Waiters),
+    ( select(waiter(Ref,Pid,Mon,_),Waiters,Rest)
+    -> nb_setval('$distribution_waiters',Rest),
+       sync_monitor_command(demonitor,Pid,Mon,JSON),
+       catch((web_prolog_send(WS,JSON)->true;true),_,true)
+    ; true ).
+sync_monitor_command(Command,Pid,Ref,JSON) :-
+    web_prolog:canonical_answer_text(Ref,Text),
+    web_prolog:object([command-string_atom(Command),pid-number(Pid),ref-string_atom(Text)],JSON).
+writer_sync_down(Pid,Mon,Reason) :-
+    nb_getval('$distribution_waiters',Waiters),
+    memberchk(waiter(Ref,Pid,Mon,Caller),Waiters),
+    Caller ! '$sync_down'(Ref,Reason).
+writer_close_waiters :-
+    nb_getval('$distribution_waiters',Waiters),
+    forall(member(waiter(Ref,_,_,Caller),Waiters),Caller ! '$sync_down'(Ref,connection_closed)),
+    nb_setval('$distribution_waiters',[]).
 
 writer_targets(Targets) :-
     ( nb_current('$distribution_targets', Targets) -> true ; Targets = [] ).
@@ -532,6 +685,7 @@ mark_writer_target_dead([Target|Targets], WirePid, [Target|Marked]) :-
     mark_writer_target_dead(Targets, WirePid, Marked).
 
 writer_notify_connection_closed(URL) :-
+    writer_close_waiters,
     writer_targets(Targets),
     notify_live_targets(Targets, URL),
     nb_setval('$distribution_targets', []),
@@ -591,7 +745,10 @@ dispatch_remote_type(error, JSON, _, Writer) :-
     \+ web_prolog:json_field(JSON, pid, _), !,
     remote_error_term(JSON, Error),
     Writer ! '$wire_spawn_error'(Error).
-dispatch_remote_type(transport_welcome, _, _, _) :- !.
+dispatch_remote_type(transport_welcome, JSON, _, Writer) :- !,
+    web_prolog:json_boolean_default(JSON, answer_terms, false, Exact),
+    nb_setval('$distribution_answer_terms', Exact),
+    Writer ! '$wire_capabilities'(Exact).
 dispatch_remote_type(io_reply, JSON, _, Writer) :- !,
     web_prolog:json_text_field(JSON, request_id, RequestId),
     web_prolog:json_atom_field(JSON, status, Status),
@@ -603,12 +760,34 @@ dispatch_remote_type(actor_message, JSON, _, Writer) :- !,
     Writer ! '$local_actor_message'(TargetId, Message).
 dispatch_remote_type(Type, JSON, URL, Writer) :-
     web_prolog:json_pid_field(JSON, pid, WirePid),
-    remote_event(Type, JSON, WirePid@URL, Event),
-    Writer ! '$wire_event'(WirePid, Type, Event).
+    ( web_prolog:json_text_field(JSON,toplevel_correlation,RefText)
+    -> read_term_from_atom(RefText,Ref,[]),ground(Ref),
+       remote_answer_event(Type,JSON,WirePid@URL,true,Event),
+       Writer ! '$wire_sync_reply'(Ref,WirePid,Event)
+    ; ( nb_current('$distribution_answer_terms', Exact) -> true ; Exact = false ),
+      remote_answer_event(Type, JSON, WirePid@URL, Exact, Event),
+      Writer ! '$wire_event'(WirePid, Type, Event) ).
 
 browser_target_id(Text, TargetId) :-
     atom_concat(IdAtom, '@localhost', Text),
     atom_number(IdAtom, TargetId), integer(TargetId).
+
+remote_answer_event(Type, JSON, Pid, true, Event) :-
+    memberchk(Type,[success,error]), !,
+    ( web_prolog:json_field(JSON, term, _)
+    -> ( catch((web_prolog:json_text_field(JSON, term, Text),
+                read_term_from_atom(Text, Payload, []),
+                canonical_event(Type, JSON, Pid, Payload, Parsed)), _, fail)
+       -> Event = Parsed
+       ; Event = error(Pid,remote_answer_protocol_error(invalid_term)) )
+    ; Event = error(Pid,remote_answer_protocol_error(missing_term)) ).
+remote_answer_event(Type, JSON, Pid, _, Event) :-
+    remote_event(Type, JSON, Pid, Event).
+
+canonical_event(success, JSON, Pid, Rows, success(Pid,Rows,More)) :-
+    must_be(list, Rows),
+    web_prolog:json_boolean_default(JSON, more, false, More).
+canonical_event(error, _, Pid, Error, error(Pid,Error)).
 
 remote_event(success, JSON, Pid, success(Pid, Rows, More)) :- !,
     web_prolog:json_field(JSON, data, list(Data)),
@@ -1130,7 +1309,8 @@ term_wire_atom(Term, Atom) :-
     format(atom(Atom), '~q', [Copy]).
 
 goal_options_wire_atoms(Goal, Options, GoalAtom, OptionsAtom) :-
-    copy_term(Goal-Options, GoalCopy-OptionsCopy),
-    numbervars(GoalCopy-OptionsCopy, 0, _),
-    format(atom(GoalAtom), '~q', [GoalCopy]),
-    format(atom(OptionsAtom), '~q', [OptionsCopy]).
+    term_variables(Goal-Options, Vars),
+    web_prolog:answer_variable_names(Vars, 1, Names),
+    WriteOptions = [quoted(true),ignore_ops(false),numbervars(false),variable_names(Names)],
+    write_term_to_atom(GoalAtom, Goal, WriteOptions),
+    write_term_to_atom(OptionsAtom, Options, WriteOptions).

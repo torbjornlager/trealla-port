@@ -210,6 +210,7 @@ state_1(Pid, Target0, Continue, TimeLimit, IdleLimit) :-
     receive_with_idle_limit({
         '$call'(Goal, Options) ->
             drain_stale_commands,
+            set_request_reference(Options),
             option(template(Template), Options, Goal),
             option(offset(Offset),     Options, 0),
             option(limit(RequestedLimit), Options, 1000000000),
@@ -265,6 +266,7 @@ run_call(Pid, Goal, Template, Offset, Limit0, Target1,
           arg(1, PageCount, Limit0),
           functor(Target, target, 1),
           arg(1, Target, Target1),
+          nb_setval('$ptcp_answer_target', Target1),
           functor(PageState, count, 1),
           arg(1, PageState, 0),
           page_values_put([]),
@@ -303,10 +305,10 @@ handle_error(_Pid, _Target, _Orig, '$resource_idle') :- !,
     throw('$resource_idle').
 handle_error(Pid, Target, Orig, Error) :-
     (   nonvar(Target), Target = target(_)
-    ->  arg(1, Target, Out)
+    ->  answer_target(Target, Out)
     ;   Out = Orig
     ),
-    Out ! error(Pid, Error).
+    send_answer(Out, error(Pid, Error)).
 
 
 %!  drive(+Pid, +Goal, +Template, +Offset, +PageCount, +PageState,
@@ -334,26 +336,41 @@ drive_solution(Pid, Template, Det, PageCount, PageState, Target,
     arg(1, PageCount, Limit),
     ( Got >= Limit
     -> page_values(PageState, Slice),
-       arg(1, Target, Out),
+       answer_target(Target, Out),
        ( nonvar(Det)
-       -> Out ! success(Pid, Slice, false)
+       -> send_answer(Out, success(Pid, Slice, false))
        ;  disarm_call_timer,
-          Out ! success(Pid, Slice, true),
+          send_answer(Out, success(Pid, Slice, true)),
           page(PageCount, PageState, Target, TimeLimit, IdleLimit)
        )
     ; nonvar(Det)
     -> page_values(PageState, Slice),
-       arg(1, Target, Out),
-       Out ! success(Pid, Slice, false)
+       answer_target(Target, Out),
+       send_answer(Out, success(Pid, Slice, false))
     ; fail
     ).
 
 drive_exhausted(Pid, PageState, Target) :-
     arg(1, PageState, Got),
-    arg(1, Target, Out),
-    ( Got =:= 0 -> Out ! failure(Pid)
-    ; page_values(PageState, Slice), Out ! success(Pid, Slice, false)
+    answer_target(Target, Out),
+    ( Got =:= 0 -> send_answer(Out, failure(Pid))
+    ; page_values(PageState, Slice), send_answer(Out, success(Pid, Slice, false))
     ).
+
+set_request_reference(Options) :-
+    option('$request_ref'(Ref), Options, none),
+    nb_setval('$ptcp_request_ref', Ref).
+
+send_answer(Target, Answer) :-
+    ( nb_current('$ptcp_request_ref', Ref), Ref \== none
+    -> Target ! '$toplevel_reply'(Ref, Answer)
+    ; Target ! Answer ).
+
+% Trealla's nb_setarg/3 accepts integers only. Browser reply endpoints are
+% compound terms, so retain target updates in actor-local nonbacktrackable state.
+answer_target(Target, Value) :-
+    ( nb_current('$ptcp_answer_target', Current) -> Value = Current
+    ; arg(1, Target, Value) ).
 
 page_add(PageState, Value, Count) :-
     page_values_get(Rev0),
@@ -381,7 +398,7 @@ page_values_get(Values) :-
 %
 %   State s3: after a More=true slice, wait for the next protocol
 %   command.  On `'$next'(Options)` apply any `limit(NewN)` or
-%   `target(NewT)` updates to the mutable cells via nb_setarg/3,
+%   `target(NewT)` updates using actor-local nonbacktrackable state,
 %   clear the page and fail to backtrack into Goal for the next solution.
 %   On `'$stop'` succeed deterministically; drive/9 then cuts the lingering
 %   goal choicepoint.
@@ -397,7 +414,8 @@ page(PageCount, PageState, Target, TimeLimit, IdleLimit) :-
             true
     }, IdleLimit).
 
-apply_next(Options, Count, Target) :-
+apply_next(Options, Count, _Target) :-
+    set_request_reference(Options),
     (   memberchk(limit(NewLim), Options),
         integer(NewLim), NewLim > 0
     ->  effective_solution_limit(NewLim, EffectiveLimit),
@@ -406,7 +424,7 @@ apply_next(Options, Count, Target) :-
     ),
     (   memberchk(target(NewT), Options),
         nonvar(NewT)
-    ->  nb_setarg(1, Target, NewT)
+    ->  nb_setval('$ptcp_answer_target', NewT)
     ;   true
     ).
 

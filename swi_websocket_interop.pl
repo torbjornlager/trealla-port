@@ -10,6 +10,10 @@
             concurrent_client_test/3,
             protocol_server/1,
             protocol_client_test/1,
+            rebuilt_query_client_test/1,
+            canonical_answer_client_test/1,
+            correlation_client_test/2,
+            browser_correlation_client_test/1,
             connection_thread_parity_test/1,
             source_server/1,
             source_uri_client_test/2,
@@ -41,6 +45,9 @@
                 [spawn([])]).
 :- http_handler(root(actor),
                 http_upgrade_to_websocket(protocol_connection, []),
+                [spawn([])]).
+:- http_handler(root('sync-close'),
+                http_upgrade_to_websocket(sync_close_peer,[subprotocols(['web-prolog-sync-v1'])]),
                 [spawn([])]).
 :- http_handler(root('source.pl'), source_file, []).
 :- http_handler(root('source-redirect.pl'), source_redirect, []).
@@ -192,6 +199,15 @@ protocol_connection(WebSocket) :-
       protocol_connection(WebSocket)
     ).
 
+sync_close_peer(WS) :-
+    receive_json(WS,Command),
+    ( Command.command == "transport_hello"
+    -> send_json(WS,json{type:"transport_welcome",answer_terms:true}),sync_close_peer(WS)
+    ; Command.command == "toplevel_spawn"
+    -> send_json(WS,json{type:"spawned",pid:41}),sync_close_peer(WS)
+    ; Command.command == "send" -> ws_close(WS,1000,fixture_closed)
+    ; sync_close_peer(WS) ).
+
 protocol_reply(Command, json{type:"transport_welcome",
                              protocol:"web_prolog_browser_actor",
                              io_ack:true, browser_pids:true, version:1}) :-
@@ -200,7 +216,11 @@ protocol_reply(Command, json{type:"spawned", pid:41}) :-
     Command.command == "toplevel_spawn", !.
 protocol_reply(Command, json{type:"success", pid:41,
                              data:[json{'X':"swi"}], more:false}) :-
-    Command.command == "toplevel_call", !.
+    Command.command == "toplevel_call",
+    % This fixture never advertises canonical answers. The outbound client
+    % must retain the legacy request representation after its welcome.
+    \+ get_dict(format, Command, _),
+    \+ sub_string(Command.options, _, _, _, "format(prolog)"), !.
 protocol_reply(Command, json{type:"halted", pid:41, reply:"true"}) :-
     Command.command == "toplevel_halt", !.
 protocol_reply(Command, json{type:"error", data:Text}) :-
@@ -268,6 +288,135 @@ protocol_client_test(Port) :-
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
     format('SWI Web Prolog protocol client test: ok~n').
+
+correlation_client_test(Port, NodeFile) :-
+    use_module(NodeFile),
+    format(atom(URL),'http://127.0.0.1:~w',[Port]),
+    toplevel_actors:toplevel_spawn(P,[node(URL),session(true),link(false)]),
+    setup_call_cleanup(true,correlation_session(P),toplevel_actors:toplevel_halt(P,true)),
+    format('SWI -> Trealla synchronous correlation: ok~n').
+
+browser_correlation_client_test(Port) :-
+    format(atom(URL),'ws://127.0.0.1:~w/ws',[Port]),
+    setup_call_cleanup(http_open_websocket(URL,WS,[timeout(5),subprotocols(['web-prolog-sync-v1'])]),
+        browser_correlation_session(WS), ws_close(WS,1000,done)),
+    writeln('Browser caller correlation and mixed asynchronous paging: ok').
+
+browser_correlation_session(WS) :-
+    send_json(WS,json{command:"toplevel_spawn",options:"[session(true)]"}),
+    receive_json(WS,Spawn),P=Spawn.pid,
+    send_json(WS,json{command:"send",pid:P,browser_from:"main",
+        message:"'$call'(member(X,[a,b,c]),[template(X),limit(1),target(main@localhost),'$request_ref'(ref(1,'$VAR'(1)))])"}),
+    receive_json(WS,First),First.type=="actor_message",
+    term_string('$toplevel_reply'(ref(1,'$VAR'(1)),success(P@Node,[a],true)),First.message,[module(swi_websocket_interop)]),atom(Node),
+    send_json(WS,json{command:"send",pid:P,browser_from:"main",
+        message:"'$next'([target(main@localhost),'$request_ref'(2)])"}),
+    receive_json(WS,Second),
+    term_string('$toplevel_reply'(2,success(P@Node,[b],true)),Second.message,[module(swi_websocket_interop)]),
+    send_json(WS,json{command:"send",pid:P,browser_from:"main",message:"'$next'([])"}),
+    receive_json(WS,Last),term_string(success(P@Node,[c],false),Last.message,[module(swi_websocket_interop)]),
+    send_json(WS,json{command:"toplevel_halt",pid:P}),receive_type(WS,"halted",_).
+
+correlation_session(P) :-
+    toplevel_actors:toplevel_call_synch(P,user:member(X,[a,b,c]),First,[template(pair(X,X)),limit(1),timeout(3)]),
+    First == success(P,[pair(a,a)],true),
+    toplevel_actors:toplevel_next_synch(P,Second,[timeout(3)]),
+    Second == success(P,[pair(b,b)],true),
+    toplevel_actors:toplevel_next(P),
+    actors:receive({success(P,Rows,false)->Rows==[pair(c,c)]},[timeout(3),on_timeout(fail)]),
+    toplevel_actors:toplevel_call_synch(P,user:fail,Failed,[timeout(3)]), Failed == failure(P),
+    toplevel_actors:toplevel_call_synch(P,user:throw(probe),Error,[timeout(3)]), Error == error(P,probe),
+    toplevel_actors:toplevel_call_synch(P,user:(sleep(0.15),X=old),Early,
+        [template(X),timeout(0),on_timeout(Early=waiting)]), Early == waiting,
+    toplevel_actors:toplevel_call_synch(P,user:(X=new),Fresh,[template(X),timeout(3)]),
+    Fresh == success(P,[new],false),
+    toplevel_actors:toplevel_call(P,user:true,[template(async)]),
+    actors:receive({success(P,Values,false)->Values==[async]},[timeout(3),on_timeout(fail)]).
+
+canonical_answer_client_test(Port) :-
+    format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
+    forall(member(Exact,[true,false,omitted]),
+        setup_call_cleanup(http_open_websocket(URL,WS,[timeout(5)]),
+            canonical_answer_session(WS,Exact), ws_close(WS,1000,done))),
+    format('SWI -> Trealla canonical and legacy asynchronous answers: ok~n').
+
+canonical_answer_session(WS, Exact) :-
+    ( Exact == omitted -> Hello = json{command:"transport_hello",version:1}
+    ; Hello = json{command:"transport_hello",version:1,answer_terms:Exact} ),
+    send_json(WS,Hello), receive_json(WS,Welcome),
+    ( Exact == true -> Welcome.answer_terms == true ; Welcome.answer_terms == false ),
+    send_json(WS,json{command:"toplevel_spawn",options:"[session(true)]"}),
+    receive_json(WS,Spawned), Pid = Spawned.pid,
+    ( Exact == true
+    -> send_json(WS,json{command:"toplevel_call",pid:Pid,goal:"user:true",
+           options:"[format(prolog),template(row(pair(X,X),pair(Y,Z),'a b','$VAR'(1),[a,b]))]"}),
+       receive_json(WS,Success), Success.type == "success",
+       term_string([row(pair(A,B),pair(C,D),'a b',Literal,[a,b])],Success.term),
+       var(A), A == B, var(C), var(D), C \== D, A \== C, Literal == '$VAR'(1),
+       send_json(WS,json{command:"toplevel_call",pid:Pid,goal:"true",format:"prolog",
+           options:"[template(X)]"}),
+       receive_json(WS,Variable), term_string([V],Variable.term), var(V),
+       send_json(WS,json{command:"toplevel_call",pid:Pid,
+           goal:"throw(error(probe,context(remote,_)))",options:"[]"}),
+       receive_json(WS,Error), Error.type == "error",
+       term_string(error(probe,context(remote,Detail)),Error.term), var(Detail),
+       send_json(WS,json{command:"toplevel_call",pid:Pid,goal:"fail",options:"[]"}),
+       receive_json(WS,Failure), Failure.type == "failure", \+ get_dict(term,Failure,_),
+       send_json(WS,json{command:"toplevel_call",pid:Pid,goal:"(X=a;X=b;X=c)",
+           options:"[format(prolog),template(pair(X,X)),limit(2)]"}),
+       receive_json(WS,First), First.more == true,
+       term_string([pair(a,a),pair(b,b)],First.term),
+       send_json(WS,json{command:"toplevel_next",pid:Pid}),
+       receive_json(WS,Last), Last.more == false, term_string([pair(c,c)],Last.term),
+       send_json(WS,json{command:"toplevel_call",pid:Pid,format:"prolog",
+           goal:"system:consult('forbidden')",options:"[]"}),
+       receive_json(WS,Denied), Denied.type == "error",
+       event_data_contains(Denied, 'permission_error')
+    ; send_json(WS,json{command:"toplevel_call",pid:Pid,goal:"X=ok",
+           options:"[template(ignored)]"}),
+      receive_json(WS,Legacy), Legacy.type == "success",
+      \+ get_dict(term,Legacy,_), Legacy.data = [Row], Row.'X' == "ok"
+    ),
+    send_json(WS,json{command:"toplevel_halt",pid:Pid}),
+    receive_type(WS,"halted",_).
+
+% Exercise requests parsed and reconstructed by the real WebSocket server,
+% both with the minimal actor bootstrap and a private source module.
+rebuilt_query_client_test(Port) :-
+    format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
+    forall(member(Options,["[session(true)]",
+                           "[session(true),src_text('probe.')]"]),
+        setup_call_cleanup(http_open_websocket(URL, WS, [timeout(5)]),
+            rebuilt_query_session(WS, Options),
+            ws_close(WS, 1000, done))),
+    format('SWI -> Trealla reconstructed asynchronous queries: ok~n').
+
+rebuilt_query_session(WS, Options) :-
+    send_json(WS, json{command:"toplevel_spawn",options:Options}),
+    receive_json(WS, Spawned), Spawned.type == "spawned", Pid = Spawned.pid,
+    send_json(WS, json{command:"toplevel_call",pid:Pid,
+        goal:"X=Y,Y=ok,Z is 2+3",options:"[]"}),
+    receive_json(WS, Bound), Bound.type == "success", Bound.more == false,
+    Bound.data = [Row], Row.'X' == "ok", Row.'Y' == "ok", Row.'Z' == "5",
+    send_json(WS, json{command:"toplevel_call",pid:Pid,
+        goal:"(true -> fail ; true)",options:"[]"}),
+    receive_json(WS, Failure), Failure.type == "failure",
+    send_json(WS, json{command:"toplevel_call",pid:Pid,
+        goal:"X is 1/0",options:"[]"}),
+    receive_json(WS, Error), Error.type == "error",
+    event_data_contains(Error, 'zero_divisor'),
+    send_json(WS, json{command:"send",pid:Pid,
+        message:"'$call'(user:(X=ok),[template(pair(X,X))])"}),
+    receive_json(WS, Raw), Raw.type == "success", Raw.data == ["pair(ok,ok)"],
+    send_json(WS, json{command:"toplevel_call",pid:Pid,
+        goal:"(X=a;X=b;X=c)",options:"[limit(2)]"}),
+    receive_json(WS, First), First.type == "success", First.more == true,
+    First.data = [A,B], A.'X' == "a", B.'X' == "b",
+    send_json(WS, json{command:"toplevel_next",pid:Pid}),
+    receive_json(WS, Second), Second.type == "success", Second.more == false,
+    Second.data = [C], C.'X' == "c",
+    send_json(WS, json{command:"toplevel_halt",pid:Pid}),
+    receive_type(WS, "halted", _).
 
 connection_thread_parity_test(Port) :-
     open_parity_shell(Port, First, FirstPid),

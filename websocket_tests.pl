@@ -18,6 +18,7 @@ the cross-runtime test commands documented in README.md.
 
 websocket_tests :-
     handshake_vector,
+    optional_subprotocol_vectors,
     utf8_vector,
     close_vector,
     web_prolog_json_vector,
@@ -25,6 +26,8 @@ websocket_tests :-
     web_prolog_binding_json_vector,
     named_variable_json_vectors,
     web_prolog_pid_binding_vector,
+    pid_conversion_execution_vectors,
+    canonical_answer_vectors,
     profile_advertisement_vector,
     web_prolog_variable_sharing_vector,
     web_prolog_named_binding_vector,
@@ -40,6 +43,15 @@ utf8_vector :-
     Codes = [0,97,229,8364,128512,1114111],
     websocket:utf8_encode(Codes, Bytes),
     websocket:utf8_decode(Bytes, Codes).
+
+optional_subprotocol_vectors :-
+    Options=[optional_subprotocols(['web-prolog-sync-v1'])],
+    capture_optional_protocol([],Options,None),
+    None == '',
+    capture_optional_protocol(['sec-websocket-protocol'-other],Options,Unknown),
+    Unknown == '',
+    capture_optional_protocol(['sec-websocket-protocol'-'web-prolog-sync-v1'],Options,Selected),
+    sub_atom(Selected,_,_,_,'Sec-WebSocket-Protocol: web-prolog-sync-v1').
 
 close_vector :-
     websocket:close_payload(1000, 'klart', Bytes),
@@ -93,11 +105,72 @@ web_prolog_pid_binding_vector :-
           once(web_prolog:json_atom(JSON, Text)),
           Text == '{"type":"success","pid":1234567890,"data":[{"Self":"1234567890@\'https:\\/\\/n5.example.org\'"}],"more":false}',
           web_prolog:import_browser_pids(WirePid@Node, ignored, Imported),
-          Imported == RuntimePid
+          Imported == RuntimePid,
+          web_prolog:import_browser_pids(
+              nested(WirePid@Node, 2345678901@localhost,
+                     3456789012@Node, 4567890123@'https://elsewhere.example', X, X),
+              relay_probe, Mapped),
+          Mapped = nested(Local, Browser, Unknown, Remote, A, B),
+          Local == RuntimePid,
+          Browser == '$web_prolog_endpoint'(relay_probe,2345678901),
+          Unknown == 3456789012,
+          Remote == 4567890123@'https://elsewhere.example',
+          var(A), A == B, A == X,
+          web_prolog:export_browser_pids(nested(RuntimePid,X,X),ignored,Exported),
+          Exported = nested(ExportedPid,C,D),
+          ExportedPid == WirePid@Node, var(C), C == D, C == X
         ),
         ( web_prolog:relay_set_actors([]),
           retractall(web_prolog:node_public_url(_))
         )).
+
+pid_conversion_execution_vectors :-
+    pid_conversion_execution_vector(import),
+    pid_conversion_execution_vector(export).
+
+convert_pid_term(import, Before, After) :-
+    web_prolog:import_browser_pids(Before, ignored, After).
+convert_pid_term(export, Before, After) :-
+    web_prolog:export_browser_pids(Before, ignored, After).
+
+pid_conversion_execution_vector(Direction) :-
+    convert_pid_term(Direction, (X=ok)-pair(X,X,Y), Goal-pair(A,B,C)),
+    var(X), var(Y), X == A, A == B, Y == C, X \== Y,
+    call(Goal), X == ok, var(Y),
+    convert_pid_term(Direction, (N is 2+3), Arithmetic),
+    call(Arithmetic), N == 5,
+    convert_pid_term(Direction, user:true, Qualified), call(Qualified),
+    convert_pid_term(Direction, (true -> fail ; true), Conditional),
+    \+ call(Conditional),
+    convert_pid_term(Direction, (V=a ; V=b), Alternatives),
+    findall(V, call(Alternatives), [a,b]).
+
+canonical_answer_vectors :-
+    Event = success(7,[pair(X,X),pair(Y,Z),X,'$VAR'(1),'a b',[a,b]],false),
+    web_prolog:answer_event_json(Event, true, Exact),
+    web_prolog:json_text_field(Exact, term, Text),
+    read_term_from_atom(Text, Rows, []),
+    Rows = [pair(A,B),pair(C,D),E,Literal,Atom,Chars],
+    var(A), A == B, A == E, var(C), var(D), C \== D, A \== C,
+    Literal == '$VAR'(1), Atom == 'a b', Chars == [a,b],
+    var(X), var(Y), var(Z), X \== Y,
+    web_prolog:answer_event_json(success(7,[ok],false), false, Legacy),
+    \+ web_prolog:json_field(Legacy, term, _),
+    web_prolog:event_json(success(7,[ok],false), SameLegacy), SameLegacy == Legacy,
+    web_prolog:answer_event_json(error(7,error(probe,context(remote,Detail))),true,Error),
+    web_prolog:json_text_field(Error, term, ErrorText),
+    read_term_from_atom(ErrorText, error(probe,context(remote,Parsed)), []),
+    var(Detail), var(Parsed),
+    web_prolog:answer_event_json(failure(7),true,Failure),
+    \+ web_prolog:json_field(Failure, term, _),
+    web_prolog:read_goal_options('X=ok', '[template(pair(X,X)),format(prolog)]', G, O),
+    G = (V=ok), memberchk(template(pair(T1,T2)),O), V == T1, T1 == T2,
+    web_prolog:read_goal_options('X=ok', '[]', prolog, Default, DO),
+    memberchk(template(DT),DO), DT == Default,
+    web_prolog:read_goal_options('X=ok', '[template(ignored)]', _, JO),
+    memberchk(template(json_bindings(_)),JO),
+    web_prolog:relay_set_answer_terms(true), web_prolog:relay_answer_terms(true),
+    web_prolog:relay_clear_state, web_prolog:relay_answer_terms(false).
 
 profile_advertisement_vector :-
     web_prolog:event_json(transport_welcome(1, actor, blacklist), JSON),
@@ -258,3 +331,17 @@ trealla_shared_node(Port) :-
 
 shared_node_echo(WS, '/ws') :-
     echo_messages(WS).
+
+
+capture_optional_protocol(Headers, Options, Text) :-
+    random_between(1000000000,9999999999,Id),
+    format(atom(File), '/tmp/trealla-subprotocol-~w.bin', [Id]),
+    setup_call_cleanup(true,
+        ( setup_call_cleanup(open(File,write,Out,[type(binary)]),
+              websocket:server_subprotocol(Out,Headers,Options),close(Out)),
+          setup_call_cleanup(open(File,read,In,[type(binary)]),
+              read_protocol_bytes(In,Codes),close(In)), atom_codes(Text,Codes) ),
+        delete_file(File)).
+read_protocol_bytes(In,Codes) :-
+    get_byte(In,Byte),
+    ( Byte == -1 -> Codes=[] ; Codes=[Byte|Rest],read_protocol_bytes(In,Rest) ).

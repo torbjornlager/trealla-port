@@ -127,7 +127,9 @@ web_prolog_node(Port, Options) :-
     configure_shared_db(SharedDBFiles),
     configure_node_url(Port, Options, PublicURL),
     public_url_options(Options, PublicURL, NodeOptions),
-    node(Port, web_prolog_handler(Profile, Sandbox), NodeOptions).
+    option(websocket_options(WSOptions), NodeOptions, []),
+    node(Port, web_prolog_handler(Profile, Sandbox),
+         [websocket_options([optional_subprotocols(['web-prolog-sync-v1'])|WSOptions])|NodeOptions]).
 
 configure_node_url(Port, Options, URL) :-
     ( memberchk(node_url(URL0), Options) -> node_url_atom(URL0, URL1)
@@ -299,8 +301,9 @@ enforce_spawn_rate_limit(Command, Principal, Identity) :-
 dispatch(transport_hello, JSON, Relay, Reader, Profile, Sandbox) :- !,
     json_integer_default(JSON, version, 1, Version),
     json_boolean_default(JSON, io_ack, false, IoAck),
+    json_boolean_default(JSON, answer_terms, false, AnswerTerms),
     ( Version =:= 1 ->
-        Relay ! '$transport_hello'(Version, IoAck, Profile, Sandbox, Reader),
+        Relay ! '$transport_hello'(Version, IoAck, AnswerTerms, Profile, Sandbox, Reader),
         thread_get_message(Reader, '$transport_ready'(Relay))
     ; throw(error(domain_error(web_prolog_protocol_version, Version),
                   web_prolog_handler/2))
@@ -317,7 +320,8 @@ dispatch(toplevel_spawn, JSON, Relay, _, Profile, Sandbox) :- !,
 dispatch(toplevel_call, JSON, Relay, _, Profile, Sandbox) :- !,
     json_text_field(JSON, goal, GoalText),
     json_text_default(JSON, options, '[]', OptionsText),
-    read_goal_options(GoalText, OptionsText, Goal0, Options0),
+    json_text_default(JSON, format, options, Format),
+    read_goal_options(GoalText, OptionsText, Format, Goal0, Options0),
     import_browser_pids(Goal0-Options0, Relay, Goal-Options),
     sandbox_prepare_spawn(Sandbox, Profile, actor_context, Goal, Options,
                           GuardedGoal, PreparedOptions),
@@ -411,7 +415,35 @@ relay_command(send, JSON, Relay) :- !,
     send_target(JSON, Relay, Target),
     json_term_field(JSON, message, Message0),
     import_browser_pids(Message0, Relay, Message),
-    send_to_target(Target, Message).
+    correlated_return_target(JSON, Relay, Message, Routed),
+    send_to_target(Target, Routed).
+
+correlated_return_target(JSON, Relay, Message, '$call'(Goal,Routed)) :-
+    nonvar(Message), Message = '$call'(Goal,Options),
+    is_list(Options), has_request_reference(Options), !,
+    correlation_target_options(JSON,Relay,Options,Routed).
+correlated_return_target(JSON, Relay, Message, '$next'(Routed)) :-
+    nonvar(Message), Message = '$next'(Options),
+    is_list(Options), has_request_reference(Options), !,
+    correlation_target_options(JSON,Relay,Options,Routed).
+correlated_return_target(_, _, Message, Message).
+
+has_request_reference(Options) :-
+    member(Option, Options), nonvar(Option), Option = '$request_ref'(_), !.
+
+correlation_target_options(_,_,[],[]).
+correlation_target_options(JSON,Relay,[target(Target)|Options],[target(Return)|Routed]) :- !,
+    ( json_field(JSON,browser_from,_)
+    -> ( nonvar(Target), correlation_caller_id(Target, Id)
+       -> Return = '$web_prolog_endpoint'(Relay,Id) ; Return = Target )
+    ; Return = Relay ),
+    correlation_target_options(JSON,Relay,Options,Routed).
+correlation_target_options(JSON,Relay,[Option|Options],[Option|Routed]) :-
+    correlation_target_options(JSON,Relay,Options,Routed).
+
+correlation_caller_id(Id@localhost,Id).
+correlation_caller_id(Id@'http://localhost',Id).
+correlation_caller_id('$web_prolog_endpoint'(_,Id),Id).
 relay_command(monitor, JSON, Relay) :- !,
     owned_pid(JSON, Relay, any, Pid),
     json_term_field(JSON, ref, Ref),
@@ -461,6 +493,7 @@ relay_start(WS, Principal, Identity) :-
     relay_set_monitors([]),
     relay_set_halts([]),
     relay_set_governance(Principal, Identity),
+    relay_set_answer_terms(false),
     relay_loop(WS).
 
 relay_loop(WS) :-
@@ -482,10 +515,11 @@ relay_message(_, '$ws_close') :- !,
     observe_relay_actor_ends(Actors, connection_closed),
     stop_relay_actors(Actors),
     relay_clear_state.
-relay_message(WS, '$transport_hello'(Version, IoAck, Profile, Sandbox, Reader)) :- !,
+relay_message(WS, '$transport_hello'(Version, IoAck, AnswerTerms, Profile, Sandbox, Reader)) :- !,
     self(Relay),
     set_browser_io_enabled(Relay, IoAck),
-    send_event(WS, transport_welcome(Version, Profile, Sandbox)),
+    relay_set_answer_terms(AnswerTerms),
+    send_event(WS, transport_welcome(Version, Profile, Sandbox, AnswerTerms)),
     thread_send_message(Reader, '$transport_ready'(Relay)).
 relay_message(WS, '$peer_close'(Code, Reason)) :- !,
     catch(ws_send(WS, close(Code, Reason)), _, true),
@@ -543,7 +577,27 @@ run_spawn_goal(Goal) :-
     isolation:execution_goal(Goal, ExecutionGoal),
     call(ExecutionGoal).
 relay_message(WS, '$browser_message'(Target, Message)) :- !,
-    send_event(WS, actor_message(Target, Message)).
+    ( nonvar(Message), Message = '$toplevel_reply'(_,_)
+    -> self(Relay), wire_event(Relay,Message,'$toplevel_reply'(Ref,Answer)),
+       browser_correlated_answer(Answer,GlobalAnswer),
+       WireMessage = '$toplevel_reply'(Ref,GlobalAnswer)
+    ; browser_session_answer(Message)
+    -> self(Relay), wire_event(Relay,Message,Answer),
+       browser_correlated_answer(Answer,WireMessage)
+    ; WireMessage = Message ),
+    send_event(WS, actor_message(Target, WireMessage)).
+
+browser_session_answer(Message) :-
+    nonvar(Message), functor(Message,Name,Arity),
+    memberchk(Name/Arity,[success/3,failure/1,error/2]),
+    arg(1,Message,Pid), nonvar(Pid), relay_actor(_,Pid,session).
+
+browser_correlated_answer(success(Pid,Rows,More),success(Pid@Node,Rows,More)) :- !,
+    current_node_url(Node).
+browser_correlated_answer(failure(Pid),failure(Pid@Node)) :- !,
+    current_node_url(Node).
+browser_correlated_answer(error(Pid,Error),error(Pid@Node,Error)) :-
+    current_node_url(Node).
 relay_message(WS, '$browser_io_request'(RequestId, Message)) :- !,
     self(Relay),
     wire_event(Relay, Message, Event),
@@ -599,6 +653,8 @@ wire_event(Relay, success(RuntimePid, Rows0, More),
            success(WirePid, Rows, More)) :- !,
     runtime_connection_pid(Relay, RuntimePid, WirePid),
     export_browser_pids(Rows0, Relay, Rows).
+wire_event(Relay, '$toplevel_reply'(Ref, Answer), '$toplevel_reply'(Ref, WireAnswer)) :- !,
+    wire_event(Relay, Answer, WireAnswer).
 wire_event(Relay, failure(RuntimePid), failure(WirePid)) :- !,
     runtime_connection_pid(Relay, RuntimePid, WirePid).
 wire_event(Relay, error(RuntimePid, Error), error(WirePid, Error)) :- !,
@@ -793,7 +849,15 @@ relay_clear_state :-
     relay_delete_state(actors),
     relay_delete_state(monitors),
     relay_delete_state(halts),
-    relay_delete_state(governance).
+    relay_delete_state(governance),
+    relay_delete_state(answer_terms).
+
+relay_set_answer_terms(Value) :-
+    relay_state_key(answer_terms, Key), nb_setval(Key, Value).
+
+relay_answer_terms(Value) :-
+    relay_state_key(answer_terms, Key),
+    ( nb_current(Key, Found) -> Value = Found ; Value = false ).
 
 relay_delete_state(Kind) :-
     relay_state_key(Kind, Key),
@@ -805,8 +869,46 @@ send_down_events(WS, Pid, [Ref|Refs], Reason) :-
     send_down_events(WS, Pid, Refs, Reason).
 
 send_event(WS, Event) :-
-    event_json(Event, JSON),
+    relay_answer_terms(AnswerTerms),
+    answer_event_json(Event, AnswerTerms, JSON),
     web_prolog_send(WS, JSON).
+
+answer_event_json('$toplevel_reply'(Ref, Answer), _, JSON) :- !,
+    answer_event_json(Answer, true, Base),
+    canonical_answer_text(Ref, RefText),
+    json_add_field(Base, toplevel_correlation-string_atom(RefText), JSON).
+answer_event_json(Event, true, JSON) :-
+    answer_payload(Event, Payload), !,
+    canonical_answer_text(Payload, Text),
+    % Legacy display conversion can bind a variable row while recognizing
+    % json_bindings/1. Keep that conversion separate from the actual answer.
+    copy_term(Event, DisplayEvent),
+    event_json(DisplayEvent, Base),
+    json_add_field(Base, term-string_atom(Text), JSON).
+answer_event_json(Event, _, JSON) :- event_json(Event, JSON).
+
+answer_payload(success(_, Rows, _), Rows).
+answer_payload(error(_, Error), Error).
+
+% Name actual variables without converting them into '$VAR'/1 terms.
+% Write the whole payload once so sharing is retained across its elements.
+% Keep list notation: Trealla's ignore_ops(true) writes '.'/2, which modern
+% SWI reads as an ordinary compound rather than a list.
+canonical_answer_text(Term, Text) :-
+    ( acyclic_term(Term) -> true
+    ; throw(error(type_error(acyclic_term, Term), canonical_answer_text/2)) ),
+    term_variables(Term, Vars),
+    answer_variable_names(Vars, 1, Names),
+    write_term_to_atom(Text, Term,
+        [quoted(true),ignore_ops(false),numbervars(false),variable_names(Names)]).
+
+answer_variable_names([], _, []).
+answer_variable_names([Var|Vars], N, [Name=Var|Names]) :-
+    format(atom(Name), '_W~w', [N]),
+    Next is N+1, answer_variable_names(Vars, Next, Names).
+
+json_add_field(pairs(Fields), Field, pairs(All)) :-
+    fields_pairs([Field], Extra), append(Fields, Extra, All).
 
 
                  /*******************************
@@ -858,9 +960,13 @@ event_json(transport_welcome(Version, Profile, Sandbox), JSON) :- !,
             profile-string_atom(Profile),
             sandbox-string_atom(Sandbox),
             version-number(Version)], JSON).
+event_json(transport_welcome(Version, Profile, Sandbox, AnswerTerms), JSON) :- !,
+    event_json(transport_welcome(Version, Profile, Sandbox), Base),
+    json_add_field(Base, answer_terms-boolean(AnswerTerms), JSON).
 event_json(actor_message(Target, Message), JSON) :- !,
     term_wire_atom(Target, TargetText),
-    term_wire_atom(Message, MessageText),
+    ( nonvar(Message), Message = '$toplevel_reply'(_,_) -> canonical_answer_text(Message, MessageText)
+    ; term_wire_atom(Message, MessageText) ),
     object([type-string_atom(actor_message), target-string_atom(TargetText),
             message-string_atom(MessageText)], JSON).
 event_json(io_reply(RequestId, Status), JSON) :- !,
@@ -1010,16 +1116,15 @@ export_browser_pids(Term, _, Term) :- var(Term), !.
 export_browser_pids(Term, _, Term) :- atomic(Term), !.
 export_browser_pids(Term0, Relay, Term) :-
     functor(Term0, Name, Arity),
-    functor(Term, Name, Arity),
-    export_browser_pid_args(1, Arity, Relay, Term0, Term).
+    export_browser_pid_args(1, Arity, Relay, Term0, Args),
+    Term =.. [Name|Args].
 
-export_browser_pid_args(Index, Arity, _, _, _) :- Index > Arity, !.
-export_browser_pid_args(Index, Arity, Relay, Term0, Term) :-
+export_browser_pid_args(Index, Arity, _, _, []) :- Index > Arity, !.
+export_browser_pid_args(Index, Arity, Relay, Term0, [Arg|Args]) :-
     arg(Index, Term0, Arg0),
     export_browser_pids(Arg0, Relay, Arg),
-    arg(Index, Term, Arg),
     Next is Index + 1,
-    export_browser_pid_args(Next, Arity, Relay, Term0, Term).
+    export_browser_pid_args(Next, Arity, Relay, Term0, Args).
 
 import_browser_pids(Term0, Relay, Term) :-
     ( local_server_wire_pid(Term0, Relay, RuntimePid) ->
@@ -1029,8 +1134,10 @@ import_browser_pids(Term0, Relay, Term) :-
     ; var(Term0) -> Term = Term0
     ; atomic(Term0) -> Term = Term0
     ; functor(Term0, Name, Arity),
-      functor(Term, Name, Arity),
-      import_browser_pid_args(1, Arity, Relay, Term0, Term)
+      import_browser_pid_args(1, Arity, Relay, Term0, Args),
+      % Trealla v3.13.10 cannot reliably execute/evaluate functor/3-built
+      % compounds (BUG-023). =../2 constructs callable terms correctly.
+      Term =.. [Name|Args]
     ).
 
 browser_wire_pid(Id@localhost, Id) :-
@@ -1041,13 +1148,12 @@ local_server_wire_pid(Id@Node, _Relay, RuntimePid) :-
     current_node_url(Node),
     ( relay_actor(Id, RuntimePid, _) -> true ; RuntimePid = Id ).
 
-import_browser_pid_args(Index, Arity, _, _, _) :- Index > Arity, !.
-import_browser_pid_args(Index, Arity, Relay, Term0, Term) :-
+import_browser_pid_args(Index, Arity, _, _, []) :- Index > Arity, !.
+import_browser_pid_args(Index, Arity, Relay, Term0, [Arg|Args]) :-
     arg(Index, Term0, Arg0),
     import_browser_pids(Arg0, Relay, Arg),
-    arg(Index, Term, Arg),
     Next is Index + 1,
-    import_browser_pid_args(Next, Arity, Relay, Term0, Term).
+    import_browser_pid_args(Next, Arity, Relay, Term0, Args).
 
 answer_rows_json([], []).
 answer_rows_json([json_bindings(Bindings)|Rows], [JSON|JSONRows]) :- !,
@@ -1182,16 +1288,33 @@ json_options(JSON, Options) :-
     must_be(list, Options).
 
 read_goal_options(GoalText, OptionsText, Goal, Options) :-
+    read_goal_options(GoalText, OptionsText, options, Goal, Options).
+
+read_goal_options(GoalText, OptionsText, Format0, Goal, Options) :-
     check_term_text_size(goal, GoalText),
     check_term_text_size(options, OptionsText),
     normalize_wire_quoted_newlines(GoalText, NormalizedGoal),
     normalize_wire_quoted_newlines(OptionsText, NormalizedOptions),
     format(atom(Text), '(~w)-(~w)', [NormalizedGoal, NormalizedOptions]),
-    read_term_from_atom(Text, Goal-Options0, [variable_names(Bindings0)]),
+    read_term_from_atom(Text, ParsedGoal-Options0, [variable_names(Bindings0)]),
     must_be(list, Options0),
-    named_bindings(Bindings0, Bindings),
+    ( Format0 == options
+    -> ( memberchk(format(Requested), Options0) -> Format = Requested ; Format = json )
+    ; Format = Format0 ),
+    % A Prolog-format client may send its caller module with the goal.
+    % That module is sender context, never authority to enter a server module.
+    ( Format == prolog -> strip_module(ParsedGoal, _, Goal) ; Goal = ParsedGoal ),
+    call_answer_template(Format, Goal, Options0, Bindings0, Template),
     exclude(template_option, Options0, CallOptions),
-    Options = [template(json_bindings(Bindings))|CallOptions].
+    Options = [template(Template)|CallOptions].
+
+call_answer_template(json, _, _, Bindings0, json_bindings(Bindings)) :- !,
+    named_bindings(Bindings0, Bindings).
+call_answer_template(prolog, Goal, Options, _, Template) :- !,
+    ( memberchk(template(Explicit), Options) -> Template = Explicit
+    ; Template = Goal ).
+call_answer_template(Format, _, _, _, _) :-
+    throw(error(domain_error(answer_format, Format), read_goal_options/5)).
 
 % SWI accepts physical line breaks inside quoted atoms and strings.  Trealla
 % v3.12.6 reports unterminated_quoted_atom instead, although it accepts the

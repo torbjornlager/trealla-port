@@ -1043,6 +1043,51 @@ callable term. This affected supervisor child specifications: a nested server
 callback inside the child-specification list was resolved in the wrong module.
 The port works around the defect by explicitly passing `Module:ChildSpecs`.
 
+### BUG-023: `functor/3`-constructed goals and arithmetic expressions fail lookup
+
+**Status:** Reproduced on v3.13.10; retest current upstream before filing
+**Priority:** High
+
+Observed on 2026-10-18, macOS arm64, using the repository's v3.13.10 build
+with `NOSSL=1`. A term constructed using `functor/3` and filled using `arg/3`
+does not behave like the equivalent term constructed using `=../2`:
+
+```prolog
+functor(G, '=', 2), arg(1, G, X), arg(2, G, ok), call(G).
+% error(existence_error(procedure,(=)/2),(=)/2)
+
+functor(E, '+', 2), arg(1, E, 2), arg(2, E, 3), X is E.
+% error(type_error(evaluable,(+)/2),(is)/2)
+```
+
+The corresponding `G =.. ['=',X,ok], call(G)` and
+`E =.. ['+',2,3], X is E` succeed. SWI-Prolog succeeds in all four cases.
+The reproducer needs no Web Prolog, modules, threads, or sockets:
+
+```sh
+tpl -f reproducers/bug-023-functor-callable-lookup.pl -g "reproducer,halt"
+```
+
+Expected results: `success,ok` for both goal cases and `success,5` for both
+arithmetic cases. The `functor` cases instead report the exceptions above.
+This establishes a construction-dependent lookup failure; its internal
+runtime cause has not been established.
+
+Impact: `web_prolog.pl` recursively imports and exports pids by reconstructing
+compound terms with `functor/3` and `arg/3`. Even a request without pids is
+rebuilt, so remote unification and arithmetic fail. A source-backed actor's
+existing execution bridge bypasses some callable lookup failures but does not
+repair a reconstructed arithmetic subexpression. Rebuilt module-qualified
+goals also fail with a missing `(:)/2` through the source-free actor path.
+
+Port workaround: both pid-conversion directions now construct each converted
+compound from its recursively converted argument list using `=../2`, keeping
+variable sharing and the existing pid mappings. WebSocket unit vectors cover
+callable/control/arithmetic terms and nested pid mappings. The interoperability
+runner exercises source-free and source-backed asynchronous requests,
+qualified actor messages, failure, exceptions, and paging. Check current
+upstream and duplicates before sending this report.
+
 ## Compatibility gaps worth tracking, but not yet bug reports
 
 These missing facilities increase porting work but need a clearer upstream

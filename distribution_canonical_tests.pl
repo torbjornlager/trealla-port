@@ -1,0 +1,30 @@
+% SPDX-License-Identifier: MIT
+:- use_module(distribution).
+
+distribution_canonical_tests :-
+    distribution:goal_options_wire_atoms((L='$VAR'(1)),
+        [template(row(pair(X,X),pair(Y,Z),L))],G,O),
+    var(X), var(Y), var(Z), var(L),
+    format(atom(Text),'(~w)-(~w)',[G,O]),
+    read_term_from_atom(Text,(V=Literal)-[template(row(pair(A,B),pair(C,D),T))],[]),
+    Literal == '$VAR'(1), var(V), V == T, var(A), A == B, C \== D, A \== C,
+    web_prolog:json_atom(Exact,'{"term":"[pair(X,X),pair(Y,Z),X,\'$VAR\'(1)]","more":true}'),
+    distribution:remote_answer_event(success,Exact,7,true,success(7,Rows,true)),
+    Rows=[pair(R,S),pair(U,W),Shared,Numbervar],
+    var(R), R == S, R == Shared, var(U), var(W), U \== W, R \== U,
+    Numbervar == '$VAR'(1),
+    web_prolog:json_atom(Error,'{"term":"error(probe,context(remote,_))"}'),
+    distribution:remote_answer_event(error,Error,7,true,error(7,error(probe,context(remote,Detail)))),
+    var(Detail),
+    web_prolog:json_atom(Legacy,'{"data":["ok"],"more":false}'),
+    distribution:remote_answer_event(success,Legacy,7,false,success(7,[ok],false)),
+    distribution:remote_answer_event(success,Legacy,7,true,error(7,remote_answer_protocol_error(missing_term))),
+    web_prolog:json_atom(Bad,'{"term":"[","data":["legacy_ok"]}'),
+    distribution:remote_answer_event(success,Bad,7,true,error(7,remote_answer_protocol_error(invalid_term))),
+    distribution:remote_answer_event(success,Bad,7,false,success(7,[legacy_ok],false)),
+    web_prolog:json_atom(Scalar,'{"term":"ok"}'),
+    distribution:remote_answer_event(success,Scalar,7,true,error(7,remote_answer_protocol_error(invalid_term))),
+    distribution:remote_answer_event(failure,Legacy,7,true,failure(7)),
+    web_prolog:json_atom(LegacyError,'{"data":"legacy diagnostic"}'),
+    distribution:remote_answer_event(error,LegacyError,7,false,error(7,remote_error('legacy diagnostic'))),
+    writeln('Outbound canonical answer vectors: ok').

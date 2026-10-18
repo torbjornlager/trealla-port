@@ -332,8 +332,12 @@ the certificate chain and host name by default and supports a separate
 `server_name(Host)` when connecting to a pinned numeric address.
 
 The transport also implements optional RFC 6455 subprotocol negotiation.
-Web Prolog does **not** request a WebSocket subprotocol: Trinity version 1 is
-announced with `X-Web-Prolog-Protocol: 1` and its JSON command vocabulary.
+The Web Prolog server selects `web-prolog-sync-v1` when offered, advertising
+support for correlated toplevel replies. Connections without an offer (or
+without a matching optional offer) retain the ordinary handshake. Explicitly
+configured required subprotocols keep their existing policy. The Trealla
+outbound client offers it optionally and records the actual selection. Trinity
+version 1 is also announced with `X-Web-Prolog-Protocol: 1` and its JSON vocabulary.
 Extensions such as `permessage-deflate` remain unsupported.
 
 ## Native Web Prolog protocol
@@ -625,6 +629,122 @@ node-to-node `io_request` command.  It emits Trinity's
 `transport_hello` / `transport_welcome` exchange is also implemented,
 including connection-scoped browser/local PID capabilities and
 `actor_message` return traffic, plus acknowledged `io_reply` terminal traffic.
+
+PID conversion preserves variable sharing across goals and answer templates,
+and recursively converts nested pids without changing their existing mappings.
+The converter builds compounds with `=../2`: on Trealla v3.13.10, equivalent
+`functor/3` constructions can fail built-in or arithmetic lookup (BUG-023).
+Asynchronous calls support unification, arithmetic, control constructs, and
+paging both with and without private source. Replies use the connection relay
+selected when the toplevel was created unless `target/1` overrides it. An
+explicit target must be routable from the remote node; a client's process-local
+pid alone does not establish a return route for ordinary actor traffic.
+
+The server accepts correlated synchronous calls from existing SWI and browser
+clients. Each private `'$request_ref'/1` on a toplevel call or next request
+tags success, failure, and exception replies with that complete reference.
+A next request replaces the current reference; an untagged call or next clears
+it and produces ordinary asynchronous replies. Native connection replies carry
+`toplevel_correlation` metadata and canonical payloads; browser caller endpoints
+receive the equivalent `'$toplevel_reply'(Ref,Answer)` envelope with a global pid.
+The adapter for these private requests uses the connection relay for native
+callers and the browser's caller endpoint for browser traffic. Ordinary actor
+name/pid routing is unchanged.
+
+These tags let the existing synchronous wrappers discard a late reply from a
+timed-out request without confusing it with the next request. Timeout does not
+cancel execution. Browser target updates are kept in actor-local nonbacktrackable
+state because Trealla's `nb_setarg/3` cannot store compound endpoints. This batch
+also supports the explicit remote synchronous APIs below; it does not unify
+local and remote toplevel wrappers.
+
+The native client exports `remote_toplevel_call_synch(Node,Pid,Goal,Answer)`
+and its five-argument form with options, plus
+`remote_toplevel_next_synch(Node,Pid,Answer)` and its four-argument form.
+They return the ordinary `success(Pid,Rows,More)`, `failure(Pid)`, or
+`error(Pid,Exception)` answer. Each request has a fresh reference and a private
+remote monitor. A writer-side waiter is registered before sending, so a fast
+reply cannot precede registration. Replies are routed to that request's caller,
+including callers sharing a connection, without changing asynchronous targets.
+
+Call options are `template/1`, positive `limit/1`, nonnegative `offset/1`, and
+boolean `once/1`; next accepts `limit/1`. Both accept nonnegative numeric
+`timeout/1` and callable `on_timeout/1`, which stay local. `target/1`, if supplied,
+must denote the calling actor. On timeout, the callback runs once (default
+`true`) without binding `Answer`; callback bindings, failure, or exceptions
+are preserved. An explicitly module-qualified options list supplies callback
+context; otherwise the current actor source context or call's goal module is
+used (the default next context outside an actor source module is `user`).
+
+Observed termination throws `toplevel_down(Reason)`; ordinary peer loss throws
+`toplevel_down(connection_closed)`. Every exit path removes the waiter,
+best-effort demonitors its remote reference, flushes its private local messages,
+and removes the monitor on the writer actor. Unrelated monitors and mailbox
+messages remain available. Late replies for released references are discarded.
+Private remote monitor references use `'$sync_monitor'(RequestRef)` so a late
+private down notification can also be discarded without retaining tombstones;
+ordinary monitor references keep their existing routing.
+An unsupported peer raises `permission_error(use,toplevel_correlation,NodeURL)`
+before sending a private monitor or query; asynchronous access remains available.
+Cancellation and the general local/remote wrapper API remain separate.
+
+Explicit `remote_node_close/1` requests reader cancellation, then waits for
+its actor registry entry to be removed by the exit hook before asking the
+writer to close the shared stream. This prevents a close racing the reader's
+`get_byte/2`. The writer retains the existing pending-call notification and
+monitor cleanup: synchronous callers receive `toplevel_down(connection_closed)`;
+unrelated monitors remain available. Repeated close after completed teardown
+is harmless. Each termination wait allows 100 polling intervals of 0.01 seconds;
+if the actor has not stopped, close raises
+`error(resource_error(remote_node_close_timeout(Pid)),remote_node_close/1)`.
+A reader timeout does not authorize closing its stream; a later close can retry.
+
+A previous concurrent-close stress run crashed natively on v3.13.10; the
+crash report shows a reader failing in `get_byte/2` / C `clearerr()` during
+shutdown. Explicit close now confirms reader termination first, with regression
+coverage against SWI and Trealla peers. A standalone runtime reproducer is still
+needed before filing upstream; see `UPSTREAM_OUTSTANDING.md`.
+Existing PTCP handling can also turn an active-computation cancellation
+interrupt into an error answer; the synchronous API preserves that answer
+rather than inventing a down event.
+
+Clients may request `answer_terms:true` in `transport_hello`; the server
+acknowledges it in `transport_welcome` for that connection. Negotiated success
+events include `term`, a Prolog text representation of the entire solution
+list; negotiated actor errors include the exception term in the same field.
+Parse it once to preserve sharing across the payload. Failure needs no extra
+payload. Existing display fields remain available, and connections that omit
+the capability or request `false` retain legacy answers.
+
+For explicit answer templates, use `format(prolog)` in the call options (or
+the JSON command's `format:"prolog"` field). This preserves the first explicit
+`template/1`, defaulting to the goal. The default JSON format continues to
+return named display bindings. In Prolog format, an outer caller module tag
+such as `user:Goal` is stripped before the ordinary profile and sandbox checks;
+it does not grant access to a server module. Execution uses the actor context.
+
+The canonical writer names actual variables without `numbervars/3`, preserving
+distinct variables, repeated variables, and literal `'$VAR'/1` terms. This
+uses Trealla's existing term semantics, including character-list strings; it
+does not introduce a portable string contract.
+
+The native outbound client also requests this capability. It completes the
+existing welcome exchange before sending requests, and selects Prolog-format
+call options only when the peer acknowledges `answer_terms:true`. Negotiated
+success payloads are parsed once as a complete solution list; negotiated
+exceptions are delivered as `error(Pid,Exception)`, preserving their structure
+and variables. Missing or malformed negotiated payloads are delivered as
+`error(Pid,remote_answer_protocol_error(missing_term))` or
+`error(Pid,remote_answer_protocol_error(invalid_term))`, including a success
+payload that is not a proper list. There is no silent display-data fallback
+after acknowledgement. A welcome that omits the capability or sets it to
+`false` retains the original request format and legacy decoding, including
+the `remote_error(Data)` wrapper for legacy actor errors.
+
+`remote_toplevel_call/4` serializes its goal and options with one shared
+variable-name map, retaining goal/template sharing and literal `'$VAR'/1`
+terms without binding caller variables. This is confined to toplevel call
+requests; other actor-message and routing protocols are unchanged.
 
 A browser that sends `"io_ack":true` in `transport_hello` receives each
 terminal write in an `io_request` envelope.  It accepts the nested `output`

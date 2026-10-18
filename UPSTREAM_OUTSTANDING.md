@@ -1,9 +1,10 @@
 # Outstanding Trealla reports from the Web Prolog port
 
-Updated 2026-10-14 from the `trealla-port` work, using Trealla v3.13.10 on
+Updated 2026-10-18 from the `trealla-port` work, using Trealla v3.13.10 on
 macOS arm64.  Thank you for the substantial set of fixes and additions already
 made for this port. One minimized module-context bug is ready to send
-upstream.
+upstream, and a newly isolated term-construction bug needs a current-build
+retest before filing.
 
 ## Ready to send
 
@@ -45,6 +46,26 @@ server callbacks in the port's supervisor child-specification list to be
 looked up in the wrong module. The port currently works around this by passing
 `Module:ChildSpecs` explicitly.
 
+## New report needing a current-build retest
+
+### BUG-023: `functor/3`-constructed terms fail callable/arithmetic lookup
+
+On v3.13.10, constructing `X=ok` with `functor/3` and `arg/3`, then calling it,
+raises a missing `(=)/2` error. Constructing `2+3` the same way and evaluating
+it raises `type_error(evaluable,(+)/2)`. The equivalent `=../2` constructions
+succeed. This reproduces without the port, threads, modules, or sockets:
+
+```sh
+tpl -f reproducers/bug-023-functor-callable-lookup.pl -g "reproducer,halt"
+```
+
+SWI-Prolog succeeds in all four cases. The port's browser-pid conversion
+rebuilds every compound using the affected construction, causing failures in
+basic remote queries. The port now uses a bounded `=../2` workaround, covered
+by conversion vectors and live asynchronous query regressions. See
+`UPSTREAM_REPORTS.md` for details. Retest current upstream
+and search for duplicates before sending; this is not yet filed.
+
 ## Resolved in v3.13.10
 
 ### Absolute message-queue deadlines
@@ -77,6 +98,18 @@ tpl -q -f reproducers/bug-021-concurrent-sleep.pl
 ## Observations still needing a small reproducer
 
 These should not yet be filed as Trealla bugs:
+
+- On 2026-10-18, a Trealla v3.13.10 outbound synchronous-wait stress check
+  exited with status 139 while another actor called `remote_node_close/1`.
+  The macOS report (`tpl-2026-10-18-191542.ips`) faults in `flockfile`, called
+  by `clearerr` from `bif_iso_get_byte_2`. The port allowed writer-side stream
+  close before confirming reader cancellation, consistent with this race.
+  Sixteen fresh pre-repair runs against SWI and Trealla passed, so the native
+  failure remains intermittent. The port now confirms reader termination
+  before writer close and includes concurrent-close regression coverage.
+  `reproducers/port-shared-connection-close.pl` retains the application
+  pattern. A standalone runtime reproducer and precise stream-safety diagnosis
+  are still needed before filing upstream.
 
 - A historical same-process WebSocket teardown crash was timing-sensitive and
   did not recur in five v3.13.3 runs of either application regression.

@@ -93,6 +93,103 @@ distribution_toplevel_test(Port) :-
     remote_node_close(Node),
     format('Trealla distributed toplevel test: ok~n').
 
+canonical_outbound_test(Port) :-
+    distribution_url(Port, URL), remote_node_open(URL, Node),
+    setup_call_cleanup(remote_toplevel_spawn(Node,Pid,[session(true)]),
+        canonical_outbound_session(Node,Pid),
+        (remote_toplevel_halt(Node,Pid),receive_halted(Pid),remote_node_close(Node))),
+    format('Trealla canonical outbound answers on ~w: ok~n',[Port]).
+
+sync_outbound_test(Port) :-
+    distribution_url(Port,URL),remote_node_open(URL,Node),
+    setup_call_cleanup(remote_toplevel_spawn(Node,P,[session(true)]),
+        sync_outbound_session(Node,P),
+        (remote_toplevel_halt(Node,P),receive_halted(P),remote_node_close(Node))),
+    format('Trealla synchronous outbound on ~w: ok~n',[Port]).
+
+sync_connection_loss_fixture_test(Port) :-
+    format(atom(URL),'ws://127.0.0.1:~w/sync-close',[Port]),remote_node_open(URL,Node),
+    remote_toplevel_spawn(Node,P,[session(true)]),
+    catch(remote_toplevel_next_synch(Node,P,_,[timeout(3)]),Error,true),
+    Error==toplevel_down(connection_closed),
+    writeln('Synchronous peer disconnect wakes and cleans the wait: ok').
+
+sync_outbound_session(Node,P) :-
+    remote_toplevel_call_synch(Node,P,L='$VAR'(1),Rich,
+        [template(row(pair(X,X),pair(Y,Z),L)),timeout(3)]),
+    Rich=success(P,[row(pair(A,B),pair(C,D),Literal)],false),
+    var(A),A==B,var(C),var(D),C\==D,A\==C,Literal=='$VAR'(1),var(X),var(Y),var(Z),var(L),
+    remote_toplevel_call_synch(Node,P,member(V,[a,b,c]),First,[template(V),limit(1),timeout(3)]),
+    First==success(P,[a],true),
+    remote_toplevel_next_synch(Node,P,Second,[timeout(3)]),Second==success(P,[b],true),
+    remote_toplevel_next(Node,P),
+    receive({success(P,Rows,false)->Rows==[c]},[timeout(3),on_timeout(fail)]),
+    remote_toplevel_call_synch(Node,P,fail,F,[timeout(3)]),F==failure(P),
+    remote_toplevel_call_synch(Node,P,throw(probe),E,[timeout(3)]),E==error(P,probe),
+    remote_toplevel_call_synch(Node,P,(sleep(0.1),V=old),Early,
+        [template(V),timeout(0),on_timeout(Early=waiting)]),Early==waiting,
+    remote_toplevel_call_synch(Node,P,V=fresh,Fresh,[template(V),timeout(3)]),Fresh==success(P,[fresh],false),
+    \+ remote_toplevel_call_synch(Node,P,sleep(0.05),_,[timeout(0),on_timeout(fail)]),
+    catch(remote_toplevel_call_synch(Node,P,sleep(0.05),_,[timeout(0),on_timeout(throw(callback_probe))]),CE,true),
+    CE==callback_probe,
+    \+ remote_toplevel_call_synch(Node,P,true,wrong,[timeout(3)]),
+    remote_toplevel_call_synch(Node,P,true,After,[template(ok),timeout(3)]),After==success(P,[ok],false),
+    remote_spawn(Node,receive({finish->true}),Unrelated,[]),remote_monitor(Node,Unrelated,Ref),
+    remote_toplevel_call_synch(Node,P,true,_,[timeout(3)]),
+    remote_send(Node,Unrelated,finish),
+    receive({down(Unrelated,Ref,true)->true},[timeout(3),on_timeout(fail)]),
+    self(Parent),
+    spawn(user:shared_sync_client(Node,P,Parent),Child,[link(false)]),
+    receive({shared_sync_result(Child,Shared)->Shared==success(P,[shared],false)},[timeout(3),on_timeout(fail)]),
+    remote_toplevel_spawn(Node,Doomed,[session(true)]),
+    remote_monitor(Node,Doomed,ControlRef),
+    spawn(user:kill_sync_remote(Node,Doomed),_,[link(false)]),
+    catch(remote_toplevel_next_synch(Node,Doomed,_,[timeout(3)]),Down,true),
+    Down=toplevel_down(Observed),
+    receive({down(Doomed,ControlRef,Actual)->Observed==Actual},[timeout(3),on_timeout(fail)]).
+
+kill_sync_remote(Node,Pid) :- sleep(0.05),remote_exit(Node,Pid,kill).
+
+shared_sync_client(Node,P,Parent) :-
+    self(Me),remote_toplevel_call_synch(Node,P,true,Answer,[template(shared),timeout(3)]),
+    Parent ! shared_sync_result(Me,Answer).
+
+sync_legacy_test(Port) :-
+    distribution_url(Port,URL),remote_node_open(URL,Node),remote_toplevel_spawn(Node,P,[session(true)]),
+    catch(remote_toplevel_call_synch(Node,P,true,_,[timeout(0)]),Error,true),
+    Error=error(permission_error(use,toplevel_correlation,URL),_),
+    catch(remote_toplevel_next_synch(Node,P,_,[timeout(0)]),NextError,true),
+    NextError=error(permission_error(use,toplevel_correlation,URL),_),
+    remote_toplevel_call(Node,P,true,[]),
+    receive({success(P,[swi],false)->true},[timeout(3),on_timeout(fail)]),
+    remote_toplevel_halt(Node,P),receive_halted(P),remote_node_close(Node),
+    writeln('Unsupported synchronous peer preserves asynchronous access: ok').
+
+canonical_outbound_session(Node,Pid) :-
+    remote_toplevel_call(Node,Pid,L='$VAR'(1),
+        [template(row(pair(X,X),pair(Y,Z),L,'a b'))]),
+    receive({success(Pid,Rows,false) -> true},[timeout(5),on_timeout(fail)]),
+    Rows=[row(pair(A,B),pair(C,D),Literal,'a b')],
+    var(A), A == B, var(C), var(D), C \== D, A \== C,
+    Literal == '$VAR'(1), var(X), var(Y), var(Z), var(L),
+    remote_toplevel_call(Node,Pid,member(V,[a,b,c]),[template(pair(V,V)),limit(2)]),
+    receive({success(Pid,First,true) -> First == [pair(a,a),pair(b,b)]},[timeout(5),on_timeout(fail)]),
+    remote_toplevel_next(Node,Pid),
+    receive({success(Pid,Last,false) -> Last == [pair(c,c)]},[timeout(5),on_timeout(fail)]),
+    remote_toplevel_call(Node,Pid,throw(error(probe,context(remote,_))),[]),
+    receive({error(Pid,Error) -> true},[timeout(5),on_timeout(fail)]),
+    Error=error(probe,context(remote,Detail)), var(Detail),
+    remote_toplevel_call(Node,Pid,fail,[]),
+    receive({failure(Pid) -> true},[timeout(5),on_timeout(fail)]).
+
+legacy_outbound_test(Port) :-
+    distribution_url(Port,URL),remote_node_open(URL,Node),
+    remote_toplevel_spawn(Node,Pid,[session(true)]),
+    remote_toplevel_call(Node,Pid,true,[template(ignored)]),
+    receive({success(Pid,[swi],false) -> true},[timeout(5),on_timeout(fail)]),
+    remote_toplevel_halt(Node,Pid),receive_halted(Pid),remote_node_close(Node),
+    writeln('Trealla legacy outbound answer fixture: ok').
+
 receive_halted(Pid) :-
     receive({
         halted(Pid, true) -> true ;
@@ -478,3 +575,34 @@ distributed_actor_caller(Port, Parent) :-
             [timeout(2),on_timeout(fail)]),
     remote_node_close(Node),
     Parent ! distributed_actor_caller_ok.
+
+% Exercise explicit close while a correlated next request is pending. The
+% second connection's public monitor must remain usable after teardown.
+sync_explicit_close_test(Port) :-
+    distribution_url(Port,URL),
+    remote_node_open(URL,Other),
+    remote_spawn(Other,receive({finish -> true}),Unrelated,[link(false)]),
+    remote_monitor(Other,Unrelated,Ref),
+    forall(between(1,4,_),user:sync_explicit_close_once(URL)),
+    remote_send(Other,Unrelated,finish),
+    receive({down(Unrelated,Ref,true) -> true},[timeout(3),on_timeout(fail)]),
+    remote_node_close(Other),
+    format('Explicit concurrent close and unrelated monitor on ~w: ok~n',[Port]).
+
+sync_explicit_close_once(URL) :-
+    remote_node_open(URL,Node),
+    Node=remote_node(_,Reader,Writer),
+    remote_toplevel_spawn(Node,P,[session(true)]),
+    self(Parent),
+    spawn(user:sync_explicit_closer(Node,Parent),Closer,[link(false)]),
+    catch(remote_toplevel_next_synch(Node,P,Answer,[timeout(3)]),Error,true),
+    Error==toplevel_down(connection_closed),var(Answer),
+    receive({explicit_close_done(Closer,Outcome) -> Outcome==ok},[timeout(3),on_timeout(fail)]),
+    \+ actors:actor_thread(Reader,_),
+    \+ actors:actor_thread(Writer,_),
+    remote_node_close(Node).
+
+sync_explicit_closer(Node,Parent) :-
+    sleep(0.05),self(Me),
+    catch((remote_node_close(Node),Outcome=ok),Error,Outcome=error(Error)),
+    Parent ! explicit_close_done(Me,Outcome).

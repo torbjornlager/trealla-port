@@ -107,6 +107,12 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "outbound synchronous vectors" \
+        "$TPL" -g "consult('$ROOT/distribution_sync_tests.pl'),(distribution_sync_tests->halt;halt(1))"
+    run_with_timeout "toplevel correlation vectors" \
+        "$TPL" -g "consult('$ROOT/toplevel_correlation_tests.pl'),(toplevel_correlation_tests->halt;halt(1))"
+    run_with_timeout "outbound canonical answer vectors" \
+        "$TPL" -g "consult('$ROOT/distribution_canonical_tests.pl'),(distribution_canonical_tests->halt;halt(1))"
     run_tpl_goal "actors" "run_test_group(actors)"
     run_tpl_goal "toplevel actors" "run_test_group(toplevel)"
     run_tpl_goal "parallel behaviours" "run_test_group(parallel)"
@@ -206,6 +212,12 @@ run_interop() {
     wait_for_port "$swi_protocol_port" || fail "SWI protocol fixture did not start on port $swi_protocol_port"
     run_with_timeout "Trealla client -> SWI protocol fixture" \
         "$TPL" -g "consult('$ROOT/websocket_tests.pl'),trealla_protocol_client_test($swi_protocol_port),halt"
+    run_with_timeout "Trealla outbound client -> legacy fixture" \
+        "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(legacy_outbound_test($swi_protocol_port)->halt;halt(1))"
+    run_with_timeout "unsupported synchronous peer remains asynchronous" \
+        "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(sync_legacy_test($swi_protocol_port)->halt;halt(1))"
+    run_with_timeout "synchronous peer disconnect" \
+        "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(sync_connection_loss_fixture_test($swi_protocol_port)->halt;halt(1))"
     stop_background "$swi_protocol_pid"
 
     start_background "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
@@ -226,6 +238,15 @@ run_interop() {
     run_with_timeout "SWI client -> Trealla connection thread parity" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "connection_thread_parity_test($trealla_protocol_port),halt"
+    run_with_timeout "SWI client -> Trealla reconstructed asynchronous queries" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "rebuilt_query_client_test($trealla_protocol_port),halt"
+    run_with_timeout "SWI client -> Trealla canonical and legacy asynchronous answers" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "canonical_answer_client_test($trealla_protocol_port),halt"
+    run_with_timeout "browser caller correlation -> Trealla" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "browser_correlation_client_test($trealla_protocol_port),halt"
     run_with_timeout "SWI client -> Trealla allowlisted source URI" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "source_uri_client_test($trealla_protocol_port,$source_port),halt"
@@ -249,6 +270,13 @@ run_interop() {
         run_with_timeout "SWI -> Trealla actor semantic contracts" \
             "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
             -g "trinity_actor_contract_client_test($swi_actor_home_port,'http://127.0.0.1:$trealla_protocol_port','$TRINITY_NODE_FILE'),halt"
+        run_with_timeout "Trealla canonical outbound -> SWI" \
+            "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(canonical_outbound_test($swi_actor_port)->halt;halt(1))"
+        run_with_timeout "Trealla synchronous outbound -> SWI" \
+            "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(sync_outbound_test($swi_actor_port),sync_explicit_close_test($swi_actor_port)->halt;halt(1))"
+        run_with_timeout "SWI synchronous calls -> Trealla" \
+            "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+            -g "correlation_client_test($trealla_protocol_port,'$TRINITY_NODE_FILE'),halt"
         stop_background "$swi_actor_pid"
     else
         printf '\n=== Actor semantic contracts ===\n'
@@ -262,6 +290,10 @@ run_interop() {
     kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
     run_with_timeout "Trealla distributed source isolation" \
         "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(distribution_source_isolation_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "Trealla canonical outbound -> Trealla" \
+        "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(canonical_outbound_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "Trealla synchronous outbound -> Trealla" \
+        "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(sync_outbound_test($trealla_remote_port),sync_explicit_close_test($trealla_remote_port)->halt;halt(1))"
     run_with_timeout "SWI browser terminal -> remote Trealla actor" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "browser_distributed_io_client_test($trealla_protocol_port,'http://127.0.0.1:$trealla_remote_port'),halt"

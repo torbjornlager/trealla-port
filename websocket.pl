@@ -30,7 +30,8 @@ SWI-Prolog's WebSocket API: `text(Text)`, `binary(Bytes)`, `ping(Bytes)`,
 
 Both `ws://` and native Trealla `wss://` sockets are supported.  The latter
 requires a Trealla build with OpenSSL enabled.  RFC 6455 subprotocol
-negotiation is optional; Web Prolog itself uses no WebSocket subprotocol.
+negotiation is optional; Web Prolog servers offer `web-prolog-sync-v1` for
+correlated toplevel requests while retaining unnegotiated legacy connections.
 */
 
 :- use_module(library(sockets)).
@@ -49,7 +50,10 @@ negotiation is optional; Web Prolog itself uses no WebSocket subprotocol.
 %
 %  Open a client WebSocket. Recognised options are
 %  `max_payload_length(Bytes)`, `header(Name, Value)`, `subprotocol(Atom)`,
-%  `subprotocols(List)`, and `certfile(File)` for TLS client credentials.
+%  `subprotocols(List)`, `optional_subprotocols(List)`,
+%  `selected_subprotocol(-Protocol)` (or `none`), and `certfile(File)` for TLS
+%  client credentials. Optional offers accept a legacy response with no selection;
+%  strict subprotocol/subprotocols options retain their existing requirements.
 
 http_open_websocket(URL, WebSocket, Options) :-
     ws_url(URL, Scheme, Host, Port, Path),
@@ -281,6 +285,9 @@ write_client_subprotocol(Stream, Options) :-
     ; memberchk(subprotocols(Protocols), Options), Protocols \== [] ->
         join_protocols(Protocols, Header),
         write_http(Stream, 'Sec-WebSocket-Protocol: ~w\r\n', [Header])
+    ; memberchk(optional_subprotocols(Protocols), Options), Protocols \== [] ->
+        join_protocols(Protocols, Header),
+        write_http(Stream, 'Sec-WebSocket-Protocol: ~w\r\n', [Header])
     ; true
     ).
 
@@ -295,9 +302,24 @@ validate_client_subprotocol(Headers, Options) :-
         ( memberchk(Selected, Offered) -> true
         ; throw(error(websocket_handshake(subprotocol(Selected)),
                       http_open_websocket/3)) )
-    ; true
-    ).
+    ; memberchk(optional_subprotocols(Offered), Options) ->
+        ( memberchk('sec-websocket-protocol'-Selected, Headers)
+        -> ( memberchk(Selected, Offered) -> true
+           ; throw(error(websocket_handshake(subprotocol(Selected)),http_open_websocket/3)) )
+        ; Selected = none )
+    ; Selected = none
+    ),
+    ( memberchk(selected_subprotocol(Result), Options) -> Result = Selected ; true ).
 
+server_subprotocol(Stream, Headers, Options) :-
+    \+ memberchk(subprotocol(_), Options),
+    \+ memberchk(subprotocols(_), Options),
+    memberchk(optional_subprotocols(Protocols), Options), !,
+    ( memberchk('sec-websocket-protocol'-OfferedHeader, Headers),
+      protocol_atoms(OfferedHeader, Offered),
+      select_optional_protocol(Protocols, Offered, Selected)
+    -> write_http(Stream, 'Sec-WebSocket-Protocol: ~w\r\n', [Selected])
+    ; true ).
 server_subprotocol(Stream, Headers, Options) :-
     ( memberchk(subprotocol(Required), Options) -> Acceptable = [Required]
     ; memberchk(subprotocols(Acceptable), Options) -> true
@@ -309,6 +331,11 @@ server_subprotocol(Stream, Headers, Options) :-
       select_protocol(Acceptable, Offered, Selected),
       write_http(Stream, 'Sec-WebSocket-Protocol: ~w\r\n', [Selected])
     ).
+
+select_optional_protocol([Protocol|_], Offered, Protocol) :-
+    memberchk(Protocol, Offered), !.
+select_optional_protocol([_|Protocols], Offered, Selected) :-
+    select_optional_protocol(Protocols, Offered, Selected).
 
 select_protocol([Protocol|_], Offered, Protocol) :-
     memberchk(Protocol, Offered), !.
