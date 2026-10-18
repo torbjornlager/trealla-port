@@ -153,6 +153,7 @@ toplevel_spawn(Pid) :-
 
 toplevel_spawn(Pid, Options0) :-
     strip_module(Options0, SourceModule, Options1),
+    validate_toplevel_spawn_options(Options1,runtime),
     isolation:rewrite_source_options(Options1, SourceModule, Options),
     self(Self),
     option(target(Target), Options, Self),
@@ -162,10 +163,18 @@ toplevel_spawn(Pid, Options0) :-
     effective_time_limit(RequestedTime, TimeLimit),
     effective_idle_limit(RequestedIdle, IdleLimit),
     remove_lifecycle_options(Options, SpawnOptions),
-    spawn(session(Pid, Target, Continue, TimeLimit, IdleLimit), Pid,
+    spawn_runtime(session(Pid, Target, Continue, TimeLimit, IdleLimit), Pid,
           ['$entry_context'(caller)|SpawnOptions]).
 
+validate_toplevel_spawn_options(Options,Scope) :-
+    validate_toplevel_spawn_options(Options,Scope,toplevel_actors:toplevel_spawn/2).
+validate_toplevel_spawn_options(Options,Scope,Context) :-
+    actors:validate_spawn_wrapper_options(Options,Scope,Context,
+        [session-boolean,time_limit-seconds(time_limit),idle_limit-seconds(idle_limit)]).
+
 remove_lifecycle_options([], []).
+remove_lifecycle_options([session(_)|Options],Rest) :- !,
+    remove_lifecycle_options(Options,Rest).
 remove_lifecycle_options([time_limit(_)|Options], Rest) :- !,
     remove_lifecycle_options(Options, Rest).
 remove_lifecycle_options([idle_limit(_)|Options], Rest) :- !,

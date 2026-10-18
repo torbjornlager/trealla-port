@@ -45,6 +45,19 @@ The port lives alongside this report:
 generics. Workers exchange compact variable templates, validate correlated
 worker replies, and use monitor barriers for race-free cleanup.
 
+If a worker terminates without a result, ordinary failure and exceptions keep
+their existing behavior; any other reason, including `exit(true)`, becomes
+`worker_exit(Pid,Reason)`. `parallel/1` cleans up its workers and throws that
+error. `first_solution/2-3` uses its existing `on_error(stop|continue)` policy
+(default `stop`): `continue` removes that worker and waits for another result,
+failing if no workers remain. Later parallel workers may finish first; their
+normal down notifications stay deferred until their results are collected.
+Once a result is accepted, its down notification confirms termination regardless
+of reason. Unrelated monitor messages remain available. These changes leave
+partial-startup rollback and abandoned-computation cleanup for a separate batch.
+The focused regressions are in `parallel_exit_tests.pl`, included by
+`./tools/test.sh unit` alongside the existing parallel tests.
+
 `server_actor.pl` ports the SWI generic server behaviour. A callback of the
 form `Callback(Request, OldState, Response, NewState)` is copied into the
 server's private actor namespace. The API includes synchronous requests,
@@ -949,6 +962,255 @@ the defaults can be replaced with explicit `header/2` options.
 - Deferred-message semantics (non-matching messages stay in the
   mailbox in arrival order)
 
+`spawn/3` validates its complete options list before routing, source loading,
+or actor allocation. Direct `remote_spawn/4` calls use the same checks before
+source materialization or sending a request. Supported public options are
+boolean `link/1` and `monitor/1`, a node address in `node/1`, instantiated
+`target/1` and `io_target/1`, and `src_text/1`, `src_list/1`,
+`src_predicates/1`, and `src_uri/1`. Node addresses retain their atom or
+character-list forms. Source text and URIs retain their existing text formats;
+predicate indicators are atom/nonnegative-integer `Name/Arity` pairs.
+Source fetching remains subject to the existing source policy.
+
+Malformed lists, uninstantiated option names, unknown options, and invalid
+values raise errors with the relevant API context and `'invalid spawn option'`.
+Every occurrence is checked, including invalid later duplicates. Existing
+scalar precedence, source ordering, routing, PID sharing and spawn-time monitor
+semantics are preserved. Direct `spawn/3` does not implement `name/1`;
+server/supervisor naming remains with those wrappers.
+
+Framework `'$entry_context'(caller)` metadata goes through the internal
+`actors:spawn_runtime/3` or scoped entry point. Public `spawn/3` and
+`remote_spawn/4` reject that internal option. Wrappers remove options they have
+already consumed before invoking base spawn; in particular, the toplevel's
+`session/1` stays local to the wrapper. Specialized wrappers and supervisor child specifications add their own early checks below. `spawn_option_tests.pl` covers local checks,
+source loading, PID sharing and metadata; its live driver checks explicit and
+transparent remote spawning. Both are included in the corresponding test
+runner modes.
+
+The specialized constructors validate all options before callback copying,
+source materialization, child normalization/startup, or actor allocation. Their
+wrapper-specific options are:
+
+| Constructor | Additional options |
+|---|---|
+| `toplevel_spawn/2` | Boolean `session/1`; positive numeric seconds or `infinite` in `time_limit/1` and `idle_limit/1` |
+| `server_spawn/4` | Atom `name/1` |
+| `supervisor_spawn/3` | Atom `name/1`; `strategy(one_for_one|one_for_all|rest_for_one)`; nonnegative integer `intensity/1`; positive numeric `period/1` |
+
+Other options use the shared spawn validator. Defaults, first-occurrence
+precedence, resource-policy limit clamping, variable sharing, and valid runtime
+metadata are unchanged. Invalid later duplicates are rejected even when the
+first occurrence is valid. Wrapper errors carry the constructor context and
+`'invalid wrapper option'`. Toplevel `name/1` is unsupported and rejected.
+Direct `remote_toplevel_spawn/3` and incoming WebSocket toplevel creation use
+the same checks before loading source or sending/starting work.
+
+These checks validate option shapes and values. Local named creation additionally
+uses the reservation and startup publication described below; other lifecycle behavior is unchanged. The statechart code still provides parsing
+and model compilation, not a statechart actor constructor. Focused regressions
+are in `wrapper_option_tests.pl`, run by `./tools/test.sh unit`; the live
+remote-toplevel check is also included in the interoperability runner.
+
+Supervisor child specifications are validated before source materialization or
+actor creation. The initial specification list must be proper and acyclic,
+contain `child(Id, Options)` terms with ground, unique IDs, and use proper option
+lists. Dynamic `supervisor_spawn_child/3` applies the same single-child checks
+before sending the request. A valid addition with an existing ID still returns
+`error(already_present)`.
+
+Supported child options are required callable `start/1`,
+`restart(permanent|transient|temporary)`, `type(worker|supervisor)`, and
+`shutdown(brutal_kill|infinity|Seconds)` with nonnegative numeric seconds.
+Every occurrence is checked, including later duplicates; the first occurrence
+still supplies the effective value. Defaults remain `restart(permanent)`,
+`type(worker)`, and shutdown of 5 seconds for workers or `infinity` for
+supervisors. Module qualifiers must be atoms; predicate availability and goal
+arguments are not checked.
+
+Server starts `server(Callback, Options)` require an atom child ID, a callable
+callback, and valid server/spawn options plus unrestricted `initial_state/1`.
+Nested `start_sub_supervisor(Specs, Options)` starts recursively validate their
+specifications and supervisor options before any child starts. Validation does
+not copy terms or ground goal arguments or initial states, preserving shared
+variables. Errors carry the calling API context and
+`'invalid child specification'`. These checks do not change startup rollback or other lifecycle behavior. Regressions are in
+`child_spec_tests.pl`, included in `./tools/test.sh unit`.
+
+Local `server_spawn/4` and `supervisor_spawn/3` with `name(Name)` reserve the
+ordinary name under the actor-registry mutex before callback/source preparation
+or actor creation. Competing creation or `register/2` gets the existing
+`name_is_in_use(Name)` exception. A pending reservation is not returned by
+`whereis/2`, and `unregister/1` does not cancel it. After the child's source is
+prepared, startup publishes its PID under that name before acknowledging
+startup and running the child's goal. Failure or exception during creation
+releases an unpublished reservation; normal termination removes a published
+registration, including when the child exits immediately after startup.
+Successful creation does not promise that the child remains alive afterward.
+
+First-occurrence `name/1` precedence and Trealla's existing node-wide ordinary
+name namespace remain unchanged. The separate service-name registry is
+unchanged. Ordinary `register/2` check-and-insert and `unregister/1` now use the
+same mutex. Public
+`spawn/3` still rejects `name/1` and private reservation metadata. Remote named
+creation uses caller-side reservation and publication as described below. This does not
+add general cancellation or parent-death cleanup machinery. Focused concurrent,
+startup-failure, first-goal visibility and immediate-exit regressions are in
+`named_creation_tests.pl`, included in `./tools/test.sh unit`.
+
+`register/2` checks local PID liveness under that same registry mutex,
+immediately before insertion. Missing local PIDs, retired native threads, and
+actors that have committed an exit reason raise
+`error(existence_error(process, Pid), context(actors:register/2, _))`.
+Live actor PIDs and live shell/native-thread PIDs obtained through `self/1`
+remain registerable. Existing duplicate-PID and occupied-name errors retain
+precedence over the liveness check.
+
+With the distribution layer loaded, integer PIDs qualified by `localhost` or
+the configured current node URL receive the same local check. Their stored
+alias terms remain unchanged, and ordinary actor termination cleanup removes
+these qualified local aliases as well as bare local PID registrations.
+Addresses of other nodes retain remote-alias semantics: registration performs
+no network liveness probe, and an unrelated local actor with the same numeric
+PID cannot remove their aliases. The ordinary node-wide namespace and separate
+service-name registry are unchanged. A successful registration does not promise
+continued liveness. For spawned actors using ordinary termination cleanup, the
+registry mutex ensures that termination either removes a registration or
+precedes its rejection. This does not add native-thread exit cleanup or general
+namespace teardown. Focused tests in
+`registration_tests.pl`, included in `./tools/test.sh unit`, cover termination
+races, committed exits, native-thread mappings, and local/remote aliases.
+
+Remote ordinary aliases are removed when the outbound connection observes a
+`down` event for their exact remote PID, before delivering the event. This
+includes explicit and transparent event routing, owner fallback, and private
+synchronous-call monitor notifications. Explicit close or connection loss also
+removes aliases for that connection's known PIDs, snapshotted from spawned
+targets (including targets already marked dead), active monitors, and pending
+synchronous waits before their bookkeeping is cleared. Existing monitor and
+pending-call notifications are unchanged.
+
+Cleanup runs under the actor-registry mutex and preserves local names, service
+registrations, and aliases for other exact PIDs, including other PIDs on the
+same node URL. It does not sweep every alias for a node: another connection may
+still be active. Registration does not implicitly monitor or probe a remote
+actor. An alias without an associated known PID or observed termination still
+requires explicit `unregister/1`; registration after an observation is not
+prevented by a persistent tombstone. Focused regressions in
+`remote_alias_tests.pl` cover all event paths, explicit close and simulated
+connection loss, plus preservation of unrelated names/services/monitors. Its
+live driver checks termination and two-connection isolation against SWI and
+Trealla in `./tools/test.sh interop`.
+
+WebSocket namespace teardown removes ordinary registrations and unpublished
+local-name reservations created by that client. Ownership follows the caller
+that registers/reserves the name, not the target actor: remote aliases and
+names assigned to other local actors are included. This ownership metadata
+does not partition naming; lookup, name uniqueness and PID-name uniqueness
+remain node-wide. Names owned by other clients or trusted standalone code and
+the separate service registry are preserved.
+
+On WebSocket disconnect, the namespace is marked closed and its names and
+reservations are retired under the registry mutex before existing connection
+shutdown runs. Surviving actors keep their namespace identity and lifetimes;
+late `register/2`, local named creation, and startup publication are rejected
+with `error(permission_error(register, closed_namespace, Namespace), _)`.
+Source preparation already in progress cannot publish a name after closure.
+Repeated teardown cannot remove a replacement subsequently registered by
+another client. Closed namespace markers are retained to reject late activity;
+this batch adds no general marker reclamation policy.
+
+Existing connection-owned actor shutdown is unchanged; removing registrations
+does not itself terminate actors. This applies to WebSocket scopes only: HTTP
+and cached-producer namespace lifetimes, ownership transfer, and other lifecycle
+policies remain separate. WebSocket-owned promise disposal is described below.
+`namespace_tests.pl` covers
+creator ownership, surviving actors, admission/teardown races and in-flight
+startup publication; its live interoperability driver verifies disconnect
+cleanup and node-wide visibility/isolation using two WebSocket clients.
+
+Remote named creation through the server/supervisor constructors reserves the
+caller's ordinary node-wide name before callback/source preparation, connection
+setup, or the spawn request. The reservation token is private local metadata
+and is stripped from wire options. Once the remote PID is known, the caller
+publishes its alias during the existing transparent-spawn handshake, before
+acknowledging readiness to the writer. Buffered termination notifications are
+then processed against the published alias. Namespace closure rejects late
+publication, and a failed handshake explicitly releases the writer rather than
+leaving it waiting for readiness.
+
+Startup or publication errors release the reservation and roll back the
+attempt's alias, route, link and spawn-time monitor bookkeeping, preserving
+unrelated names and monitors. When the PID and connection are usable, rollback
+requests remote termination with the existing exit command; a cleanup failure
+does not replace the original startup/publication error. Unnamed spawning and
+successful monitor delivery retain their behavior. No wire protocol extension
+is required.
+
+The Trealla receiver recognizes the existing unqualified
+`sup_init(Specs, sup(Strategy, Intensity, Period, [], []))` spawn entry used by
+supervisor constructors. It validates the normalized child specifications and
+settings, rejects pre-populated children or restart history, and constructs
+fresh runtime bookkeeping. Private module-qualified entry calls remain blocked;
+ordinary remote goals still use the existing spawn/sandbox path. The sender
+and wire protocol are unchanged.
+
+The adapter treats sender module qualifiers as source context rather than
+permission to call peer-private modules. Child goals, nested sources and server
+callbacks pass through profile and sandbox checks; opaque calls retain runtime
+guards in blacklist mode and existing admission restrictions in whitelist mode.
+Checked application sources load into each receiving child's own database.
+Framework code executes precompiled instead of being copied into child source.
+Nested supervisors receive the same policy, and subsequent child additions are
+checked too. Invalid additions return an error reply while leaving the
+supervisor running. Existing defaults, naming, counts/info reply shapes,
+restart/shutdown policies, monitor delivery and alias cleanup are retained.
+
+`remote_supervisor_tests.pl` covers malformed/forged state, source validation,
+private-module rejection, variable sharing, opaque calls, server callbacks,
+dynamic additions, and ordinary spawning. Live tests cover named/unnamed,
+source-backed and nested supervisors. `swi_supervisor_compat.pl` additionally
+runs native SWI named/unnamed constructors (empty and `src_text/1`-backed)
+against a disposable Trealla peer. WebSocket `spawn` and `toplevel_spawn`
+accept an optional string `request_id` and echo it on the corresponding
+`spawned` or protocol `error` reply, including admission, sandbox, option and
+startup failures. Correlation is carried with each request; ordinary actor
+messages and monitor `down` events retain their existing format. Requests
+without an ID retain the legacy reply format. Invalid non-string IDs are
+rejected with an uncorrelated error. This supports native SWI's caller-side
+named-startup reservation without a new protocol negotiation. Tests cover
+duplicate-name rejection, failed-start name reuse, monitor delivery and legacy
+replies; `spawn_reply_tests.pl` also checks the encodings directly.
+Native SWI halt acknowledgement and normal `down` may arrive
+out of order over different connections. Native SWI and Trealla halt waits now
+require the matching acknowledgement while tolerating an earlier normal
+`down(..., true)`. They retain the original ten-second deadline, starting after
+sending the stop request; a normal down does not restart it. If no acknowledgement
+arrives before that deadline, an observed normal down produces
+`supervisor_down(true)`; otherwise expiry produces
+`supervisor_call_timeout(Sup, stop)`. Abnormal termination still raises
+`supervisor_down(Reason)` immediately. Only the wait's private monitor is
+withdrawn and flushed; application monitors and unrelated messages remain.
+Success acknowledges acceptance, not completed child shutdown. Shutdown policies
+and other supervisor request waits are unchanged. `supervisor_halt_tests.pl`
+checks both event orders, delayed/missing acknowledgements, the deadline and
+monitor cleanup. The native compatibility smoke test now requires actual
+acknowledgement and separately observes termination, including repeated cycles. Adapter-created
+child source preparation is serialized to avoid concurrent bootstrap generation
+on this runtime; child execution remains concurrent. HTTP promise
+ownership and broader lifecycle machinery are unchanged; current deployments
+need the updated receiver code for this entry to be available.
+
+The guarantee is atomic caller-side alias ownership. The remote actor may
+already have begun its goal before the alias is published. Connection loss
+before its PID is returned limits cleanup; this does not provide guaranteed
+remote cancellation, cancellation when the caller itself disappears during
+startup, or a distributed transaction. Focused tests in
+`remote_named_tests.pl` cover publication/rollback, namespace closure, failure
+acknowledgements and monitor preservation. Live interoperability tests against
+SWI and Trealla cover competing creators (only one enters creation), failed
+source preparation/name reuse, immediate termination, and monitor delivery.
+
 ### toplevel_actors.pl
 
 - `toplevel_spawn/1-2` — create a PTCP (Prolog Toplevel Control Process)
@@ -999,13 +1261,145 @@ the defaults can be replaced with explicit `header/2` options.
 - `promise/3,4` and `yield/2,3` — start a remote HTTP call immediately and
   collect its complete `success/2`, `failure`, or `error/1` answer later;
   timed-out yields retain the promise for a later collection
-- `promise_cleanup/1` — explicitly abandon an uncollected promise (otherwise
-  its registry entry expires automatically after five minutes)
+- `promise_cleanup/1` — explicitly dispose of a promise's local resources
+  (otherwise it expires automatically after five minutes)
 - `limit(N)` option to control page size
 - `src_text/1`, `src_list/1`, `src_predicates/1`, and `src_uri/1` options
   are materialized into the remote call's source payload
-- Remaining `http_open/3` options such as `timeout/1` and
-  `request_header/1` are passed through to the transport
+- The documented HTTP option subset below is passed through to the transport
+
+Client options are validated before source fetching, network requests, promise
+resource creation, or collection. Each list must be proper, each option name
+instantiated, and every occurrence valid, including duplicates. Scalar option
+lookup retains first-occurrence precedence. Repeated request headers and source
+options keep their existing behavior and order. Validation preserves template
+and callback variables.
+
+| API | Supported options |
+|---|---|
+| `rpc/3` | `limit/1`, the four `src_*` options above, and the HTTP subset below |
+| `promise/4` | The same options, plus arbitrary `template/1` and nonnegative integer `offset/1` |
+| `yield/3` | `timeout/1` and callable `on_timeout/1` |
+
+The HTTP subset is `timeout/1`, `request_header(Name=Value)`,
+`authorization(basic(User,Password))`, `user_agent/1`, `redirect/1`,
+`max_redirect/1`, and `cacert_file/1`. Limits are positive integers; redirect
+counts are nonnegative integers; `redirect/1` is boolean. Timeouts are
+nonnegative numbers or `infinite`. Request timeouts retain Trealla's HTTP
+transport meaning; yield timeouts govern the local wait. No remote execution
+timeout option is added. CA certificate configuration requires a TLS-enabled
+Trealla build.
+
+Source text, source URIs and CA filenames accept the existing text formats
+(atoms, strings, or valid character/code lists); `src_list/1` takes a proper
+term list and `src_predicates/1` takes a list of atom/nonnegative-integer
+`Name/Arity` indicators. HTTP text values keep the library's text and numeric
+forms. Only Basic authorization is accepted through `authorization/1`; an
+explicit Authorization request header remains available for bearer tokens.
+
+Unknown options, HTTP response-output options, and ineffective options are
+rejected. In particular, `rpc/3` rejects `template/1` and `offset/1`, and both
+request APIs reject `once/1`. Errors include the relevant API context and
+`'invalid client option'`. An invalid `yield/3` option does not claim or consume
+the promise, even when its answer is already ready. The focused tests are in
+`rpc_option_tests.pl`; `./tools/test.sh unit` runs them, and the interoperability
+runner exercises validated paging and promise collection over HTTP.
+
+`yield/2` delegates to `yield/3`. A wait timeout returns `timeout` without
+consuming the promise, so a later yield can collect its answer. `on_timeout/1`
+runs once and may supply a different answer; if the answer is still unbound
+after the callback, it becomes `timeout`. Callback exceptions propagate; a
+callback that fails raises `error(timeout_callback_failed(Ref),Context)`.
+Explicitly qualified options supply callback context; otherwise callbacks use
+the current actor source module, or `user` outside a private actor source.
+
+Both yield forms raise `error(existence_error(promise,Ref),Context)` for unknown,
+consumed, expired, or explicitly cleaned-up integer references. Reference type
+and instantiation errors keep their existing checks. A ready message is selected
+and its reference consumed before unifying the caller's answer; an incompatible
+output pattern therefore fails without leaving a reference to an empty queue.
+The worker delivers remote `failure` unchanged, caught exceptions as
+`error(Exception)`, and local request failure without an exception as
+`error(error(promise_worker_failed,Context))`.
+
+Promise collection, five-minute expiry, explicit cleanup, and partial startup
+failure now share a mutex-protected lifecycle record. Successful collection
+(including a subsequent output mismatch) disposes of the queue and requests
+termination of the remaining local worker/expiry threads. A wait timeout keeps
+the promise intact for retry; it does not restart the expiry period. Repeated
+`promise_cleanup/1` is harmless.
+
+Only one collector may wait for a reference at a time. A concurrent collector
+gets `error(permission_error(collect,promise,Ref),Context)`. Answers are stored
+before the queue wakeup, so interrupting a collector does not lose a ready
+answer. Expiry or cleanup during a wait wakes that collector with the same
+missing-reference error as other invalid references. Its queue remains alive
+until the collector releases its claim or its thread has terminated. Disposal
+waits outside the mutex for up to 200 intervals of 0.005 seconds for this
+release; an unresponsive collector raises
+`error(resource_error(promise_cleanup_timeout(Ref)),promise_cleanup/1)` and
+leaves the retired queue safe for later release or a cleanup retry.
+
+Local workers stop through a private exception, allowing their own HTTP cleanup
+to close their streams. Trealla's raw `thread_cancel/1` does not wake an
+indefinite queue read and bypasses Prolog cleanup on v3.13.10. Promise waits use
+short reads against the caller's original deadline; stale collector claims can
+be recovered after the thread has retired. A standalone observation is recorded
+in `UPSTREAM_OUTSTANDING.md`; no upstream issue has been sent for it.
+
+Promise ownership follows client execution namespaces. A WebSocket connection
+and its actors share an owner; separate connections remain isolated even when
+they authenticate as the same user. HTTP requests receive fresh identities,
+which their execution producers and descendant actors inherit. Cached producers
+retain the identity of the request that created them. Private source-module
+names do not determine ownership. Trusted local threads and actors outside
+public client scopes retain their shared `trusted_local` owner; this does not
+give them implicit access to client-owned promises.
+
+Foreign `yield/2-3` calls receive the same missing-reference error as unknown
+references. `promise_cleanup/1` is harmless for foreign or missing references
+and cannot dispose of another owner's promise. Owner checks and lifecycle
+changes serialize under the promise mutex; the caller's identity is resolved
+before taking that mutex. Public creation without a ground client identity
+raises `permission_error(create,promise,client_context)` before allocating
+resources. Internal expiry and delivery operate on the recorded promise,
+independently of the framework thread's own execution context.
+
+WebSocket disconnect closes promise admission for that client namespace and
+retires all of its promises, including pending requests, stored ready answers,
+and promises retained after a wait timeout. Admission and retirement share the
+promise lifecycle mutex: a racing creation either belongs to the retired
+snapshot or raises
+`error(permission_error(create,promise,client_namespace(Namespace)), _)` before
+queue/worker allocation. Closed-owner markers are retained to reject late
+activity from surviving actors.
+
+Retirement wakes waiting collectors with the existing
+`existence_error(promise, Ref)` error, requests termination of local request and
+expiry threads, and reclaims queues after collector release. Worker stopping
+and disposal waits run outside the mutex. Cleanup attempts every retired
+promise and reports the first cleanup error; an unresponsive collector retains
+its safely retired queue for later release/retry under the existing timeout
+policy. Connection actor shutdown still runs if promise cleanup reports an
+error. Repeated namespace disposal is harmless.
+
+Surviving actors retain their namespace identity and are not killed by promise
+disposal. They may continue other work and catch invalid-reference errors, but
+cannot create new promises under the closed namespace. Other WebSocket
+clients, trusted-local sharing, and HTTP/cached-producer ownership lifetimes are
+unchanged. Timeout-and-retry behavior and callbacks remain unchanged while a
+namespace is open. Ownership transfer remains separate work. Local disposal
+does not guarantee cancellation of a goal already running on the remote node.
+`rpc_namespace_tests.pl` covers pending/ready resources, active collectors,
+creation races, late admission, cleanup errors, surviving actors and owner
+isolation; it runs in the unit suite, with a live disconnect/client-isolation
+check in the interoperability suite. The correctness, lifecycle, and
+ownership regressions in `rpc_promise_tests.pl`, `rpc_lifecycle_tests.pl`, and
+`rpc_ownership_tests.pl` run with `./tools/test.sh unit`.
+`rpc_promise_live_test(Port)`, `rpc_lifecycle_live_test(Port)`, and
+`rpc_ownership_live_test(Port)` check HTTP delivery, local stream cleanup, and
+client isolation against an existing local node. The interoperability runner
+also runs the ownership check against its disposable Trealla node.
 
 ```prolog
 ?- rpc('http://localhost:3060', member(X, [a,b,c])).

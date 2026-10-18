@@ -107,6 +107,38 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "supervisor halt ordering" \
+        "$TPL" -g "(catch((consult('$ROOT/supervisor_halt_tests.pl'),supervisor_halt_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "spawn reply correlation" \
+        "$TPL" -g "(catch((consult('$ROOT/spawn_reply_tests.pl'),spawn_reply_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "remote supervisor receiver and sandbox" \
+        "$TPL" -g "(catch((consult('$ROOT/remote_supervisor_tests.pl'),remote_supervisor_tests:remote_supervisor_tests,remote_supervisor_tests:remote_supervisor_policy_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "atomic remote named startup" \
+        "$TPL" -g "(catch((consult('$ROOT/remote_named_tests.pl'),remote_named_tests:remote_named_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "WebSocket namespace promise disposal" \
+        "$TPL" -g "(catch((consult('$ROOT/rpc_namespace_tests.pl'),rpc_namespace_tests:rpc_namespace_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "WebSocket namespace teardown" \
+        "$TPL" -g "(catch((consult('$ROOT/namespace_tests.pl'),namespace_tests:namespace_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "remote alias cleanup" \
+        "$TPL" -g "(catch((consult('$ROOT/remote_alias_tests.pl'),remote_alias_tests:remote_alias_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "stale local PID registration" \
+        "$TPL" -g "(catch((consult('$ROOT/registration_tests.pl'),registration_tests:registration_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "atomic local named creation" \
+        "$TPL" -g "(catch((consult('$ROOT/named_creation_tests.pl'),named_creation_tests:named_creation_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "supervisor child specification validation" \
+        "$TPL" -g "(catch((consult('$ROOT/child_spec_tests.pl'),child_spec_tests:child_spec_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "specialized wrapper option validation" \
+        "$TPL" -g "consult('$ROOT/wrapper_option_tests.pl'),(wrapper_option_tests->halt;halt(1))"
+    run_with_timeout "spawn option validation" \
+        "$TPL" -g "consult('$ROOT/spawn_option_tests.pl'),(spawn_option_tests->halt;halt(1))"
+    run_with_timeout "RPC client option validation" \
+        "$TPL" -g "consult('$ROOT/rpc_option_tests.pl'),(rpc_option_tests->halt;halt(1))"
+    run_with_timeout "promise ownership" \
+        "$TPL" -g "consult('$ROOT/rpc_ownership_tests.pl'),(rpc_ownership_tests->halt;halt(1))"
+    run_with_timeout "promise lifecycle" \
+        "$TPL" -g "consult('$ROOT/rpc_lifecycle_tests.pl'),(rpc_lifecycle_tests->halt;halt(1))"
+    run_with_timeout "promise/yield correctness" \
+        "$TPL" -g "consult('$ROOT/rpc_promise_tests.pl'),(rpc_promise_tests->halt;halt(1))"
     run_with_timeout "outbound synchronous vectors" \
         "$TPL" -g "consult('$ROOT/distribution_sync_tests.pl'),(distribution_sync_tests->halt;halt(1))"
     run_with_timeout "toplevel correlation vectors" \
@@ -116,6 +148,8 @@ run_unit() {
     run_tpl_goal "actors" "run_test_group(actors)"
     run_tpl_goal "toplevel actors" "run_test_group(toplevel)"
     run_tpl_goal "parallel behaviours" "run_test_group(parallel)"
+    run_with_timeout "unexpected parallel worker exits" \
+        "$TPL" -g "consult('$ROOT/parallel_exit_tests.pl'),(parallel_exit_tests->halt;halt(1))"
     run_with_timeout "generic server behaviour" \
         "$TPL" -g "(catch((consult('$ROOT/server_actor_tests.pl'),server_actor_tests:run_server_actor_tests),_,fail)->halt(0);halt(1))"
     run_with_timeout "supervisor behaviour" \
@@ -272,6 +306,12 @@ run_interop() {
             -g "trinity_actor_contract_client_test($swi_actor_home_port,'http://127.0.0.1:$trealla_protocol_port','$TRINITY_NODE_FILE'),halt"
         run_with_timeout "Trealla canonical outbound -> SWI" \
             "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(canonical_outbound_test($swi_actor_port)->halt;halt(1))"
+        run_with_timeout "Trealla atomic remote named startup -> SWI" \
+            "$TPL" -g "(catch((consult('$ROOT/remote_named_tests.pl'),remote_named_tests:remote_named_live_test($swi_actor_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
+        run_with_timeout "Trealla supervisor halt -> SWI" \
+            "$TPL" -g "(catch((consult('$ROOT/remote_supervisor_tests.pl'),remote_supervisor_tests:remote_supervisor_live_test($swi_actor_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
+        run_with_timeout "Trealla remote alias cleanup -> SWI" \
+            "$TPL" -g "(catch((consult('$ROOT/remote_alias_tests.pl'),remote_alias_tests:remote_alias_live_test($swi_actor_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Trealla synchronous outbound -> SWI" \
             "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(sync_outbound_test($swi_actor_port),sync_explicit_close_test($swi_actor_port)->halt;halt(1))"
         run_with_timeout "SWI synchronous calls -> Trealla" \
@@ -290,6 +330,29 @@ run_interop() {
     kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
     run_with_timeout "Trealla distributed source isolation" \
         "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(distribution_source_isolation_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "Trealla validated remote toplevel wrapper" \
+        "$TPL" -g "consult('$ROOT/wrapper_option_tests.pl'),(wrapper_options_live_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "Trealla explicit and transparent spawn validation" \
+        "$TPL" -g "consult('$ROOT/spawn_option_tests.pl'),(spawn_options_live_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "Trealla validated RPC and promise HTTP options" \
+        "$TPL" -g "consult('$ROOT/rpc_option_tests.pl'),(rpc_options_live_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "Trealla promise ownership over WebSocket and HTTP" \
+        "$TPL" -g "consult('$ROOT/rpc_ownership_tests.pl'),(rpc_ownership_live_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "Trealla WebSocket promise disposal and client isolation" \
+        "$TPL" -g "(catch((consult('$ROOT/rpc_namespace_tests.pl'),rpc_namespace_tests:rpc_namespace_live_test($trealla_remote_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Trealla WebSocket namespace teardown" \
+        "$TPL" -g "(catch((consult('$ROOT/namespace_tests.pl'),namespace_tests:namespace_live_test($trealla_remote_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Trealla remote supervisor receiver" \
+        "$TPL" -g "(catch((consult('$ROOT/remote_supervisor_tests.pl'),remote_supervisor_tests:remote_supervisor_live_test($trealla_remote_port),remote_supervisor_tests:remote_supervisor_source_test($trealla_remote_port),remote_supervisor_tests:remote_supervisor_extended_test($trealla_remote_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    if [ -f "$TRINITY_NODE_FILE" ]; then
+        run_with_timeout "Native SWI supervisor constructor -> Trealla" \
+            "$SWIPL" -q -s "$ROOT/swi_supervisor_compat.pl" \
+            -g "swi_supervisor_compat:run($swi_actor_home_port,$trealla_remote_port,'$TRINITY_NODE_FILE'),halt"
+    fi
+    run_with_timeout "Trealla atomic remote named startup -> Trealla" \
+        "$TPL" -g "(catch((consult('$ROOT/remote_named_tests.pl'),remote_named_tests:remote_named_live_test($trealla_remote_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Trealla remote alias cleanup -> Trealla" \
+        "$TPL" -g "(catch((consult('$ROOT/remote_alias_tests.pl'),remote_alias_tests:remote_alias_live_test($trealla_remote_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Trealla canonical outbound -> Trealla" \
         "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(canonical_outbound_test($trealla_remote_port)->halt;halt(1))"
     run_with_timeout "Trealla synchronous outbound -> Trealla" \

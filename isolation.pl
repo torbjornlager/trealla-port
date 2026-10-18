@@ -133,7 +133,8 @@ run_actor(Pid, GoalModule, Goal, Options, Parent) :-
 
 prepare_actor_and_signal(Pid, GoalModule, Options, Module, Parent,
                          PrepareToken) :-
-    catch(prepare_actor_module(Pid, GoalModule, Options, Module),
+    catch((prepare_actor_module(Pid, GoalModule, Options, Module),
+           actors:publish_spawn_name(Pid,Options)),
           Error,
           throw('$actor_prepare_error'(PrepareToken, Error))),
     actors:actor_send(Parent, '$actor_started'(Pid, ok)).

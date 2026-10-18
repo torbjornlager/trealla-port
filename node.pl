@@ -111,6 +111,22 @@ waits for their normal cleanup under a bounded timeout.
 */
 
 
+% A public HTTP request has an independent promise owner. Only the execution
+% producer receives this scope; actors spawned by it inherit the namespace.
+:- dynamic http_promise_namespace/2.
+:- multifile rpc:hook_promise_owner/1.
+rpc:hook_promise_owner(client_namespace(Namespace)) :-
+    node:current_http_promise_namespace(Namespace).
+
+current_http_promise_namespace(Namespace) :-
+    thread_self(Thread),http_promise_namespace(Thread,Namespace),!.
+
+:- meta_predicate with_http_promise_namespace(0).
+with_http_promise_namespace(Goal) :-
+    thread_self(Thread),make_ref(Id),Namespace=http_client(Id),
+    setup_call_cleanup(asserta(http_promise_namespace(Thread,Namespace)),
+                       call(Goal),retract(http_promise_namespace(Thread,Namespace))).
+
 :- use_module(library(sockets)).
 :- use_module(library(json), [json_chars//1]).
 :- use_module(library(uri), [www_form_encode/2]).
@@ -667,8 +683,9 @@ handle_governed_call(C, Path, Ver, Principal, Identity,
     effective_profile_for_route(Profile, call, EffectiveProfile),
     with_inflight_call_limit(
         Principal, Identity,
-        handle_call(C, Path, Ver, EffectiveProfile, Sandbox,
-                    RelationPatterns)).
+        with_http_promise_namespace(
+            handle_call(C, Path, Ver, EffectiveProfile, Sandbox,
+                        RelationPatterns))).
 
 handle_ws_route(Port, C, Ver, _Peer, _Headers, _WebSocketHandler,
                 _WebSocketOptions, _Profile, _PathAtom) :-
@@ -1307,13 +1324,18 @@ term_json_string(Term, Text) :-
 %     - If the producer replies `eos`, the stream is exhausted.
 %       `Answer = success(Slice, false)` (or `failure` if Slice=[]).
 
+spawn_http_producer(Goal,Template,Pid) :-
+    (current_http_promise_namespace(Namespace) ->
+        actors:spawn_scoped(node:run_goal_producer_guarded(Goal,Template),Pid,
+                            [link(false),'$entry_context'(caller)],Namespace,public)
+    ; spawn(run_goal_producer_guarded(Goal,Template),Pid,[link(false)])).
+
 compute_answer(Goal, Template, Offset, Limit, Answer) :-
     goal_id(Goal-Template, Gid),
     self(Self),
     (   cache_retract(Gid, Offset, ProducerPid, Lookahead)
     ->  true                            % resume suspended producer
-    ;   spawn(run_goal_producer_guarded(Goal, Template), ProducerPid,
-              [link(false)]),
+    ;   spawn_http_producer(Goal,Template,ProducerPid),
         (Offset > 0 -> stream_skip(ProducerPid, Self, Offset) ; true),
         Lookahead = none
     ),

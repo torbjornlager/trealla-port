@@ -758,6 +758,7 @@ sandbox_abolish(_Mode, _Profile, Module, _AppPIs, Name, Arity) :-
     call(RuntimeModule:abolish(Name/Arity)).
 
 sandbox_spawn(Mode, Profile, Module, _AppPIs, Goal0, Pid, Options0) :-
+    actors:validate_spawn_options(Options0,public),
     context_module(Module, RuntimeModule),
     % Nested src_predicates/1 is resolved only at runtime, after the parent
     % session's submitted source has been installed in its private module.

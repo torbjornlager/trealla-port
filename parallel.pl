@@ -16,6 +16,11 @@ Workers return only their goal-variable templates. A result message is
 consumed before it is unified with the caller's template, so incompatible
 bindings shared by independent workers make parallel/1 fail instead of
 leaving an unmatched message and waiting forever.
+An exit without a result preserves ordinary failure and exceptions; other
+reasons raise worker_exit(Pid,Reason), subject to first_solution's on_error
+policy. Later parallel workers may finish before their results are collected:
+their normal down notifications remain deferred. After a result is accepted,
+its down notification confirms termination regardless of reason.
 */
 
 :- use_module(actors).
@@ -51,7 +56,7 @@ goal_templates([Goal|Goals], [Template|Templates]) :-
 spawn_parallel_workers([], [], []).
 spawn_parallel_workers([Goal|Goals], [Template|Templates], [Pid|Pids]) :-
     self(Self),
-    spawn(parallel:parallel_worker(Self, Pid, Goal, Template), Pid,
+    spawn_runtime(parallel:parallel_worker(Self, Pid, Goal, Template), Pid,
           [monitor(true),'$entry_context'(caller)]),
     spawn_parallel_workers(Goals, Templates, Pids).
 
@@ -64,14 +69,18 @@ collect_parallel_workers(AllPids, [Pid|Pids], [Template|Templates]) :-
     receive({
         Pid-Answer ->
             ( Template = Answer
-            -> receive({down(Pid, _, true) -> true})
+            -> receive({down(Pid, _, _) -> true})
             ;  tidy_up_all(AllPids), !, fail
             ) ;
         down(FailedPid, _, false) if known_worker(FailedPid, AllPids) ->
             tidy_up_all(AllPids), !, fail ;
-        down(FailedPid, _, exception(Error))
-                if known_worker(FailedPid, AllPids) ->
-            tidy_up_all(AllPids), throw(Error)
+        down(FailedPid, _, Reason)
+                if (known_worker(FailedPid, AllPids),
+                    (Reason \== true ; FailedPid == Pid)) ->
+            % A later worker's normal down must wait for its result.
+            tidy_up_all(AllPids),
+            worker_exit_error(FailedPid, Reason, Error),
+            throw(Error)
     }),
     collect_parallel_workers(AllPids, Pids, Templates).
 
@@ -120,7 +129,7 @@ valid_stop_policy(Value) :-
 spawn_first_workers([], _, []).
 spawn_first_workers([Goal|Goals], Solution, [Pid|Pids]) :-
     self(Self),
-    spawn(parallel:first_worker(Self, Pid, Solution, Goal), Pid,
+    spawn_runtime(parallel:first_worker(Self, Pid, Solution, Goal), Pid,
           [monitor(true),'$entry_context'(caller)]),
     spawn_first_workers(Goals, Solution, Pids).
 
@@ -142,8 +151,9 @@ wait_first(Pids, Solution, OnFail, OnError) :-
         down(FailedPid, _, false) if known_worker(FailedPid, Pids) ->
             handle_first_failure(FailedPid, Pids, Solution,
                                  OnFail, OnError) ;
-        down(FailedPid, _, exception(Error))
+        down(FailedPid, _, Reason)
                 if known_worker(FailedPid, Pids) ->
+            worker_exit_error(FailedPid, Reason, Error),
             handle_first_error(FailedPid, Error, Pids, Solution,
                                OnFail, OnError)
     }).
@@ -161,6 +171,9 @@ handle_first_error(_, Error, Pids, _, _, stop) :-
     tidy_up_all(Pids),
     throw(Error).
 
+
+worker_exit_error(_, exception(Error), Error) :- !.
+worker_exit_error(Pid, Reason, worker_exit(Pid, Reason)).
 
 known_worker(Pid, Pids) :-
     ground(Pid),

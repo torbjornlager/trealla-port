@@ -196,7 +196,7 @@ pass, fails (or throws) on failure.  Tests are grouped:
 */
 
 :- use_module(toplevel_actors).
-:- use_module(actors, [live_actor_count/1]).
+:- use_module(actors, [live_actor_count/1,spawn_runtime/3]).
 :- use_module(parallel).
 :- use_module(profile_policy).
 :- use_module(sandbox_policy).
@@ -2038,7 +2038,7 @@ t130 :-
     format("130. guard control propagation and rollback ok~n").
 
 t132 :-
-    spawn(call_cleanup(exit(first), exit(second)), Pid,
+    spawn_runtime(call_cleanup(exit(first), exit(second)), Pid,
           [monitor(true),link(false),'$entry_context'(caller)]),
     receive({down(Pid, Pid, first) -> true},
             [timeout(2),on_timeout(fail)]),
@@ -2047,13 +2047,13 @@ t132 :-
 t133 :-
     sandbox_prepare_goal(blacklist, actor, user,
                          catch(exit(first), _, true), Prepared),
-    spawn(call(Prepared), Pid,
+    spawn_runtime(call(Prepared), Pid,
           [monitor(true),link(false),'$entry_context'(caller)]),
     receive({down(Pid, Pid, first) -> true},
             [timeout(2),on_timeout(fail)]),
     sandbox_prepare_goal(blacklist, actor, user,
                          catch(throw(ordinary), ordinary, true), Ordinary),
-    spawn(call(Ordinary), Pid2,
+    spawn_runtime(call(Ordinary), Pid2,
           [monitor(true),link(false),'$entry_context'(caller)]),
     receive({down(Pid2, Pid2, true) -> true},
             [timeout(2),on_timeout(fail)]),
@@ -2085,7 +2085,7 @@ t135 :-
 
 t136 :-
     self(Me),
-    spawn(( parallel([X=a,X=b])
+    spawn_runtime(( parallel([X=a,X=b])
           -> Me ! parallel_unexpected(X)
           ;  Me ! parallel_failed
           ), Worker, [monitor(true),link(false),'$entry_context'(caller)]),

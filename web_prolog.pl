@@ -78,7 +78,9 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- use_module(toplevel_actors).
 :- use_module(server_actor).
 :- use_module(supervisor_actor).
+:- use_module(remote_supervisor, []).
 :- use_module(node).
+:- use_module(rpc, [dispose_namespace_promises/1]).
 :- use_module(websocket).
 
 :- op(200, xfx, @).
@@ -166,16 +168,26 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
     thread_self(Reader),
     make_ref(NamespaceId),
     Namespace = ws_client(NamespaceId),
-    actors:spawn_scoped(
-        relay_start(WS, Principal, Identity), Relay,
-        [link(false)], Namespace, internal),
     setup_call_cleanup(
-        observe_activity_start(ws_connection, Reader, Principal, websocket),
-        once(read_loop(WS, Relay, Reader, Profile, Sandbox,
-                       Principal, Identity)),
-        ( close_connection(Relay),
-          observe_activity_end(ws_connection, Reader, disconnected) )
+        true,
+        ( actors:spawn_scoped(
+              relay_start(WS, Principal, Identity), Relay,
+              [link(false)], Namespace, internal),
+          setup_call_cleanup(
+              observe_activity_start(ws_connection, Reader, Principal, websocket),
+              once(read_loop(WS, Relay, Reader, Profile, Sandbox,
+                             Principal, Identity)),
+              call_cleanup(retire_websocket_namespace(Namespace),
+                  (close_connection(Relay),
+                   observe_activity_end(ws_connection, Reader, disconnected)))) ),
+        retire_websocket_namespace(Namespace)
     ).
+
+% Each subsystem releases its mutex before the next begins. Connection actor
+% shutdown remains in the surrounding cleanup even if promise disposal errors.
+retire_websocket_namespace(Namespace) :-
+    actors:retire_registry_namespace(Namespace),
+    rpc:dispose_namespace_promises(Namespace).
 
 read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
     ws_receive(WS, Frame),
@@ -281,9 +293,27 @@ web_prolog_receive(Connection, JSON) :-
 dispatch_text(Text, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
     json_atom(JSON, Text),
     json_atom_field(JSON, command, Command),
-    observe_request(Principal, websocket, Command,
+    spawn_reply_context(Command, JSON, ReplyContext),
+    catch(observe_request(Principal, websocket, Command,
                     dispatch_governed(Command, JSON, Relay, Reader,
-                                      Profile, Sandbox, Principal, Identity)).
+                                      Profile, Sandbox, Principal, Identity)),
+          Error, spawn_dispatch_error(ReplyContext, Relay, Error)).
+
+% Correlation belongs to this command, including admission/startup errors.
+% Non-spawn commands and legacy senders keep their original error path.
+spawn_reply_context(Command, JSON, Context) :-
+    ( memberchk(Command, [spawn,toplevel_spawn]),
+      json_field(JSON, request_id, Value)
+    -> ( Value = string(Chars)
+       -> atom_chars(Id, Chars), Context = request(Id)
+       ; throw(error(type_error(string,Value),web_prolog_handler/2)) )
+    ; Context = legacy
+    ).
+
+spawn_dispatch_error(request(Id), Relay, Error) :- !,
+    note_ws_ip_offense(Error),
+    Relay ! '$spawn_reply'(request(Id), error(Error)).
+spawn_dispatch_error(legacy, _, Error) :- throw(Error).
 
 dispatch_governed(Command, JSON, Relay, Reader, Profile, Sandbox,
                   Principal, Identity) :-
@@ -310,12 +340,14 @@ dispatch(transport_hello, JSON, Relay, Reader, Profile, Sandbox) :- !,
     ).
 dispatch(toplevel_spawn, JSON, Relay, _, Profile, Sandbox) :- !,
     json_options(JSON, Options0),
+    toplevel_actors:validate_toplevel_spawn_options(Options0,public),
     sandbox_prepare_options(Sandbox, Profile, actor_context,
                             Options0, PreparedOptions),
     safe_spawn_options(PreparedOptions, Options1),
     spawn_io_options(JSON, Relay, Options1, Options),
     thread_self(Reader),
-    Relay ! '$toplevel_spawn'(Options, Reader),
+    spawn_reply_context(toplevel_spawn, JSON, Context),
+    Relay ! '$toplevel_spawn'(Options, Reader, Context),
     await_relay_spawn(Reader).
 dispatch(toplevel_call, JSON, Relay, _, Profile, Sandbox) :- !,
     json_text_field(JSON, goal, GoalText),
@@ -348,11 +380,16 @@ dispatch(spawn, JSON, Relay, Reader, Profile, Sandbox) :- !,
     json_term_field(JSON, goal, Goal0),
     import_browser_pids(Goal0, Relay, Goal),
     json_options(JSON, Options0),
-    sandbox_prepare_spawn(Sandbox, Profile, actor_context, Goal, Options0,
-                          GuardedGoal, PreparedOptions),
+    actors:validate_spawn_options(Options0,public),
+    remote_supervisor:prepare(Sandbox,Profile,Goal,Options0,
+                              FrameworkGoal,FrameworkOptions,IsFramework),
+    (IsFramework==yes -> GuardedGoal=FrameworkGoal,PreparedOptions=FrameworkOptions
+    ; sandbox_prepare_spawn(Sandbox,Profile,actor_context,Goal,Options0,
+                            GuardedGoal,PreparedOptions)),
     safe_spawn_options(PreparedOptions, Options1),
     spawn_io_options(JSON, Relay, Options1, Options),
-    Relay ! '$spawn'(GuardedGoal, Options, Reader),
+    spawn_reply_context(spawn, JSON, Context),
+    Relay ! '$spawn'(GuardedGoal, Options, Reader, Context),
     await_relay_spawn(Reader).
 
 await_relay_spawn(Reader) :-
@@ -537,7 +574,7 @@ relay_message(WS, '$toplevel_call'(JSON, Goal, Options0)) :- !,
         ),
         Error,
         send_event(WS, error(Error))).
-relay_message(WS, '$toplevel_spawn'(Options, Reader)) :- !,
+relay_message(WS, '$toplevel_spawn'(Options, Reader, Context)) :- !,
     self(Relay),
     catch(
         ( relay_reserve_ws_actor(Reservation),
@@ -551,14 +588,14 @@ relay_message(WS, '$toplevel_spawn'(Options, Reader)) :- !,
           relay_add_actor(WirePid, RuntimePid, session),
           relay_observe_actor_start(session, RuntimePid),
           thread_send_message(Reader, '$spawned'(WirePid)),
-          send_event(WS, spawned(WirePid))
+          send_event(WS, '$spawn_reply'(Context, spawned(WirePid)))
         ),
         Error,
         thread_send_message(Reader, '$spawn_failed'(Error))).
-relay_message(WS, '$spawn'(Goal, Options, Reader)) :- !,
+relay_message(WS, '$spawn'(Goal, Options, Reader, Context)) :- !,
     catch(
         ( relay_reserve_ws_actor(Reservation),
-          catch(spawn(web_prolog:run_spawn_goal(Goal), RuntimePid,
+          catch(spawn_runtime(web_prolog:run_spawn_goal(Goal), RuntimePid,
                       ['$entry_context'(caller),link(false),monitor(true)|Options]),
                 SpawnError,
                 ( release_capacity_reservation(Reservation),
@@ -568,11 +605,13 @@ relay_message(WS, '$spawn'(Goal, Options, Reader)) :- !,
           relay_add_actor(WirePid, RuntimePid, actor),
           relay_observe_actor_start(actor, RuntimePid),
           thread_send_message(Reader, '$spawned'(WirePid)),
-          send_event(WS, spawned(WirePid))
+          send_event(WS, '$spawn_reply'(Context, spawned(WirePid)))
         ),
         Error,
         thread_send_message(Reader, '$spawn_failed'(Error))).
 
+run_spawn_goal(remote_supervisor:run(Children,Settings)) :- !,
+    remote_supervisor:run(Children,Settings).
 run_spawn_goal(Goal) :-
     isolation:execution_goal(Goal, ExecutionGoal),
     call(ExecutionGoal).
@@ -637,6 +676,8 @@ relay_message(WS, down(RuntimePid, _DefaultRef, Reason)) :- !,
         observe_activity_end(ActivityKind, RuntimePid, Reason)
     ; true
     ).
+relay_message(WS, '$spawn_reply'(Context, Event)) :- !,
+    send_event(WS, '$spawn_reply'(Context, Event)).
 relay_message(WS, protocol_error(Error)) :- !,
     send_event(WS, error(Error)).
 relay_message(WS, prompt(RuntimePid, Data)) :- !,
@@ -873,6 +914,11 @@ send_event(WS, Event) :-
     answer_event_json(Event, AnswerTerms, JSON),
     web_prolog_send(WS, JSON).
 
+answer_event_json('$spawn_reply'(Context, Event), AnswerTerms, JSON) :- !,
+    answer_event_json(Event, AnswerTerms, Base),
+    ( Context = request(Id)
+    -> json_add_field(Base, request_id-string_atom(Id), JSON)
+    ; JSON = Base ).
 answer_event_json('$toplevel_reply'(Ref, Answer), _, JSON) :- !,
     answer_event_json(Answer, true, Base),
     canonical_answer_text(Ref, RefText),

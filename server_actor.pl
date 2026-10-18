@@ -44,6 +44,12 @@ server_spawn(Callback, State, Pid) :-
     server_spawn(Callback, State, Pid, []).
 
 server_spawn(Callback0, State, Pid, Options) :-
+    actors:validate_spawn_wrapper_options(Options,runtime,
+        server_actor:server_spawn/4,[name-atom]),
+    with_spawn_name(Options,Pid,
+        server_actor:create_named_server(Callback0,State,Pid,Options)).
+
+create_named_server(Callback0, State, Pid, Options, NameOptions) :-
     normalize_server_callback(Callback0, Callback),
     strip_module(Callback, CallbackModule, PlainCallback),
     server_callback_source_module(CallbackModule, PlainCallback, SourceModule),
@@ -56,9 +62,9 @@ server_spawn(Callback0, State, Pid, Options) :-
                            Materialized0),
     copy_term(Materialized0, MaterializedOptions),
     server_spawn_options(MaterializedOptions, SpawnOptions),
-    spawn(server_actor:server_loop(SourceModule:PlainCallback, State),
-          Pid, SpawnOptions),
-    ( option(name(Name), Options) -> register(Name, Pid) ; true ).
+    append(NameOptions,SpawnOptions,EffectiveOptions),
+    spawn_runtime(server_actor:server_loop(SourceModule:PlainCallback, State),
+          Pid, EffectiveOptions).
 
 server_spawn_options(Options, SpawnOptions) :-
     non_server_options(Options, PlainOptions),

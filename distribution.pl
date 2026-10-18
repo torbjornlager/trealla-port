@@ -54,7 +54,8 @@ no Logtalk or foreign code.
     actors:hook_exit/2,
     actors:hook_monitor/3,
     actors:hook_demonitor/1,
-    actors:hook_stop/1.
+    actors:hook_stop/1,
+    actors:hook_local_registration_pid/2.
 
 :- multifile web_prolog:hook_io_request/2.
 :- multifile web_prolog:hook_close_browser_io/1.
@@ -170,9 +171,11 @@ wait_thread_end(Thread, Attempts) :-
 :- meta_predicate(remote_spawn(+, 0, -, +)).
 
 remote_spawn(Node, Goal0, RemotePid, Options0) :-
+    actors:validate_spawn_options(Options0,public,distribution:remote_spawn/4),
     remote_spawn_mode(Node, Goal0, RemotePid, Options0, explicit).
 
 remote_spawn_mode(Node, Goal0, RemotePid, Options0, Mode) :-
+    actors:validate_spawn_options(Options0,runtime,distribution:remote_spawn/4),
     Node = remote_node(URL, _Reader, Writer),
     self(Target),
     strip_module(Goal0, SourceModule, Goal0Plain),
@@ -194,6 +197,7 @@ local_spawn_option(monitor(_)).
 local_spawn_option(node(_)).
 local_spawn_option(io_target(_)).
 local_spawn_option('$entry_context'(_)).
+local_spawn_option('$name_reservation'(_)).
 
 %! remote_send(+Node, +RemotePid, +Message) is det.
 
@@ -246,6 +250,8 @@ remote_demonitor(Node, Ref) :-
 
 remote_toplevel_spawn(Node, RemotePid, Options0) :-
     strip_module(Options0, SourceModule, Options1),
+    toplevel_actors:validate_toplevel_spawn_options(Options1,public,
+        distribution:remote_toplevel_spawn/3),
     Node = remote_node(URL, _Reader, Writer),
     self(Target),
     isolation:rewrite_source_options(Options1, SourceModule, Options2),
@@ -412,9 +418,10 @@ spawn_request(Writer, URL, Mode, Options, Target, JSON, RemotePid) :-
 await_spawn_reply(Writer, URL, Mode, Options, Target, RemotePid) :-
     receive({
         '$remote_spawn_prepare'(Writer, WirePid) ->
-            distribution:caller_prepare_target(Mode, WirePid, URL, Writer,
-                                               Target, Options),
-            Writer ! '$remote_spawn_ready'(Target, WirePid),
+            catch((distribution:caller_prepare_target(Mode,WirePid,URL,Writer,Target,Options),
+                   actors:publish_remote_spawn_name(WirePid@URL,Options),
+                   Writer ! '$remote_spawn_ready'(Target,WirePid)),
+                  Error,Writer ! '$remote_spawn_failed'(Target,WirePid,Error)),
             distribution:await_spawn_reply(Writer, URL, Mode, Options,
                                            Target, RemotePid) ;
         '$remote_spawned'(Writer, WirePid) ->
@@ -479,29 +486,24 @@ writer_message('$wire_sync_reply'(Ref,Pid,Answer),_,_,true) :- !,
 writer_message('$spawn_request'(JSON, Mode, Options, Target, Caller), WS, URL,
                Continue) :- !,
     self(Writer),
-    web_prolog_send(WS, JSON),
-    receive({
+    catch(web_prolog_send(WS,JSON),SendError,true),
+    ( nonvar(SendError)
+    -> Caller ! '$remote_spawn_error'(Writer,SendError),
+       writer_notify_connection_closed(URL),Continue=false
+    ; receive({
         '$wire_spawned'(WirePid) ->
-            distribution:writer_add_target(WirePid, Target, Mode),
-            distribution:writer_prepare_handshake(Mode, WirePid, Caller,
-                                                  Target),
-            distribution:writer_prepare_target(Mode, WirePid, URL, Target,
-                                               Options, WS),
-            Caller ! '$remote_spawned'(Writer, WirePid),
-            Continue = true ;
+            distribution:writer_finish_spawn(WirePid,Mode,Options,Target,Caller,WS,URL,Continue) ;
         '$wire_spawn_error'(Error) ->
-            Caller ! '$remote_spawn_error'(Writer, Error),
-            Continue = true ;
+            Caller ! '$remote_spawn_error'(Writer, Error),Continue=true ;
         '$remote_lost'(URL, Reason) ->
             Caller ! '$remote_spawn_error'(Writer,
-                         error(remote_connection_closed(URL, Reason),
-                               remote_spawn/4)),
-            distribution:writer_notify_connection_closed(URL),
-            Continue = false
-    }, []).
+                         error(remote_connection_closed(URL, Reason),remote_spawn/4)),
+            distribution:writer_notify_connection_closed(URL),Continue=false
+      }, []) ).
 writer_message('$remote_lost'(URL, _Reason), _, _, false) :- !,
     writer_notify_connection_closed(URL).
-writer_message('$wire_event'(WirePid, Type, Event), _, _, true) :- !,
+writer_message('$wire_event'(WirePid, Type, Event), _, URL, true) :- !,
+    ( Type == down -> actors:remove_remote_aliases([WirePid@URL]) ; true ),
     ( Event=down(_,Ref,Reason),nonvar(Ref),Ref='$sync_monitor'(_)
     -> (writer_sync_down(WirePid,Ref,Reason)->true;true)
     ; writer_deliver_event(WirePid, Event) ),
@@ -531,6 +533,35 @@ writer_message('$remote_close', WS, URL, false) :- !,
     writer_notify_connection_closed(URL),
     catch(ws_close(WS, 1000, normal), _, true).
 writer_message(_, _, _, true).
+
+writer_finish_spawn(WirePid,Mode,Options,Target,Caller,WS,URL,Continue) :-
+    self(Writer),
+    catch((writer_add_target(WirePid,Target,Mode),
+           writer_prepare_handshake(Mode,WirePid,Caller,Target),
+           writer_prepare_target(Mode,WirePid,URL,Target,Options,WS)),Error,true),
+    (var(Error) -> Caller ! '$remote_spawned'(Writer,WirePid),Continue=true
+    ; catch(writer_rollback_spawn(WirePid,URL,Target,Options,WS),_,true),
+      Caller ! '$remote_spawn_error'(Writer,Error),
+      (Error=error(remote_connection_closed(URL,_),remote_spawn/4)
+       -> writer_notify_connection_closed(URL),Continue=false
+       ; Continue=true)).
+
+writer_rollback_spawn(WirePid,URL,Target,Options,WS) :-
+    Pid=WirePid@URL,
+    actors:rollback_remote_spawn_name(Pid,Options),
+    with_mutex('$actor_registry',
+        (retractall(actors:link(Target,Pid)),retractall(actors:monitor(Target,Pid,Pid)))),
+    manager_forget_route_if_running(Pid),
+    writer_monitors(Monitors),exclude(rollback_monitor(WirePid,Target,Pid),Monitors,Kept),
+    nb_setval('$distribution_monitors',Kept),
+    % Retain delivery for any independently installed watcher of this PID.
+    (member(monitor(WirePid,_,_),Kept) -> true
+    ; writer_targets(Targets),exclude(rollback_target(WirePid),Targets,Rest),
+      nb_setval('$distribution_targets',Rest)),
+    web_prolog:object([command-string_atom(exit),pid-number(WirePid),reason-string_atom(kill)],JSON),
+    catch(web_prolog_send(WS,JSON),_,true).
+rollback_target(Pid,target(Pid,_,_,_)).
+rollback_monitor(Pid,Watcher,Ref,monitor(Pid,Ref,Watcher)).
 
 writer_owner(Owner) :-
     nb_getval('$distribution_owner', Owner).
@@ -578,7 +609,11 @@ writer_prepare_handshake(explicit, _, _, _) :- !.
 writer_prepare_handshake(transparent, WirePid, Caller, Target) :-
     self(Writer),
     Caller ! '$remote_spawn_prepare'(Writer, WirePid),
-    receive({ '$remote_spawn_ready'(Target, WirePid) -> true }, []).
+    receive({
+        '$remote_spawn_ready'(Target,WirePid) -> true ;
+        '$remote_spawn_failed'(Target,WirePid,Error) -> throw(Error) ;
+        '$remote_lost'(URL,Reason) -> throw(error(remote_connection_closed(URL,Reason),remote_spawn/4))
+    }, []).
 
 writer_monitors(Monitors) :-
     ( nb_current('$distribution_monitors', Monitors) -> true ; Monitors = [] ).
@@ -685,6 +720,8 @@ mark_writer_target_dead([Target|Targets], WirePid, [Target|Marked]) :-
     mark_writer_target_dead(Targets, WirePid, Marked).
 
 writer_notify_connection_closed(URL) :-
+    writer_known_remote_pids(URL,Pids),
+    actors:remove_remote_aliases(Pids),
     writer_close_waiters,
     writer_targets(Targets),
     notify_live_targets(Targets, URL),
@@ -694,6 +731,18 @@ writer_notify_connection_closed(URL) :-
     self(Writer),
     manager_forget_endpoints_if_running(Writer),
     manager_forget_node_if_running(URL, Writer).
+
+% Snapshot before close clears waiters, targets and monitors. Include explicit
+% and synchronous-only targets, and avoid a node-URL-wide registration sweep.
+writer_known_remote_pids(URL,Pids) :-
+    writer_targets(Targets), writer_monitors(Monitors),
+    ( nb_current('$distribution_waiters',Waiters) -> true ; Waiters=[] ),
+    findall(Pid@URL,
+        ( member(target(Pid,_,_,_),Targets)
+        ; member(monitor(Pid,_,_),Monitors)
+        ; member(waiter(_,Pid,_,_),Waiters) ),
+        Known),
+    sort(Known,Pids).
 
 notify_live_targets([], _).
 notify_live_targets([target(WirePid, Target, State, Mode)|Targets], URL) :-
@@ -959,6 +1008,13 @@ io_request_error(Reason) :-
                  /*******************************
                  *      TRANSPARENT ROUTING      *
                  *******************************/
+
+% Match only addresses that the send path routes back to this node. Merely
+% checking a remote alias must not connect, fetch, or change PID mappings.
+actors:hook_local_registration_pid(Pid@Node0,Pid) :-
+    integer(Pid), nonvar(Node0),
+    ( Node0 == localhost -> true
+    ; catch((node_url_atom(Node0,URL),web_prolog:current_node_url(URL)),_,fail) ).
 
 actors:hook_spawn(Goal, RemotePid, Options0) :-
     take_node_option(Options0, URL0, Options),

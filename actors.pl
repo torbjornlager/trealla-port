@@ -4,10 +4,18 @@
        [ spawn/1,                % :Goal
          spawn/2,                % :Goal, -Pid
          spawn/3,                % :Goal, -Pid, +Options
+         with_spawn_name/3,       % internal naming-wrapper composition
+         spawn_runtime/3,        % internal framework entry
+         validate_spawn_options/2, % +Options, +public|runtime
+         validate_spawn_wrapper_options/4, % internal constructor validation
          self/1,                 % -Pid
          monitor/2,              % +PidOrName, -Ref
          demonitor/1,            % +Ref
          demonitor/2,            % +Ref, +Options
+         publish_remote_spawn_name/2, % internal remote startup
+         rollback_remote_spawn_name/2,
+         retire_registry_namespace/1, % internal WebSocket teardown
+         remove_remote_aliases/1, % internal distribution cleanup
          register/2,             % +Name, +Pid
          unregister/1,           % +Name
          whereis/2,              % +Name, -Pid
@@ -144,6 +152,8 @@ Reply = hello.
 :- meta_predicate(spawn(0)).
 :- meta_predicate(spawn(0, -)).
 :- meta_predicate(spawn(0, -, +)).
+:- meta_predicate(with_spawn_name(+, -, 1)).
+:- meta_predicate(spawn_runtime(0, -, +)).
 :- meta_predicate(spawn_scoped(0, -, +, +, +)).
 :- meta_predicate(receive(:, +)).
 :- meta_predicate(discard_deferred(1)).
@@ -158,7 +168,8 @@ Reply = hello.
     hook_monitor/3,
     hook_demonitor/1,
     hook_admit_spawn/2,
-    hook_stop/1.
+    hook_stop/1,
+    hook_local_registration_pid/2.
 
 :- dynamic actor_alive/1.
 :- dynamic pid_thread/2.
@@ -213,16 +224,151 @@ spawn(Goal, Pid) :-
     spawn(Goal, Pid, []).
 
 spawn(Goal, Pid, Options) :-
-    hook_spawn(Goal, Pid, Options),
-    !.
-spawn(Goal, Pid, Options0) :-
+    validate_spawn_options(Options,public),
+    spawn_dispatch(Goal,Pid,Options).
+
+% The token stays local: local startup or the remote caller handshake publishes.
+with_spawn_name(Options, _Pid, Create) :-
+    ( option(name(Name),Options)
+    -> setup_call_cleanup(reserve_spawn_name(Name,Token),
+           call(Create,['$name_reservation'(Token)]),release_spawn_name(Token))
+    ; call(Create,[]) ).
+
+reserve_spawn_name(Name, Token) :-
+    must_be(atom,Name), make_ref(Token), registration_namespace(Namespace),
+    with_mutex('$actor_registry',
+        ( ensure_registry_namespace_open(Namespace),
+          ( (registered(Name,_) ; reserved_spawn_name(Name,_))
+        -> throw(name_is_in_use(Name))
+        ; assertz(reserved_spawn_name(Name,Token)),
+          assertz(spawn_name_owner(Token,Namespace)) ))).
+
+release_spawn_name(Token) :-
+    with_mutex('$actor_registry',
+        (retractall(reserved_spawn_name(_,Token)),retractall(spawn_name_owner(Token,_)),
+         retractall(remote_spawn_publication(Token,_,_,_)))).
+
+publish_spawn_name(Pid, Options) :-
+    ( option('$name_reservation'(Token),Options)
+    -> registration_namespace(CurrentNamespace),
+       with_mutex('$actor_registry',
+           ( ensure_registry_namespace_open(CurrentNamespace),
+             actor_alive(Pid),
+             ( registered(_,Pid) -> throw(process_already_has_a_name(Pid)) ; true ),
+             ( retract(reserved_spawn_name(Name,Token))
+             -> (retract(spawn_name_owner(Token,Namespace)) -> true ; Namespace=none),
+                ensure_registry_namespace_open(Namespace),
+                asserta(registered(Name,Pid)),assertz(registration_owner(Name,Pid,Namespace))
+             ; throw(error(existence_error(name_reservation,Token),spawn/3)) )))
+    ; true ).
+
+publish_remote_spawn_name(Pid,Options) :-
+    (option('$name_reservation'(Token),Options) ->
+        registration_namespace(Current),
+        with_mutex('$actor_registry',
+            (ensure_registry_namespace_open(Current),
+             (registered(_,Pid) -> throw(process_already_has_a_name(Pid)) ; true),
+             (reserved_spawn_name(Name,Token),spawn_name_owner(Token,Owner) -> true
+             ; throw(error(existence_error(name_reservation,Token),spawn/3))),
+             ensure_registry_namespace_open(Owner),
+             retractall(reserved_spawn_name(_,Token)),retractall(spawn_name_owner(Token,_)),
+             asserta(registered(Name,Pid)),assertz(registration_owner(Name,Pid,Owner)),
+             assertz(remote_spawn_publication(Token,Name,Pid,Owner))))
+    ; true).
+
+rollback_remote_spawn_name(Pid,Options) :-
+    (option('$name_reservation'(Token),Options) ->
+        with_mutex('$actor_registry',
+            (retract(remote_spawn_publication(Token,Name,Pid,Owner)) ->
+                (registration_owner(Name,Pid,Owner) -> remove_registrations([Name-Pid]) ; true)
+            ; true))
+    ; true).
+
+spawn_runtime(Goal, Pid, Options) :-
+    validate_spawn_options(Options,runtime),
+    spawn_dispatch(Goal,Pid,Options).
+
+spawn_dispatch(Goal, Pid, Options) :-
+    hook_spawn(Goal, Pid, Options), !.
+spawn_dispatch(Goal, Pid, Options) :-
     current_actor_namespace(Namespace),
-    spawn_local(Goal, Pid, Options0, Namespace, public).
+    spawn_local(Goal,Pid,Options,Namespace,public).
+
+validate_spawn_options(Options,Scope) :-
+    validate_spawn_options(Options,Scope,actors:spawn/3).
+validate_spawn_options(Options,Scope,Context) :-
+    catch((must_be(list,Options),validate_spawn_option_list(Options,Scope)),
+          error(Formal,_),
+          throw(error(Formal,context(Context,'invalid spawn option')))).
+validate_spawn_option_list([],_).
+validate_spawn_option_list([Option|Options],Scope) :-
+    must_be(nonvar,Option),
+    (Option='$entry_context'(Value) ->
+        (Scope==runtime ->
+            (Value==caller -> true
+            ; throw(error(domain_error(entry_context,Value),spawn/3)))
+        ; throw(error(permission_error(option,internal_spawn_option,Option),spawn/3)))
+    ; Option='$name_reservation'(Token) ->
+        (Scope==runtime -> must_be(integer,Token)
+        ; throw(error(permission_error(option,internal_spawn_option,Option),spawn/3)))
+    ; compound(Option),functor(Option,Name,1),spawn_option_type(Name,Type) ->
+        arg(1,Option,Value),validate_spawn_value(Type,Value)
+    ; throw(error(domain_error(spawn_option,Option),spawn/3))),
+    validate_spawn_option_list(Options,Scope).
+% Wrapper-only options are checked before they are consumed; everything else
+% uses the same base validator, including framework metadata in runtime scope.
+validate_spawn_wrapper_options(Options,Scope,Context,ExtraSpecs) :-
+    catch((must_be(list,Options),validate_wrapper_option_list(Options,Scope,ExtraSpecs)),
+          error(Formal,_),
+          throw(error(Formal,context(Context,'invalid wrapper option')))).
+validate_wrapper_option_list([],_,_).
+validate_wrapper_option_list([Option|Options],Scope,Specs) :-
+    must_be(nonvar,Option),
+    (compound(Option),functor(Option,Name,1),memberchk(Name-Type,Specs) ->
+        arg(1,Option,Value),validate_spawn_value(Type,Value)
+    ; validate_spawn_option_list([Option],Scope)),
+    validate_wrapper_option_list(Options,Scope,Specs).
+
+spawn_option_type(link,boolean).
+spawn_option_type(monitor,boolean).
+spawn_option_type(target,nonvar).
+spawn_option_type(io_target,nonvar).
+spawn_option_type(node,node).
+spawn_option_type(src_text,text).
+spawn_option_type(src_uri,text).
+spawn_option_type(src_list,list).
+spawn_option_type(src_predicates,predicate_indicators).
+validate_spawn_value(seconds(Kind),Value) :- !,
+    must_be(nonvar,Value),resource_policy:normalize_seconds(Kind,Value,_).
+validate_spawn_value(nonnegative_integer,Value) :- !,
+    must_be(integer,Value),
+    (Value>=0 -> true ; throw(error(domain_error(not_less_than_zero,Value),spawn/3))).
+validate_spawn_value(positive_number(Domain),Value) :- !,
+    must_be(nonvar,Value),
+    (number(Value),Value>0 -> true ; throw(error(domain_error(Domain,Value),spawn/3))).
+validate_spawn_value(oneof(Domain,Values),Value) :- !,
+    must_be(nonvar,Value),
+    (memberchk(Value,Values) -> true ; throw(error(domain_error(Domain,Value),spawn/3))).
+
+validate_spawn_value(node,Node) :- !,
+    must_be(nonvar,Node),
+    (atom(Node) -> true
+    ; is_list(Node) -> atom_chars(_,Node)
+    ; throw(error(type_error(atom_or_string,Node),spawn/3))).
+validate_spawn_value(text,Text) :- !,
+    must_be(nonvar,Text),isolation:source_text_atom(Text,_).
+validate_spawn_value(predicate_indicators,PIs) :- !,
+    must_be(list,PIs),validate_spawn_pis(PIs).
+validate_spawn_value(Type,Value) :- must_be(Type,Value).
+validate_spawn_pis([]).
+validate_spawn_pis([PI|PIs]) :-
+    isolation:source_predicate_indicator(PI,_,_),validate_spawn_pis(PIs).
 
 % Internal entry point used by connection runtimes.  An internal actor still
 % carries Namespace so actors that it spawns inherit the browser session's
 % scope, but it is deliberately omitted from actors/1 in that scope.
 spawn_scoped(Goal, Pid, Options, Namespace, Visibility) :-
+    validate_spawn_options(Options,runtime),
     valid_actor_visibility(Visibility),
     spawn_local(Goal, Pid, Options, Namespace, Visibility).
 
@@ -355,7 +501,7 @@ stop(Pid, Parent) :-
     down_reason(Pid, Reason),
     with_mutex('$actor_registry',
         ( retractall(link(Parent, Pid)),
-          retractall(registered(_Name, Pid)),
+          remove_local_registrations(Pid),
           retractall(registered_service(_Name, Pid)),
           retractall(actor_alive(Pid)),
           retractall(actor_namespace(Pid, _)),
@@ -530,19 +676,93 @@ demonitor(Ref, Options) :-
 %   Register the given Pid under the atom Name.  Throws
 %   `process_already_has_a_name(Pid)` if Pid is already registered
 %   under any name, or `name_is_in_use(Name)` if Name is already
-%   taken by another Pid.
+%   taken by another Pid. Missing or terminating local PIDs raise
+%   error(existence_error(process, Pid), context(actors:register/2, _)).
 
 :- dynamic(registered/2).
 :- dynamic(registered_service/2).
+:- dynamic reserved_spawn_name/2.
+:- dynamic spawn_name_owner/2.
+:- dynamic remote_spawn_publication/4.
+:- dynamic registration_owner/3.
+:- dynamic closed_registry_namespace/1.
 
 register(Name, Pid) :-
-    must_be(atom, Name),
-    (   registered(_, Pid)
-    ->  throw(process_already_has_a_name(Pid))
-    ;   registered(Name, _)
-    ->  throw(name_is_in_use(Name))
-    ;   asserta(registered(Name, Pid))
-    ).
+    must_be(atom, Name),registration_namespace(Namespace),
+    with_mutex('$actor_registry',
+        ( ensure_registry_namespace_open(Namespace),
+          ( registered(_, Pid)
+        -> throw(process_already_has_a_name(Pid))
+        ; (registered(Name, _) ; reserved_spawn_name(Name,_))
+        -> throw(name_is_in_use(Name))
+        ; ensure_registerable_local_pid(Pid),
+          asserta(registered(Name, Pid)),
+          assertz(registration_owner(Name,Pid,Namespace)) ))).
+
+% Ownership is separate from node-wide lookup/uniqueness. Only WebSocket
+% scopes participate in this batch; HTTP and trusted standalone use stay open.
+registration_namespace(Namespace) :-
+    current_actor_namespace(Scope),
+    ( nonvar(Scope), Scope=ws_client(_), ground(Scope) -> Namespace=Scope
+    ; Namespace=none ).
+
+ensure_registry_namespace_open(Namespace) :-
+    ( closed_registry_namespace(Namespace)
+    -> throw(error(permission_error(register,closed_namespace,Namespace),
+                   context(actors:register/2,'client namespace has ended')))
+    ; true ).
+
+retire_registry_namespace(Namespace) :-
+    must_be(ground,Namespace),
+    ( Namespace=ws_client(_) -> true
+    ; throw(error(domain_error(websocket_namespace,Namespace),retire_registry_namespace/1)) ),
+    with_mutex('$actor_registry',
+        ( (closed_registry_namespace(Namespace) -> true
+          ; assertz(closed_registry_namespace(Namespace))),
+          findall(Name-Pid,registration_owner(Name,Pid,Namespace),Owned),
+          remove_registrations(Owned),
+          findall(Token,spawn_name_owner(Token,Namespace),Tokens),
+          retire_spawn_names(Tokens),
+          retractall(remote_spawn_publication(_,_,_,Namespace)) )).
+retire_spawn_names([]).
+retire_spawn_names([Token|Tokens]) :-
+    retractall(reserved_spawn_name(_,Token)),retractall(spawn_name_owner(Token,_)),
+    retire_spawn_names(Tokens).
+
+% Called with the registry mutex held: do not reacquire it via actor_thread/2.
+% Qualified local aliases retain their original term; distribution identifies
+% them without probing remote nodes.
+local_registration_pid(Target, Local) :-
+    integer(Target), !, Local=Target.
+local_registration_pid(Target, Local) :-
+    nonvar(Target), hook_local_registration_pid(Target,Local).
+
+ensure_registerable_local_pid(Target) :-
+    ( local_registration_pid(Target,Local)
+    -> ( \+ exit_reason(Local,_), pid_thread(Local,Thread),
+         catch(thread_property(Thread,status(running)),_,fail)
+       -> true
+       ; throw(error(existence_error(process,Target),
+                     context(actors:register/2,'local actor no longer exists'))) )
+    ; true ).
+
+remove_local_registrations(Pid) :-
+    findall(Name-Target,
+        (registered(Name,Target),local_registration_pid(Target,Local),Local==Pid),
+        Registrations),
+    remove_registrations(Registrations).
+remove_registrations([]).
+remove_registrations([Name-Target|Rest]) :-
+    retractall(registered(Name,Target)),
+    retractall(registration_owner(Name,Target,_)),remove_registrations(Rest).
+
+% Remove only exact, known remote PID identities. Do not touch local/service
+% names or infer that every alias for the same node belongs to one connection.
+remove_remote_aliases(Pids) :-
+    with_mutex('$actor_registry',
+        ( findall(Name-Target,
+              (registered(Name,Target),member(Pid,Pids),Target==Pid),Aliases),
+          remove_registrations(Aliases) )).
 
 %!  unregister(+Name) is det.
 %
@@ -550,7 +770,8 @@ register(Name, Pid) :-
 %   registered.
 
 unregister(Name) :-
-    retractall(registered(Name, _)).
+    with_mutex('$actor_registry',
+        (retractall(registered(Name,_)),retractall(registration_owner(Name,_,_)))).
 
 %!  whereis(+Name, -Pid) is det.
 %

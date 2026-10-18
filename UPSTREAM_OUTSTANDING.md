@@ -66,6 +66,24 @@ by conversion vectors and live asynchronous query regressions. See
 `UPSTREAM_REPORTS.md` for details. Retest current upstream
 and search for duplicates before sending; this is not yet filed.
 
+### Cancellation of a blocked queue reader and Prolog cleanup
+
+The runtime-only `reproducers/port-promise-thread-cancel.pl` observation on
+v3.13.10 prints:
+
+```text
+cancelled_queue_reader_still_running
+prolog_cleanup_missing
+```
+
+After `thread_cancel/1`, a thread blocked in `thread_get_message/2` remains
+running until a message wakes it. It then retires without running the
+`setup_call_cleanup/3` cleanup goal. The port's promise lifecycle uses private
+exception signals for its own workers, short queue waits against an overall
+deadline, and stale-collector recovery after thread retirement. Retest current
+upstream and clarify the intended cancellation/cleanup contract before filing;
+this observation has not been sent upstream.
+
 ## Resolved in v3.13.10
 
 ### Absolute message-queue deadlines
@@ -95,6 +113,40 @@ Regression command:
 tpl -q -f reproducers/bug-021-concurrent-sleep.pl
 ```
 
+## Resolved port issue: remote supervisor entry qualification
+
+A sender-only qualification wrapper was insufficient: the sandbox correctly
+rejected `call(supervisor_actor:sup_init(...))` as a private module call.
+The receiver now recognizes the existing unqualified supervisor startup shape,
+validates fresh state/specifications, checks and rewrites child goals and
+sources, and executes precompiled framework code with peer-local child source
+contexts. Dynamic additions cross the same checks. No protocol extension or
+general private-module allowance was introduced. This was a port adapter issue,
+not an independently demonstrated Trealla engine bug.
+
+The former observation in `reproducers/port-remote-supervisor-entry.pl` is now a
+startup/control smoke check for updated peers. Detailed sandbox and live
+regressions are in `remote_supervisor_tests.pl`; native SWI interoperability is
+covered by `swi_supervisor_compat.pl`. Current n5 was not changed.
+
+## Resolved port gaps: native SWI supervisor transport compatibility
+
+The receiver-entry adapter accepts native SWI named and unnamed supervisor
+startup, including explicitly supplied `src_text/1` child source. The former
+`remote_spawn_failed(uncorrelated_spawn_reply)` port gap is repaired: optional
+spawn request IDs are echoed on success and admission/startup errors, while
+legacy replies and monitor events remain unchanged. Native compatibility tests
+cover duplicate names and reuse after failed startup.
+
+Native SWI's halt wait may observe normal `down` before its acknowledgement,
+which travels over a separate connection. Native SWI and Trealla now tolerate
+that ordering within the original halt deadline, requiring the matching reply
+for success; missing acknowledgements and abnormal termination remain errors.
+The compatibility smoke test no longer suppresses `supervisor_down(true)` and
+includes repeated acknowledged halt cycles. Transport ordering itself is
+unchanged; this was a caller-wait compatibility gap, not a Trealla engine bug.
+Current n5 and shutdown policies are unchanged.
+
 ## Observations still needing a small reproducer
 
 These should not yet be filed as Trealla bugs:
@@ -110,6 +162,15 @@ These should not yet be filed as Trealla bugs:
   `reproducers/port-shared-connection-close.pl` retains the application
   pattern. A standalone runtime reproducer and precise stream-safety diagnosis
   are still needed before filing upstream.
+
+- On 2026-10-18, the standalone generic-server (31 cases) and supervisor
+  (20 cases) suites passed and exited with status 0, but some runs printed
+  temporary-module syntax diagnostics during shutdown, such as
+  `syntax error, missing arg '', $trealla_actor_...:1`. The same diagnostics
+  reproduced in a copy with the new wrapper-validation calls removed.
+  This is not established as a wrapper-validation regression or an upstream
+  runtime defect. A minimized source/module-teardown reproducer is needed
+  before filing; lifecycle behavior was left unchanged in this batch.
 
 - A historical same-process WebSocket teardown crash was timing-sensitive and
   did not recur in five v3.13.3 runs of either application regression.
