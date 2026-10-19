@@ -168,6 +168,7 @@ Reply = hello.
     hook_monitor/3,
     hook_demonitor/1,
     hook_admit_spawn/2,
+    hook_spawn_reserved/2,
     hook_stop/1,
     hook_local_registration_pid/2.
 
@@ -308,6 +309,9 @@ validate_spawn_option_list([Option|Options],Scope) :-
             (Value==caller -> true
             ; throw(error(domain_error(entry_context,Value),spawn/3)))
         ; throw(error(permission_error(option,internal_spawn_option,Option),spawn/3)))
+    ; Option='$worker_scope'(Key) ->
+        (Scope==runtime -> must_be(atom,Key)
+        ; throw(error(permission_error(option,internal_spawn_option,Option),spawn/3)))
     ; Option='$name_reservation'(Token) ->
         (Scope==runtime -> must_be(integer,Token)
         ; throw(error(permission_error(option,internal_spawn_option,Option),spawn/3)))
@@ -395,6 +399,9 @@ spawn_local_locked(Self, GoalModule, Goal, Options, Namespace, Visibility,
     live_actor_count_unlocked(LiveCount),
     forall(hook_admit_spawn(LiveCount, Options), true),
     make_pid_unlocked(Pid),
+    % Scope ownership precedes thread creation: setup_call_cleanup/3 does not
+    % mask signals during setup on Trealla. An interrupted startup is owned.
+    forall(hook_spawn_reserved(Pid, Options), true),
     actor_thread_options([
         detached(true),
         at_exit(stop(Pid, Self))

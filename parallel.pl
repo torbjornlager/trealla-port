@@ -24,6 +24,7 @@ its down notification confirms termination regardless of reason.
 */
 
 :- use_module(actors).
+:- use_module(worker_cleanup).
 
 :- meta_predicate parallel(:).
 :- meta_predicate first_solution(?, :).
@@ -40,8 +41,9 @@ parallel_in(Module, Goals0) :-
     must_be(list, Goals0),
     qualify_goals(Goals0, Module, Goals),
     goal_templates(Goals, Templates),
-    spawn_parallel_workers(Goals, Templates, Pids),
-    collect_parallel_workers(Pids, Pids, Templates).
+    with_worker_scope(Scope,
+        (spawn_parallel_workers(Scope, Goals, Templates, Pids),
+         collect_parallel_workers(Scope, Pids, Pids, Templates))).
 
 qualify_goals([], _, []).
 qualify_goals([Goal|Goals], Module,
@@ -53,36 +55,39 @@ goal_templates([Goal|Goals], [Template|Templates]) :-
     term_variables(Goal, Template),
     goal_templates(Goals, Templates).
 
-spawn_parallel_workers([], [], []).
-spawn_parallel_workers([Goal|Goals], [Template|Templates], [Pid|Pids]) :-
+spawn_parallel_workers(Goals, Templates, Pids) :-
+    spawn_parallel_workers(none, Goals, Templates, Pids).
+spawn_parallel_workers(_, [], [], []).
+spawn_parallel_workers(Scope, [Goal|Goals], [Template|Templates], [Pid|Pids]) :-
     self(Self),
-    spawn_runtime(parallel:parallel_worker(Self, Pid, Goal, Template), Pid,
-          [monitor(true),'$entry_context'(caller)]),
-    spawn_parallel_workers(Goals, Templates, Pids).
+    spawn_worker(Scope, parallel:parallel_worker(Self, Pid, Goal, Template), Pid),
+    spawn_parallel_workers(Scope, Goals, Templates, Pids).
 
 parallel_worker(Self, Pid, Goal, Template) :-
     call_qualified_goal(Goal),
     send(Self, Pid-Template).
 
-collect_parallel_workers(_, [], []).
-collect_parallel_workers(AllPids, [Pid|Pids], [Template|Templates]) :-
+collect_parallel_workers(AllPids, Pids, Templates) :-
+    collect_parallel_workers(none, AllPids, Pids, Templates).
+collect_parallel_workers(_, _, [], []).
+collect_parallel_workers(Scope, AllPids, [Pid|Pids], [Template|Templates]) :-
     receive({
         Pid-Answer ->
             ( Template = Answer
-            -> receive({down(Pid, _, _) -> true})
-            ;  tidy_up_all(AllPids), !, fail
+            -> receive({down(Pid, Pid, _) -> true}), release_worker(Scope, Pid)
+            ;  close_workers(Scope, AllPids), !, fail
             ) ;
-        down(FailedPid, _, false) if known_worker(FailedPid, AllPids) ->
-            tidy_up_all(AllPids), !, fail ;
-        down(FailedPid, _, Reason)
+        down(FailedPid, FailedPid, false) if known_worker(FailedPid, AllPids) ->
+            close_workers(Scope, AllPids), !, fail ;
+        down(FailedPid, FailedPid, Reason)
                 if (known_worker(FailedPid, AllPids),
                     (Reason \== true ; FailedPid == Pid)) ->
             % A later worker's normal down must wait for its result.
-            tidy_up_all(AllPids),
+            close_workers(Scope, AllPids),
             worker_exit_error(FailedPid, Reason, Error),
             throw(Error)
     }),
-    collect_parallel_workers(AllPids, Pids, Templates).
+    collect_parallel_workers(Scope, AllPids, Pids, Templates).
 
 
 %!  first_solution(-Solution, :Goals) is semidet.
@@ -108,8 +113,9 @@ first_solution_in(Module, Solution, Goals0, Options) :-
     valid_stop_policy(OnError),
     must_be(list, Goals0),
     qualify_goals(Goals0, Module, Goals),
-    spawn_first_workers(Goals, Solution, Pids),
-    wait_first(Pids, Solution, OnFail, OnError).
+    with_worker_scope(Scope,
+        (spawn_first_workers(Scope, Goals, Solution, Pids),
+         wait_first(Scope, Pids, Solution, OnFail, OnError))).
 
 validate_first_solution_options([]).
 validate_first_solution_options([on_fail(_)|Options]) :- !,
@@ -126,12 +132,13 @@ valid_stop_policy(Value) :-
     throw(error(domain_error(first_solution_policy, Value),
                 first_solution/3)).
 
-spawn_first_workers([], _, []).
-spawn_first_workers([Goal|Goals], Solution, [Pid|Pids]) :-
+spawn_first_workers(Goals, Solution, Pids) :-
+    spawn_first_workers(none, Goals, Solution, Pids).
+spawn_first_workers(_, [], _, []).
+spawn_first_workers(Scope, [Goal|Goals], Solution, [Pid|Pids]) :-
     self(Self),
-    spawn_runtime(parallel:first_worker(Self, Pid, Solution, Goal), Pid,
-          [monitor(true),'$entry_context'(caller)]),
-    spawn_first_workers(Goals, Solution, Pids).
+    spawn_worker(Scope, parallel:first_worker(Self, Pid, Solution, Goal), Pid),
+    spawn_first_workers(Scope, Goals, Solution, Pids).
 
 first_worker(Self, Pid, Solution, Goal) :-
     call_qualified_goal(Goal),
@@ -140,35 +147,37 @@ first_worker(Self, Pid, Solution, Goal) :-
 call_qualified_goal(qualified_goal(Module, Goal)) :-
     isolation:call_in_module(Module, Goal).
 
-wait_first([], _, _, _) :- !, fail.
-wait_first(Pids, Solution, OnFail, OnError) :-
+wait_first(Scope, [], _, _, _) :- !, close_workers(Scope, []), fail.
+wait_first(Scope, Pids, Solution, OnFail, OnError) :-
     receive({
         Winner-Answer if known_worker(Winner, Pids) ->
             ( Solution = Answer
-            -> tidy_up_all(Pids)
-            ;  tidy_up_all(Pids), !, fail
+            -> close_workers(Scope, Pids)
+            ;  close_workers(Scope, Pids), !, fail
             ) ;
-        down(FailedPid, _, false) if known_worker(FailedPid, Pids) ->
-            handle_first_failure(FailedPid, Pids, Solution,
+        down(FailedPid, FailedPid, false) if known_worker(FailedPid, Pids) ->
+            release_worker(Scope, FailedPid),
+            handle_first_failure(Scope, FailedPid, Pids, Solution,
                                  OnFail, OnError) ;
-        down(FailedPid, _, Reason)
+        down(FailedPid, FailedPid, Reason)
                 if known_worker(FailedPid, Pids) ->
             worker_exit_error(FailedPid, Reason, Error),
-            handle_first_error(FailedPid, Error, Pids, Solution,
+            release_worker(Scope, FailedPid),
+            handle_first_error(Scope, FailedPid, Error, Pids, Solution,
                                OnFail, OnError)
     }).
 
-handle_first_failure(Pid, Pids, Solution, continue, OnError) :- !,
+handle_first_failure(Scope, Pid, Pids, Solution, continue, OnError) :- !,
     select(Pid, Pids, Rest),
-    wait_first(Rest, Solution, continue, OnError).
-handle_first_failure(_, Pids, _, stop, _) :-
-    tidy_up_all(Pids), !, fail.
+    wait_first(Scope, Rest, Solution, continue, OnError).
+handle_first_failure(Scope, _, Pids, _, stop, _) :-
+    close_workers(Scope, Pids), !, fail.
 
-handle_first_error(Pid, _, Pids, Solution, OnFail, continue) :- !,
+handle_first_error(Scope, Pid, _, Pids, Solution, OnFail, continue) :- !,
     select(Pid, Pids, Rest),
-    wait_first(Rest, Solution, OnFail, continue).
-handle_first_error(_, Error, Pids, _, _, stop) :-
-    tidy_up_all(Pids),
+    wait_first(Scope, Rest, Solution, OnFail, continue).
+handle_first_error(Scope, _, Error, Pids, _, _, stop) :-
+    close_workers(Scope, Pids),
     throw(Error).
 
 
@@ -180,23 +189,7 @@ known_worker(Pid, Pids) :-
     memberchk(Pid, Pids).
 
 
-% Cleanup uses a fresh monitor as an ordering barrier. Once its down/3 has
-% arrived, no result or earlier monitor notification from that worker can be
-% delivered after the zero-time drain.
-tidy_up_all([]).
-tidy_up_all([Pid|Pids]) :-
-    tidy_up(Pid),
-    tidy_up_all(Pids).
-
-tidy_up(Pid) :-
-    demonitor(Pid, [flush]),
-    monitor(Pid, CleanupRef),
-    exit(Pid, kill),
-    receive({down(Pid, CleanupRef, _) -> true}),
-    drain_worker_messages(Pid).
-
-drain_worker_messages(Pid) :-
-    receive({
-        Pid-_ -> drain_worker_messages(Pid) ;
-        down(Pid, _, _) -> drain_worker_messages(Pid)
-    }, [timeout(0)]).
+% Private compatibility path for focused collector tests; public calls always
+% supply an owning scope spanning startup and collection.
+close_workers(none, Pids) :- !, tidy_up_all(Pids).
+close_workers(Scope, _) :- close_worker_scope(Scope).

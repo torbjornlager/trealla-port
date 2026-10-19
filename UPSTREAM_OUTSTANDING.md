@@ -244,3 +244,56 @@ created an unintended eventless loop in pause-and-resume. The child compiler
 context now uses the history node ID, matching SWI. Parser/model and live
 execution regressions cover the correction. This was a port bug, not evidence
 of a Trealla engine defect.
+
+## Port lifecycle follow-up: duplicate exit signals during cleanup
+
+Local statechart invocation testing reproduced a child whose native thread had
+finished while its actor registration and monitor remained: a first `stop`
+signal was followed by the parent link's `kill` during child `at_exit` cleanup.
+`down_reason/2` consumes the first recorded reason before registry removal,
+leaving a window in which a second exit can interrupt cleanup. Statechart
+invocation now retires its own parent-to-child link when explicitly stopping
+an owned child, avoiding this duplicate path. Ten repetitions of the unchanged
+invocation examples then reclaimed all children. General actor shutdown
+hardening remains separate work. This is a port lifecycle finding, not yet
+an independently demonstrated Trealla engine bug to submit upstream.
+
+The broader statechart timer/forced-halt cleanup tests have also intermittently
+reported a registry mutex ownership error or failed to observe complete cleanup;
+the full unit suite passed on retry. This remains a port shutdown follow-up,
+without a minimized engine-only reproducer establishing an upstream defect.
+
+## Port/UI follow-up: private helper re-entry after chart invocation
+
+A portal scratch-source test completed remote chart checks against n3, then
+reported `existence_error(procedure,ui_text_charts/1)` on the second iteration
+of a `forall/2` loop after a local chart had invoked a remote child. A new direct
+query calling the same private helper succeeded. The harness and a sequential
+comparison are saved in `reproducers/port-private-chart-reentry.pl`. This needs
+a smaller source-context reproducer before attributing it to the engine or
+submitting an upstream report; the remote chart batch does not change general
+private-source re-entry machinery.
+
+Follow-up assessment (2026-10-19, unmodified Trealla v3.13.10): the saved
+portal reproducer passed with both iterations targeting n3, then passed with
+its original n3/disposable-Trealla peer pair. Five further complete two-peer
+runs in one `forall/2` also passed. Simple private-module helper loops and
+local chart startup/cleanup probes did not reproduce the missing-helper
+error. No source-context or engine root cause is established. Retain this
+as an intermittent port/UI observation; do not add a speculative context
+rewrite or submit it as a confirmed upstream engine defect. A future
+reproduction should compare explicit module qualification and the existing
+`\+ (Generate, \+ Test)` execution form, then reduce outside the portal.
+
+## Interoperability follow-up: concurrent remote named-startup crash
+
+On 2026-10-19, the full interoperability matrix exited with SIGSEGV in the
+Trealla client during `remote_named_tests:remote_named_live_test/1` against SWI.
+The macOS report `tpl-2026-10-19-121431.ips` identifies `match_head` in a
+`start_routine_thread_create` thread. Six subsequent fresh-process runs passed
+with the startup-cleanup repair, and six passed in a separate copy using the
+pre-repair `supervisor_actor.pl`. This does not establish either a startup-cleanup
+regression or an upstream engine defect. Retain the report and application test;
+a reliable reduction is needed before attribution or an upstream submission.
+The complete interoperability matrix passed on the subsequent rerun; the
+initial crash remains an intermittent observation, not a resolved defect.

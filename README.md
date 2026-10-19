@@ -53,10 +53,26 @@ error. `first_solution/2-3` uses its existing `on_error(stop|continue)` policy
 failing if no workers remain. Later parallel workers may finish first; their
 normal down notifications stay deferred until their results are collected.
 Once a result is accepted, its down notification confirms termination regardless
-of reason. Unrelated monitor messages remain available. These changes leave
-partial-startup rollback and abandoned-computation cleanup for a separate batch.
-The focused regressions are in `parallel_exit_tests.pl`, included by
-`./tools/test.sh unit` alongside the existing parallel tests.
+of reason. Only the combinator's own monitor references are selected or drained;
+application monitors, including additional monitors on the same worker, remain
+available.
+
+Both generics now own their local workers in a private scope spanning startup
+and collection. Each pid is recorded before its thread is created, closing the
+interruption gap during startup. Partial startup failure, exceptions, query
+interruption and cuts reclaim workers already reserved/started. Ordinary
+unwinding waits for private termination barriers and removes worker replies
+before propagating the original exception. A caller already committed to actor
+termination instead withdraws its monitors and requests worker termination,
+without waiting on its dying mailbox. Only the scope's own parent-to-worker
+links are retired when stopping workers, avoiding duplicate signals from parent
+teardown. Nested invocations have independent nonbacktrackable ownership records,
+removed after cleanup. No remote cancellation or broader actor-lifecycle
+hardening is added.
+
+The focused regressions are in `parallel_exit_tests.pl` and
+`worker_scope_tests.pl`, included by `./tools/test.sh unit` alongside the
+existing parallel tests.
 
 `server_actor.pl` ports the SWI generic server behaviour. A callback of the
 form `Callback(Request, OldState, Response, NewState)` is copied into the
@@ -74,7 +90,9 @@ Thread-local model, configuration, history and event queues isolate concurrent
 charts. It supports hierarchy, shallow/deep history, parallel regions,
 eventless and timed transitions, internal/completion events, entry/exit actions,
 guards, snapshot re-offering of deferred events, and private embedded Prolog
-datamodels. `<spawn>` child invocation is explicitly rejected.
+datamodels. Local `<spawn>` invocation supports actors, toplevels, servers, supervisors and nested
+statecharts. Remote actor/toplevel/server/supervisor/statechart invocation is also supported,
+including text and URI remote statechart creation.
 See the statechart execution contract below; parsing a document does not imply
 that all of its features can execute.
 
@@ -1149,6 +1167,36 @@ does not replace the original startup/publication error. Unnamed spawning and
 successful monitor delivery retain their behavior. No wire protocol extension
 is required.
 
+Supervisor initial startup and dynamic additions now use a private startup
+journal. Each local child is recorded before thread creation and remains
+provisional until monitoring and child bookkeeping succeed. The journal is
+committed only when the whole initial child list, or one dynamic addition,
+succeeds. Failure or exception rolls back that attempt in reverse startup order,
+using each child's existing shutdown policy: graceful server stop with the
+configured timeout or `infinity`, immediate `shutdown` for ordinary goals, and
+`kill` for `brutal_kill`. Cleanup uses private termination monitors and withdraws
+only the attempt's lifecycle monitors, preserving unrelated application
+monitors, including additional monitors on the same child. Parent links for
+children being rolled back are retired before explicit stops to avoid duplicate
+signals from supervisor teardown. If shutdown itself throws, rollback still
+attempts to stop that child and continues through the rest; a primary startup
+exception remains the reported error.
+
+Initial ordinary failure still exits with `init_failed`; an initial startup
+exception retains its original term. Supervisor creation still acknowledges
+actor creation before its children finish starting, so callers use a monitor
+to observe later initialization failure. A dynamic startup exception now returns
+`error(Error)` while preserving the supervisor's previous children/state;
+ordinary startup failure retains `error(start_failed)`, duplicate ids retain
+`error(already_present)`, and successful additions retain `ok`. Failed attempts
+release their child names, so the id/name can be retried. Reserved actor/PTCP
+control exceptions are rethrown rather than returned as addition errors.
+Committed actor termination retains normal parent-link containment without
+waiting on its dying mailbox. This does not alter automatic or explicit restart
+failure handling, restart strategies, or general supervisor-exit cleanup.
+`supervisor_startup_tests.pl` covers rollback order, provisional children, source
+setup errors, name reuse, shutdown policies, cleanup errors and monitor isolation.
+
 The Trealla receiver recognizes the existing unqualified
 `sup_init(Specs, sup(Strategy, Intensity, Period, [], []))` spawn entry used by
 supervisor constructors. It validates the normalized child specifications and
@@ -1639,15 +1687,15 @@ is substantially more expensive, while its warmed local ping-pong path is about
 20% faster. The raw samples and runner are retained with the report so the
 comparison can be repeated after either implementation changes.
 
-## Native statechart execution: first batch
+## Native statechart execution
 
 `statechart_spawn(Pid, Options)` starts a local chart actor. Supply exactly one
 XML source, `src_text(Text)` or `src_uri(URI)`, plus optional supplemental Prolog
 `src_list/1` or `src_predicates/1` sources. `trace(true)` is the default;
 `trace(false)` suppresses trace events, and duplicate trace options are rejected.
 Ordinary local spawn options, monitors, links, I/O targets and atomic `name/1`
-creation use the existing actor machinery. Remote `node(URL)` creation is not
-provided by this constructor yet; use a Trealla session on the receiving node.
+creation use the existing actor machinery. Remote `node(URL)` creation is also
+supported, as described below.
 
 The caller fetches URI sources through the existing origin/IP allowlists,
 redirect checks, fetch deadline and source-size limit. A root-relative URI uses
@@ -1667,18 +1715,123 @@ features listed above. History default transitions are attached to the history
 node rather than its parent, correcting an existing model-compiler bug.
 Embedded `<datamodel>` code is loaded after supplemental sources, in document
 order. Its local clauses append to supplemental clauses and shadow shared
-predicates only in that chart. Facts, rules, DCGs and `dynamic/1` declarations
+predicates only in that chart. Facts, rules, DCGs and `dynamic/1`/`discontiguous/1` declarations
 use the existing private actor source loader; separate charts do not share
-mutable datamodel facts. The same source sandbox applies before startup: in
+mutable datamodel facts. Empty `dynamic/1` and `discontiguous/1` declarations
+create existing predicates with no clauses, as required by ISO: calls fail
+normally, negation succeeds and `current_predicate/1` succeeds. Declared
+predicates and both declaration types survive `src_predicates/1` copying,
+including when the same predicate carries both declarations. Clause order and
+variable sharing are retained; no persistent placeholder clause is added.
+The same source sandbox applies before startup: in
 blacklist/whitelist modes only the existing permitted declarations are accepted,
 and arbitrary directives are rejected. An empty `dynamic/1` declaration also
-admits that predicate in the chart’s whitelist application vocabulary.
+admits that predicate in the chart’s whitelist application vocabulary;
+`discontiguous/1` declarations also admit their predicates in checked source.
+Malformed or reserved declaration targets are rejected. The source policies
+still reject `multifile/1` in both blacklist and whitelist modes; this repair
+does not change that policy. `source_declaration_tests.pl` covers text/list
+sources, empty predicates, declaration copying and these sandbox boundaries.
 Trealla’s private actor namespace supplies isolation; the XML code need not
 declare `thread_local/1`. Sandbox-off retains trusted source-loading semantics.
 
-`<spawn>` child invocation raises
-`domain_error(trealla_statechart_feature, child_invocation)` before startup. Dynamic
-trace toggling and a peer-side remote-constructor adapter remain separate work.
+Local `<spawn type="actor">`, `<spawn type="toplevel">` and
+`<spawn type="statechart">` reuse the existing constructors. Local server and
+supervisor invocation use the existing policy-aware behaviour preparation. As in SWI, invocation
+waits until immediate transitions and queued internal events have settled;
+transient states exited before that point create no children. Each successful
+invocation emits `invoked(Type,Pid,State)` and queues the internal event
+`spawned(Pid)`. Ordinary output/answer messages and optional `monitor(true)`
+notifications report child results and termination; there is no automatic
+child-completion `done(State)` event.
+
+Child operands/options and local destinations are validated before the parent
+starts. Source predicates are copied from the parent chart's private database
+at invocation time, after its datamodel is installed. Child source preparation
+and execution preserve the chart's sandbox mode/profile and existing fetch
+restrictions. Inline source belongs to the child, not the parent datamodel.
+Nested chart XML is compiled/checked by its constructor at invocation time.
+
+Exiting an owning state sends `exit(Child,stop)` to its recorded children,
+including those created with `link(false)`, and retires those records. The
+chart-to-child link is removed at that handoff, preventing a second exit signal
+from parent cleanup from interrupting the child’s own cleanup. Links remain
+active throughout the owning state’s lifetime. Re-entry
+creates fresh children. Chart cleanup also stops outstanding recorded children
+on failure, exception or abort, including partial invocation startup failure.
+Like SWI's state-exit handling, this requests termination without waiting for
+completed child shutdown. It does not change general actor shutdown policies.
+
+Server invocation requires `callback/1` and `state/1`; supervisor invocation
+requires `children/1`. Inline source stays private to the behaviour. Callback
+predicates and supervisor child entry predicates defined in the parent are
+copied at invocation, alongside explicit `src_predicates/1` sources. Callback
+closures, child specifications, supplied code and runtime callbacks retain the
+chart’s sandbox/profile checks. Supervisor requests use the existing guarded
+child-admission path, including dynamic additions. Names, reply formats and
+restart policies retain their existing behaviour semantics.
+
+`node(URL)` also invokes an actor, toplevel, server or supervisor remotely.
+Copied parent predicates are materialized when the stable state is invoked.
+The calling Trealla node resolves supplemental Prolog `src_uri/1` sources under
+its fetch policy before sending their contents; the peer independently checks
+the received source and entry under its own profile/sandbox. Sender-private
+guard closures are not used as remote behaviour entries. Actor spawning uses
+the existing transport; toplevel startup uses the `toplevel_spawn` command;
+servers use `server_loop/2` and supervisors use `sup_init/2`, as in SWI.
+Trealla's narrow server receiver adapter checks callbacks and source and retains
+runtime callback guards. A user-defined `server_loop/2` supplied as source
+continues through ordinary actor spawning instead of the behaviour adapter.
+
+Remote names remain caller-side aliases, monitors retain their complete
+references, and remote toplevel calls retain templates, answer terms and target
+routing through the existing checked query command. State exit and partial
+invocation rollback request remote termination through the existing connection;
+they do not wait for completed remote shutdown or guarantee reclamation after
+connection loss. The native SWI and Trealla interoperability tests cover all
+four types, copied/inline sources, replies, monitors, name conflicts, sender and
+receiver sandbox rejection, rollback and unrelated monitors.
+
+Remote `statechart_spawn/2` and `<spawn type="statechart">` use the same
+constructor and the SWI-compatible `interpret/1`, `interpret_text/1`,
+`interpret_trace/2` and `interpret_text_trace/2` wire entries. A narrow Trealla
+receiver adapter shares local chart preparation and runs the resulting model
+in the transport-created actor: its returned pid is the actual chart, without
+an extra wrapper actor. Caller-supplied definitions of those entry predicates
+retain ordinary source treatment; qualified private runtime calls are not
+made public.
+
+For remote charts, the destination fetches URI XML and resolves root-relative
+XML URIs against its configured public URL, applying its own fetch limits.
+The sender copies supplemental `src_predicates/1` at invocation and resolves
+supplemental Prolog URI sources under its own policy, as above. Supplemental
+Prolog precedes the embedded datamodel. The destination independently applies
+its profile/sandbox to those sources, guards and actions; sender module names
+and compiled private guard closures grant no authority there. Text charts are
+also validated under the sending Trealla chart's policy. Private mutable data,
+trace settings, naming, complete monitor references and state-exit cleanup are
+preserved.
+
+Trealla validates/fetches the chart before returning the successful spawn
+reply, so a preparation error releases the caller's name reservation without
+publishing a pid. SWI may acknowledge creation before XML loading fails and
+report failure through `down/3`; its embedded action checks also occur at
+execution time. Callers must therefore handle both setup errors and later
+termination when using different peers. Remote halt retains each runtime's
+existing acknowledgement and timeout behavior.
+
+The outbound client decodes acknowledged terminal/trace envelopes and sends
+`browser_io_reply` after accepting them. Spawn waits service these
+acknowledgements too, preventing trace-enabled charts from blocking later
+startup. Trace terms use the transport's actor operators when decoded.
+Native SWI's distributed terminal sink remains in effect when no inherited
+terminal endpoint is supplied.
+
+`node(localhost)` remains accepted for every type. Remote destinations inside
+supervisor child specifications, dynamic trace toggling and connection-loss
+reclamation remain separate work. `remote_chart_tests.pl` covers preparation,
+source fetching, private data, trace envelopes, invocation, halt and monitors;
+`swi_remote_chart_interop.pl` exercises SWI's public constructor against Trealla.
 
 `statechart_halt(Pid, Reply)` waits for the legacy `reply(true)` stop
 acknowledgement or observed termination. The three-argument form adds a
@@ -1698,6 +1851,10 @@ parallel completion, timers, deferred events, private sources, mutable datamodel
 isolation, GCD/closure computations, shared-predicate shadowing and sandbox
 admission. `swi_statechart_interop.pl` checks public text/URI startup, traces,
 halt, monitor delivery and fetch restrictions. These run in the ordinary unit
-and interoperability suites. This batch does not claim every demonstrator
-statechart example is supported, along with datamodel computation and shared
-database examples; child invocation remains explicitly unsupported.
+and interoperability suites. `statechart_invocation_tests.pl` additionally
+checks actor/toplevel/server/supervisor/nested-chart invocation, parent datamodel source copying,
+paging, invocation timing, state re-entry, partial startup rollback, abort
+cleanup and unrelated monitors. `remote_statechart_invocation_tests.pl` adds
+server receiver/sandbox boundaries and live four-behaviour checks against SWI
+and Trealla, including reply targets, aliases and rollback. The local invocation examples 13–17
+are supported; this does not claim every demonstrator example is supported.

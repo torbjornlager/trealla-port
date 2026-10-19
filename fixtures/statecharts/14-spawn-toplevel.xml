@@ -1,0 +1,54 @@
+<!--
+
+    Driving a toplevel actor from a statechart.
+
+    Another use of <spawn>: this chart spawns a `toplevel` actor
+    preloaded with a small program (q/1 over the facts p(a) to p(d)) and
+    then drives its backtracking search by message. The `ask` state calls
+    the toplevel for one solution; each success(Pid, Data, true) event
+    prints an answer and asks for the next with toplevel_next, until a
+    success(_, Data, false) event signals the last solution and the chart
+    finishes. It is the statechart-level view of getting answers one at a
+    time from a running goal.
+
+    Run the chart from the Examples menu.
+    Keep the Logger open and SXML trace selected.
+
+-->
+
+<statechart version="0.2" initial="spawn-ask-collect">
+    <state id="spawn-ask-collect" initial="ask">
+        <spawn type="toplevel" options="[time_limit(30)]">
+            q(X) :- p(X).
+            p(a). p(b). p(c). p(d).
+        </spawn>
+        <state id="ask">
+            <go to="collect" on="spawned(Pid)">
+                toplevel_call(Pid, q(X), [
+                    limit(1)
+                ])
+            </go>
+        </state>
+        <state id="collect">
+            <go to="collect" on="success(Pid, Data, true)">
+                writeln(Data),
+                toplevel_next(Pid)
+            </go>
+            <go to="final" on="success(_, Data, false)">
+                writeln(Data)
+            </go>
+        </state>
+    </state>
+    <final id="final" />
+</statechart>
+
+
+<!-- <examples>
+
+?- statechart_spawn(Pid, [
+       src_text(<editor>)
+   ]).
+
+?- statechart_halt($Pid, Reply, 1).
+
+-->

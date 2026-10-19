@@ -107,6 +107,16 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "remote statechart construction and trace acknowledgements" \
+        "$TPL" -g "(catch((consult('$ROOT/remote_chart_tests.pl'),remote_chart_tests:unit),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "remote statechart receiver boundary" \
+        "$TPL" -g "(catch((consult('$ROOT/remote_statechart_invocation_tests.pl'),remote_statechart_invocation_tests:unit),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "discontiguous source declarations" \
+        "$TPL" -g "(catch((consult('$ROOT/source_declaration_tests.pl'),source_declaration_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "empty dynamic declarations and boxshop" \
+        "$TPL" -g "(catch((consult('$ROOT/statechart_boxshop_tests.pl'),statechart_boxshop_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "statechart local invocation" \
+        "$TPL" -g "(catch((consult('$ROOT/statechart_invocation_tests.pl'),statechart_invocation_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "statechart execution" \
         "$TPL" -g "(catch((consult('$ROOT/statechart_actor_tests.pl'),statechart_actor_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "supervisor halt ordering" \
@@ -127,6 +137,8 @@ run_unit() {
         "$TPL" -g "(catch((consult('$ROOT/registration_tests.pl'),registration_tests:registration_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "atomic local named creation" \
         "$TPL" -g "(catch((consult('$ROOT/named_creation_tests.pl'),named_creation_tests:named_creation_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "supervisor initial and dynamic startup cleanup" \
+        "$TPL" -g "(catch((consult('$ROOT/supervisor_startup_tests.pl'),supervisor_startup_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "supervisor child specification validation" \
         "$TPL" -g "(catch((consult('$ROOT/child_spec_tests.pl'),child_spec_tests:child_spec_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "specialized wrapper option validation" \
@@ -150,6 +162,8 @@ run_unit() {
     run_tpl_goal "actors" "run_test_group(actors)"
     run_tpl_goal "toplevel actors" "run_test_group(toplevel)"
     run_tpl_goal "parallel behaviours" "run_test_group(parallel)"
+    run_with_timeout "worker scope startup and interruption cleanup" \
+        "$TPL" -g "(catch((consult('$ROOT/worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "unexpected parallel worker exits" \
         "$TPL" -g "consult('$ROOT/parallel_exit_tests.pl'),(parallel_exit_tests->halt;halt(1))"
     run_with_timeout "generic server behaviour" \
@@ -304,6 +318,10 @@ run_interop() {
             -g "use_module('$TRINITY_NODE_FILE'),node:node($swi_actor_port,[profile(actor),auth(open)]),thread_get_message(stop)"
         swi_actor_pid=$STARTED_PID
         wait_for_port "$swi_actor_port" || fail "SWI actor node did not start on port $swi_actor_port"
+        run_with_timeout "Trealla remote statechart text/URI -> SWI" \
+            "$TPL" -g "(catch((consult('$ROOT/remote_chart_tests.pl'),remote_chart_tests:live_uri($swi_actor_port,'http://127.0.0.1:$source_port/chart.xml')),E,(writeq(E),nl,fail))->halt;halt(1))"
+        run_with_timeout "Trealla statechart invocation -> SWI" \
+            "$TPL" -g "(catch((consult('$ROOT/remote_statechart_invocation_tests.pl'),remote_statechart_invocation_tests:live($swi_actor_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Trealla -> SWI actor semantic contracts" \
             "$TPL" -g "(catch((consult('$ROOT/distribution_tests.pl'),cross_runtime_actor_contract_test($swi_actor_port)),_,fail)->halt(0);halt(1))"
         run_with_timeout "SWI -> Trealla actor semantic contracts" \
@@ -329,10 +347,22 @@ run_interop() {
     fi
 
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port)"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port,[load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8'])])"
     trealla_remote_pid=$STARTED_PID
     sleep 0.2
     kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
+    if [ -f "$TRINITY_NODE_FILE" ]; then
+        run_with_timeout "Native SWI statechart constructor -> Trealla" \
+            "$SWIPL" -q -s "$ROOT/swi_remote_chart_interop.pl" \
+            -g "swi_remote_chart_interop:run_uri($swi_actor_home_port,$trealla_remote_port,'http://127.0.0.1:$source_port/chart.xml','$TRINITY_NODE_FILE'),halt"
+    fi
+    run_with_timeout "Trealla remote statechart text/URI -> Trealla" \
+        "$TPL" -g "(catch((consult('$ROOT/remote_chart_tests.pl'),remote_chart_tests:live_uri($trealla_remote_port,'http://127.0.0.1:$source_port/chart.xml')),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Trealla statechart invocation -> Trealla" \
+        "$TPL" -g "(catch((consult('$ROOT/remote_statechart_invocation_tests.pl'),remote_statechart_invocation_tests:live($trealla_remote_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "SWI public local statechart invocation -> Trealla" \
+        "$SWIPL" -q -s "$ROOT/swi_statechart_interop.pl" \
+        -g "swi_statechart_interop:run_invocations($trealla_remote_port),halt"
     run_with_timeout "Trealla distributed source isolation" \
         "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(distribution_source_isolation_test($trealla_remote_port)->halt;halt(1))"
     run_with_timeout "Trealla validated remote toplevel wrapper" \

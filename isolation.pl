@@ -596,6 +596,15 @@ read_source_terms_(In, Terms) :-
       read_source_terms_(In, Rest)
     ).
 
+% Validate the complete declaration before installing any source ownership.
+discontiguous_pis(Decl, PIs) :-
+    must_be(nonvar, Decl),
+    ( Decl = (A,B)
+    -> discontiguous_pis(A, Left), discontiguous_pis(B, Right),
+       append(Left, Right, PIs)
+    ; source_predicate_indicator(Decl, _, _), PIs = [Decl]
+    ).
+
 source_predicate_indicator(PI, Name, Arity) :-
     must_be(nonvar, PI),
     ( PI = Name/Arity,
@@ -656,6 +665,7 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_control_catch/4,sandbox_format/2,sandbox_sleep/1,sandbox_between/3,sandbox_atom_string/2,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     format(Out, ':- dynamic \'$actor_source_pi\'/1.~n', []),
     format(Out, ':- dynamic \'$actor_dynamic_pi\'/1.~n', []),
+    format(Out, ':- dynamic \'$actor_discontiguous_pi\'/1.~n', []),
     format(Out, ':- dynamic \'$actor_shared_pi\'/1.~n', []),
     format(Out, ':- dynamic \'$actor_loading_shared\'/0.~n', []),
     format(Out, '\'$actor_load_shared\'(Text) :- setup_call_cleanup(assertz(\'$actor_loading_shared\'), \'$actor_text\'(Text), retractall(\'$actor_loading_shared\')).~n', []),
@@ -722,9 +732,12 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_expanded\'([Term|Terms]) :- !, \'$actor_expanded\'(Term), \'$actor_expanded\'(Terms).~n', []),
     format(Out, '\'$actor_expanded\'((:- module(Name, Exports))) :- !, throw(error(permission_error(load, module, module(Name, Exports)), \'$actor_load\'/1)).~n', []),
     % Clauses are installed with assertz/1 and are therefore mutable already.
-    % Trealla does not expose dynamic/1 as a callable runtime predicate, so
-    % retain the declaration as source ownership metadata without calling it.
+    % Handle dynamic/discontiguous directives while loading, rather than as
+    % ordinary goals. Retain their metadata and create an empty predicate by
+    % asserting/erasing a private temporary clause before actor startup.
+    % Merely remembering the PI leaves a call to an empty predicate undefined.
     format(Out, '\'$actor_expanded\'((:- dynamic(PI))) :- !, \'$actor_remember_pi\'(PI), \'$actor_remember_dynamic_pi\'(PI).~n', []),
+    format(Out, '\'$actor_expanded\'((:- discontiguous(PI))) :- !, isolation:discontiguous_pis(PI,PIs), maplist(\'$actor_remember_pi\',PIs), maplist(\'$actor_remember_discontiguous_pi\',PIs).~n', []),
     format(Out, '\'$actor_expanded\'((:- Directive)) :- !, call(Directive).~n', []),
     format(Out, '\'$actor_expanded\'((Head :- Body)) :- !, \'$actor_remember\'(Head), assertz((Head :- Body)).~n', []),
     format(Out, '\'$actor_expanded\'(Head) :- \'$actor_remember\'(Head), assertz(Head).~n', []),
@@ -734,7 +747,10 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_prepare_pi\'(PI,_Head) :- \'$actor_loading_shared\', !, ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ), ( \'$actor_shared_pi\'(PI) -> true ; assertz(\'$actor_shared_pi\'(PI)) ).~n', []),
     format(Out, '\'$actor_prepare_pi\'(Name/Arity,_Head) :- PI = Name/Arity, ( retract(\'$actor_shared_pi\'(PI)) -> functor(SharedHead,Name,Arity), retractall(SharedHead) ; true ), ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ).~n', []),
     format(Out, '\'$actor_remember_dynamic_pi\'((A,B)) :- !, \'$actor_remember_dynamic_pi\'(A), \'$actor_remember_dynamic_pi\'(B).~n', []),
-    format(Out, '\'$actor_remember_dynamic_pi\'(PI) :- ( \'$actor_dynamic_pi\'(PI) -> true ; assertz(\'$actor_dynamic_pi\'(PI)) ).~n', []),
+    format(Out, '\'$actor_remember_dynamic_pi\'(PI) :- ( \'$actor_dynamic_pi\'(PI) -> true ; assertz(\'$actor_dynamic_pi\'(PI)) ), \'$actor_ensure_empty_pi\'(PI).~n', []),
+    format(Out, '\'$actor_remember_discontiguous_pi\'((A,B)) :- !, \'$actor_remember_discontiguous_pi\'(A), \'$actor_remember_discontiguous_pi\'(B).~n', []),
+    format(Out, '\'$actor_remember_discontiguous_pi\'(PI) :- ( \'$actor_discontiguous_pi\'(PI) -> true ; assertz(\'$actor_discontiguous_pi\'(PI)) ), \'$actor_ensure_empty_pi\'(PI).~n', []),
+    format(Out, '\'$actor_ensure_empty_pi\'(Name/Arity) :- functor(Head,Name,Arity), setup_call_cleanup(assertz(Head,Ref),true,erase(Ref)).~n', []),
     % Trealla does not preserve imports when an arbitrary term is passed
     % through call/1 here. Route the flat Web Prolog surface explicitly,
     % matching the actor_api re-export used by the SWI implementation.
@@ -792,8 +808,7 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_copy_predicates\'([], []).~n', []),
     format(Out, '\'$actor_copy_predicates\'([Name/Arity|PIs], Terms) :- PI = Name/Arity, \'$actor_source_pi\'(PI), !, functor(Head,Name,Arity), \'$actor_dynamic_terms\'(PI,Declarations), findall(Term, (clause(Head,Body0), \'$actor_strip_source_module\'(Body0,Body), \'$actor_clause_term\'(Head,Body,Term)), Here), append(Declarations,Here,Current), \'$actor_copy_predicates\'(PIs,Rest), append(Current,Rest,Terms).~n', []),
     format(Out, '\'$actor_copy_predicates\'([PI|_], _) :- throw(error(existence_error(procedure,PI), src_predicates/1)).~n', []),
-    format(Out, '\'$actor_dynamic_terms\'(PI, [(:- dynamic(PI))]) :- \'$actor_dynamic_pi\'(PI), !.~n', []),
-    format(Out, '\'$actor_dynamic_terms\'(_, []).~n', []),
+    format(Out, '\'$actor_dynamic_terms\'(PI, Terms) :- ( \'$actor_dynamic_pi\'(PI) -> Dynamic=[(:- dynamic(PI))] ; Dynamic=[] ), ( \'$actor_discontiguous_pi\'(PI) -> append(Dynamic,[(:- discontiguous(PI))],Terms) ; Terms=Dynamic ).~n', []),
     format(Out, '\'$actor_strip_source_module\'(Term, Term) :- var(Term), !.~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0), clause(Head,Body)) :- !, \'$actor_strip_source_module\'(Head0,Head), \'$actor_strip_source_module\'(Body0,Body).~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_sleep(Seconds), sleep(Seconds)) :- !.~n', []),
@@ -817,7 +832,7 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_strip_source_args\'([Arg0|Args0], [Arg|Args]) :- \'$actor_strip_source_module\'(Arg0,Arg), \'$actor_strip_source_args\'(Args0,Args).~n', []),
     format(Out, '\'$actor_clause_term\'(Head, true, Head) :- !.~n', []),
     format(Out, '\'$actor_clause_term\'(Head, Body, (Head :- Body)).~n', []),
-    format(Out, '\'$actor_cleanup\' :- forall(retract(\'$actor_source_pi\'(Name/Arity)), (functor(Head, Name, Arity), retractall(Head))), retractall(\'$actor_dynamic_pi\'(_)), retractall(\'$actor_shared_pi\'(_)), retractall(\'$actor_loading_shared\').~n', []).
+    format(Out, '\'$actor_cleanup\' :- forall(retract(\'$actor_source_pi\'(Name/Arity)), (functor(Head, Name, Arity), retractall(Head))), retractall(\'$actor_dynamic_pi\'(_)), retractall(\'$actor_discontiguous_pi\'(_)), retractall(\'$actor_shared_pi\'(_)), retractall(\'$actor_loading_shared\').~n', []).
 
 call_in_module(Module, Goal) :-
     Qualified = Module:Goal,

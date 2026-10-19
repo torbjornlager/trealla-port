@@ -20,11 +20,14 @@ ordered(Order) :-
     receive({down(unrelated,Other,unrelated_reason) -> true},[timeout(0),on_timeout(fail)]),
     receive({unrelated_message(Ref) -> true},[timeout(0),on_timeout(fail)]),
     (Order==reply_first -> receive({down(fake,Mon,true) -> true},[timeout(0),on_timeout(fail)]) ; true).
+% Start the wait deadline after actor setup, so module loading is not charged
+% against the acknowledgement delay this test measures.
 delayed_ack :-
-    refs(Self,Ref,Mon,Deadline),
+    refs(Self,Ref,Mon,_),
     setup_call_cleanup(
-        spawn((send(Self,down(fake,Mon,true)),sleep(0.03),send(Self,Ref-ok)),Sender,[link(false)]),
-        supervisor_actor:sup_halt_wait(fake,Ref,Mon,Deadline,pending),
+        spawn((receive({go -> true}),send(Self,down(fake,Mon,true)),sleep(0.03),send(Self,Ref-ok)),Sender,[link(false)]),
+        (get_time(Now),Deadline is Now+0.1,send(Sender,go),
+         supervisor_actor:sup_halt_wait(fake,Ref,Mon,Deadline,pending)),
         exit(Sender,kill)).
 absent(Outcome) :-
     refs(Self,Ref,Mon,Deadline),

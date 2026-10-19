@@ -39,6 +39,7 @@
     has_parent/2,
     has_descendant_in_set/2,
     invoke/1,
+    stop_invoked/1,
     raise/1,
     in/1,
     log/1,
@@ -61,6 +62,7 @@ statechart actor interpreter. The runtime state itself lives in
 
 %!  clean is det.
 clean :-
+    stop_invoked(_),
     cancel_all_after_transitions,
     destroy_internal_queues,
     retractall(statechart_actor:state(_, _)),
@@ -119,7 +121,7 @@ exit_interpreter([]).
 exit_interpreter([State|States]) :-
     cancel_after_transitions(State),
     forall(statechart_actor:onexit(State, Content), execute_content(Content)),
-    forall(statechart_actor:invoked(State, Pid), exit(Pid, stop)),
+    stop_invoked(State),
     configuration_delete(State),
     (   is_final(State),
         has_parent(State, Parent),
@@ -328,7 +330,26 @@ has_descendant_in_set(State, States) :-
     ),
     !.
 
-invoke(_) .
+invoke(State) :-
+ forall(statechart_actor:to_be_invoked(State,Type,Options),
+  (setup_call_cleanup(
+     statechart_actor:start_invoked_child(Type,Options,Pid),
+     assertz(statechart_actor:invoked(State,Pid)),
+     (statechart_actor:invoked(State,Pid) -> true;stop_invoked_child(Pid))),
+   emit_trace(invoked(Type,Pid,State)),
+   enqueue_internal_event(spawned(Pid)))).
+
+% Retire records as the state exits, so re-entry owns only its new children.
+% The chart's outer cleanup also rolls back partially completed invocation.
+stop_invoked(State) :-
+ forall(retract(statechart_actor:invoked(State,Pid)),stop_invoked_child(Pid)).
+
+stop_invoked_child(Pid) :-
+ self(Self),
+ % State ownership now requests shutdown explicitly. Retire just this link
+ % so parent at_exit cannot send a second signal into child at_exit cleanup.
+ with_mutex('$actor_registry',retractall(actors:link(Self,Pid))),
+ exit(Pid,stop).
 
 raise(Event) :-
     enqueue_internal_event(Event).

@@ -1,0 +1,54 @@
+<!--
+
+    Spawning a generic server from a statechart.
+
+    The <spawn> element can start one of the reusable behaviours, here a
+    stateful server owned by the compound state ServerOwner. The body of
+    <spawn> supplies the counter/4 callback and state="0" its initial
+    state; name(counter_server) lets the chart address the child by name
+    without holding its pid, and monitor(true) reports its termination.
+    Once spawned(Pid) arrives, the Call state sends an increment request:
+    counter/4 changes the stored state from 0 to 1 and returns 1, which
+    the chart prints before raising done. Reaching Final exits
+    ServerOwner, so the server is cleaned up together with the state that
+    owns it.
+
+    Run the chart from the Examples menu.
+    Keep the Logger open and SXML trace selected.
+
+-->
+
+<statechart version="0.2" initial="ServerOwner">
+    <state id="ServerOwner" initial="Start">
+        <spawn type="server"
+               callback="counter"
+               state="0"
+               options="[name(counter_server), monitor(true)]">
+            counter(increment, Old, New, New) :-
+                New is Old + 1.
+        </spawn>
+        <state id="Start">
+            <go to="Call" on="spawned(_)" />
+        </state>
+        <state id="Call">
+            <onentry>
+                server_request(counter_server, increment, Reply),
+                writeln(reply(Reply)),
+                raise(done)
+            </onentry>
+            <go to="Final" on="done" />
+        </state>
+    </state>
+    <final id="Final" />
+</statechart>
+
+
+<!-- <examples>
+
+?- statechart_spawn(Pid, [
+       src_text(<editor>)
+   ]).
+
+?- statechart_halt($Pid, Reply, 1).
+
+-->

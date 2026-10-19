@@ -79,6 +79,8 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- use_module(server_actor).
 :- use_module(supervisor_actor).
 :- use_module(remote_supervisor, []).
+:- use_module(remote_server, []).
+:- use_module(remote_statechart, []).
 :- use_module(statechart_actor, []).
 :- use_module(node).
 :- use_module(rpc, [dispose_namespace_promises/1]).
@@ -383,7 +385,11 @@ dispatch(spawn, JSON, Relay, Reader, Profile, Sandbox) :- !,
     json_options(JSON, Options0),
     actors:validate_spawn_options(Options0,public),
     remote_supervisor:prepare(Sandbox,Profile,Goal,Options0,
-                              FrameworkGoal,FrameworkOptions,IsFramework),
+                              SupervisorGoal,SupervisorOptions,IsSupervisor),
+    (IsSupervisor==yes -> FrameworkGoal=SupervisorGoal,FrameworkOptions=SupervisorOptions,IsFramework=yes
+    ; remote_server:prepare(Sandbox,Profile,Goal,Options0,ServerGoal,ServerOptions,IsServer),
+      (IsServer==yes -> FrameworkGoal=ServerGoal,FrameworkOptions=ServerOptions,IsFramework=yes
+      ; remote_statechart:prepare(Sandbox,Profile,Goal,Options0,FrameworkGoal,FrameworkOptions,IsFramework))),
     (IsFramework==yes -> GuardedGoal=FrameworkGoal,PreparedOptions=FrameworkOptions
     ; sandbox_prepare_spawn(Sandbox,Profile,actor_context,Goal,Options0,
                             GuardedGoal,PreparedOptions)),
@@ -611,6 +617,10 @@ relay_message(WS, '$spawn'(Goal, Options, Reader, Context)) :- !,
         Error,
         thread_send_message(Reader, '$spawn_failed'(Error))).
 
+run_spawn_goal(statechart_actor:run_chart(Model,M,P,App,Trace)) :- !,
+    statechart_actor:run_chart(Model,M,P,App,Trace).
+run_spawn_goal(remote_server:run(Guard,State)) :- !,
+    remote_server:run(Guard,State).
 run_spawn_goal(remote_supervisor:run(Children,Settings)) :- !,
     remote_supervisor:run(Children,Settings).
 run_spawn_goal(Goal) :-

@@ -22,6 +22,7 @@ ordinary goals, generic server callbacks, or nested supervisors.
 
 :- use_module(actors).
 :- use_module(server_actor).
+:- use_module(supervisor_startup).
 :- use_module(isolation, [actor_module/2,rewrite_source_options/3]).
 
 :- meta_predicate(supervisor_spawn(:, -)).
@@ -318,7 +319,7 @@ sup_reply(To, Ref, Reply) :-
                  *******************************/
 
 sup_init(Specs, State0) :-
-    ( start_children(Specs, State0, State)
+    ( with_startup_scope(start_children(Specs, State0, State))
     -> sup_loop(State)
     ; exit(init_failed)
     ).
@@ -334,12 +335,8 @@ start_sub_supervisor(ChildSpecs0, Options) :-
 
 start_children([], State, State).
 start_children([Spec|Specs], State0, State) :-
-    ( do_start_child(Spec, State0, State1)
-    -> start_children(Specs, State1, State)
-    ; State0 = sup(_, _, _, Children, _),
-      shutdown_children(Children),
-      fail
-    ).
+    do_start_child(Spec, State0, State1),
+    start_children(Specs, State1, State).
 
 sup_loop(State) :-
     receive({
@@ -372,8 +369,9 @@ do_start_child(spec(Id, Start, Restart, Shutdown, Type),
                sup(Strategy, MaxR, MaxT, NewChildren, Log)) :-
     \+ member(ch(Id, _, _), Children),
     Spec = spec(Id, Start, Restart, Shutdown, Type),
-    do_spawn_child(Start, Id, Pid),
-    monitor(Pid, _),
+    supervisor_startup:start_child(Spec, Start, Id, Pid),
+    monitor(Pid, Ref),
+    remember_monitor(Pid, Ref),
     append(Children, [ch(Id, Pid, Spec)], NewChildren).
 
 % Receiver-generated starts keep checked sources with their child and execute
@@ -595,14 +593,21 @@ wait_down_timeout(Pid, Timeout) :-
                  *       DYNAMIC OPERATIONS      *
                  *******************************/
 
+startup_error_reply(_, _) :- actor_terminating,!,throw(actor_exit).
+startup_error_reply(Error, _) :-
+    actors:guard_control_exception(Error),!,throw(Error).
+startup_error_reply(Error, error(Error)).
+
 handle_call(start_child(Spec), From, Ref, State0, State) :-
     Spec = spec(Id, _, _, _, _),
     State0 = sup(_, _, _, Children, _),
     ( member(ch(Id, _, _), Children)
     -> sup_reply(From, Ref, error(already_present)), State = State0
-    ; do_start_child(Spec, State0, State)
-    -> sup_reply(From, Ref, ok)
-    ; sup_reply(From, Ref, error(start_failed)), State = State0
+    ; catch((with_startup_scope(do_start_child(Spec, State0, NewState))
+             -> Result=ok ; Result=error(start_failed)),
+            Error,startup_error_reply(Error,Result)),
+      (Result==ok -> State=NewState ; State=State0),
+      sup_reply(From, Ref, Result)
     ).
 
 handle_call(terminate_child(Id), From, Ref,

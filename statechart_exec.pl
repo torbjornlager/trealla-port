@@ -56,6 +56,7 @@ actor profile. Model and runtime facts live in `statechart_actor`.
     has_parent/2,
     has_descendant_in_set/2,
     invoke/1,
+    stop_invoked/1,
     call_chart_goal/1
 ]).
 :- use_module(statechart_support).
@@ -375,7 +376,7 @@ process_states_to_exit([]).
 process_states_to_exit([State|States]) :-
     cancel_after_transitions(State),
     forall(statechart_actor:onexit(State, Content), execute_content(Content)),
-    forall(statechart_actor:invoked(State, Pid), exit(Pid, stop)),
+    stop_invoked(State),
     configuration_delete(State),
     process_states_to_exit(States).
 

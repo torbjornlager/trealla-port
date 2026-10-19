@@ -463,11 +463,21 @@ toplevel_call(Pid, Goal) :-
     toplevel_call(Pid, Goal, []).
 
 toplevel_call(Pid, Goal0, Options) :-
+    remote_toplevel_route(Pid,Node),!,
+    distribution:remote_toplevel_call_routed(Node,Pid,Goal0,Options).
+toplevel_call(Pid, Goal0, Options) :-
     ( nonvar(Goal0), Goal0 = Qualified:_Goal, atom(Qualified)
     -> Goal = Goal0
     ; strip_module(Goal0, _, Goal)
     ),
     Pid ! '$call'(Goal, Options).
+
+% A registered remote route uses the checked WebSocket query command rather
+% than sending sender-private execution helpers as a raw actor message.
+remote_toplevel_route(Pid,remote_node(URL,_,Writer)) :-
+    nonvar(Pid),Pid=_@URL,
+    current_predicate(distribution:remote_pid_writer/3),
+    distribution:remote_pid_writer(Pid,Writer,_).
 
 
 %!  toplevel_next(+Pid) is det.

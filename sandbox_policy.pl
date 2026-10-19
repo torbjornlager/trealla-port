@@ -450,8 +450,20 @@ term_list([Term|Terms], [Term|Terms]) :- !.
 term_list(Term, [Term]).
 
 source_predicate_indicators(Terms, PIs) :-
-    findall(PI, (member(Term, Terms), source_head(Term, Head), head_pi(Head, PI)), Raw),
+    findall(PI, (member(Term, Terms), source_indicator(Term, PI)), Raw),
     sort(Raw, PIs).
+
+% A permitted discontiguous declaration defines an application predicate even
+% when there are no clauses. Do not infer admission for other directives.
+source_indicator((:- discontiguous(Decl)), PI) :- !,
+    discontiguous_indicator(Decl, PI).
+source_indicator(Term, PI) :- source_head(Term, Head), head_pi(Head, PI).
+discontiguous_indicator(Decl, PI) :-
+    must_be(nonvar, Decl),
+    ( Decl = (A,B)
+    -> (discontiguous_indicator(A, PI); discontiguous_indicator(B, PI))
+    ; check_mutable_pi(Decl), PI = Decl
+    ).
 
 source_head((:- _), _) :- !, fail.
 source_head((Head :- _), Head) :- !.
@@ -479,7 +491,8 @@ validate_rewrite_source_term(_Mode, _Profile, _Module, _AppPIs, Fact, Fact) :-
     check_clause_head(Fact).
 
 safe_source_directive(dynamic(PI)) :- !, check_mutable_pi(PI).
-safe_source_directive(discontiguous(PI)) :- !, check_mutable_pi(PI).
+safe_source_directive(discontiguous(PI)) :- !,
+    forall(discontiguous_indicator(PI, _), true).
 safe_source_directive(Directive) :-
     throw(error(permission_error(execute, sandboxed_directive, (:- Directive)),
                 context(sandbox_policy:safe_source_directive/1,
@@ -786,7 +799,12 @@ sandbox_spawn(Mode, Profile, Module, _AppPIs, Goal0, Pid, Options0) :-
 sandbox_toplevel_call(Mode, Profile, Module, AppPIs, Pid, Goal0, Options) :-
     profile_check_goal(Profile, Goal0),
     sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal0),
-    rewrite_goal(Mode, Profile, Module, AppPIs, Goal0, Goal),
+    ( nonvar(Pid), compound(Pid), functor(Pid,@,2),
+      current_predicate(distribution:remote_pid_writer/3),
+      distribution:remote_pid_writer(Pid,_,_)
+    -> Goal=Goal0 % The peer executes portable Prolog, not our private guards.
+    ; rewrite_goal(Mode, Profile, Module, AppPIs, Goal0, Goal)
+    ),
     toplevel_actors:toplevel_call(Pid, Goal, Options).
 
 guarded_assert(Operation, Mode, Profile, Module, AppPIs, Clause0) :-

@@ -249,24 +249,38 @@ remote_demonitor(Node, Ref) :-
 :- meta_predicate(remote_toplevel_spawn(+, -, :)).
 
 remote_toplevel_spawn(Node, RemotePid, Options0) :-
+    remote_toplevel_spawn_mode(Node,RemotePid,Options0,explicit).
+
+% Chart-owned toplevels need the ordinary transparent name/monitor handshake.
+remote_toplevel_spawn_mode(Node, RemotePid, Options0, Mode) :-
     strip_module(Options0, SourceModule, Options1),
-    toplevel_actors:validate_toplevel_spawn_options(Options1,public,
+    (Mode==transparent -> Scope=runtime;Scope=public),
+    toplevel_actors:validate_toplevel_spawn_options(Options1,Scope,
         distribution:remote_toplevel_spawn/3),
     Node = remote_node(URL, _Reader, Writer),
     self(Target),
     isolation:rewrite_source_options(Options1, SourceModule, Options2),
     exclude(local_spawn_option, Options2, Options),
-    term_wire_atom(Options, OptionsText),
+    portable_term_for_writer(Writer,Options,PortableOptions),
+    term_wire_atom(PortableOptions, OptionsText),
     add_inherited_io_fields([command-string_atom(toplevel_spawn),
                              options-string_atom(OptionsText)], Fields),
     web_prolog:object(Fields, JSON),
-    spawn_request(Writer, URL, explicit, Options1, Target, JSON, RemotePid).
+    spawn_request(Writer, URL, Mode, Options1, Target, JSON, RemotePid),
+    (Mode==transparent,memberchk(target(ReplyTarget),Options1) ->
+      node_wire_pid(Node,RemotePid,WirePid),Writer ! '$remote_set_target'(WirePid,ReplyTarget)
+    ; true).
 
 %! remote_toplevel_call(+Node, +RemotePid, :Goal, +Options) is det.
 
 :- meta_predicate(remote_toplevel_call(+, +, 0, +)).
 
 remote_toplevel_call(Node, RemotePid, Goal0, Options0) :-
+    remote_toplevel_call_mode(Node,RemotePid,Goal0,Options0,keep).
+remote_toplevel_call_routed(Node, RemotePid, Goal0, Options0) :-
+    (memberchk(target(Target),Options0) -> Routing=target(Target);Routing=keep),
+    remote_toplevel_call_mode(Node,RemotePid,Goal0,Options0,Routing).
+remote_toplevel_call_mode(Node, RemotePid, Goal0, Options0, Routing) :-
     node_wire_pid(Node, RemotePid, WirePid),
     Node = remote_node(_, _, Writer),
     strip_module(Goal0, _, Goal0Plain),
@@ -280,7 +294,8 @@ remote_toplevel_call(Node, RemotePid, Goal0, Options0) :-
     goal_options_wire_atoms(Goal, [format(prolog)|PortableOptions], ExactGoal, ExactOptions),
     web_prolog:object([command-string_atom(toplevel_call),pid-number(WirePid),
                        goal-string_atom(ExactGoal),options-string_atom(ExactOptions)], ExactJSON),
-    Writer ! '$remote_toplevel_call'(JSON, ExactJSON).
+    (Routing==keep -> Writer ! '$remote_toplevel_call'(JSON, ExactJSON)
+    ; Routing=target(Target),Writer ! '$remote_toplevel_call_target'(WirePid,Target,JSON,ExactJSON)).
 
 local_call_option(target(_)).
 
@@ -463,6 +478,12 @@ remote_writer_loop(WS, URL) :-
 
 writer_message('$remote_json'(JSON), WS, _, true) :- !,
     web_prolog_send(WS, JSON).
+writer_message('$remote_set_target'(Pid,Target),_,_,true) :- !,
+    writer_targets(Targets),maplist(retarget_toplevel(Pid,Target),Targets,Retargeted),
+    nb_setval('$distribution_targets',Retargeted).
+writer_message('$remote_toplevel_call_target'(Pid,Target,JSON,ExactJSON),WS,URL,true) :- !,
+    writer_message('$remote_set_target'(Pid,Target),WS,URL,true),
+    writer_message('$remote_toplevel_call'(JSON,ExactJSON),WS,URL,true).
 writer_message('$remote_toplevel_call'(JSON, ExactJSON), WS, _, true) :- !,
     nb_getval('$distribution_answer_terms', Exact),
     ( Exact == true
@@ -490,16 +511,9 @@ writer_message('$spawn_request'(JSON, Mode, Options, Target, Caller), WS, URL,
     ( nonvar(SendError)
     -> Caller ! '$remote_spawn_error'(Writer,SendError),
        writer_notify_connection_closed(URL),Continue=false
-    ; receive({
-        '$wire_spawned'(WirePid) ->
-            distribution:writer_finish_spawn(WirePid,Mode,Options,Target,Caller,WS,URL,Continue) ;
-        '$wire_spawn_error'(Error) ->
-            Caller ! '$remote_spawn_error'(Writer, Error),Continue=true ;
-        '$remote_lost'(URL, Reason) ->
-            Caller ! '$remote_spawn_error'(Writer,
-                         error(remote_connection_closed(URL, Reason),remote_spawn/4)),
-            distribution:writer_notify_connection_closed(URL),Continue=false
-      }, []) ).
+    ; writer_wait_spawn(Writer,Mode,Options,Target,Caller,WS,URL,Continue) ).
+
+writer_message('$wire_io_ack'(Ack),WS,_,true) :- !,web_prolog_send(WS,Ack).
 writer_message('$remote_lost'(URL, _Reason), _, _, false) :- !,
     writer_notify_connection_closed(URL).
 writer_message('$wire_event'(WirePid, Type, Event), _, URL, true) :- !,
@@ -533,6 +547,21 @@ writer_message('$remote_close', WS, URL, false) :- !,
     writer_notify_connection_closed(URL),
     catch(ws_close(WS, 1000, normal), _, true).
 writer_message(_, _, _, true).
+
+writer_wait_spawn(Writer,Mode,Options,Target,Caller,WS,URL,Continue) :-
+      receive({
+        '$wire_io_ack'(Ack) ->
+            web_prolog_send(WS,Ack),
+            distribution:writer_wait_spawn(Writer,Mode,Options,Target,Caller,WS,URL,Continue) ;
+        '$wire_spawned'(WirePid) ->
+            distribution:writer_finish_spawn(WirePid,Mode,Options,Target,Caller,WS,URL,Continue) ;
+        '$wire_spawn_error'(Error) ->
+            Caller ! '$remote_spawn_error'(Writer, Error),Continue=true ;
+        '$remote_lost'(URL, Reason) ->
+            Caller ! '$remote_spawn_error'(Writer,
+                         error(remote_connection_closed(URL, Reason),remote_spawn/4)),
+            distribution:writer_notify_connection_closed(URL),Continue=false
+      }, []).
 
 writer_finish_spawn(WirePid,Mode,Options,Target,Caller,WS,URL,Continue) :-
     self(Writer),
@@ -587,6 +616,9 @@ writer_close_waiters :-
     nb_getval('$distribution_waiters',Waiters),
     forall(member(waiter(Ref,_,_,Caller),Waiters),Caller ! '$sync_down'(Ref,connection_closed)),
     nb_setval('$distribution_waiters',[]).
+
+retarget_toplevel(Pid,Target,target(Pid,_,Status,Mode),target(Pid,Target,Status,Mode)) :- !.
+retarget_toplevel(_,_,Entry,Entry).
 
 writer_targets(Targets) :-
     ( nb_current('$distribution_targets', Targets) -> true ; Targets = [] ).
@@ -798,6 +830,17 @@ dispatch_remote_type(transport_welcome, JSON, _, Writer) :- !,
     web_prolog:json_boolean_default(JSON, answer_terms, false, Exact),
     nb_setval('$distribution_answer_terms', Exact),
     Writer ! '$wire_capabilities'(Exact).
+% Acknowledge only decoded terminal events, never arbitrary nested commands.
+dispatch_remote_type(io_request,JSON,URL,Writer) :- !,
+    web_prolog:json_text_field(JSON,request_id,RequestId),
+    (catch((web_prolog:json_field(JSON,event,Event),
+           web_prolog:json_atom_field(Event,type,Kind),
+           memberchk(Kind,[output,statechart_trace]),
+           dispatch_remote_event(Event,URL,Writer),Status=ok),_,Status=error) -> true;Status=error),
+    (var(Status) -> Delivered=error;Delivered=Status),
+    web_prolog:object([command-string_atom(browser_io_reply),
+        request_id-string_atom(RequestId),status-string_atom(Delivered)],Ack),
+    Writer ! '$wire_io_ack'(Ack).
 dispatch_remote_type(io_reply, JSON, _, Writer) :- !,
     web_prolog:json_text_field(JSON, request_id, RequestId),
     web_prolog:json_atom_field(JSON, status, Status),
@@ -847,6 +890,8 @@ remote_event(success, JSON, Pid, success(Pid, Rows, More)) :- !,
 remote_event(failure, _, Pid, failure(Pid)) :- !.
 remote_event(error, JSON, Pid, error(Pid, remote_error(Data))) :- !,
     web_prolog:json_text_default(JSON, data, 'Unknown remote error', Data).
+remote_event(statechart_trace,JSON,Pid,terminal_output(Pid,statechart_trace(Data))) :- !,
+    json_event_term(JSON,data,Data).
 remote_event(output, JSON, Pid, output(Pid, Data)) :- !,
     json_event_term(JSON, data, Data).
 remote_event(prompt, JSON, Pid, prompt(Pid, Prompt)) :- !,
@@ -888,7 +933,7 @@ json_binding_value(string(Chars), Term) :-
 
 json_event_term(JSON, Key, Term) :-
     web_prolog:json_text_default(JSON, Key, '', Text),
-    ( catch(read_term_from_atom(Text, Term, []), _, fail) -> true ; Term = Text ).
+    ( catch(distribution:read_term_from_atom(Text, Term, []), _, fail) -> true ; Term = Text ).
 
 remote_error_term(JSON, error(remote_error(Data), distribution)) :-
     web_prolog:json_text_default(JSON, data, 'Unknown remote error', Data).
