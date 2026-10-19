@@ -107,6 +107,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "HTTP continuation cache eviction cleanup" \
+        "$TPL" -g "consult('$ROOT/http_cache_eviction_tests.pl'),(catch(http_cache_eviction_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "HTTP paging request cleanup" \
         "$TPL" -g "(catch((consult('$ROOT/http_paging_cleanup_tests.pl'),http_paging_cleanup_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "remote statechart construction and trace acknowledgements" \

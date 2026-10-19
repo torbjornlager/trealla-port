@@ -82,8 +82,8 @@ When a new request arrives:
 5.  If more exist, the producer is stored back in the cache at
     `Offset + Limit` together with the extra solution as a lookahead.
 
-The cache is bounded by `cache_size/1` (default 100).  When the limit
-is reached, the oldest entry is evicted (FIFO).
+The cache is bounded by `cache_size/1` (default 100). When it exceeds the
+limit, the oldest entries are evicted (FIFO) and their producers are stopped.
 
 ## HTTP and WebSocket on one port {#node-websocket}
 
@@ -1373,16 +1373,18 @@ checkout_http_page(Scope,Gid,Offset,Pid,Lookahead) :-
          ((cache(Gid,Offset,Pid,Lookahead)
            -> retractall(http_page_claim(Pid,Scope));true),throw(Error))))).
 
-% Complete ownership transfer before trimming: later eviction must retain
-% its existing policy. Recover the handoff if interrupted just after insertion,
-% while the mutex still excludes checkout and eviction by other requests.
+% Complete ownership transfer before trimming. Recover the handoff if
+% interrupted just after insertion, while the mutex still excludes checkout
+% and eviction by other requests.
 publish_http_page(Scope,Gid,Offset,Pid,Lookahead) :-
-    with_mutex('$http_page_cache',
-      (catch((assertz(cache(Gid,Offset,Pid,Lookahead)),
+    with_http_page_scope(Evictions,
+      (with_mutex('$http_page_cache',
+        (catch((assertz(cache(Gid,Offset,Pid,Lookahead)),
               retractall(http_page_claim(Pid,Scope))),Error,
          ((cache(Gid,Offset,Pid,Lookahead)
            -> retractall(http_page_claim(Pid,Scope));true),throw(Error))),
-       trim_cache)).
+         trim_cache_owned(Evictions))),
+       close_http_page_scope(Evictions))).
 
 spawn_http_page_producer(Scope,Goal,Template,Pid) :-
     (nb_current('$http_starting_page',Previous) -> Saved=some(Previous);Saved=none),
@@ -1611,8 +1613,11 @@ cache_retract(Gid, Offset, Pid, Lookahead) :-
 %   exceeds cache_size/1.
 
 cache_update(Gid, Offset, Pid, Lookahead) :-
-    with_mutex('$http_page_cache',
-      (assertz(cache(Gid, Offset, Pid, Lookahead)),trim_cache)).
+    with_http_page_scope(Evictions,
+      (with_mutex('$http_page_cache',
+         (assertz(cache(Gid, Offset, Pid, Lookahead)),
+          trim_cache_owned(Evictions))),
+       close_http_page_scope(Evictions))).
 
 
 %!  trim_cache is det.
@@ -1621,17 +1626,24 @@ cache_update(Gid, Offset, Pid, Lookahead) :-
 %   Entries are evicted in insertion order (oldest first) because
 %   assertz/retract maintain FIFO ordering.
 %
-%   Note: evicted producer actors are *not* explicitly stopped.  Their
-%   `run_goal_producer/2` loop will block indefinitely in receive until
-%   the Prolog process exits.  See the known issues in the module
-%   header.
+%   Claim producers before removing entries under the checkout mutex. Stop
+%   them outside the mutex, with the same unwind protection as page requests.
+%   A concurrent checkout either owns its producer first or misses the evicted
+%   entry; eviction never stops a producer already handed to another request.
 
 trim_cache :-
+    with_http_page_scope(Scope,
+      (with_mutex('$http_page_cache',trim_cache_owned(Scope)),
+       close_http_page_scope(Scope))).
+
+trim_cache_owned(Scope) :-
     cache_size(Size),
     findall(_, cache(_, _, _, _), Entries),
     length(Entries, Count),
     (   Count > Size
-    ->  once(retract(cache(_, _, _, _))),
-        trim_cache
+    ->  once(cache(Gid, Offset, Pid, Lookahead)),
+        assertz(http_page_claim(Pid,Scope)),
+        once(retract(cache(Gid, Offset, Pid, Lookahead))),
+        trim_cache_owned(Scope)
     ;   true
     ).

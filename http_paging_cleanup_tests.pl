@@ -101,8 +101,9 @@ execution_timeout :-
       reset_resource_policy),
     writeln('execution timeout keeps its resource error and reclaims the producer: ok').
 
-% Publication has already released request ownership before later eviction.
-% Removing the entry models eviction without changing the cache-size policy.
+% Publication releases request ownership. The low-level removal primitive
+% transfers responsibility to its caller; actual overflow reclamation is
+% covered separately by http_cache_eviction_tests.pl.
 eviction_policy :-
     Goal=member(X,[evict_a,evict_b]),node:goal_id(Goal-X,Gid),
     node:with_http_page_scope(Scope,
@@ -111,4 +112,4 @@ eviction_policy :-
        node:cache_retract(Gid,1,Pid,_))),
     actors:actor_thread(Pid,_),
     node:stop_http_page_producer(Pid),
-    writeln('publication releases ownership before later cache eviction: ok').
+    writeln('publication releases ownership before explicit cache removal: ok').

@@ -34,6 +34,15 @@ tagged_cb(Tag, Request, State, Tag-Request, State).
 
 
 run_server_actor_tests :-
+    run_case(yield_selects_before_output_unification,
+             yield_selects_before_output_unification),
+    run_case(yield_accepts_matching_outputs, yield_accepts_matching_outputs),
+    run_case(yield_preserves_other_replies_and_sharing,
+             yield_preserves_other_replies_and_sharing),
+    run_case(yield_timeout_bindings, yield_timeout_bindings),
+    run_case(yield_timeout_failure_and_exception,
+             yield_timeout_failure_and_exception),
+    run_case(yield_timeout_alternatives, yield_timeout_alternatives),
     run_case(halt_detects_death_before_ack,
              halt_detects_death_before_ack),
     run_case(halt_preserves_unrelated_down,
@@ -74,7 +83,7 @@ run_server_actor_tests :-
     run_case(private_actor_source, private_actor_source),
     run_case(private_toplevel_query, private_toplevel_query),
     run_case(profile_and_sandbox_surface, profile_and_sandbox_surface),
-    format('All 31 generic server behaviour tests passed.~n', []).
+    format('All 37 generic server behaviour tests passed.~n', []).
 
 run_case(Name, Goal) :-
     catch(( call(Goal) -> true ; throw(test_failed(Name)) ), Error, true),
@@ -83,6 +92,41 @@ run_case(Name, Goal) :-
     ; throw(error(server_actor_test_failed(Name, Error),
                   run_server_actor_tests/0))
     ).
+
+yield_selects_before_output_unification :-
+    self(Self),make_ref(Ref),send(Self,Ref-actual),
+    \+server_yield(Ref,different,
+        [timeout(0),on_timeout(throw(unexpected_yield_timeout))]),
+    % A mismatch consumes the selected reply, even though unification fails.
+    receive({Ref-_ -> fail},[timeout(0)]).
+
+yield_accepts_matching_outputs :-
+    self(Self),make_ref(Ref),send(Self,Ref-ok),
+    server_yield(Ref,ok,[timeout(0),on_timeout(fail)]),
+    make_ref(Ref2),send(Self,Ref2-ok),server_yield(Ref2,ok).
+
+yield_preserves_other_replies_and_sharing :-
+    self(Self),make_ref(Ref),make_ref(Other),
+    send(Self,Other-unrelated),send(Self,Ref-pair(X,X)),
+    server_yield(Ref,Answer,[timeout(0),on_timeout(fail)]),
+    Answer=pair(A,B),var(A),A==B,
+    server_yield(Other,unrelated,[timeout(0),on_timeout(fail)]).
+
+yield_timeout_bindings :-
+    make_ref(Ref),server_yield(Ref,Unbound,[timeout(0)]),var(Unbound),
+    server_yield(Ref,Answer,[timeout(0),on_timeout(Answer=waiting)]),
+    Answer==waiting,
+    server_yield(Ref,prebound,[timeout(0),on_timeout(true)]).
+
+yield_timeout_failure_and_exception :-
+    make_ref(Ref),\+server_yield(Ref,_,[timeout(0),on_timeout(fail)]),
+    catch(server_yield(Ref,_,[timeout(0),on_timeout(throw(yield_timeout_test))]),
+      Error,true),Error==yield_timeout_test.
+
+yield_timeout_alternatives :-
+    make_ref(Ref),
+    findall(X,server_yield(Ref,X,
+      [timeout(0),on_timeout(member(X,[a,b]))]),Xs),Xs==[a,b].
 
 halt_detects_death_before_ack :-
     spawn(receive({'$stop'(_, _) -> fail}), Pid, []),

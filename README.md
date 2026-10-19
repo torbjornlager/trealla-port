@@ -89,7 +89,13 @@ graceful halt, and state-preserving callback upgrades. It is an ACTOR-profile
 facility and is available both in submitted source and directly at a private
 toplevel. The dedicated suite mirrors the 27 SWI semantic cases and adds
 callback-closure, private-namespace, and sandbox/profile integration checks
-(31 tests total).
+(37 tests total). Reply selection in `server_yield/2-3` uses the reference
+before unifying the caller's output. A mismatch consumes that reply and fails
+without invoking the timeout callback; replies with other references stay
+available. The unification is confined to the reply branch, preserving default
+timeout results and callback bindings, failure, exceptions and alternatives.
+Focused regressions also check prebound matching outputs and reply variable
+sharing. The monitored `/4` implementation and reference handling are unchanged.
 
 The native statechart runtime now executes SXML 0.2 charts using the existing
 pure-Prolog parser/model compiler and a port of SWI's transition engine.
@@ -1673,16 +1679,26 @@ execution-limit errors retain their existing error replies.
 Publishing the next page in the cache transfers ownership before the HTTP
 response is written. A later socket-write failure therefore preserves the
 cached continuation, including one already checked out by another request.
-Paging order, lookahead, offsets, execution timeouts and suspended continuations
-are unchanged. This does not add immediate disconnect detection during query
-execution, remote cancellation, or cache eviction/expiry reclamation. Forced
-runtime thread cancellation that bypasses Prolog cleanup remains outside this
+Paging order, lookahead, offsets, execution timeouts and retained suspended
+continuations are unchanged. Cache overflow now reclaims the oldest producers
+in FIFO order. Eviction journals ownership before removing each entry under the
+same mutex as checkout, then stops the victims outside that mutex using private
+termination monitors. Another request can keep using the cache during cleanup;
+a producer already checked out belongs to that request and is not evicted.
+The existing request-scope unwind protection also reclaims eviction victims if
+trimming is interrupted. Application monitors and unrelated messages are retained.
+This does not add immediate disconnect detection during query execution,
+remote cancellation, or cache expiry. Forced runtime thread cancellation that
+bypasses Prolog cleanup remains outside this
 scope. Producer waits still use `receive/1`; no new receive deadline is added.
 
 `http_paging_cleanup_tests.pl`, run by `./tools/test.sh unit`, covers startup
 failure, interruption during skipping/collection/lookahead, abandoned cache
 checkout, publication and overlapping ownership handoffs, terminal results,
 output mismatch, query errors, execution timeouts and monitor/message isolation.
+`http_cache_eviction_tests.pl`, also in the unit runner, covers real page overflow,
+FIFO order, multiple victims, both checkout/eviction orderings, an exception
+after removal, continued paging and application-monitor preservation.
 
 ### `rpc.pl`
 

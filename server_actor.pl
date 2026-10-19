@@ -193,12 +193,15 @@ server_promise(To, Request, Ref, MonitorRef) :-
 %!  server_yield(+Ref, -Response) is det.
 %!  server_yield(+Ref, -Response, +Options) is det.
 %!  server_yield(+Ref, +MonitorRef, -Response, +Options) is det.
+%
+%   Select the reply by Ref before unifying Response. A conflicting output
+%   consumes that reply and fails; timeout callbacks retain their own results.
 
 server_yield(Ref, Response) :-
     server_yield(Ref, Response, []).
 
 server_yield(Ref, Response, Options) :-
-    receive({ Ref-Response -> true }, Options).
+    receive({ Ref-Reply -> Response = Reply }, Options).
 
 server_yield(Ref, MonitorRef, Response, Options) :-
     call_cleanup(
