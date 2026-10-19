@@ -1971,3 +1971,15 @@ provide the ordinary-unwind barrier; a caller already committed to actor exit
 cannot wait on its dying mailbox. This differs from raw runtime thread
 cancellation, which can bypass Prolog cleanup. The dedicated regression files
 and unit runner document those boundaries without adding language guarantees.
+
+
+## Relation to the research agenda
+
+The book’s [research and engineering agenda](https://github.com/torbjornlager/boken/blob/main/author/appendix-research-agenda.tex)
+is maintained separately from this runtime guide.
+
+The supported-feature, portability-delta, lifecycle and regression sections of
+this README record Trealla implementation evidence. The book agenda identifies
+portable contracts and production requirements; it does not assume that native
+SWI implementation status applies to Trealla. Remaining differences are also
+explicit in the shared language manual.
