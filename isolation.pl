@@ -354,6 +354,9 @@ actor_query_goal(_, supervisor_halt(Sup),
                  supervisor_actor:supervisor_halt(Sup)) :- !.
 actor_query_goal(_, supervisor_stop(Sup),
                  supervisor_actor:supervisor_stop(Sup)) :- !.
+actor_query_goal(Module,statechart_spawn(Pid,Options),statechart_actor:statechart_spawn(Pid,Module:Options)) :- !.
+actor_query_goal(_,statechart_halt(Pid,Reply),statechart_actor:statechart_halt(Pid,Reply)) :- !.
+actor_query_goal(_,statechart_halt(Pid,Reply,T),statechart_actor:statechart_halt(Pid,Reply,T)) :- !.
 actor_query_goal(_, Qualified:Goal, Qualified:Goal) :-
     atom(Qualified),
     !.
@@ -639,6 +642,8 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
                  SandboxFile, RpcFile, ParallelFile, ServerActorFile,
                  SupervisorActorFile) :-
     format(Out, '%% SPDX-License-Identifier: MIT~n', []),
+    absolute_file_name('statechart_actor.pl',StatechartFile,[]),
+    format(Out, ':- use_module(~q).~n',[StatechartFile]),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
     format(Out, ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
     format(Out, ':- use_module(~q, [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,yield/2,yield/3]).~n', [RpcFile]),

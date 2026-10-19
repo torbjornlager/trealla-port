@@ -441,3 +441,9 @@ profile_check_source_term(Profile, (:- Directive)) :- !,
 profile_check_source_term(Profile, (_Head :- Body)) :- !,
     profile_check_goal(Profile, Body).
 profile_check_source_term(_, _).
+
+actor_predicate(statechart_spawn,2).
+actor_predicate(statechart_halt,2).
+actor_predicate(statechart_halt,3).
+actor_predicate(raise,1).
+actor_predicate(in,1).

@@ -50,6 +50,7 @@
                 http_upgrade_to_websocket(sync_close_peer,[subprotocols(['web-prolog-sync-v1'])]),
                 [spawn([])]).
 :- http_handler(root('source.pl'), source_file, []).
+:- http_handler(root('chart.xml'), source_chart, []).
 :- http_handler(root('source-redirect.pl'), source_redirect, []).
 :- http_handler(root('source-cross-origin.pl'), source_cross_origin, []).
 :- http_handler(root('source-oversize.pl'), source_oversize, []).
@@ -72,6 +73,10 @@ source_server(Port) :-
     http_server(http_dispatch, [port(Port)]),
     thread_get_message(stop),
     http_stop_server(Port, []).
+
+source_chart(_) :-
+    format('Content-type: application/xml; charset=UTF-8~n~n'),
+    format('<statechart version="0.2" initial="s"><state id="s"/></statechart>').
 
 source_file(_Request) :-
     format('Content-type: text/x-prolog; charset=UTF-8~n~n'),

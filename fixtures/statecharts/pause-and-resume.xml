@@ -1,0 +1,60 @@
+<!--
+
+    Pause and resume: hierarchy and history states.
+
+    A compound state can remember which of its substates was active when
+    it was last exited, and return there later. The `play` region cycles
+    between s1 and s2 on the `play` and `reset` events. A `pause` event
+    leaves that region for `interrupted`; `resume` goes to the history
+    state `h`, which restores whichever of s1 or s2 was active when the
+    pause happened, instead of starting over at s1. The `stop` event runs
+    the whole machine to its final state. Watch the trace to see the
+    remembered substate come back on resume.
+
+    Run the chart and send it events from the Examples menu.
+    Keep the Logger open and SXML trace selected.
+
+-->
+
+<statechart version="0.2" initial="game">
+    <state id="game" initial="play">
+        <state id="play" initial="s1">
+            <history id="h">
+                <go to="s1" />
+            </history>
+            <state id="s1">
+                <go to="s2" on="play" />
+            </state>
+            <state id="s2">
+                <go to="s1" on="reset" />
+            </state>
+            <go to="interrupted" on="pause" />
+        </state>
+        <state id="interrupted">
+            <go to="h" on="resume" />
+        </state>
+        <go to="final" on="stop" />
+    </state>
+    <final id="final" />
+</statechart>
+
+
+<!-- <examples>
+
+?- statechart_spawn(Pid, [
+       src_text(<editor>)
+   ]).
+
+?- $Pid ! play.
+
+?- $Pid ! reset.
+
+?- $Pid ! pause.
+
+?- $Pid ! resume.
+
+?- $Pid ! stop.
+
+?- statechart_halt($Pid, Reply, 1).
+
+-->

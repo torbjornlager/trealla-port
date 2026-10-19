@@ -68,13 +68,15 @@ toplevel. The dedicated suite mirrors the 27 SWI semantic cases and adds
 callback-closure, private-namespace, and sandbox/profile integration checks
 (31 tests total).
 
-The native statechart port has begun with a pure-Prolog XML/SXML foundation.
-`sxml_parser.pl` returns the same `element(Name,Attributes,Children)` terms as
-SWI's `library(sgml)` XML mode and validates the SXML 0.2 grammar and semantic
-references. `statechart_model.pl` compiles validated documents into isolated
-model terms without modifying runtime state. Its parser output matches SWI
-for every current demonstrator statechart example; actor execution is the
-next tranche.
+The native statechart runtime now executes SXML 0.2 charts using the existing
+pure-Prolog parser/model compiler and a port of SWI's transition engine.
+Thread-local model, configuration, history and event queues isolate concurrent
+charts. It supports hierarchy, shallow/deep history, parallel regions,
+eventless and timed transitions, internal/completion events, entry/exit actions,
+guards, snapshot re-offering of deferred events, and private embedded Prolog
+datamodels. `<spawn>` child invocation is explicitly rejected.
+See the statechart execution contract below; parsing a document does not imply
+that all of its features can execute.
 
 `supervisor_actor.pl` ports the SWI supervisor behaviour on top of actors and
 generic servers. It supports `one_for_one`, `one_for_all`, and `rest_for_one`;
@@ -1007,8 +1009,8 @@ Direct `remote_toplevel_spawn/3` and incoming WebSocket toplevel creation use
 the same checks before loading source or sending/starting work.
 
 These checks validate option shapes and values. Local named creation additionally
-uses the reservation and startup publication described below; other lifecycle behavior is unchanged. The statechart code still provides parsing
-and model compilation, not a statechart actor constructor. Focused regressions
+uses the reservation and startup publication described below; other lifecycle behavior is unchanged. Statechart constructors now apply the same wrapper
+validation, plus their XML source and feature checks. Focused regressions
 are in `wrapper_option_tests.pl`, run by `./tools/test.sh unit`; the live
 remote-toplevel check is also included in the interoperability runner.
 
@@ -1636,3 +1638,66 @@ On the recorded SWI 10.1.3 and Trealla 3.13.10 revisions, Trealla actor creation
 is substantially more expensive, while its warmed local ping-pong path is about
 20% faster. The raw samples and runner are retained with the report so the
 comparison can be repeated after either implementation changes.
+
+## Native statechart execution: first batch
+
+`statechart_spawn(Pid, Options)` starts a local chart actor. Supply exactly one
+XML source, `src_text(Text)` or `src_uri(URI)`, plus optional supplemental Prolog
+`src_list/1` or `src_predicates/1` sources. `trace(true)` is the default;
+`trace(false)` suppresses trace events, and duplicate trace options are rejected.
+Ordinary local spawn options, monitors, links, I/O targets and atomic `name/1`
+creation use the existing actor machinery. Remote `node(URL)` creation is not
+provided by this constructor yet; use a Trealla session on the receiving node.
+
+The caller fetches URI sources through the existing origin/IP allowlists,
+redirect checks, fetch deadline and source-size limit. A root-relative URI uses
+the configured node URL. URI loading remains disabled until the operator
+configures an allowlist; the constructor does not weaken that policy. XML is
+parsed, its supported features validated, supplemental sources checked, and
+embedded guards/actions checked before actor creation. Dynamic calls in chart
+code retain runtime sandbox guards. The calling public request's sandbox mode
+and execution profile are retained; direct trusted Prolog calls default to
+`blacklist`/`actor`. Application code runs against the chart actor's own private
+sources and the configured shared database, not the interpreter's module.
+Blacklist mode retains its existing qualifications and is not a proof that
+arbitrary code is safe.
+
+The transition engine supports the pause/resume example and the execution
+features listed above. History default transitions are attached to the history
+node rather than its parent, correcting an existing model-compiler bug.
+Embedded `<datamodel>` code is loaded after supplemental sources, in document
+order. Its local clauses append to supplemental clauses and shadow shared
+predicates only in that chart. Facts, rules, DCGs and `dynamic/1` declarations
+use the existing private actor source loader; separate charts do not share
+mutable datamodel facts. The same source sandbox applies before startup: in
+blacklist/whitelist modes only the existing permitted declarations are accepted,
+and arbitrary directives are rejected. An empty `dynamic/1` declaration also
+admits that predicate in the chart’s whitelist application vocabulary.
+Trealla’s private actor namespace supplies isolation; the XML code need not
+declare `thread_local/1`. Sandbox-off retains trusted source-loading semantics.
+
+`<spawn>` child invocation raises
+`domain_error(trealla_statechart_feature, child_invocation)` before startup. Dynamic
+trace toggling and a peer-side remote-constructor adapter remain separate work.
+
+`statechart_halt(Pid, Reply)` waits for the legacy `reply(true)` stop
+acknowledgement or observed termination. The three-argument form adds a
+nonnegative seconds timeout; on expiry it kills the chart and waits for its
+private down notification. Acknowledgement yields `true`, while termination
+without acknowledgement or forced termination yields `killed`. Replies are
+selected before unifying the output, and only the wait's private monitor is
+withdrawn/flushed. This retains the legacy untagged acknowledgement protocol;
+it does not add stale-reply correlation. Interpreter cleanup releases internal
+queues and cancels outstanding transition timers, including graceful halt.
+
+Trace events retain the SWI `statechart_trace` WebSocket event with a textual
+Prolog payload; the portal's existing trace display handles them. The runtime
+itself serves execution APIs, not portal assets. `statechart_actor_tests.pl`
+checks hierarchy/history, isolation, event/guard/action variable sharing,
+parallel completion, timers, deferred events, private sources, mutable datamodel
+isolation, GCD/closure computations, shared-predicate shadowing and sandbox
+admission. `swi_statechart_interop.pl` checks public text/URI startup, traces,
+halt, monitor delivery and fetch restrictions. These run in the ordinary unit
+and interoperability suites. This batch does not claim every demonstrator
+statechart example is supported, along with datamodel computation and shared
+database examples; child invocation remains explicitly unsupported.

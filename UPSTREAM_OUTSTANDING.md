@@ -235,3 +235,12 @@ longer requests.
   was simply too short; that workload completes in about 41 seconds.
 
 Full historical details and resolved reports remain in `UPSTREAM_REPORTS.md`.
+
+## Resolved port issue: history default transition ownership
+
+Execution tests exposed an existing pure-model compiler error: a `<history>`
+node's default `<go>` was compiled as a transition on the parent state. This
+created an unintended eventless loop in pause-and-resume. The child compiler
+context now uses the history node ID, matching SWI. Parser/model and live
+execution regressions cover the correction. This was a port bug, not evidence
+of a Trealla engine defect.

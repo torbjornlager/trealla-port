@@ -108,11 +108,11 @@ compile_node(parallel, Attrs, _, Parent, ID, N0, N,
              [n(N0,ID),parallel(ID,Parent)|Facts], Facts) :-
     xml_option(id(ID), Attrs),
     N is N0+1.
-compile_node(final, Attrs, _, Parent, Parent, N0, N,
+compile_node(final, Attrs, _, Parent, ID, N0, N,
              [n(N0,ID),final(ID,Parent)|Facts], Facts) :-
     xml_option(id(ID), Attrs),
     N is N0+1.
-compile_node(history, Attrs, _, Parent, Parent, N, N,
+compile_node(history, Attrs, _, Parent, ID, N, N,
              [history(ID,Parent,Type)|Facts], Facts) :-
     xml_option(id(ID), Attrs),
     xml_option(type(Type), Attrs, shallow).

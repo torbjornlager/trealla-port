@@ -107,6 +107,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "statechart execution" \
+        "$TPL" -g "(catch((consult('$ROOT/statechart_actor_tests.pl'),statechart_actor_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "supervisor halt ordering" \
         "$TPL" -g "(catch((consult('$ROOT/supervisor_halt_tests.pl'),supervisor_halt_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "spawn reply correlation" \
@@ -284,6 +286,9 @@ run_interop() {
     run_with_timeout "SWI client -> Trealla allowlisted source URI" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "source_uri_client_test($trealla_protocol_port,$source_port),halt"
+    run_with_timeout "SWI statechart execution -> Trealla" \
+        "$SWIPL" -q -s "$ROOT/swi_statechart_interop.pl" \
+        -g "swi_statechart_interop:run($trealla_protocol_port,$source_port),halt"
     run_with_timeout "SWI browser terminal -> Trealla protocol node" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "browser_io_client_test($trealla_protocol_port),halt"
@@ -367,8 +372,7 @@ run_interop() {
     start_background "$TPL" -g \
         "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_private_port,[auth(private),bearer_token(interop,'interop-secret',[execute]),bearer_token(observer,'admin-secret',[admin]),max_call_requests_per_window(1),max_ws_actors_per_principal(1)])"
     trealla_private_pid=$STARTED_PID
-    sleep 0.2
-    kill -0 "$trealla_private_pid" 2>/dev/null || fail "private Trealla protocol node did not start on port $trealla_private_port"
+    wait_for_port "$trealla_private_port" || fail "private Trealla protocol node did not start on port $trealla_private_port"
     run_with_timeout "SWI auth and ownership -> private Trealla node" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "private_ownership_client_test($trealla_private_port),halt"
@@ -377,8 +381,7 @@ run_interop() {
     start_background "$TPL" -g \
         "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($ip_policy_port,[trusted_proxy_ranges(['127.0.0.0/8']),ip_blocklist(['198.51.100.0/24']),max_call_requests_per_window(1),auto_ban_threshold(2),auto_ban_window_seconds(60),auto_ban_seconds(60)])"
     trealla_ip_policy_pid=$STARTED_PID
-    sleep 0.2
-    kill -0 "$trealla_ip_policy_pid" 2>/dev/null || fail "IP-policy Trealla node did not start on port $ip_policy_port"
+    wait_for_port "$ip_policy_port" || fail "IP-policy Trealla node did not start on port $ip_policy_port"
     run_with_timeout "SWI client -> Trealla IP gate and auto-ban" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "ip_policy_client_test($ip_policy_port),halt"

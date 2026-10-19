@@ -11,6 +11,7 @@ run_sxml_parser_tests :-
     test_semantic_validation,
     test_structural_validation,
     test_model_compilation,
+    test_history_transition_owner,
     format("All SXML parser and validator tests passed.~n").
 
 test_swi_tree_shape :-
@@ -61,3 +62,9 @@ test_model_compilation :-
     member(after_transition(running,_,0.25,true,[done],[]), Model),
     memberchk(final(done,statechart_actor), Model),
     format("sxml pure statechart model compilation ok~n").
+
+test_history_transition_owner :-
+ statechart_compile_text('<statechart version="0.2" initial="p"><state id="p" initial="s"><history id="h"><go to="s"/></history><state id="s"/></state></statechart>',Model),
+ memberchk(transition(h,'',true,[s],[]),Model),
+ \+memberchk(transition(p,'',true,[s],[]),Model),
+ writeln('history default transition belongs to history node: ok').

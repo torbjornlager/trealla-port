@@ -135,6 +135,10 @@ sandbox_prepare_options(Mode0, Profile, _Module, Options0, Options) :-
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs, Goal) :-
     var(Goal),
     !.
+% A copied, already-checked constructor retains exactly the current policy
+% and source context. Private helpers cannot inject a different mode/module.
+sandbox_check_goal_(Mode,Profile,Module,_AppPIs,
+                    statechart_actor:statechart_spawn_in(Mode,Profile,Module,_,_)) :- !.
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     sandbox_policy:sandbox_format(Format, _Args)) :-
     !,
@@ -506,6 +510,10 @@ check_clause_head(Head) :-
 safe_source_head_pi(Name/_Arity) :- atom(Name), \+ sub_atom(Name, 0, 1, _, '$'),
     \+ reserved_source_name(Name).
 
+reserved_source_name(statechart_spawn).
+reserved_source_name(statechart_halt).
+reserved_source_name(raise).
+reserved_source_name(in).
 reserved_source_name('$actor_load').
 reserved_source_name('$actor_call').
 reserved_source_name('$actor_cleanup').
@@ -583,6 +591,12 @@ rewrite_goal(_, _, _, _, Goal, Goal).
 
 rewrite_goal_(Mode, Profile, Module, AppPIs, Var,
               sandbox_policy:sandbox_call(Mode,Profile,Module,AppPIs,Var)) :- var(Var).
+rewrite_goal_(_,_,_,_,statechart_halt(P,R),statechart_actor:statechart_halt(P,R)) :- !.
+rewrite_goal_(_,_,_,_,statechart_halt(P,R,T),statechart_actor:statechart_halt(P,R,T)) :- !.
+rewrite_goal_(_,_,_,_,raise(E),statechart_actor:raise(E)) :- !.
+rewrite_goal_(_,_,_,_,in(S),statechart_actor:in(S)) :- !.
+rewrite_goal_(M,P,C,_A,statechart_spawn(Pid,Options),
+              statechart_actor:statechart_spawn_in(M,P,C,Pid,Options)) :- !.
 % Match the SWI actor I/O prelude without requiring Trealla to redefine a
 % built-in predicate.  The stream-specific writeln/2 remains forbidden.
 rewrite_goal_(_M,_P,_C,_A,writeln(Term),
@@ -1105,3 +1119,11 @@ restore_clause_args(_, [], []).
 restore_clause_args(Module, [Arg0|Args0], [Arg|Args]) :-
     restore_clause_body(Module, Arg0, Arg),
     restore_clause_args(Module, Args0, Args).
+
+actor_safe_pi(statechart_spawn/2).
+actor_safe_pi(statechart_halt/2).
+actor_safe_pi(statechart_halt/3).
+actor_safe_pi(raise/1).
+actor_safe_pi(in/1).
+
+permitted_qualified_module(statechart_actor).

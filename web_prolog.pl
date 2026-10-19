@@ -79,6 +79,7 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- use_module(server_actor).
 :- use_module(supervisor_actor).
 :- use_module(remote_supervisor, []).
+:- use_module(statechart_actor, []).
 :- use_module(node).
 :- use_module(rpc, [dispose_namespace_promises/1]).
 :- use_module(websocket).
@@ -704,6 +705,8 @@ wire_event(Relay, output(RuntimePid, Data), output(WirePid, Data)) :- !,
     runtime_connection_pid(Relay, RuntimePid, WirePid).
 wire_event(Relay, prompt(RuntimePid, Data), prompt(WirePid, Data)) :- !,
     runtime_connection_pid(Relay, RuntimePid, WirePid).
+wire_event(Relay, terminal_output(RuntimePid,statechart_trace(Data)), statechart_trace(WirePid,Data)) :- !,
+    browser_source_pid(Relay,RuntimePid,WirePid).
 wire_event(Relay, terminal_output(RuntimePid, Data0), output(WirePid, Data)) :- !,
     browser_source_pid(Relay, RuntimePid, WirePid),
     browser_terminal_output_data(Data0, Data).
@@ -973,6 +976,9 @@ event_json(error(Pid, Error), JSON) :- !,
 event_json(error(Error), JSON) :- !,
     term_wire_atom(Error, Data),
     object([type-string_atom(error), data-string_atom(Data)], JSON).
+event_json(statechart_trace(Pid,Data),JSON) :- !,
+    term_wire_atom(Data,Text),
+    object([type-string_atom(statechart_trace),pid-json_pid(Pid),data-string_atom(Text)],JSON).
 event_json(output(Pid, Data0), JSON) :- !,
     display_atom(Data0, Data),
     object([type-string_atom(output), pid-json_pid(Pid), data-string_atom(Data)], JSON).
