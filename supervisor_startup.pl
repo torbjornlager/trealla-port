@@ -1,11 +1,11 @@
 % SPDX-License-Identifier: MIT
 :- module(supervisor_startup,
-    [with_startup_scope/1, start_child/4, remember_monitor/2]).
+    [with_startup_scope/1, start_child/4, remember_monitor/2, stop_children/1, cleanup_children/1]).
 
 /** <module> Ownership until supervisor child admission commits
 
-Only initial startup and dynamic additions enter this scope. Automatic and
-explicit restart paths retain their existing behavior. The journal contains
+Initial startup, dynamic additions and restart attempts enter this scope.
+The journal contains
 copies used for cleanup; the live child specs and state are never replaced
 by those copies.
 */
@@ -93,3 +93,23 @@ wait_down(Pid,Ref) :- receive({down(Pid,Ref,_) -> true}).
 force_stop(Pid,Policy,Ref) :-
     (Policy==brutal_kill -> exit(Pid,kill);exit(Pid,shutdown)),
     (actor_terminating -> true;wait_down(Pid,Ref)).
+
+% Restart strategies retain their existing forward stopping order. Failure
+% cleanup uses reverse order, tries every recorded child and preserves the
+% primary restart error. No unrelated monitor reference is withdrawn.
+stop_children([]).
+stop_children([ch(_,undefined,_)|Children]) :- !,stop_children(Children).
+stop_children([ch(_,Pid,Spec)|Children]) :-
+    rollback_child(owned(Pid,Spec,none)),stop_children(Children).
+cleanup_children(Children) :-
+    reverse(Children,Reverse),cleanup_children_(Reverse).
+cleanup_children_([]).
+cleanup_children_([ch(_,Pid,Spec)|Children]) :-
+    (Pid==undefined -> true
+    ; catch((rollback_child(owned(Pid,Spec,none))->true;true),Error,
+            cleanup_child_error(Error))),
+    cleanup_children_(Children).
+
+cleanup_child_error(Error) :-
+    actors:guard_control_exception(Error),!,throw(Error).
+cleanup_child_error(_).

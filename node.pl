@@ -100,9 +100,9 @@ waits for their normal cleanup under a bounded timeout.
     stream to the WebSocket protocol instead of closing it after an HTTP
     response. Query parameters and request headers are parsed locally.
   - `library(settings)` is absent; cache_size defaults are plain facts.
-  - `compute_answer/5` uses `receive/1` (unlimited wait) because
-    producer replies are guaranteed: the producer is a local actor
-    we just spawned or resumed.  No timeout is needed.
+  - `compute_answer/5` uses `receive/1` for local producer replies.
+    Request scopes reclaim abandoned producers when Prolog cleanup runs;
+    no additional receive deadline or disconnect detector is introduced.
   - `predicate_property(..., number_of_clauses(N))` is available since
     Trealla v3.13.4 and is used by the actor source-discovery code.  The
     cache size is still counted directly with `findall/3` and `length/2`.
@@ -1324,6 +1324,73 @@ term_json_string(Term, Text) :-
 %     - If the producer replies `eos`, the stream is exhausted.
 %       `Answer = success(Slice, false)` (or `failure` if Slice=[]).
 
+% A journal entry precedes both thread creation and cache removal. Cleanup
+% checks the cache and the most recent claimant under the same mutex, so an
+% interruption between publication and scope exit cannot reclaim a handed-off
+% continuation (including one already checked out by the next request).
+:- dynamic http_page_claim/2.
+:- multifile actors:hook_spawn_reserved/2.
+:- catch(mutex_create(_, [alias('$http_page_cache')]),
+         error(permission_error(create, mutex, '$http_page_cache'), _), true).
+:- meta_predicate with_http_page_scope(-,0).
+
+actors:hook_spawn_reserved(Pid, _) :-
+    nb_current('$http_starting_page', Scope),
+    with_mutex('$http_page_cache', assertz(node:http_page_claim(Pid,Scope))).
+
+with_http_page_scope(Scope, Goal) :-
+    make_ref(Scope),
+    setup_call_cleanup(true,
+      catch(once(Goal), Error,
+        (catch(close_http_page_scope(Scope),_,true),throw(Error))),
+      close_http_page_scope(Scope)).
+
+close_http_page_scope(Scope) :-
+    findall(Pid,http_page_claim(Pid,Scope),Pids),
+    close_http_page_producers(Pids,Scope).
+close_http_page_producers([],_).
+close_http_page_producers([Pid|Pids],Scope) :-
+    with_mutex('$http_page_cache',
+      (findall(Owner,http_page_claim(Pid,Owner),Owners),
+       (append(_,[Scope],Owners), \+cache(_,_,Pid,_) -> Stop=true;Stop=false))),
+    (Stop==true -> stop_http_page_producer(Pid);true),
+    with_mutex('$http_page_cache',retractall(http_page_claim(Pid,Scope))),
+    close_http_page_producers(Pids,Scope).
+
+stop_http_page_producer(Pid) :-
+    (actor_terminating -> exit(Pid,kill)
+    ; setup_call_cleanup(monitor(Pid,Ref),
+        (exit(Pid,kill),receive({down(Pid,Ref,_) -> true})),
+        demonitor(Ref,[flush]))).
+
+checkout_http_page(Scope,Gid,Offset,Pid,Lookahead) :-
+    with_mutex('$http_page_cache',
+      (once(cache(Gid,Offset,Pid,Lookahead)),
+       catch((assertz(http_page_claim(Pid,Scope)),
+              once(retract(cache(Gid,Offset,Pid,Lookahead)))),Error,
+         % If removal has not happened, the cache still owns the producer.
+         % Retire this provisional claim before another request can resume it.
+         ((cache(Gid,Offset,Pid,Lookahead)
+           -> retractall(http_page_claim(Pid,Scope));true),throw(Error))))).
+
+% Complete ownership transfer before trimming: later eviction must retain
+% its existing policy. Recover the handoff if interrupted just after insertion,
+% while the mutex still excludes checkout and eviction by other requests.
+publish_http_page(Scope,Gid,Offset,Pid,Lookahead) :-
+    with_mutex('$http_page_cache',
+      (catch((assertz(cache(Gid,Offset,Pid,Lookahead)),
+              retractall(http_page_claim(Pid,Scope))),Error,
+         ((cache(Gid,Offset,Pid,Lookahead)
+           -> retractall(http_page_claim(Pid,Scope));true),throw(Error))),
+       trim_cache)).
+
+spawn_http_page_producer(Scope,Goal,Template,Pid) :-
+    (nb_current('$http_starting_page',Previous) -> Saved=some(Previous);Saved=none),
+    setup_call_cleanup(true,
+      (nb_setval('$http_starting_page',Scope),spawn_http_producer(Goal,Template,Pid)),
+      (Saved=some(Value) -> nb_setval('$http_starting_page',Value)
+      ; nb_delete('$http_starting_page'))).
+
 spawn_http_producer(Goal,Template,Pid) :-
     (current_http_promise_namespace(Namespace) ->
         actors:spawn_scoped(node:run_goal_producer_guarded(Goal,Template),Pid,
@@ -1331,11 +1398,15 @@ spawn_http_producer(Goal,Template,Pid) :-
     ; spawn(run_goal_producer_guarded(Goal,Template),Pid,[link(false)])).
 
 compute_answer(Goal, Template, Offset, Limit, Answer) :-
+    with_http_page_scope(Scope,
+      compute_owned_answer(Scope,Goal,Template,Offset,Limit,Answer)).
+
+compute_owned_answer(Scope,Goal, Template, Offset, Limit, Answer) :-
     goal_id(Goal-Template, Gid),
     self(Self),
-    (   cache_retract(Gid, Offset, ProducerPid, Lookahead)
+    (   checkout_http_page(Scope,Gid, Offset, ProducerPid, Lookahead)
     ->  true                            % resume suspended producer
-    ;   spawn_http_producer(Goal,Template,ProducerPid),
+    ;   spawn_http_page_producer(Scope,Goal,Template,ProducerPid),
         (Offset > 0 -> stream_skip(ProducerPid, Self, Offset) ; true),
         Lookahead = none
     ),
@@ -1347,7 +1418,7 @@ compute_answer(Goal, Template, Offset, Limit, Answer) :-
         receive({
             sol(Extra) ->
                 NextOffset is Offset + Limit,
-                cache_update(Gid, NextOffset, ProducerPid, lookahead(Extra)),
+                publish_http_page(Scope,Gid, NextOffset, ProducerPid, lookahead(Extra)),
                 Answer = success(Slice, true)
             ; eos ->
                 (Slice == [] -> Answer = failure ; Answer = success(Slice, false))
@@ -1426,8 +1497,16 @@ set_http_resource_timer(Timer) :-
 % would otherwise leave the HTTP worker blocked forever.
 run_goal_producer_guarded(Goal, Template) :-
     catch(run_goal_producer(Goal, Template), Error0,
-          ( normalize_resource_exception(Error0, Error),
+          ( producer_control_exception(Error0) -> throw(Error0)
+          ; normalize_resource_exception(Error0, Error),
             producer_error_reply(Error) )).
+
+% Execution time/inference limits remain ordinary error replies. Actor
+% termination must escape instead of waiting for another page request.
+producer_control_exception(actor_exit).
+producer_control_exception('$abort_goal').
+producer_control_exception('$resource_idle').
+producer_control_exception(unwind(_)).
 
 producer_error_reply(Error) :-
     receive({
@@ -1523,7 +1602,7 @@ goal_id(GoalTemplate, Gid) :-
 %   Fails if no matching entry is found.
 
 cache_retract(Gid, Offset, Pid, Lookahead) :-
-    once(retract(cache(Gid, Offset, Pid, Lookahead))).
+    with_mutex('$http_page_cache',once(retract(cache(Gid, Offset, Pid, Lookahead)))).
 
 
 %!  cache_update(+Gid, +Offset, +Pid, +Lookahead) is det.
@@ -1532,8 +1611,8 @@ cache_retract(Gid, Offset, Pid, Lookahead) :-
 %   exceeds cache_size/1.
 
 cache_update(Gid, Offset, Pid, Lookahead) :-
-    assertz(cache(Gid, Offset, Pid, Lookahead)),
-    trim_cache.
+    with_mutex('$http_page_cache',
+      (assertz(cache(Gid, Offset, Pid, Lookahead)),trim_cache)).
 
 
 %!  trim_cache is det.

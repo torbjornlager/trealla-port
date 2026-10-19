@@ -5,6 +5,13 @@ Status report on porting the simple node from SWI-Prolog to
 (currently tested on v3.13.10; earlier actor/RPC work was also tested on
 v2.99.12, v2.99.6, and v2.97.13).
 
+The [Web Prolog language manual](https://github.com/torbjornlager/trinity-demonstrator/blob/main/web/manual.html)
+is the single shared API reference for all nodes. This README is the Trealla
+implementation guide: setup, supported implementation paths, transport adapters,
+regression coverage and remaining gaps. Its portability notes do not establish
+a separate language contract. The shared manual records observable differences,
+including HTTP options, naming scope, startup timing and supervisor reply formats.
+
 The port lives alongside this report:
 
 | File                  | Role                                                |
@@ -1192,10 +1199,50 @@ ordinary startup failure retains `error(start_failed)`, duplicate ids retain
 release their child names, so the id/name can be retried. Reserved actor/PTCP
 control exceptions are rethrown rather than returned as addition errors.
 Committed actor termination retains normal parent-link containment without
-waiting on its dying mailbox. This does not alter automatic or explicit restart
-failure handling, restart strategies, or general supervisor-exit cleanup.
+waiting on its dying mailbox. Restart-failure handling is described below;
+restart strategies and general supervisor-exit cleanup are unchanged.
 `supervisor_startup_tests.pl` covers rollback order, provisional children, source
 setup errors, name reuse, shutdown policies, cleanup errors and monitor isolation.
+
+Explicit respawn and automatic replacement now reuse the startup journal.
+`supervisor_respawn_child/3` rolls back a failed replacement, retains the
+inactive specification and existing siblings, and returns `error(start_failed)`
+for ordinary failure or `error(Error)` for a startup exception. Success still
+returns Trealla's `ok(NewPid)`; `error(running)` and `error(not_found)` are
+unchanged. The failed id/name can be retried.
+
+All replacements for one automatic restart event share a journal. If one fails,
+new actors and monitors are rolled back, then remaining recorded children are
+stopped in reverse order using their declared shutdown policies. The supervisor
+exits with `restart_failed(Id,Reason)`, where `Id` identifies the failed
+replacement, which can differ from the child that triggered the restart.
+`Reason` is `start_failed` for ordinary failure or the original exception term.
+Cleanup errors do not replace that reason. No additional retry loop is added.
+Successful group stopping and replacement order, restart policies and public
+reply formats are retained. Restart shutdown waits use private monitor
+references; unrelated application monitors and messages are not consumed by
+cleanup. Runtime exit/abort controls propagate instead of becoming restart
+errors. `shutdown(infinity)` can delay failure cleanup indefinitely. Intensity
+exhaustion cleanup is described below; broader supervisor-exit handling remains
+unchanged.
+`supervisor_restart_tests.pl` covers explicit retry, all three strategies,
+partial replacement success, failure identity, shutdown policies, cleanup errors
+and application monitors.
+
+Restart-intensity exhaustion now stops remaining recorded children before the
+supervisor exits with its existing `shutdown` reason. The triggering child is
+marked inactive, and no replacement is started once the allowance is exhausted.
+Cleanup runs in reverse startup order using each child's configured shutdown
+policy and private termination monitors, preserving unrelated application
+monitors and messages. Cleanup errors do not replace `shutdown` or prevent
+attempts to stop the remaining children; runtime exit/abort controls propagate.
+An `infinity` shutdown policy can delay the exit indefinitely. The restart
+count, time-window pruning (strictly newer than the cutoff), threshold rule,
+strategy behavior below the limit, and public reply formats are unchanged.
+`supervisor_intensity_tests.pl` covers zero intensity for all three strategies,
+exhaustion after permitted restarts, period pruning, shutdown order/policies,
+cleanup errors and same-mailbox monitor/message isolation. General cleanup
+after arbitrary supervisor exits remains separate.
 
 The Trealla receiver recognizes the existing unqualified
 `sup_init(Specs, sup(Strategy, Intensity, Period, [], []))` spawn entry used by
@@ -1611,12 +1658,31 @@ page. The same pattern would need extra machinery on
 implementations where a paused thread does not own a stack
 snapshot.
 
-#### 5. No `receive/2` timeout needed for producer replies
+#### 5. HTTP paging request ownership
 
-`compute_answer/5` uses unconditional `receive/1` rather than a
-timed receive: the producer is a local actor we just spawned (or
-just resumed via `'$request'`), so a reply is guaranteed and a
-timeout would only obscure real bugs.
+Each HTTP page request owns a fresh producer before its thread is created, or
+an existing producer as it is checked out of the continuation cache. Failure,
+exceptions and interruption reaching the request handler reclaim that producer;
+terminal success/failure and query errors also close the request scope. Ordinary
+unwinding waits for termination using a private monitor, preserving unrelated
+messages and application monitors. A caller already committed to actor exit
+requests termination without waiting on its dying mailbox. Producer cancellation
+controls propagate rather than waiting to be delivered as query errors;
+execution-limit errors retain their existing error replies.
+
+Publishing the next page in the cache transfers ownership before the HTTP
+response is written. A later socket-write failure therefore preserves the
+cached continuation, including one already checked out by another request.
+Paging order, lookahead, offsets, execution timeouts and suspended continuations
+are unchanged. This does not add immediate disconnect detection during query
+execution, remote cancellation, or cache eviction/expiry reclamation. Forced
+runtime thread cancellation that bypasses Prolog cleanup remains outside this
+scope. Producer waits still use `receive/1`; no new receive deadline is added.
+
+`http_paging_cleanup_tests.pl`, run by `./tools/test.sh unit`, covers startup
+failure, interruption during skipping/collection/lookahead, abandoned cache
+checkout, publication and overlapping ownership handoffs, terminal results,
+output mismatch, query errors, execution timeouts and monitor/message isolation.
 
 ### `rpc.pl`
 
@@ -1858,3 +1924,50 @@ cleanup and unrelated monitors. `remote_statechart_invocation_tests.pl` adds
 server receiver/sandbox boundaries and live four-behaviour checks against SWI
 and Trealla, including reply targets, aliases and rollback. The local invocation examples 13–17
 are supported; this does not claim every demonstrator example is supported.
+
+
+## Runtime ownership and remote adapters
+
+The actor registration, promise lifecycle, worker-scope, supervisor cleanup,
+HTTP producer and native statechart sections above describe local ownership.
+The following notes connect those mechanisms to the remote invocation adapters.
+
+Remote chart creation and invocation use SWI-compatible interpreter entry forms;
+the receiver prepares and runs the chart in the transport-created actor, so the
+returned pid is the chart rather than a second actor. Its checks independently
+cover XML, supplemental source, embedded datamodel, guards and actions. Sender
+module qualifications and guard closures confer no authority. Supplemental Prolog
+source is materialised by the sender; the destination fetches URI XML using its
+configured public URL and fetch restrictions.
+
+Remote servers use `server_loop/2` through the narrow callback-checking receiver
+adapter; supervisors use the `sup_init/2` adapter with child validation and source
+context. Toplevel invocation uses checked startup/query commands. Chart state
+exit retires invocation records and chart-to-child links before requesting
+`exit(Child,stop)`, avoiding a second parent-cleanup signal during child cleanup.
+Failure/abort cleanup also stops recorded children. Neither path waits for
+completed remote shutdown or establishes cancellation after connection loss.
+
+The outbound client acknowledges decoded terminal/trace envelopes even while
+waiting for another spawn reply; otherwise a trace-enabled chart could block
+later startup. Canonical answer-term and correlation wire conventions are shared
+with the [native transport guide](https://github.com/torbjornlager/trinity-demonstrator/blob/main/prolog/web_prolog/README.md#node-transport-implementation).
+The existing protocol sections here retain Trealla's receiver/outbound-specific
+details and legacy compatibility paths.
+
+Native Trealla `statechart_halt/2-3` uses a private monitor and the legacy untagged
+`reply(true)` acknowledgement. Cleanup retires interpreter queues, transition
+timers and its own monitor; the shared manual retains its observable timeout and
+stale-reply qualifications. Declaration loading for empty `dynamic/1` and
+`discontiguous/1` predicates uses real empty predicate definitions rather than
+placeholder clauses; copied sources retain declarations. Checked loading still
+rejects malformed/reserved indicators and sandboxed `multifile/1`.
+
+Supervisor startup/replacement journals record ownership before thread creation
+and retain it through monitor installation and state admission. Cleanup attempts
+run in reverse order using declared shutdown policies, preserving the original
+startup/restart reason when ordinary cleanup fails. Private termination monitors
+provide the ordinary-unwind barrier; a caller already committed to actor exit
+cannot wait on its dying mailbox. This differs from raw runtime thread
+cancellation, which can bypass Prolog cleanup. The dedicated regression files
+and unit runner document those boundaries without adding language guarantees.

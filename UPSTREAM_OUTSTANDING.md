@@ -297,3 +297,17 @@ regression or an upstream engine defect. Retain the report and application test;
 a reliable reduction is needed before attribution or an upstream submission.
 The complete interoperability matrix passed on the subsequent rerun; the
 initial crash remains an intermittent observation, not a resolved defect.
+
+Follow-up during restart-failure work (2026-10-19): the interoperability actor
+contract client also crashed in `match_head` from `start_routine_thread_create`
+(`tpl-2026-10-19-154327.ips`). A paired isolated SWI-peer check passed five
+pre-repair runs and three post-repair runs, with two post-repair SIGSEGVs;
+further pre-repair testing then reproduced the same SIGSEGV on run nine
+(`tpl-2026-10-19-154447.ips`). The pre-repair copy restored both supervisor
+implementation files from commit 92edfb3 and retained the same runtime and
+other sources. Thus this failure also occurs without the restart-failure
+repair. This is an application-level reproduction, not yet a reduced engine-only
+case or a proven diagnosis. Restart-specific regressions and the full unit
+suite pass; broader runtime/thread/source-lifecycle repair remains separate.
+The full interoperability matrix passed on the subsequent restart-failure
+verification rerun; the intermittent crash remains pending.

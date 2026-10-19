@@ -107,6 +107,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "HTTP paging request cleanup" \
+        "$TPL" -g "(catch((consult('$ROOT/http_paging_cleanup_tests.pl'),http_paging_cleanup_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "remote statechart construction and trace acknowledgements" \
         "$TPL" -g "(catch((consult('$ROOT/remote_chart_tests.pl'),remote_chart_tests:unit),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "remote statechart receiver boundary" \
@@ -137,6 +139,10 @@ run_unit() {
         "$TPL" -g "(catch((consult('$ROOT/registration_tests.pl'),registration_tests:registration_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "atomic local named creation" \
         "$TPL" -g "(catch((consult('$ROOT/named_creation_tests.pl'),named_creation_tests:named_creation_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "supervisor restart intensity exhaustion cleanup" \
+        "$TPL" -g "(catch((consult('$ROOT/supervisor_intensity_tests.pl'),supervisor_intensity_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "supervisor replacement startup failure cleanup" \
+        "$TPL" -g "(catch((consult('$ROOT/supervisor_restart_tests.pl'),supervisor_restart_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "supervisor initial and dynamic startup cleanup" \
         "$TPL" -g "(catch((consult('$ROOT/supervisor_startup_tests.pl'),supervisor_startup_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "supervisor child specification validation" \
