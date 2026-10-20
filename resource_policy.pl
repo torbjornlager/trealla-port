@@ -23,8 +23,8 @@
 
 /** <module> Resource governance for a public Trealla node
 
-This module owns execution wall-time, inference, per-actor stack, PTCP idle,
-live-actor, result-page, and textual request/source/WebSocket ceilings. The
+This module owns execution wall-time, inference, actor/connection-thread stack, PTCP idle,
+live-actor and textual request/source/WebSocket ceilings. The
 policy is process-wide, matching the port's single-node-per-process runtime.
 Pageable calls use Trealla's inference limiter around the suspended query and
 the reusable alarm for each active computation slice.
@@ -41,14 +41,14 @@ the reusable alarm for each active computation slice.
 :- multifile actors:hook_admit_spawn/2.
 
 actors:hook_admit_spawn(LiveCount, _Options) :-
-    current_resource_policy(resource_policy(_,_,Max,_,_,_,_)),
+    current_resource_policy(resource_policy(_,_,Max,_,_,_)),
     integer(Max),
     LiveCount >= Max,
     throw(error(resource_error(actors),
                 context(actors:spawn/3, 'node actor limit reached'))).
 
 default_resource_policy(
-    resource_policy(300, 300, 256, 1000, 32768, 262144, 262144)).
+    resource_policy(300, 300, 256, 32768, 262144, 262144)).
 
 reset_resource_policy :-
     default_resource_policy(Policy),
@@ -66,12 +66,17 @@ current_resource_policy(Policy) :-
     default_resource_policy(Policy).
 
 configure_resource_policy(Options, Policy) :-
+    ( memberchk(max_solutions(_), Options)
+    -> throw(error(domain_error(retired_resource_option, max_solutions),
+                   context(configure_resource_policy/2,
+                     'page sizes are caller-controlled; remove max_solutions/1')))
+    ; true
+    ),
     default_resource_policy(Default),
-    Default = resource_policy(DTime,DIdle,DActors,DSolutions,DTerm,DSource,DFrame),
+    Default = resource_policy(DTime,DIdle,DActors,DTerm,DSource,DFrame),
     option(time_limit(Time0), Options, DTime),
     option(idle_limit(Idle0), Options, DIdle),
     option(max_actors(Actors0), Options, DActors),
-    option(max_solutions(Solutions0), Options, DSolutions),
     option(max_term_text_bytes(Term0), Options, DTerm),
     option(max_source_text_bytes(Source0), Options, DSource),
     option(max_ws_frame_bytes(Frame0), Options, DFrame),
@@ -80,13 +85,12 @@ configure_resource_policy(Options, Policy) :-
     normalize_seconds(time_limit, Time0, Time),
     normalize_seconds(idle_limit, Idle0, Idle),
     normalize_count(max_actors, Actors0, Actors),
-    normalize_count(max_solutions, Solutions0, Solutions),
     normalize_bytes(max_term_text_bytes, Term0, Term),
     normalize_bytes(max_source_text_bytes, Source0, Source),
     normalize_bytes(max_ws_frame_bytes, Frame0, Frame),
     normalize_count(inference_limit, Inferences0, Inferences),
     normalize_count(stack_limit, Stack0, Stack),
-    Policy = resource_policy(Time,Idle,Actors,Solutions,Term,Source,Frame),
+    Policy = resource_policy(Time,Idle,Actors,Term,Source,Frame),
     retractall(active_resource_policy(_)),
     assertz(active_resource_policy(Policy)),
     retractall(active_inference_limit(_)),
@@ -114,8 +118,8 @@ normalize_bytes(Name, Value, _) :-
                 context(resource_policy:configure_resource_policy/2,
                         'expected a positive byte count'))).
 
-policy_time_limit(resource_policy(Time,_,_,_,_,_,_), Time).
-policy_idle_limit(resource_policy(_,Idle,_,_,_,_,_), Idle).
+policy_time_limit(resource_policy(Time,_,_,_,_,_), Time).
+policy_idle_limit(resource_policy(_,Idle,_,_,_,_), Idle).
 
 actor_thread_options(Options, ThreadOptions) :-
     active_stack_limit(Stack),
@@ -147,12 +151,9 @@ tighter_limit(infinite, Requested, Requested) :- !.
 tighter_limit(Owner, infinite, Owner) :- !.
 tighter_limit(Owner, Requested, Effective) :- Effective is min(Owner, Requested).
 
-effective_solution_limit(Requested0, Effective) :-
-    normalize_positive_integer(limit, Requested0, Requested),
-    current_resource_policy(resource_policy(_,_,_,Owner,_,_,_)),
-    ( Owner == unlimited -> Effective = Requested
-    ; Effective is min(Owner, Requested)
-    ).
+% Validate the caller's page size without an owner-side solution-count cap.
+effective_solution_limit(Requested, Requested) :-
+    normalize_positive_integer(limit, Requested, Requested).
 
 normalize_positive_integer(_, Value, Value) :- integer(Value), Value > 0, !.
 normalize_positive_integer(Name, Value, _) :-
@@ -181,23 +182,23 @@ normalize_resource_exception(error(resource_error(Resource), _),
 normalize_resource_exception(Error, Error).
 
 check_term_text_size(Field, Text) :-
-    current_resource_policy(resource_policy(_,_,_,_,Limit,_,_)),
+    current_resource_policy(resource_policy(_,_,_,Limit,_,_)),
     check_text_size(Field, Text, Limit).
 
 check_source_options_size([]).
 check_source_options_size([src_text(Text)|Options]) :- !,
-    current_resource_policy(resource_policy(_,_,_,_,_,Limit,_)),
+    current_resource_policy(resource_policy(_,_,_,_,Limit,_)),
     check_text_size(src_text, Text, Limit),
     check_source_options_size(Options).
 check_source_options_size([src_list(Terms)|Options]) :- !,
     format(atom(Text), '~q', [Terms]),
-    current_resource_policy(resource_policy(_,_,_,_,_,Limit,_)),
+    current_resource_policy(resource_policy(_,_,_,_,Limit,_)),
     check_text_size(src_list, Text, Limit),
     check_source_options_size(Options).
 check_source_options_size([_|Options]) :- check_source_options_size(Options).
 
 check_ws_frame_size(Text) :-
-    current_resource_policy(resource_policy(_,_,_,_,_,_,Limit)),
+    current_resource_policy(resource_policy(_,_,_,_,_,Limit)),
     check_text_size(ws_frame, Text, Limit).
 
 check_text_size(Field, Text, Limit) :-
@@ -226,7 +227,7 @@ utf8_width(Code, 4) :- integer(Code), Code =< 0x10ffff, !.
 utf8_width(Code, _) :- throw(error(representation_error(character_code(Code)), resource_policy)).
 
 resource_websocket_options(Options0, Options) :-
-    current_resource_policy(resource_policy(_,_,_,_,_,_,Limit)),
+    current_resource_policy(resource_policy(_,_,_,_,_,Limit)),
     ( select(max_payload_length(Requested), Options0, Rest)
     -> normalize_bytes(max_payload_length, Requested, Checked),
        Effective is min(Limit, Checked),

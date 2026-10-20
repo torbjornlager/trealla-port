@@ -97,6 +97,12 @@ timeout results and callback bindings, failure, exceptions and alternatives.
 Focused regressions also check prebound matching outputs and reply variable
 sharing. The monitored `/4` implementation and reference handling are unchanged.
 
+`server_promise/4` removes and flushes its newly installed monitor when
+subsequent reference setup or sending fails or throws, preserving the original
+outcome. A successful send leaves the monitor for `server_yield/4`.
+`server_promise_cleanup_tests.pl` covers these paths and unrelated monitors
+and replies; the unit runner includes this focused suite.
+
 The native statechart runtime now executes SXML 0.2 charts using the existing
 pure-Prolog parser/model compiler and a port of SWI's transition engine.
 Thread-local model, configuration, history and event queues isolate concurrent
@@ -485,27 +491,67 @@ startup options (defaults shown):
 ?- web_prolog_node(3060,
        [ time_limit(300), idle_limit(300),
          inference_limit(unlimited), stack_limit(unlimited),
-         max_actors(256), max_solutions(1000),
+         max_actors(256),
          max_term_text_bytes(32768),
          max_source_text_bytes(262144),
          max_ws_frame_bytes(262144)
        ]).
 ```
 
-`time_limit/1` bounds one HTTP producer or PTCP call; `idle_limit/1` reclaims
-an inactive PTCP in either waiting state. Client-supplied PTCP limits and page
-sizes may make the owner limits tighter but cannot raise them. The actor limit
+`time_limit/1` bounds a complete HTTP page computation and an active PTCP
+computation slice; `idle_limit/1` reclaims
+an inactive PTCP in either waiting state. Client-supplied execution and idle
+limits may tighten the owner limits but cannot raise them. Page sizes are
+caller-controlled: HTTP requests, PTCP calls and `next` honour `limit(N)`
+without an owner solution-count cap. A finite goal that ends earlier returns
+a shorter final page. Requests without an explicit limit are no longer split
+at the former owner count cap; execution and configured stack/inference
+limits still apply. The actor limit
 is admitted atomically and its slot is reclaimed in actor cleanup. Textual
 goals/templates, source options, and WebSocket payloads are checked before
 parsing or loading, and the node clamps the WebSocket transport's own payload
 limit as well.
 
-PTCP and HTTP-producer execution timers are disarmed while a result page waits
-for its continuation and rearmed when computation resumes; the separate PTCP
+The former `max_solutions/1` owner option is retired. Supplying it now raises
+`error(domain_error(retired_resource_option,max_solutions),_)` before changing
+policy. Remove it from startup options. The deployment launcher likewise
+rejects the retired `WP_MAX_SOLUTIONS` environment variable; remove it from
+custom launchers and container environments. Updated Compose and example
+configuration omit it. `page_size_tests.pl` checks HTTP and PTCP call/next sizes,
+omitted limits and obsolete-option rejection. The development stack limit
+still defaults to `unlimited`: removing the count cap does not create a memory
+ceiling or response-byte budget.
+
+The HTTP request timer spans producer startup/cache checkout, offset skipping,
+collection and lookahead, without restarting between answers. Every HTTP page
+request receives a fresh budget; cached idle time does not consume it. It is
+cancelled before request-scope failure cleanup and before response serialization
+or socket writing. Expiry reports `error(resource_error(time),_)` and reclaims
+the request-owned producer. Already-published cache continuations retain their
+ownership. `infinite` disables the page deadline.
+
+The separate PTCP and HTTP-producer execution timers are disarmed while a result
+waits for its continuation and rearmed when computation resumes; the separate PTCP
 idle ceiling governs that suspended state. `inference_limit/1` bounds each
 query using `call_with_inference_limit/3`, while `stack_limit/1` is passed to
-every actor thread. Both default to `unlimited`; container limits remain an
-independent boundary.
+every actor and accepted HTTP/WebSocket connection thread. Both default to
+`unlimited`; container limits remain an independent boundary.
+
+Each producer and connection worker has its own stack allowance. The connection
+ceiling covers parsing, page accumulation and response formatting, including
+WebSocket handling after upgrade. Collector exhaustion unwinds the existing page
+scope, reclaiming its owned producer and preserving cached handoffs. Recoverable
+HTTP stack errors are reported as `error(resource_error(space),_)` in the existing
+Prolog/JSON response format. Errors before a usable request context or while
+reporting an error may instead close the connection; the stream and connection
+registration still have their normal cleanup and `at_exit` fallback.
+
+The runtime ceiling covers Prolog execution areas, not every atom, message queue,
+socket buffer or foreign allocation. It is neither an aggregate process-memory
+budget nor a response-byte limit. Response buffering is unchanged. `connection_stack_tests.pl` in the unit runner exercises collector
+exhaustion with individually small answers and an unlimited producer, live Prolog
+and JSON errors, successful paging after exhaustion, lifecycle-option retention,
+and finite-limit WebSocket Unicode/binary traffic and connection teardown.
 
 Authentication is configured independently of profiles and sandboxing.  Open
 mode remains the compatibility default; private mode requires an authenticated
@@ -1355,6 +1401,9 @@ source preparation/name reuse, immediate termination, and monitor delivery.
   evicted on overflow
 - N+1 lookahead probe to compute `More=true|false` without wasting
   a solution
+- Continuation-cache and RPC client offsets advance by the number of answers
+  actually returned, including when a peer returns a short non-final page;
+  short pages do not authorize silent page-size clamping
 
 ### rpc.pl
 
@@ -1527,7 +1576,7 @@ Answer = timeout.
 
 - Core version-1 wire compatibility and source-bearing actor/toplevel spawns
   now include execution-profile enforcement and native Trealla blacklist and
-  whitelist sandbox modes plus wall-time, idle, actor-count, page-size, and
+  whitelist sandbox modes plus wall-time, idle, actor-count, and
   textual-input ceilings, authentication, WebSocket origin checks, and
   connection ownership, plus per-principal rate/concurrency and IP/CIDR
   access limits with explicit trusted-proxy handling.
@@ -1679,7 +1728,7 @@ execution-limit errors retain their existing error replies.
 Publishing the next page in the cache transfers ownership before the HTTP
 response is written. A later socket-write failure therefore preserves the
 cached continuation, including one already checked out by another request.
-Paging order, lookahead, offsets, execution timeouts and retained suspended
+Paging order, lookahead, offsets and retained suspended
 continuations are unchanged. Cache overflow now reclaims the oldest producers
 in FIFO order. Eviction journals ownership before removing each entry under the
 same mutex as checkout, then stops the victims outside that mutex using private
@@ -1690,7 +1739,12 @@ trimming is interrupted. Application monitors and unrelated messages are retaine
 This does not add immediate disconnect detection during query execution,
 remote cancellation, or cache expiry. Forced runtime thread cancellation that
 bypasses Prolog cleanup remains outside this
-scope. Producer waits still use `receive/1`; no new receive deadline is added.
+scope. Producer waits still use `receive/1`, now inside the whole-page deadline.
+Private replies carry the producer pid in a `$http_page_reply/2` envelope.
+Skipping, collection and lookahead select that pid; cleanup waits for its
+termination before draining only its queued replies. This prevents late replies
+from contaminating another page and preserves unrelated messages/monitors.
+Public HTTP responses and node-to-node protocols are unchanged.
 
 `http_paging_cleanup_tests.pl`, run by `./tools/test.sh unit`, covers startup
 failure, interruption during skipping/collection/lookahead, abandoned cache
@@ -1699,6 +1753,9 @@ output mismatch, query errors, execution timeouts and monitor/message isolation.
 `http_cache_eviction_tests.pl`, also in the unit runner, covers real page overflow,
 FIFO order, multiple victims, both checkout/eviction orderings, an exception
 after removal, continued paging and application-monitor preservation.
+`http_page_deadline_tests.pl` covers startup, collection of individually fast
+answers, skipping, lookahead, cached fresh budgets, publication handoff, timer
+cancellation, infinite limits, private reply selection and selective draining.
 
 ### `rpc.pl`
 

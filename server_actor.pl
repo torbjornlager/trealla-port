@@ -177,6 +177,9 @@ server_request(To, Request, Response, Options) :-
 
 %!  server_promise(+To, +Request, -Ref) is det.
 %!  server_promise(+To, +Request, -Ref, -MonitorRef) is det.
+%
+%   The monitored variant removes and flushes its monitor if subsequent
+%   setup or sending fails or throws, preserving the original outcome.
 
 server_promise(To, Request, Ref) :-
     self(Self),
@@ -186,8 +189,18 @@ server_promise(To, Request, Ref) :-
 server_promise(To, Request, Ref, MonitorRef) :-
     self(Self),
     monitor(To, MonitorRef),
-    make_ref(Ref),
-    To ! '$call'(Self, Ref, Request).
+    catch(
+        (   make_ref(Ref), To ! '$call'(Self, Ref, Request)
+        ->  true
+        ;   cancel_failed_server_promise(MonitorRef), fail
+        ),
+        Error,
+        (cancel_failed_server_promise(MonitorRef), throw(Error))).
+
+% Cleanup must not replace the setup/send outcome with a transport error.
+% A successful send leaves the monitor for server_yield/4.
+cancel_failed_server_promise(MonitorRef) :-
+    catch(ignore(demonitor(MonitorRef, [flush])), _, true).
 
 
 %!  server_yield(+Ref, -Response) is det.

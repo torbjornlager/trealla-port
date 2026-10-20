@@ -259,7 +259,7 @@ rpc_source_module(user).
 %   Fetch one page of results from the node and yield each solution.
 %   On backtracking after the last solution on this page, fetches the
 %   next page (if More=true) by recursing with Offset incremented by
-%   Limit.
+%   the number of returned solutions.
 
 rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options,
          LoadText) :-
@@ -323,7 +323,8 @@ rpc_http_options([Option|Options], [Option|HTTPOptions]) :-
 rpc_answer(success(Slice, true), Template, Offset, Limit,
            GoalAtom, TemplateAtom, BaseURI, Options, LoadText) :- !,
     (   member(Template, Slice)
-    ;   NewOffset is Offset + Limit,
+    ;   length(Slice, Count),
+        NewOffset is Offset + Count,
         rpc_page(Template, NewOffset, Limit,
                  GoalAtom, TemplateAtom, BaseURI, Options, LoadText)
     ).

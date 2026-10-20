@@ -62,7 +62,7 @@ with `read_term_from_atom/3`:
 
 For paged queries, the server caches *suspended producer actors*
 between requests.  A producer actor runs `call(Goal)` and pauses in
-`receive({'$request'(C) -> C ! sol(Template) ; '$stop' -> ...})`
+`receive({'$request'(C) -> C ! '$http_page_reply'(Pid,sol(Template)) ; '$stop' -> ...})`
 after each solution.  Because Trealla's `receive/1` blocks the OS
 thread while preserving the complete WAM stack (including all open
 choicepoints), the producer's state -- including backtracking
@@ -80,7 +80,7 @@ When a new request arrives:
 4.  One extra request is sent to the producer to determine whether
     more solutions exist (the N+1 lookahead probe).
 5.  If more exist, the producer is stored back in the cache at
-    `Offset + Limit` together with the extra solution as a lookahead.
+    `Offset + length(Slice)` together with the extra solution as a lookahead.
 
 The cache is bounded by `cache_size/1` (default 100). When it exceeds the
 limit, the oldest entries are evicted (FIFO) and their producers are stopped.
@@ -264,7 +264,7 @@ node(Port, WebSocketHandler) :-
 %   `max_interaction_log_bytes/1`, and `max_interaction_log_backups/1`),
 %   `tokens_file(File)` (alias `token_store_file(File)`),
 %   `time_limit(Seconds)`, `idle_limit(Seconds)`, `max_actors(Count)`,
-%   `max_solutions(Count)`, `max_term_text_bytes(Bytes)`,
+%   `max_term_text_bytes(Bytes)`,
 %   `max_source_text_bytes(Bytes)`, `max_ws_frame_bytes(Bytes)`, `ssl(true)`,
 %   `load_uri_allowed_origins(Origins)`,
 %   `load_uri_allowed_ip_ranges(Patterns)`, `source_fetch_timeout(Seconds)`,
@@ -396,13 +396,17 @@ dispatch_node_connection(Port, C, Peer, WebSocketHandler, WebSocketOptions,
                          Profile, Sandbox, RelationPatterns) :-
     make_ref(Key),
     register_node_connection(Port, Key, C),
-    catch(thread_create(
+    % The connection thread owns page accumulation and response formatting.
+    % Reuse the same owner stack ceiling as producer actors, independently.
+    catch((actor_thread_options(
+              [detached(true),at_exit(node:node_connection_exit(Key,C))],
+              ThreadOptions),
+           thread_create(
               node_serve_tracked(Port, Key, C, Peer, WebSocketHandler,
                                  WebSocketOptions, Profile, Sandbox,
                                  RelationPatterns),
               Thread,
-              [detached(true),
-               at_exit(node:node_connection_exit(Key, C))]),
+              ThreadOptions)),
           Error,
           ( unregister_node_connection(Key),
             catch(close(C), _, true), throw(Error) )),
@@ -669,8 +673,9 @@ handle_call_route(_Port, C, Path, Ver, Peer, Headers,
                  Principal, http, call,
                  handle_governed_call(C, Path, Ver, Principal, Identity,
                                       Profile, Sandbox, RelationPatterns)),
-             GovernanceError,
-             ( note_ip_governance_offense(Peer, Headers, GovernanceError),
+             RawError,
+             ( normalize_resource_exception(RawError,GovernanceError),
+               note_ip_governance_offense(Peer, Headers, GovernanceError),
                reply_call_error(C, Path, Ver, GovernanceError) ))
     ;  audit_principal(Principal, AuditPrincipal),
        observe_rejection(AuditPrincipal, http, call, RouteError),
@@ -890,7 +895,7 @@ read_json_request(C, Headers, JSON) :-
     ; throw(error(domain_error(content_length, missing),
                   node:handle_admin_tokens/6))
     ),
-    current_resource_policy(resource_policy(_,_,_,_,MaxBytes,_,_)),
+    current_resource_policy(resource_policy(_,_,_,MaxBytes,_,_)),
     ( Length =< MaxBytes -> true
     ; throw(error(resource_error(input_size(admin_json,Length,MaxBytes)), node))
     ),
@@ -1333,6 +1338,7 @@ term_json_string(Term, Text) :-
 :- catch(mutex_create(_, [alias('$http_page_cache')]),
          error(permission_error(create, mutex, '$http_page_cache'), _), true).
 :- meta_predicate with_http_page_scope(-,0).
+:- meta_predicate with_http_page_deadline(0).
 
 actors:hook_spawn_reserved(Pid, _) :-
     nb_current('$http_starting_page', Scope),
@@ -1360,8 +1366,15 @@ close_http_page_producers([Pid|Pids],Scope) :-
 stop_http_page_producer(Pid) :-
     (actor_terminating -> exit(Pid,kill)
     ; setup_call_cleanup(monitor(Pid,Ref),
-        (exit(Pid,kill),receive({down(Pid,Ref,_) -> true})),
+        (exit(Pid,kill),receive({down(Pid,Ref,_) -> true}),
+         drain_http_page_replies(Pid)),
         demonitor(Ref,[flush]))).
+
+% The termination notification is a barrier: no later reply can be sent by
+% this producer. Leave application messages and other producers' replies alone.
+drain_http_page_replies(Pid) :-
+    receive({'$http_page_reply'(Pid,_) -> drain_http_page_replies(Pid)},
+            [timeout(0)]).
 
 checkout_http_page(Scope,Gid,Offset,Pid,Lookahead) :-
     with_mutex('$http_page_cache',
@@ -1401,7 +1414,25 @@ spawn_http_producer(Goal,Template,Pid) :-
 
 compute_answer(Goal, Template, Offset, Limit, Answer) :-
     with_http_page_scope(Scope,
-      compute_owned_answer(Scope,Goal,Template,Offset,Limit,Answer)).
+      with_http_page_deadline(
+        compute_owned_answer(Scope,Goal,Template,Offset,Limit,Answer))).
+
+% The request timer spans startup/checkout, skipping, collection and lookahead.
+% It is independent of the producer's per-answer timer and is disarmed before
+% the surrounding request scope reclaims an abandoned producer. Response
+% serialization/writing happens after compute_answer/5 has returned.
+with_http_page_deadline(Goal) :-
+    current_resource_policy(Policy),policy_time_limit(Policy,TimeLimit),
+    setup_call_cleanup(create_resource_timer(TimeLimit,Timer),
+      catch(once(Goal),Error,
+        (http_page_deadline_error(Error,Public),throw(Public))),
+      disarm_resource_timer(Timer)).
+
+http_page_deadline_error(Error,Public) :-
+    (Error==time_limit_exceeded
+    ; Error=error(Type,_),nonvar(Type),functor(Type,time_limit_exceeded,2)),!,
+    normalize_resource_exception(Error,Public).
+http_page_deadline_error(Error,Error).
 
 compute_owned_answer(Scope,Goal, Template, Offset, Limit, Answer) :-
     goal_id(Goal-Template, Gid),
@@ -1418,13 +1449,14 @@ compute_owned_answer(Scope,Goal, Template, Offset, Limit, Answer) :-
     ;   % Probe for one extra solution to set the More flag accurately
         ProducerPid ! '$request'(Self),
         receive({
-            sol(Extra) ->
-                NextOffset is Offset + Limit,
+            '$http_page_reply'(ProducerPid,sol(Extra)) ->
+                length(Slice, Count),
+                NextOffset is Offset + Count,
                 publish_http_page(Scope,Gid, NextOffset, ProducerPid, lookahead(Extra)),
                 Answer = success(Slice, true)
-            ; eos ->
+            ; '$http_page_reply'(ProducerPid,eos) ->
                 (Slice == [] -> Answer = failure ; Answer = success(Slice, false))
-            ; producer_error(Error) ->
+            ; '$http_page_reply'(ProducerPid,producer_error(Error)) ->
                 throw(Error)
         })
     ).
@@ -1432,6 +1464,8 @@ compute_owned_answer(Scope,Goal, Template, Offset, Limit, Answer) :-
 
 %!  run_goal_producer(+Goal, +Template) is det.
 %
+%   Replies carry the private '$http_page_reply'(ProducerPid,Payload)
+%   envelope; sol/eos/producer_error below describe its payload only.
 %   Actor body for a solution producer.  Calls Goal via backtracking;
 %   after each solution it pauses in receive waiting for either:
 %
@@ -1464,18 +1498,20 @@ run_goal_producer(Goal, Template) :-
         disarm_http_timer).
 
 producer_solution_wait(Template, TimeLimit) :-
+    self(Pid),
     disarm_http_timer,
     receive({
         '$request'(C) ->
-            C ! sol(Template),
+            C ! '$http_page_reply'(Pid,sol(Template)),
             arm_http_timer(TimeLimit)
         ; '$stop' -> throw('$prod_stop')
     }).
 
 producer_eos_wait :-
+    self(Pid),
     disarm_http_timer,
     receive({
-        '$request'(C) -> C ! eos
+        '$request'(C) -> C ! '$http_page_reply'(Pid,eos)
         ; '$stop' -> throw('$prod_stop')
     }).
 
@@ -1511,8 +1547,9 @@ producer_control_exception('$resource_idle').
 producer_control_exception(unwind(_)).
 
 producer_error_reply(Error) :-
+    self(Pid),
     receive({
-        '$request'(C) -> C ! producer_error(Error)
+        '$request'(C) -> C ! '$http_page_reply'(Pid,producer_error(Error))
         ; '$stop' -> true
     }).
 
@@ -1549,12 +1586,12 @@ stream_collect_(Pid, Self, N, none, Acc, List, Exh) :-
     N > 0,
     Pid ! '$request'(Self),
     receive({
-        sol(T) ->
+        '$http_page_reply'(Pid,sol(T)) ->
             N1 is N - 1,
             stream_collect_(Pid, Self, N1, none, [T|Acc], List, Exh)
-        ; eos ->
+        ; '$http_page_reply'(Pid,eos) ->
             List = Acc, Exh = true
-        ; producer_error(Error) ->
+        ; '$http_page_reply'(Pid,producer_error(Error)) ->
             throw(Error)
     }).
 
@@ -1572,9 +1609,9 @@ stream_skip(Pid, Self, N) :-
     N > 0,
     Pid ! '$request'(Self),
     receive({
-        sol(_) -> N1 is N - 1, stream_skip(Pid, Self, N1)
-        ; eos  -> true
-        ; producer_error(Error) -> throw(Error)
+        '$http_page_reply'(Pid,sol(_)) -> N1 is N - 1, stream_skip(Pid, Self, N1)
+        ; '$http_page_reply'(Pid,eos) -> true
+        ; '$http_page_reply'(Pid,producer_error(Error)) -> throw(Error)
     }).
 
 

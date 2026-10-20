@@ -107,3 +107,12 @@ The entrypoint catches SIGTERM/SIGINT, calls the authenticated maintenance
 endpoint, waits `WP_DRAIN_GRACE_SECONDS`, and then terminates Trealla. During
 the grace interval `/readyz` returns 503 and new `/call` and `/ws` work is
 rejected while existing handlers may finish.
+
+### Page-size configuration migration
+
+`WP_MAX_SOLUTIONS` has been retired. Remove it from custom container environments
+and launchers; the deployment entry point rejects it rather than silently ignoring
+it. Remove `max_solutions/1` from direct Prolog startup options as well. HTTP and
+persistent-toplevel page sizes now follow the caller's `limit(N)`, subject to
+execution and configured stack/inference limits. Omitting a limit no longer
+splits results at an owner solution-count cap. No response-byte ceiling is added.

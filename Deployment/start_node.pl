@@ -38,6 +38,7 @@ check_config :-
     writeln('Configuration OK (listener not started).').
 
 deployment_options(Port, Options) :-
+    reject_retired_page_cap,
     env_integer('WP_PORT', 3060, Port), positive(port, Port),
     env_atom('WP_PUBLIC_URL', 'http://localhost:8080', PublicURL),
     env_choice('WP_PROFILE', [relation,isobase,isotope,actor], actor, Profile),
@@ -57,7 +58,6 @@ deployment_options(Port, Options) :-
     env_integer('WP_TIME_LIMIT', 10, TimeLimit), positive(time_limit, TimeLimit),
     env_integer('WP_IDLE_LIMIT', 120, IdleLimit), positive(idle_limit, IdleLimit),
     env_integer('WP_MAX_ACTORS', 128, MaxActors), positive(max_actors, MaxActors),
-    env_integer('WP_MAX_SOLUTIONS', 100, MaxSolutions), positive(max_solutions, MaxSolutions),
     env_integer('WP_MAX_TERM_BYTES', 32768, MaxTermBytes), positive(max_term_text_bytes, MaxTermBytes),
     env_integer('WP_MAX_SOURCE_BYTES', 131072, MaxSourceBytes), positive(max_source_text_bytes, MaxSourceBytes),
     env_integer('WP_MAX_WS_FRAME_BYTES', 262144, MaxFrameBytes), positive(max_ws_frame_bytes, MaxFrameBytes),
@@ -81,7 +81,7 @@ deployment_options(Port, Options) :-
             bearer_token(pilot_admin,AdminToken,[execute,admin]),
             tutorial_sections(TutorialSections),
             time_limit(TimeLimit),idle_limit(IdleLimit),max_actors(MaxActors),
-            max_solutions(MaxSolutions),max_term_text_bytes(MaxTermBytes),
+            max_term_text_bytes(MaxTermBytes),
             max_source_text_bytes(MaxSourceBytes),max_ws_frame_bytes(MaxFrameBytes),
             rate_window_seconds(RateWindow),
             max_call_requests_per_window(MaxCalls),
@@ -225,3 +225,12 @@ positive(Name, Value) :-
 nonnegative(_, Value) :- integer(Value), Value >= 0, !.
 nonnegative(Name, Value) :-
     throw(error(domain_error(Name, Value), deployment_start)).
+
+% Refuse an obsolete ceiling rather than silently ignoring owner configuration.
+reject_retired_page_cap :-
+    ( getenv('WP_MAX_SOLUTIONS', _)
+    -> throw(error(domain_error(retired_environment_variable, 'WP_MAX_SOLUTIONS'),
+                   context(deployment_options/2,
+                     'page sizes are caller-controlled; remove WP_MAX_SOLUTIONS')))
+    ; true
+    ).

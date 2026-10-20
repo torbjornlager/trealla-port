@@ -309,7 +309,7 @@ node_metrics_text(Text) :-
     counter_from(Counters, audit_write_errors_total, AuditErrors),
     current_governance_policy(
         governance_policy(_,CallRate,SpawnRate,WSRate,InflightLimit,WSActorLimit)),
-    current_resource_policy(resource_policy(_,_,ActorLimit,_,_,_,_)),
+    current_resource_policy(resource_policy(_,_,ActorLimit,_,_,_)),
     limit_metric_value(InflightLimit, InflightMetric),
     limit_metric_value(WSActorLimit, WSActorMetric),
     limit_metric_value(ActorLimit, ActorMetric),

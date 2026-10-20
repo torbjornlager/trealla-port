@@ -2133,15 +2133,15 @@ t139 :-
 
 t57 :-
     configure_resource_policy(
-        [time_limit(2),idle_limit(3),max_actors(4),max_solutions(5)],
+        [time_limit(2),idle_limit(3),max_actors(4)],
         Policy),
     policy_time_limit(Policy, 2),
     policy_idle_limit(Policy, 3),
     effective_time_limit(10, 2),
     effective_time_limit(1, 1),
-    effective_solution_limit(20, 5),
+    effective_solution_limit(20, 20),
     effective_solution_limit(2, 2),
-    format("57. resource policy normalization and clamping ok~n").
+    format("57. resource policy normalization and caller page sizes ok~n").
 
 t58 :-
     configure_resource_policy(

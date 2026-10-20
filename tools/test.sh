@@ -107,6 +107,23 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "retired deployment page cap" \
+        env WP_MAX_SOLUTIONS=100 "$TPL" -g "consult('$ROOT/Deployment/start_node.pl'),(catch(deployment_start:reject_retired_page_cap,E,true),E=error(domain_error(retired_environment_variable,'WP_MAX_SOLUTIONS'),_)->halt;halt(1))"
+    page_size_port=$((TEST_PORT_BASE + 85))
+    run_with_timeout "caller-controlled page sizes" \
+        "$TPL" -g "consult('$ROOT/page_size_tests.pl'),(catch(page_size_tests:run($page_size_port),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "server promise setup/send cleanup" \
+        "$TPL" -g "consult('$ROOT/server_promise_cleanup_tests.pl'),(catch(server_promise_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    paging_offset_port=$((TEST_PORT_BASE + 84))
+    run_with_timeout "HTTP paging offsets" \
+        "$TPL" -g "consult('$ROOT/http_paging_offset_tests.pl'),(catch(http_paging_offset_tests:run($paging_offset_port),E,(writeq(E),nl,fail))->halt;halt(1))"
+    connection_stack_port=$((TEST_PORT_BASE + 83))
+    run_with_timeout "connection-thread stack limits" \
+        "$TPL" -g "consult('$ROOT/connection_stack_tests.pl'),(catch(connection_stack_tests:run($connection_stack_port),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "finite-limit WebSocket connection" \
+        "$TPL" -g "consult('$ROOT/connection_stack_tests.pl'),(catch(connection_stack_tests:websocket_live($connection_stack_port),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "HTTP whole-page deadline" \
+        "$TPL" -g "consult('$ROOT/http_page_deadline_tests.pl'),(catch(http_page_deadline_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "HTTP continuation cache eviction cleanup" \
         "$TPL" -g "consult('$ROOT/http_cache_eviction_tests.pl'),(catch(http_cache_eviction_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "HTTP paging request cleanup" \

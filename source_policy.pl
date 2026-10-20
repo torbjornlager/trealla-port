@@ -234,7 +234,7 @@ source_response(Status, Headers, Stream, URI, Origins, Redirects,
                       AllowUnverifiedHTTPS, AddressPolicy, Bytes).
 source_response(Status, Headers, Stream, URI, _, _, _, _, Bytes) :-
     ( Status >= 200, Status < 300
-    -> current_resource_policy(resource_policy(_,_,_,_,_,Limit,_)),
+    -> current_resource_policy(resource_policy(_,_,_,_,Limit,_)),
        read_response_body(Stream, Headers, Limit, Bytes)
     ; throw(error(source_uri_http_status(URI, Status),
                   source_policy:fetch_source_uri/2))
