@@ -168,13 +168,13 @@ wait_first(Scope, Pids, Solution, OnFail, OnError) :-
     }).
 
 handle_first_failure(Scope, Pid, Pids, Solution, continue, OnError) :- !,
-    select(Pid, Pids, Rest),
+    selectchk(Pid, Pids, Rest),
     wait_first(Scope, Rest, Solution, continue, OnError).
 handle_first_failure(Scope, _, Pids, _, stop, _) :-
     close_workers(Scope, Pids), !, fail.
 
 handle_first_error(Scope, Pid, _, Pids, Solution, OnFail, continue) :- !,
-    select(Pid, Pids, Rest),
+    selectchk(Pid, Pids, Rest),
     wait_first(Scope, Rest, Solution, OnFail, continue).
 handle_first_error(Scope, _, Error, Pids, _, _, stop) :-
     close_workers(Scope, Pids),

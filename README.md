@@ -77,6 +77,21 @@ teardown. Nested invocations have independent nonbacktrackable ownership records
 removed after cleanup. No remote cancellation or broader actor-lifecycle
 hardening is added.
 
+Source-less persistent toplevels route `parallel/1` and `first_solution/2-3`
+through small local wrappers that select the current actor's private module
+explicitly. This avoids missing public predicates and loss of worker built-ins
+under meta-calls such as `catch/3`; private-source execution keeps its existing
+routing. `public_worker_routing_tests.pl` covers ordinary and compound calls,
+worker exits, the continue policy, actor operations inside workers, variable
+sharing and supplied predicates. Continue-policy pid removal uses `selectchk/3`:
+worker pids are unique, so searching for a second occurrence with `select/3`
+would leave an empty alternative and delay scope cleanup. The deterministic
+removal lets successful `first_solution/2-3` calls close their scope immediately
+and report a final page. `first_solution_determinism_tests.pl` uses monitor
+barriers to force failure, exception and explicit exit before a winner, checks
+successful-call determinism before any cut, and preserves unrelated notifications.
+This does not change paging offsets or HTTP page-length calculations.
+
 The focused regressions are in `parallel_exit_tests.pl` and
 `worker_scope_tests.pl`, included by `./tools/test.sh unit` alongside the
 existing parallel tests.

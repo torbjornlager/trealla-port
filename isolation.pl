@@ -242,7 +242,37 @@ execution_goal(Goal, Qualified) :-
     % template. The fixed isolation entry point performs module dispatch only
     % after the goal has crossed the toplevel state machine unchanged.
     Qualified = isolation:run_actor_query(Module, Goal).
-execution_goal(Goal, Goal).
+execution_goal(Goal, Qualified) :-
+    sourceless_worker_goal(Goal, Prepared),
+    ( Goal == Prepared -> Qualified = Goal
+    ; Qualified = toplevel_actors:run_worker_query(Prepared)
+    ).
+
+% Keep worker entries explicit when native control constructs change the
+% meta-call context. Rebuild native controls rather than interpreting them,
+% preserving variable sharing and their existing cut/exception scopes.
+sourceless_worker_goal(Goal, Goal) :- var(Goal), !.
+sourceless_worker_goal(parallel(Goals), toplevel_actors:parallel(Goals)) :- !.
+sourceless_worker_goal(first_solution(S,Goals),
+                       toplevel_actors:first_solution(S,Goals)) :- !.
+sourceless_worker_goal(first_solution(S,Goals,Options),
+                       toplevel_actors:first_solution(S,Goals,Options)) :- !.
+sourceless_worker_goal((A0,B0), (A,B)) :- !,
+    sourceless_worker_goal(A0,A), sourceless_worker_goal(B0,B).
+sourceless_worker_goal((A0;B0), (A;B)) :- !,
+    sourceless_worker_goal(A0,A), sourceless_worker_goal(B0,B).
+sourceless_worker_goal((A0->B0), (A->B)) :- !,
+    sourceless_worker_goal(A0,A), sourceless_worker_goal(B0,B).
+sourceless_worker_goal(sandbox_policy:sandbox_control_catch(C,G0,E,H0),
+                       sandbox_policy:sandbox_control_catch(C,G,E,H)) :- !,
+    sourceless_worker_goal(G0,G), sourceless_worker_goal(H0,H).
+sourceless_worker_goal(catch(G0,E,H0), catch(G,E,H)) :- !,
+    sourceless_worker_goal(G0,G), sourceless_worker_goal(H0,H).
+sourceless_worker_goal(once(G0), once(G)) :- !, sourceless_worker_goal(G0,G).
+sourceless_worker_goal(ignore(G0), ignore(G)) :- !, sourceless_worker_goal(G0,G).
+sourceless_worker_goal((\+G0), (\+G)) :- !, sourceless_worker_goal(G0,G).
+sourceless_worker_goal(Goal, Goal).
+
 
 run_actor_query(Module, Goal0) :-
     actor_query_goal(Module, Goal0, Goal),

@@ -103,10 +103,31 @@ goal choicepoint after optionally changing the page limit.
 
 :- use_module(actors).
 :- use_module(isolation).
+:- use_module(parallel, []).
 :- use_module(resource_policy).
 :- use_module(rpc,
               [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,
                yield/2,yield/3]).
+
+% A fixed execution entry keeps rebuilt native controls out of offset/2's
+% dynamically qualified goal argument, preserving their control scope.
+run_worker_query(Goal) :- call(Goal).
+
+% Source-less calls execute here; choose the actor's private module explicitly
+% rather than relying on transitive meta-predicate import qualification.
+parallel(Goals) :-
+    worker_query_module(Module),
+    parallel:parallel_in(Module, Goals).
+first_solution(Solution, Goals) :-
+    first_solution(Solution, Goals, [on_fail(continue),on_error(stop)]).
+first_solution(Solution, Goals, Options) :-
+    worker_query_module(Module),
+    parallel:first_solution_in(Module, Solution, Goals, Options).
+worker_query_module(Module) :-
+    self(Pid),
+    ( isolation:actor_module(Pid, Private) -> Module = Private
+    ; Module = toplevel_actors
+    ).
 
 :- meta_predicate(toplevel_spawn(-, :)).
 

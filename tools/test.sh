@@ -107,6 +107,10 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "first_solution continuation determinism" \
+        "$TPL" -g "consult('$ROOT/first_solution_determinism_tests.pl'),(catch(first_solution_determinism_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "source-less toplevel worker routing" \
+        "$TPL" -g "consult('$ROOT/public_worker_routing_tests.pl'),(catch(public_worker_routing_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "retired deployment page cap" \
         env WP_MAX_SOLUTIONS=100 "$TPL" -g "consult('$ROOT/Deployment/start_node.pl'),(catch(deployment_start:reject_retired_page_cap,E,true),E=error(domain_error(retired_environment_variable,'WP_MAX_SOLUTIONS'),_)->halt;halt(1))"
     page_size_port=$((TEST_PORT_BASE + 85))
