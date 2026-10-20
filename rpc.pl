@@ -109,6 +109,7 @@ validate_client_option_list(Kind,[Option|Options]) :-
 
 client_option_type(yield,timeout,timeout).
 client_option_type(yield,on_timeout,callable).
+client_option_type(rpc,once,boolean).
 client_option_type(promise,template,template).
 client_option_type(promise,offset,nonnegative_integer).
 client_option_type(Kind,Name,Type) :-
@@ -214,6 +215,9 @@ base_path_prefix(BasePath, Prefix) :-
 %       size).  Smaller values yield more requests but lower latency
 %       per solution.  Default: a very large number (effectively no
 %       paging).
+%     - once(+Boolean)
+%       Yield the whole first slice without fetching later pages when true.
+%       Default false. Forwarded to the peer as a query parameter.
 %     - timeout(+SecondsOrInfinite), request_header(+Name=Value),
 %       authorization(basic(User,Password)), user_agent(+Text),
 %       redirect(+Boolean), max_redirect(+Nonnegative), cacert_file(+File).
@@ -266,9 +270,10 @@ rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options,
     url_encode(GoalAtom,     GoalEnc),
     url_encode(TemplateAtom, TemplEnc),
     strip_trailing_slash(BaseURI, RootURI),
+    option(once(Once), Options, false),
     format(atom(URL0),
-           '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog',
-           [RootURI, GoalEnc, TemplEnc, Offset, Limit]),
+           '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog&once=~w',
+           [RootURI, GoalEnc, TemplEnc, Offset, Limit, Once]),
     rpc_source_url(URL0, LoadText, URL),
     rpc_http_options(Options, HTTPOptions),
     http_open(URL, S, HTTPOptions),
@@ -323,7 +328,8 @@ rpc_http_options([Option|Options], [Option|HTTPOptions]) :-
 rpc_answer(success(Slice, true), Template, Offset, Limit,
            GoalAtom, TemplateAtom, BaseURI, Options, LoadText) :- !,
     (   member(Template, Slice)
-    ;   length(Slice, Count),
+    ;   option(once(Once), Options, false), Once == false,
+        length(Slice, Count),
         NewOffset is Offset + Count,
         rpc_page(Template, NewOffset, Limit,
                  GoalAtom, TemplateAtom, BaseURI, Options, LoadText)

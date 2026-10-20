@@ -35,6 +35,10 @@ option_shape_errors :-
     writeln('unknown, ineffective, output and malformed options: ok').
 
 option_value_errors :-
+    expect_client_error(rpc('http://invalid',true,[once(true),once(maybe)]),
+        type_error(boolean,maybe),rpc:rpc/3),
+    expect_client_error(rpc('http://invalid',true,[once(_)]),
+        instantiation_error,rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[limit(1),limit(0)]),
         domain_error(positive_integer,0),rpc:rpc/3),
     expect_client_error(promise('http://invalid',true,_,[offset(-1)]),
@@ -85,7 +89,9 @@ option_supported_vectors :-
              request_header('X-Test'=value),request_header('X-Count'=42),
              authorization(basic(user,password)),user_agent('Trealla test'),cacert_file('ca.pem'),
              src_text('p(a).'),src_text([112,46]),src_list([p(X)]),src_predicates([p/1]),src_uri('http://localhost/source')],
-    rpc:validate_client_options(rpc,Options),var(X),
+    rpc:validate_client_options(rpc,[once(true),once(false)|Options]),var(X),
+    rpc:rpc_http_options([once(true)|Options],OnceHTTP),
+    rpc:rpc_http_options(Options,OnceHTTP),
     POptions=[template(X-X),offset(0)|Options],
     rpc:validate_client_options(promise,POptions),var(X),
     rpc:validate_client_options(yield,[timeout(infinite),on_timeout(X=waiting)]),var(X),

@@ -1444,9 +1444,22 @@ and callback variables.
 
 | API | Supported options |
 |---|---|
-| `rpc/3` | `limit/1`, the four `src_*` options above, and the HTTP subset below |
-| `promise/4` | The same options, plus arbitrary `template/1` and nonnegative integer `offset/1` |
+| `rpc/3` | `limit/1`, boolean `once/1`, the four `src_*` options above, and the HTTP subset below |
+| `promise/4` | The same options except `once/1`, plus arbitrary `template/1` and nonnegative integer `offset/1` |
 | `yield/3` | `timeout/1` and callable `on_timeout/1` |
+
+`rpc/3` defaults to `once(false)`. With `once(true)`, it still yields every
+answer in the first slice through backtracking, but never requests a later page,
+even if the peer reports `More=true`. The first `once/1` setting wins; every
+occurrence must be boolean. The client forwards that value as the HTTP `once`
+query parameter rather than passing it to `http_open/3`. Both native SWI and
+Trealla destinations honour it by stopping the computation after the slice.
+This does not add remote cancellation after disconnects. Failure, errors,
+source loading, variable sharing and ordinary paging retain their semantics.
+`rpc_once_tests.pl` checks request counts using a peer that deliberately ignores
+`once`, plus first-slice enumeration, duplicate validation/precedence, non-ground
+sharing and failure/error delivery. Its `live/1` checks run against both native
+destinations; the fixture suite is included in `./tools/test.sh unit`.
 
 The HTTP subset is `timeout/1`, `request_header(Name=Value)`,
 `authorization(basic(User,Password))`, `user_agent/1`, `redirect/1`,
@@ -1465,8 +1478,8 @@ forms. Only Basic authorization is accepted through `authorization/1`; an
 explicit Authorization request header remains available for bearer tokens.
 
 Unknown options, HTTP response-output options, and ineffective options are
-rejected. In particular, `rpc/3` rejects `template/1` and `offset/1`, and both
-request APIs reject `once/1`. Errors include the relevant API context and
+rejected. In particular, `rpc/3` rejects `template/1` and `offset/1`, and
+`promise/4` rejects `once/1`. Errors include the relevant API context and
 `'invalid client option'`. An invalid `yield/3` option does not claim or consume
 the promise, even when its answer is already ready. The focused tests are in
 `rpc_option_tests.pl`; `./tools/test.sh unit` runs them, and the interoperability
@@ -1760,6 +1773,23 @@ Skipping, collection and lookahead select that pid; cleanup waits for its
 termination before draining only its queued replies. This prevents late replies
 from contaminating another page and preserves unrelated messages/monitors.
 Public HTTP responses and node-to-node protocols are unchanged.
+
+HTTP `/call` also validates `once=true|false` (default `false`). A `true`
+request uses a fresh producer, skips the requested offset, collects at most the
+requested limit and returns `success(Slice,false)` without lookahead. It neither
+checks out nor publishes an ordinary cached continuation. The producer counts
+its delivered answers in actor-local non-backtrackable state and stops
+enumeration at `offset + limit`, before evaluating another alternative. It then
+waits for its owning request scope to retire it. The existing
+request scope retires it before the response is written, draining only its own
+private replies and preserving application monitors. End-of-stream during
+skipping returns failure without another request to the exhausted producer.
+The whole-page deadline and existing error/cleanup paths remain in force.
+`http_once_tests.pl` covers slice boundaries, sharing, cache isolation, monitors,
+output mismatch, failure/error and timeout cleanup, plus public Prolog/JSON
+requests and boolean validation. It is included in the unit runner; its live
+checks are also used against native SWI and Trealla. Ordinary paging, cache
+policy, promise options and public wire envelopes are unchanged.
 
 `http_paging_cleanup_tests.pl`, run by `./tools/test.sh unit`, covers startup
 failure, interruption during skipping/collection/lookahead, abandoned cache

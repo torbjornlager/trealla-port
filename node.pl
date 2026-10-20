@@ -1142,6 +1142,9 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     param(offset,   Params, OffsetAtom,   '0'),
     param(limit,    Params, LimitAtom,    '1000000000'),
     param(format,   Params, Format,       prolog),
+    forall(member(once=Value,Params),http_once_value(Value,_)),
+    param(once, Params, OnceValue, false),
+    http_once_value(OnceValue,Once),
     check_term_text_size(goal, GoalAtom),
     check_term_text_size(template, TemplateAtom),
     (OffsetAtom == '' -> Offset = 0         ; atom_number(OffsetAtom, Offset)),
@@ -1156,8 +1159,13 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     response_template(Format, Template0, Bindings0, Template),
     profile_check_goal(Profile, Goal, RelationPatterns),
     sandbox_prepare_goal(Sandbox, Profile, user, Goal, ExecutionGoal),
-    compute_answer(ExecutionGoal, Template, Offset, Limit, Answer),
+    compute_answer(ExecutionGoal, Template, Offset, Limit, Once, Answer),
     reply_answer(C, Ver, Format, Answer).
+
+http_once_value(true,true) :- !.
+http_once_value(false,false) :- !.
+http_once_value(Value,_) :-
+    throw(error(domain_error(boolean,Value),node:handle_call/6)).
 
 response_template(json, _, Bindings0, json_bindings(Bindings)) :- !,
     named_bindings(Bindings0, Bindings).
@@ -1400,22 +1408,41 @@ publish_http_page(Scope,Gid,Offset,Pid,Lookahead) :-
        close_http_page_scope(Evictions))).
 
 spawn_http_page_producer(Scope,Goal,Template,Pid) :-
+    spawn_http_page_producer(Scope,Goal,Template,infinite,Pid).
+
+spawn_http_page_producer(Scope,Goal,Template,Maximum,Pid) :-
     (nb_current('$http_starting_page',Previous) -> Saved=some(Previous);Saved=none),
     setup_call_cleanup(true,
-      (nb_setval('$http_starting_page',Scope),spawn_http_producer(Goal,Template,Pid)),
+      (nb_setval('$http_starting_page',Scope),spawn_http_producer(Goal,Template,Maximum,Pid)),
       (Saved=some(Value) -> nb_setval('$http_starting_page',Value)
       ; nb_delete('$http_starting_page'))).
 
-spawn_http_producer(Goal,Template,Pid) :-
+spawn_http_producer(Goal,Template,Maximum,Pid) :-
     (current_http_promise_namespace(Namespace) ->
-        actors:spawn_scoped(node:run_goal_producer_guarded(Goal,Template),Pid,
+        actors:spawn_scoped(node:run_goal_producer_guarded(Goal,Template,Maximum),Pid,
                             [link(false),'$entry_context'(caller)],Namespace,public)
-    ; spawn(run_goal_producer_guarded(Goal,Template),Pid,[link(false)])).
+    ; spawn(run_goal_producer_guarded(Goal,Template,Maximum),Pid,[link(false)])).
 
 compute_answer(Goal, Template, Offset, Limit, Answer) :-
+    compute_answer(Goal, Template, Offset, Limit, false, Answer).
+
+% The internal sixth argument is supplied by validated HTTP once handling.
+compute_answer(Goal, Template, Offset, Limit, Once, Answer) :-
     with_http_page_scope(Scope,
       with_http_page_deadline(
-        compute_owned_answer(Scope,Goal,Template,Offset,Limit,Answer))).
+        compute_request_answer(Scope,Goal,Template,Offset,Limit,Once,Answer))).
+
+% A one-slice request never checks out or publishes an ordinary continuation.
+% Bound the producer too: it normally evaluates ahead of its next request.
+compute_request_answer(Scope,Goal,Template,Offset,Limit,true,Answer) :-
+    Maximum is Offset+Limit,
+    spawn_http_page_producer(Scope,Goal,Template,Maximum,Pid),
+    self(Self),
+    stream_skip(Pid,Self,Offset,Ended),
+    (Ended==true -> Slice=[];stream_collect(Pid,Self,Limit,none,Slice,_)),
+    (Slice==[] -> Answer=failure;Answer=success(Slice,false)).
+compute_request_answer(Scope,Goal,Template,Offset,Limit,false,Answer) :-
+    compute_owned_answer(Scope,Goal,Template,Offset,Limit,Answer).
 
 % The request timer spans startup/checkout, skipping, collection and lookahead.
 % It is independent of the producer's per-answer timer and is disarmed before
@@ -1503,9 +1530,19 @@ producer_solution_wait(Template, TimeLimit) :-
     receive({
         '$request'(C) ->
             C ! '$http_page_reply'(Pid,sol(Template)),
+            producer_delivered,
             arm_http_timer(TimeLimit)
         ; '$stop' -> throw('$prod_stop')
     }).
+
+% Actor-local state survives backtracking without copying a mutable cell
+% through receive's clause body. Ordinary producers have no finite budget.
+% At the boundary, wait without backtracking until the owner retires us.
+producer_delivered :-
+    (nb_current('$http_solution_budget',Left) ->
+        (Left=:=1 -> producer_eos_wait,throw('$prod_stop')
+        ; Next is Left-1,nb_setval('$http_solution_budget',Next))
+    ; true).
 
 producer_eos_wait :-
     self(Pid),
@@ -1538,6 +1575,10 @@ run_goal_producer_guarded(Goal, Template) :-
           ( producer_control_exception(Error0) -> throw(Error0)
           ; normalize_resource_exception(Error0, Error),
             producer_error_reply(Error) )).
+
+run_goal_producer_guarded(Goal, Template, Maximum) :-
+    (Maximum==infinite -> true;nb_setval('$http_solution_budget',Maximum)),
+    run_goal_producer_guarded(Goal,Template).
 
 % Execution time/inference limits remain ordinary error replies. Actor
 % termination must escape instead of waiting for another page request.
@@ -1611,6 +1652,17 @@ stream_skip(Pid, Self, N) :-
     receive({
         '$http_page_reply'(Pid,sol(_)) -> N1 is N - 1, stream_skip(Pid, Self, N1)
         ; '$http_page_reply'(Pid,eos) -> true
+        ; '$http_page_reply'(Pid,producer_error(Error)) -> throw(Error)
+    }).
+
+% One-slice requests must not ask an exhausted producer for another reply.
+stream_skip(_,_,0,false) :- !.
+stream_skip(Pid,Self,N,Ended) :-
+    N>0,Pid ! '$request'(Self),
+    receive({
+        '$http_page_reply'(Pid,sol(_)) ->
+            Next is N-1,stream_skip(Pid,Self,Next,Ended)
+        ; '$http_page_reply'(Pid,eos) -> Ended=true
         ; '$http_page_reply'(Pid,producer_error(Error)) -> throw(Error)
     }).
 

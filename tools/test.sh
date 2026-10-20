@@ -107,6 +107,12 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    http_once_port=$((TEST_PORT_BASE + 87))
+    run_with_timeout "HTTP server first-slice cleanup" \
+        "$TPL" -g "consult('$ROOT/http_once_tests.pl'),(catch(http_once_tests:run($http_once_port),E,(writeq(E),nl,fail))->halt;halt(1))"
+    rpc_once_port=$((TEST_PORT_BASE + 86))
+    run_with_timeout "RPC first-slice once option" \
+        "$TPL" -g "consult('$ROOT/rpc_once_tests.pl'),(catch(rpc_once_tests:run($rpc_once_port),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "first_solution continuation determinism" \
         "$TPL" -g "consult('$ROOT/first_solution_determinism_tests.pl'),(catch(first_solution_determinism_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "source-less toplevel worker routing" \
@@ -347,6 +353,10 @@ run_interop() {
             -g "use_module('$TRINITY_NODE_FILE'),node:node($swi_actor_port,[profile(actor),auth(open)]),thread_get_message(stop)"
         swi_actor_pid=$STARTED_PID
         wait_for_port "$swi_actor_port" || fail "SWI actor node did not start on port $swi_actor_port"
+        run_with_timeout "Trealla first-slice RPC -> SWI" \
+            "$TPL" -g "consult('$ROOT/rpc_once_tests.pl'),(catch(rpc_once_tests:live('http://127.0.0.1:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+        run_with_timeout "HTTP first-slice responses -> SWI" \
+            "$TPL" -g "consult('$ROOT/http_once_tests.pl'),(catch(http_once_tests:live('http://127.0.0.1:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Trealla remote statechart text/URI -> SWI" \
             "$TPL" -g "(catch((consult('$ROOT/remote_chart_tests.pl'),remote_chart_tests:live_uri($swi_actor_port,'http://127.0.0.1:$source_port/chart.xml')),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Trealla statechart invocation -> SWI" \
@@ -381,6 +391,8 @@ run_interop() {
     sleep 0.2
     kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
     if [ -f "$TRINITY_NODE_FILE" ]; then
+        run_with_timeout "Native SWI first-slice RPC -> Trealla" \
+            "$SWIPL" -q -g "use_module('$TRINITY_NODE_FILE'),findall(X,rpc:rpc('http://127.0.0.1:$trealla_remote_port',member(X,[a,b,c,d,e]),[limit(2),once(true)]),[a,b]),findall(X,rpc:rpc('http://127.0.0.1:$trealla_remote_port',member(X,[a,b,c,d,e]),[limit(2),once(false)]),[a,b,c,d,e]),halt"
         run_with_timeout "Native SWI statechart constructor -> Trealla" \
             "$SWIPL" -q -s "$ROOT/swi_remote_chart_interop.pl" \
             -g "swi_remote_chart_interop:run_uri($swi_actor_home_port,$trealla_remote_port,'http://127.0.0.1:$source_port/chart.xml','$TRINITY_NODE_FILE'),halt"
@@ -400,6 +412,10 @@ run_interop() {
         "$TPL" -g "consult('$ROOT/spawn_option_tests.pl'),(spawn_options_live_test($trealla_remote_port)->halt;halt(1))"
     run_with_timeout "Trealla validated RPC and promise HTTP options" \
         "$TPL" -g "consult('$ROOT/rpc_option_tests.pl'),(rpc_options_live_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "Trealla first-slice RPC -> Trealla" \
+        "$TPL" -g "consult('$ROOT/rpc_once_tests.pl'),(catch(rpc_once_tests:live('http://127.0.0.1:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "HTTP first-slice responses -> Trealla" \
+        "$TPL" -g "consult('$ROOT/http_once_tests.pl'),(catch(http_once_tests:live('http://127.0.0.1:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Trealla promise ownership over WebSocket and HTTP" \
         "$TPL" -g "consult('$ROOT/rpc_ownership_tests.pl'),(rpc_ownership_live_test($trealla_remote_port)->halt;halt(1))"
     run_with_timeout "Trealla WebSocket promise disposal and client isolation" \
