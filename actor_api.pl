@@ -10,7 +10,7 @@
          toplevel_stop/1, toplevel_abort/1,
          rpc/2, rpc/3,
          promise/3, promise/4, promise_cleanup/1,
-         yield/2, yield/3,
+         yield/2, yield/3, runtime_property/1,
          parallel/1, first_solution/2, first_solution/3,
          server_spawn/3, server_spawn/4,
          server_request/3, server_request/4,

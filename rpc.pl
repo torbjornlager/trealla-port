@@ -8,7 +8,8 @@
          dispose_namespace_promises/1, % internal WebSocket teardown
          promise_cleanup/1,      % +Reference
          yield/2,                % +Reference, -Answer
-         yield/3                 % +Reference, -Answer, +Options
+         yield/3,                % +Reference, -Answer, +Options
+         runtime_property/1      % ?Property
        ]).
 
 /** <module> RPC -- simple HTTP-based remote Prolog calls
@@ -60,6 +61,16 @@ is fetched automatically on backtracking.
 @author Torbjorn Lager
 */
 
+
+%! runtime_property(?Property) is nondet.
+% Host capabilities, matching the native SWI surface. Forced termination
+% does not guarantee execution of Prolog cleanup handlers.
+runtime_property(implementation(trealla_native)).
+runtime_property(persistent(true)).
+runtime_property(inbound_addressable(true)).
+runtime_property(dom(false)).
+runtime_property(actor_isolation(native_thread)).
+runtime_property(hard_termination(true)).
 
 :- use_module(library(http)).
 :- use_module(library(uri), [www_form_encode/2]).

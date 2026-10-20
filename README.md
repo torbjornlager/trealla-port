@@ -112,6 +112,21 @@ timeout results and callback bindings, failure, exceptions and alternatives.
 Focused regressions also check prebound matching outputs and reply variable
 sharing. The monitored `/4` implementation and reference handling are unchanged.
 
+`runtime_property/1` exposes the same six host-capability properties as native
+SWI, with `implementation(trealla_native)` as its identity. It enumerates facts
+without side effects; unsupported properties and non-matching values fail.
+The remaining values are `persistent(true)`, `inbound_addressable(true)`,
+`dom(false)`, `actor_isolation(native_thread)` and `hard_termination(true)`.
+Forced termination does not guarantee that Prolog cleanup handlers run.
+The facts live in `rpc.pl`, are re-exported through `actor_api.pl`, and are
+imported/routed in private actor and toplevel query environments. The HTTP
+node also imports it for source-free stateless execution. The sandbox
+admits this read-only predicate through the ordinary safe-predicate list.
+`runtime_property_tests.pl` covers enumeration, partial and failed matching,
+both sandbox modes, source-free/private-source toplevels and a spawned actor.
+The interop runner also applies identical public HTTP assertions to SWI and
+Trealla, allowing only their implementation identities to differ.
+
 `server_promise/4` removes and flushes its newly installed monitor when
 subsequent reference setup or sending fails or throws, preserving the original
 outcome. A successful send leaves the monitor for `server_yield/4`.

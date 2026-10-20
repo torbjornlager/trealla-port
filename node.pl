@@ -131,6 +131,7 @@ with_http_promise_namespace(Goal) :-
 :- use_module(library(json), [json_chars//1]).
 :- use_module(library(uri), [www_form_encode/2]).
 :- use_module(actors).
+:- use_module(rpc, [runtime_property/1]).
 :- use_module(profile_policy).
 :- use_module(auth_policy).
 :- use_module(governance_policy).

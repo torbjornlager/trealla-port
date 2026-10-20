@@ -107,6 +107,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Host runtime properties" \
+        "$TPL" -g "consult('$ROOT/runtime_property_tests.pl'),(catch(runtime_property_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     http_once_port=$((TEST_PORT_BASE + 87))
     run_with_timeout "HTTP server first-slice cleanup" \
         "$TPL" -g "consult('$ROOT/http_once_tests.pl'),(catch(http_once_tests:run($http_once_port),E,(writeq(E),nl,fail))->halt;halt(1))"
@@ -353,6 +355,8 @@ run_interop() {
             -g "use_module('$TRINITY_NODE_FILE'),node:node($swi_actor_port,[profile(actor),auth(open)]),thread_get_message(stop)"
         swi_actor_pid=$STARTED_PID
         wait_for_port "$swi_actor_port" || fail "SWI actor node did not start on port $swi_actor_port"
+        run_with_timeout "Public runtime properties (swi_native)" \
+            "$TPL" -g "consult('$ROOT/runtime_property_tests.pl'),(catch(runtime_property_tests:live('http://127.0.0.1:$swi_actor_port',swi_native),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Trealla first-slice RPC -> SWI" \
             "$TPL" -g "consult('$ROOT/rpc_once_tests.pl'),(catch(rpc_once_tests:live('http://127.0.0.1:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "HTTP first-slice responses -> SWI" \
@@ -412,6 +416,8 @@ run_interop() {
         "$TPL" -g "consult('$ROOT/spawn_option_tests.pl'),(spawn_options_live_test($trealla_remote_port)->halt;halt(1))"
     run_with_timeout "Trealla validated RPC and promise HTTP options" \
         "$TPL" -g "consult('$ROOT/rpc_option_tests.pl'),(rpc_options_live_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "Public runtime properties (trealla_native)" \
+        "$TPL" -g "consult('$ROOT/runtime_property_tests.pl'),(catch(runtime_property_tests:live('http://127.0.0.1:$trealla_remote_port',trealla_native),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Trealla first-slice RPC -> Trealla" \
         "$TPL" -g "consult('$ROOT/rpc_once_tests.pl'),(catch(rpc_once_tests:live('http://127.0.0.1:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "HTTP first-slice responses -> Trealla" \

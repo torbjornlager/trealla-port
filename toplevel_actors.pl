@@ -107,7 +107,7 @@ goal choicepoint after optionally changing the page limit.
 :- use_module(resource_policy).
 :- use_module(rpc,
               [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,
-               yield/2,yield/3]).
+               yield/2,yield/3,runtime_property/1]).
 
 % A fixed execution entry keeps rebuilt native controls out of offset/2's
 % dynamically qualified goal argument, preserving their control scope.
