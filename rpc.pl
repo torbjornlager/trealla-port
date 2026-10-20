@@ -109,12 +109,12 @@ validate_client_option_list(Kind,[Option|Options]) :-
 
 client_option_type(yield,timeout,timeout).
 client_option_type(yield,on_timeout,callable).
-client_option_type(rpc,once,boolean).
 client_option_type(promise,template,template).
 client_option_type(promise,offset,nonnegative_integer).
 client_option_type(Kind,Name,Type) :-
     (Kind==rpc;Kind==promise),request_option_type(Name,Type).
 request_option_type(limit,positive_integer).
+request_option_type(once,boolean).
 request_option_type(timeout,timeout).
 request_option_type(src_text,source_text).
 request_option_type(src_list,list).
@@ -352,7 +352,8 @@ rpc_answer(error(Error), _, _, _, _, _, _, _, _) :-
 %   Start one stateless HTTP RPC request in a detached Trealla thread. The
 %   complete protocol answer is placed in a private message queue and can be
 %   collected later with yield/2-3. A timed-out yield deliberately retains
-%   the mapping so a later yield can still collect the answer.
+%   the mapping so a later yield can still collect the answer. once(true) asks
+%   the peer to stop after this slice; the complete peer answer is preserved.
 
 promise(URI, Goal, Reference) :-
     promise(URI, Goal, Reference, []).
@@ -363,6 +364,7 @@ promise(URI, Goal0, Reference, Options) :-
     option(template(Template), Options, Goal),
     option(offset(Offset), Options, 0),
     option(limit(Limit), Options, 10000000000),
+    option(once(Once), Options, false),
     integer(Offset), Offset >= 0,
     integer(Limit), Limit > 0,
     format(atom(GoalAtom), "(~q)", [Goal]),
@@ -373,7 +375,7 @@ promise(URI, Goal0, Reference, Options) :-
     make_ref(Reference),
     start_promise(Reference,
         rpc:promise_worker(URI, GoalAtom, TemplateAtom, Offset, Limit,
-                           LoadText, HTTPOptions, Reference), 300).
+                           LoadText, HTTPOptions, Once, Reference), 300).
 
 % Owner identity is resolved before lifecycle locking. Namespace actors share
 % within their client; standalone trusted actors retain process-wide sharing.
@@ -452,10 +454,10 @@ deliver_promise_answer(Ref, Answer) :-
         ; true)).
 
 promise_worker(URI, GoalAtom, TemplateAtom, Offset, Limit, LoadText,
-               HTTPOptions, Reference) :-
+               HTTPOptions, Once, Reference) :-
     promise_worker_run(
         rpc_fetch_answer(URI, GoalAtom, TemplateAtom, Offset, Limit,
-                         LoadText, HTTPOptions, Result), Result, Reference).
+                         LoadText, HTTPOptions, Once, Result), Result, Reference).
 
 % A local request failure is distinct from a remote protocol 'failure'.
 promise_worker_run(Goal, Result, Reference) :-
@@ -466,13 +468,13 @@ promise_worker_run(Goal, Result, Reference) :-
     deliver_promise_answer(Reference, Answer).
 
 rpc_fetch_answer(BaseURI, GoalAtom, TemplateAtom, Offset, Limit, LoadText,
-                 HTTPOptions, Answer) :-
+                 HTTPOptions, Once, Answer) :-
     url_encode(GoalAtom, GoalEnc),
     url_encode(TemplateAtom, TemplateEnc),
     strip_trailing_slash(BaseURI, RootURI),
     format(atom(URL0),
-           '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog',
-           [RootURI, GoalEnc, TemplateEnc, Offset, Limit]),
+           '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog&once=~w',
+           [RootURI, GoalEnc, TemplateEnc, Offset, Limit, Once]),
     rpc_source_url(URL0, LoadText, URL),
     call_cleanup(
         (http_open(URL, Stream, HTTPOptions),

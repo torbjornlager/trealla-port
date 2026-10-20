@@ -1445,7 +1445,7 @@ and callback variables.
 | API | Supported options |
 |---|---|
 | `rpc/3` | `limit/1`, boolean `once/1`, the four `src_*` options above, and the HTTP subset below |
-| `promise/4` | The same options except `once/1`, plus arbitrary `template/1` and nonnegative integer `offset/1` |
+| `promise/4` | The same options, plus arbitrary `template/1` and nonnegative integer `offset/1` |
 | `yield/3` | `timeout/1` and callable `on_timeout/1` |
 
 `rpc/3` defaults to `once(false)`. With `once(true)`, it still yields every
@@ -1460,6 +1460,19 @@ source loading, variable sharing and ordinary paging retain their semantics.
 `once`, plus first-slice enumeration, duplicate validation/precedence, non-ground
 sharing and failure/error delivery. Its `live/1` checks run against both native
 destinations; the fixture suite is included in `./tools/test.sh unit`.
+
+`promise/4` also accepts boolean `once/1`, defaulting to `false`. It always
+fetches just one slice; `once(true)` tells the destination to finish that
+computation rather than retain a continuation. The first setting wins and every
+occurrence is validated before source fetching or resource creation. The value
+is passed through the worker into the HTTP query, never into `http_open/3`.
+Collection preserves the complete peer answer, including its `More` flag;
+clients do not rewrite a legacy peer's `success(Slice,true)` response.
+`rpc_once_tests.pl` also checks promise request counts, default/duplicate
+settings, validation without resource creation, offsets and non-ground sharing,
+failure/error delivery, and timeout/callback/retry using a gated HTTP reply.
+The same public promise assertions run against native SWI and Trealla through
+the interoperability runner. Ownership, expiry and disposal are unchanged.
 
 The HTTP subset is `timeout/1`, `request_header(Name=Value)`,
 `authorization(basic(User,Password))`, `user_agent/1`, `redirect/1`,
@@ -1478,8 +1491,8 @@ forms. Only Basic authorization is accepted through `authorization/1`; an
 explicit Authorization request header remains available for bearer tokens.
 
 Unknown options, HTTP response-output options, and ineffective options are
-rejected. In particular, `rpc/3` rejects `template/1` and `offset/1`, and
-`promise/4` rejects `once/1`. Errors include the relevant API context and
+rejected. In particular, `rpc/3` rejects `template/1` and `offset/1`.
+Errors include the relevant API context and
 `'invalid client option'`. An invalid `yield/3` option does not claim or consume
 the promise, even when its answer is already ready. The focused tests are in
 `rpc_option_tests.pl`; `./tools/test.sh unit` runs them, and the interoperability
