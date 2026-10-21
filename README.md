@@ -934,6 +934,27 @@ report are in `reproducers/bug-025-module-map-growth.*`. They isolate concurrent
 module-table growth and lookup without Web Prolog or network code. The installed
 runtime has not been patched.
 
+Actor bootstrap generation avoids `with_output_to/2`: the pinned Trealla
+engine captures the shared current-output stream across threads, allowing
+concurrent captures to mix generated source. Full bootstraps now use individually
+formatted atom fragments, concatenated in their original order; minimal
+bootstraps use direct atom formatting. HTTP and WebSocket display-term
+serializers use `write_term_to_atom/3` with the existing quoting and variable-name
+options. Source text, source ordering, private namespaces, sandbox checks and
+canonical answer sharing are unchanged. This workaround does not repair the
+engine's public output-capture predicate.
+
+`source_capture_tests.pl` checks concurrent full/minimal bootstrap generation,
+reply serialization, quoting, variable naming/sharing and surrounding captured
+output. It runs in `tools/test.sh unit`. The separate standalone reproducer and
+prepared (not submitted) upstream report are in
+[`reproducers/bug-026-concurrent-output-capture.md`](reproducers/bug-026-concurrent-output-capture.md).
+The [ACTOR conformance rerun](https://github.com/torbjornlager/trinity-conformance/tree/main/reports/2026-10-21-trealla-source-capture)
+records the public-interface checks separately from diagnostics. The original
+intermittent source-parsing failure is retained in the earlier GNU framing
+report; the independently reproduced capture corruption strongly supports,
+but does not conclusively establish, its cause.
+
 Public remote `demonitor/1-2` now checks caller ownership under the actor
 registry mutex, performs distribution work without that mutex held, then retires
 the caller's record under the mutex. Previously the manager's route reply could

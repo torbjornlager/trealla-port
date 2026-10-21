@@ -107,6 +107,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Concurrent bootstrap and reply serialization" \
+        "$TPL" -g "consult('$ROOT/source_capture_tests.pl'),(catch(source_capture_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Owned remote demonitor acknowledgement and flush" \
         "$TPL" -g "consult('$ROOT/remote_demonitor_tests.pl'),(catch(remote_demonitor_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Independent termination notification references" \

@@ -1314,9 +1314,8 @@ named_term_json_string(Term, NamedVars, Text) :-
     term_variables(Term, Variables),
     anonymous_variable_names(Variables, NamedVars, AnonymousVars),
     append(NamedVars, AnonymousVars, VariableNames),
-    with_output_to(atom(Text),
-                   write_term(Term, [quoted(true),
-                                     variable_names(VariableNames)])).
+    write_term_to_atom(Text, Term, [quoted(true),
+                                     variable_names(VariableNames)]).
 
 anonymous_variable_names([], _, []).
 anonymous_variable_names([Var|Vars], NamedVars, Names) :-

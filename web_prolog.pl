@@ -1261,9 +1261,8 @@ named_term_wire_atom(Term, NamedVars, Atom) :-
     term_variables(Term, Variables),
     anonymous_variable_names(Variables, NamedVars, AnonymousVars),
     append(NamedVars, AnonymousVars, VariableNames),
-    with_output_to(atom(Atom),
-                   write_term(Term, [quoted(true),
-                                     variable_names(VariableNames)])).
+    write_term_to_atom(Atom, Term, [quoted(true),
+                                     variable_names(VariableNames)]).
 
 anonymous_variable_names([], _, []).
 anonymous_variable_names([Var|Vars], NamedVars, Names) :-
