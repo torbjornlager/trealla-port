@@ -12,6 +12,13 @@ regression coverage and remaining gaps. Its portability notes do not establish
 a separate language contract. The shared manual records observable differences,
 including HTTP options, naming scope, startup timing and supervisor reply formats.
 
+The [draft interoperability baseline](https://github.com/torbjornlager/trinity-conformance/blob/main/baselines/0.1.md)
+and [coverage matrix](https://github.com/torbjornlager/trinity-conformance/blob/main/reports/2026-10-21-baseline-0.1/COVERAGE.md)
+record selected public-interface checks across the existing runtimes. HTTP and
+ACTOR surfaces are reported separately; passing ACTOR checks does not waive an
+HTTP-path failure. Runtime repairs are separate from this specification/test
+consolidation.
+
 The port lives alongside this report:
 
 | File                  | Role                                                |
