@@ -372,6 +372,11 @@ run_interop() {
             -g "use_module('$TRINITY_NODE_FILE'),node:node($swi_actor_port,[profile(actor),auth(open)]),thread_get_message(stop)"
         swi_actor_pid=$STARTED_PID
         wait_for_port "$swi_actor_port" || fail "SWI actor node did not start on port $swi_actor_port"
+        run_with_timeout "Unicode remote answers: Trealla -> SWI" \
+            "$TPL" -g "consult('$ROOT/unicode_answer_tests.pl'),(catch(unicode_answer_tests:live('http://localhost:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+        run_with_timeout "Unicode remote answers: SWI -> SWI" \
+            "$SWIPL" -q -s "$ROOT/unicode_answer_tests.pl" \
+            -g "node:node($swi_actor_home_port,[profile(actor),auth(open)]),(catch(unicode_answer_tests:live('http://localhost:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Public remote demonitor -> SWI" \
             "$TPL" -g "consult('$ROOT/remote_demonitor_tests.pl'),(catch(remote_demonitor_tests:live('http://localhost:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Termination notifications -> SWI" \
@@ -432,6 +437,11 @@ run_interop() {
     if [ -f "$TRINITY_NODE_FILE" ]; then
         run_with_timeout "Native SWI first-slice RPC -> Trealla" \
             "$SWIPL" -q -g "use_module('$TRINITY_NODE_FILE'),findall(X,rpc:rpc('http://127.0.0.1:$trealla_remote_port',member(X,[a,b,c,d,e]),[limit(2),once(true)]),[a,b]),findall(X,rpc:rpc('http://127.0.0.1:$trealla_remote_port',member(X,[a,b,c,d,e]),[limit(2),once(false)]),[a,b,c,d,e]),halt"
+        run_with_timeout "Unicode remote answers: SWI -> Trealla" \
+            "$SWIPL" -q -s "$ROOT/unicode_answer_tests.pl" \
+            -g "node:node($swi_actor_home_port,[profile(actor),auth(open)]),(catch(unicode_answer_tests:live_success('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+        run_with_timeout "Unicode remote answers: Trealla -> Trealla" \
+            "$TPL" -g "consult('$ROOT/unicode_answer_tests.pl'),(catch(unicode_answer_tests:live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Native SWI statechart constructor -> Trealla" \
             "$SWIPL" -q -s "$ROOT/swi_remote_chart_interop.pl" \
             -g "swi_remote_chart_interop:run_uri($swi_actor_home_port,$trealla_remote_port,'http://127.0.0.1:$source_port/chart.xml','$TRINITY_NODE_FILE'),halt"

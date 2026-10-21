@@ -1042,13 +1042,27 @@ acknowledgement ordering, multiple queued notifications, ownership boundaries,
 repeat removal, writer loss/timeouts and public calls against both native peers.
 
 
-The remaining wide-atom observation is kept separately in
-`remote_toplevel_creation_diagnostics.pl`, not counted as a passing conformance
-assertion. Native SWI's current portability check rejects wide-character atoms
-(`ucs_text` blobs), so an asynchronous answer containing such an atom can lack
-the negotiated canonical `term` field; the Trealla client reports
-`remote_answer_protocol_error(missing_term)`. Unicode URI source is still fetched
-and loaded in the creation tests, with an ASCII result payload.
+Native SWI's wide-atom portability filter now admits ordinary `ucs_text` atoms,
+so Unicode answers no longer lose their negotiated canonical `term` payload.
+`unicode_answer_tests.pl` runs the same Unicode success/error, paging and sharing
+assertions with Trealla and SWI clients against native peers through
+`tools/test.sh interop`. The former `wide_answer/2` observation in
+`remote_toplevel_creation_diagnostics.pl` is superseded by those regressions.
+This changes no Trealla or browser runtime code.
+
+One separate legacy-path diagnostic remains: SWI's current transparent client
+does not opt into Trealla's canonical asynchronous answer extension. Its Unicode
+success and paging checks pass, but error terms arrive as `remote_error(Text)`
+and a literal `'$VAR'(1)` can be reconstructed as a variable. The fixture's
+`legacy_diagnostic/3` records that observation; `live_success/1` tests only the
+Unicode success/paging guarantees on that path. Full error fidelity is asserted
+on the other three native client/peer combinations, without treating legacy
+reconstruction as a canonical pass. Negotiation changes remain separate work.
+The [focused live results](reproducers/port-unicode-answers-results.json) retain
+all four client/peer outcomes and the separate legacy observation. Native SWI's
+92-test T0 tier and its exact-answer cross-node regression also passed. These
+checks used disposable nodes, leaving installed engines and live n3/n5 unchanged;
+they are not a full conformance rerun.
 
 
 The native client exports `remote_toplevel_call_synch(Node,Pid,Goal,Answer)`

@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-21T19:25:49.466451+00:00",
+  "scope": "Native SWI ucs_text transport filter; no browser runtime changes",
+  "repository_heads": {
+    "trealla": "59926f70524abb17c0a2d318267c47ee653c77dd",
+    "swi": "a1d802c79632f022980fe1492e5cc7cb216737a7"
+  },
+  "engines": {
+    "swi": "SWI-Prolog version 10.1.17 for fat-darwin",
+    "trealla": "v3.13.10",
+    "trealla_executable_sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563"
+  },
+  "input_sha256": {
+    "native_actors": "2e5137a89096be8c6c960fcd9fff72e11eec9990f817487cc002944ede095727",
+    "native_actor_tests": "4e5e45f3170d7837f749d9d1a5f157d4b6d6f00dd46a003fd79c7afeb5bd7057",
+    "native_cross_node_tests": "f413d09aad0487bca1a23e050bd5a2e49786735c4b8a9b6881199ed535476246",
+    "shared_live_tests": "1a79fc118f887b1b2eb43494b555a0ae99c9a0713123d33de0aac50dad4198a8"
+  },
+  "native_checks": {
+    "T0": "92/92 passed",
+    "remote_toplevel_answers_keep_exact_terms": "passed"
+  },
+  "live_checks": [
+    {
+      "client": "trealla",
+      "peer": "swi",
+      "returncode": 0,
+      "stdout": "Unicode answers, errors, paging and sharing on http://localhost:54703: passed\n",
+      "stderr": ""
+    },
+    {
+      "client": "trealla",
+      "peer": "trealla",
+      "returncode": 0,
+      "stdout": "Unicode answers, errors, paging and sharing on http://localhost:54704: passed\n",
+      "stderr": ""
+    },
+    {
+      "client": "swi",
+      "peer": "swi",
+      "returncode": 0,
+      "stdout": "Unicode answers, errors, paging and sharing on http://localhost:54703: passed\n",
+      "stderr": "% Library was moved: library(http/json) --> library(json)\n% Started server at http://localhost:54705/\nWarning: [Thread main] Ambiguous operation on stream pair <stream>(0x1047503e0,0x104750590)\nWarning: [Thread main] Ambiguous operation on stream pair <stream>(0x1047503e0,0x104750590)\n"
+    },
+    {
+      "client": "swi",
+      "peer": "trealla",
+      "returncode": 0,
+      "stdout": "Unicode success answers, paging and sharing on http://localhost:54704: passed\n",
+      "stderr": "% Library was moved: library(http/json) --> library(json)\n% Started server at http://localhost:54705/\nWarning: [Thread main] Ambiguous operation on stream pair <stream>(0x10e8b2200,0x10e8b23b0)\nWarning: [Thread main] Ambiguous operation on stream pair <stream>(0x10e8b2200,0x10e8b23b0)\n"
+    }
+  ],
+  "separate_legacy_diagnostic": {
+    "returncode": 0,
+    "stdout": "observed(row(_5886,_5886,_5890,_5890),remote_error(\"error(unicode('€'),context(漢字,'😀'))\"))\n",
+    "stderr": "% Library was moved: library(http/json) --> library(json)\n% Started server at http://localhost:54705/\nWarning: [Thread main] Ambiguous operation on stream pair <stream>(0x104ee5760,0x104ee5910)\nWarning: [Thread main] Ambiguous operation on stream pair <stream>(0x104ee5760,0x104ee5910)\n"
+  },
+  "qualifications": [
+    "SWI -> Trealla live check asserts Unicode success, paging and variable sharing only; full async/sync exception assertions pass in the other three combinations.",
+    "SWI -> Trealla transparent asynchronous legacy reconstruction loses literal VAR/1 and structured exception fidelity. This is observed separately, not waived or repaired.",
+    "Disposable nodes only; installed runtimes and live n3/n5 unchanged.",
+    "Not a full conformance rerun."
+  ]
+}
