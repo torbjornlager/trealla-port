@@ -54,6 +54,43 @@ The regression files are `receiver_lineage_tests.pl`, `swi_lineage_compat.pl` an
 `synchronous_toplevel_tests.pl`, integrated through `tools/test.sh`. Peer tokens
 used by the tests are fixture-only.
 
+## Creation-race diagnostic batches
+
+The test-only follow-up on 21 October 2026 did not reproduce the rare failure.
+The fixed batches used the same instrumented test on both engines:
+
+| Engine | Isolated: 10 fresh processes × 200 races | After suite prefix: 50 fresh processes × 20 races |
+| --- | --- | --- |
+| Pinned v3.13.10 (`36f512f595e407e330f6e1f6b4eb339da2b0675e`) | 2,000 passed | 1,000 passed |
+| Separate upstream v3.13.26 (`7af2b53c4eaa219c5f74b716f37e4f5e1b1917a6`) | 2,000 passed | 1,000 passed |
+
+All 120 processes produced the explicit completion marker: 6,000 race iterations,
+no failed processes, watchdog timeouts or incomplete output. Engine binary hashes
+and the recorded runtime source hashes were unchanged. Full per-process output,
+configuration, revisions and hashes are in
+[`port-creation-race-diagnostics-results.json`](../reproducers/port-creation-race-diagnostics-results.json).
+The earlier rare failure remains unresolved; these passes do not establish its
+cause or prove that it has disappeared. Timing instrumentation can also affect a
+race, although stage snapshots are collected only after failure.
+
+`receiver_lineage_tests:race_batch/2` distinguishes relay/worker startup,
+namespace opening and closure, missing worker replies, unexpected startup errors,
+child retirement, missing worker termination, unexpected termination reasons,
+remaining namespace registrations and relay teardown. Failures include the
+iteration, relevant actor and namespace state, and non-consuming snapshots of the
+observer's deferred mailbox and native queue head. Successful bindings and the
+original immediate namespace-empty assertion are preserved. Actor-retirement
+polling now has a two-second test deadline; message waits keep their original
+limits. An external 20-second process watchdog bounds a native stall, but cannot
+identify the exact step if Prolog cannot execute the diagnostic handler.
+
+Diagnostic self-checks passed on both engines: intentional failure and exception
+are labelled correctly, successful bindings survive, an expired retirement wait
+returns, and taking a snapshot leaves a sentinel message available. The complete
+receiver group also passed on pinned Trealla. These are test changes only; runtime
+behaviour, installed engines and live nodes were not changed. Broader lifecycle
+repairs and attribution to an upstream engine remain outside this batch.
+
 ## Remaining boundaries
 
 Trealla does not forward delegated ownership or closure through further remote

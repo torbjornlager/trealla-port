@@ -1,0 +1,1270 @@
+{
+  "started_at": "2026-10-21T19:09:03.389094+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "repository_head": "41642c978730ed6251ec4112362bef986f0a1c7b",
+  "test_sha256": "1b4400d51a74f673b02415b5564ef2a78806e9f6ffc02f9e083906c1c0e29064",
+  "runner_sha256": "05e8675213ae82a72edd66b6b1b532bd6e43efdd369aee1e0c97262319e63277",
+  "runtime_hashes_before": {
+    "actors.pl": "b4c1e47e9acfb701b0808fc48e8cacac0a5f4d897f6d47a70914b5cd86ea2413",
+    "isolation.pl": "a4867073ff515285cd4727a88dc8dea1efd8292ac3c68abd9b0ab9e9f9fa63b5",
+    "receiver_lineage.pl": "b26279a89e1c7f7efa992ba489acbf4404519ec2b74c55aed6ee4b7440f4383c",
+    "rpc.pl": "de3a5c965137134bab4123116e76b2c1f8936bcb20ee530d9bbebbe10bff5a87",
+    "web_prolog.pl": "47a63b24c95682bbfd012594d8c249c2cc089293d82a6ae67cf6e6986ebf04f6",
+    "toplevel_actors.pl": "c405310ccaedcb0a8fe2f487c380c38dff67dce3e007b90330ac722770dea867"
+  },
+  "configuration": {
+    "engine": [
+      "pinned=/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "upstream=/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-shutdown-stall/upstream-2026-10-21/tpl"
+    ],
+    "isolated_processes": 10,
+    "isolated_iterations": 200,
+    "prefix_processes": 50,
+    "prefix_iterations": 20,
+    "timeout": 20,
+    "output": "reproducers/port-creation-race-diagnostics-results.json"
+  },
+  "engines": {
+    "pinned": {
+      "executable": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "executable_sha256_before": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+      "source_revision": "36f512f595e407e330f6e1f6b4eb339da2b0675e",
+      "library_path": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/library",
+      "trials": [
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.847,
+          "mode": "isolated",
+          "trial": 1,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.864,
+          "mode": "isolated",
+          "trial": 2,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.874,
+          "mode": "isolated",
+          "trial": 3,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.815,
+          "mode": "isolated",
+          "trial": 4,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.82,
+          "mode": "isolated",
+          "trial": 5,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.787,
+          "mode": "isolated",
+          "trial": 6,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.845,
+          "mode": "isolated",
+          "trial": 7,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.841,
+          "mode": "isolated",
+          "trial": 8,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.951,
+          "mode": "isolated",
+          "trial": 9,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.895,
+          "mode": "isolated",
+          "trial": 10,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.539,
+          "mode": "after_prefix",
+          "trial": 1,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.484,
+          "mode": "after_prefix",
+          "trial": 2,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.498,
+          "mode": "after_prefix",
+          "trial": 3,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.505,
+          "mode": "after_prefix",
+          "trial": 4,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.479,
+          "mode": "after_prefix",
+          "trial": 5,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.485,
+          "mode": "after_prefix",
+          "trial": 6,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.475,
+          "mode": "after_prefix",
+          "trial": 7,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.486,
+          "mode": "after_prefix",
+          "trial": 8,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.496,
+          "mode": "after_prefix",
+          "trial": 9,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.488,
+          "mode": "after_prefix",
+          "trial": 10,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.486,
+          "mode": "after_prefix",
+          "trial": 11,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.481,
+          "mode": "after_prefix",
+          "trial": 12,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.495,
+          "mode": "after_prefix",
+          "trial": 13,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.477,
+          "mode": "after_prefix",
+          "trial": 14,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.48,
+          "mode": "after_prefix",
+          "trial": 15,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.487,
+          "mode": "after_prefix",
+          "trial": 16,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.49,
+          "mode": "after_prefix",
+          "trial": 17,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.477,
+          "mode": "after_prefix",
+          "trial": 18,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.487,
+          "mode": "after_prefix",
+          "trial": 19,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.489,
+          "mode": "after_prefix",
+          "trial": 20,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.472,
+          "mode": "after_prefix",
+          "trial": 21,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.467,
+          "mode": "after_prefix",
+          "trial": 22,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.467,
+          "mode": "after_prefix",
+          "trial": 23,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.468,
+          "mode": "after_prefix",
+          "trial": 24,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.462,
+          "mode": "after_prefix",
+          "trial": 25,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.463,
+          "mode": "after_prefix",
+          "trial": 26,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.467,
+          "mode": "after_prefix",
+          "trial": 27,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.467,
+          "mode": "after_prefix",
+          "trial": 28,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.479,
+          "mode": "after_prefix",
+          "trial": 29,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.492,
+          "mode": "after_prefix",
+          "trial": 30,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.465,
+          "mode": "after_prefix",
+          "trial": 31,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.485,
+          "mode": "after_prefix",
+          "trial": 32,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.464,
+          "mode": "after_prefix",
+          "trial": 33,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.467,
+          "mode": "after_prefix",
+          "trial": 34,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.493,
+          "mode": "after_prefix",
+          "trial": 35,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.475,
+          "mode": "after_prefix",
+          "trial": 36,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.47,
+          "mode": "after_prefix",
+          "trial": 37,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.454,
+          "mode": "after_prefix",
+          "trial": 38,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.479,
+          "mode": "after_prefix",
+          "trial": 39,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.476,
+          "mode": "after_prefix",
+          "trial": 40,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.477,
+          "mode": "after_prefix",
+          "trial": 41,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.476,
+          "mode": "after_prefix",
+          "trial": 42,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.475,
+          "mode": "after_prefix",
+          "trial": 43,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.467,
+          "mode": "after_prefix",
+          "trial": 44,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.478,
+          "mode": "after_prefix",
+          "trial": 45,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.475,
+          "mode": "after_prefix",
+          "trial": 46,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.456,
+          "mode": "after_prefix",
+          "trial": 47,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.462,
+          "mode": "after_prefix",
+          "trial": 48,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.467,
+          "mode": "after_prefix",
+          "trial": 49,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.457,
+          "mode": "after_prefix",
+          "trial": 50,
+          "requested_iterations": 20,
+          "passed": true
+        }
+      ],
+      "version": {
+        "returncode": 0,
+        "stdout": "trealla(3,13,10,[])\n",
+        "stderr": "",
+        "elapsed_seconds": 0.021
+      },
+      "executable_sha256_after": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563"
+    },
+    "upstream": {
+      "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-shutdown-stall/upstream-2026-10-21/tpl",
+      "executable_sha256_before": "99b0115e85deb4a5b4b3ae2ba28a0ff36733aef575b3ba2a30b739f007177a41",
+      "source_revision": "7af2b53c4eaa219c5f74b716f37e4f5e1b1917a6",
+      "library_path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-shutdown-stall/upstream-2026-10-21/library",
+      "trials": [
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.728,
+          "mode": "isolated",
+          "trial": 1,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.752,
+          "mode": "isolated",
+          "trial": 2,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.765,
+          "mode": "isolated",
+          "trial": 3,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.796,
+          "mode": "isolated",
+          "trial": 4,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.727,
+          "mode": "isolated",
+          "trial": 5,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.734,
+          "mode": "isolated",
+          "trial": 6,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.7,
+          "mode": "isolated",
+          "trial": 7,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.733,
+          "mode": "isolated",
+          "trial": 8,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.729,
+          "mode": "isolated",
+          "trial": 9,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(isolated,200)\ncreation_race_iterations_started\ncreation_race_batch_passed(isolated,200)\n",
+          "stderr": "",
+          "elapsed_seconds": 3.7,
+          "mode": "isolated",
+          "trial": 10,
+          "requested_iterations": 200,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.469,
+          "mode": "after_prefix",
+          "trial": 1,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.486,
+          "mode": "after_prefix",
+          "trial": 2,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.476,
+          "mode": "after_prefix",
+          "trial": 3,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.475,
+          "mode": "after_prefix",
+          "trial": 4,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.477,
+          "mode": "after_prefix",
+          "trial": 5,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.476,
+          "mode": "after_prefix",
+          "trial": 6,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.487,
+          "mode": "after_prefix",
+          "trial": 7,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.482,
+          "mode": "after_prefix",
+          "trial": 8,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.474,
+          "mode": "after_prefix",
+          "trial": 9,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.489,
+          "mode": "after_prefix",
+          "trial": 10,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.473,
+          "mode": "after_prefix",
+          "trial": 11,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.466,
+          "mode": "after_prefix",
+          "trial": 12,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.486,
+          "mode": "after_prefix",
+          "trial": 13,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.478,
+          "mode": "after_prefix",
+          "trial": 14,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.48,
+          "mode": "after_prefix",
+          "trial": 15,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.469,
+          "mode": "after_prefix",
+          "trial": 16,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.497,
+          "mode": "after_prefix",
+          "trial": 17,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.472,
+          "mode": "after_prefix",
+          "trial": 18,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.48,
+          "mode": "after_prefix",
+          "trial": 19,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.481,
+          "mode": "after_prefix",
+          "trial": 20,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.483,
+          "mode": "after_prefix",
+          "trial": 21,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.491,
+          "mode": "after_prefix",
+          "trial": 22,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.477,
+          "mode": "after_prefix",
+          "trial": 23,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.481,
+          "mode": "after_prefix",
+          "trial": 24,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.484,
+          "mode": "after_prefix",
+          "trial": 25,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.474,
+          "mode": "after_prefix",
+          "trial": 26,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.489,
+          "mode": "after_prefix",
+          "trial": 27,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.478,
+          "mode": "after_prefix",
+          "trial": 28,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.473,
+          "mode": "after_prefix",
+          "trial": 29,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.488,
+          "mode": "after_prefix",
+          "trial": 30,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.471,
+          "mode": "after_prefix",
+          "trial": 31,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.48,
+          "mode": "after_prefix",
+          "trial": 32,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.484,
+          "mode": "after_prefix",
+          "trial": 33,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.479,
+          "mode": "after_prefix",
+          "trial": 34,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.482,
+          "mode": "after_prefix",
+          "trial": 35,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.483,
+          "mode": "after_prefix",
+          "trial": 36,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.482,
+          "mode": "after_prefix",
+          "trial": 37,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.473,
+          "mode": "after_prefix",
+          "trial": 38,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.474,
+          "mode": "after_prefix",
+          "trial": 39,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.495,
+          "mode": "after_prefix",
+          "trial": 40,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.48,
+          "mode": "after_prefix",
+          "trial": 41,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.47,
+          "mode": "after_prefix",
+          "trial": 42,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.469,
+          "mode": "after_prefix",
+          "trial": 43,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.49,
+          "mode": "after_prefix",
+          "trial": 44,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.475,
+          "mode": "after_prefix",
+          "trial": 45,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.475,
+          "mode": "after_prefix",
+          "trial": 46,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.492,
+          "mode": "after_prefix",
+          "trial": 47,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.467,
+          "mode": "after_prefix",
+          "trial": 48,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.482,
+          "mode": "after_prefix",
+          "trial": 49,
+          "requested_iterations": 20,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "creation_race_batch_started(after_prefix,20)\nauthority, token, account and sandbox validation: ok\ndescendants, names, promises, late admission and unrelated lineages: ok\nconnection loss closes every delegated namespace: ok\nclosure during unnamed preparation rejects activation and wakes creator: ok\nclosure during named preparation rejects activation and wakes creator: ok\ncreation_race_iterations_started\ncreation_race_batch_passed(after_prefix,20)\n",
+          "stderr": "",
+          "elapsed_seconds": 2.471,
+          "mode": "after_prefix",
+          "trial": 50,
+          "requested_iterations": 20,
+          "passed": true
+        }
+      ],
+      "version": {
+        "returncode": 0,
+        "stdout": "trealla(3,13,26,[])\n",
+        "stderr": "",
+        "elapsed_seconds": 0.024
+      },
+      "executable_sha256_after": "99b0115e85deb4a5b4b3ae2ba28a0ff36733aef575b3ba2a30b739f007177a41"
+    }
+  },
+  "runtime_hashes_after": {
+    "actors.pl": "b4c1e47e9acfb701b0808fc48e8cacac0a5f4d897f6d47a70914b5cd86ea2413",
+    "isolation.pl": "a4867073ff515285cd4727a88dc8dea1efd8292ac3c68abd9b0ab9e9f9fa63b5",
+    "receiver_lineage.pl": "b26279a89e1c7f7efa992ba489acbf4404519ec2b74c55aed6ee4b7440f4383c",
+    "rpc.pl": "de3a5c965137134bab4123116e76b2c1f8936bcb20ee530d9bbebbe10bff5a87",
+    "web_prolog.pl": "47a63b24c95682bbfd012594d8c249c2cc089293d82a6ae67cf6e6986ebf04f6",
+    "toplevel_actors.pl": "c405310ccaedcb0a8fe2f487c380c38dff67dce3e007b90330ac722770dea867"
+  },
+  "runtime_files_unchanged": true,
+  "finished_at": "2026-10-21T19:14:27.596070+00:00",
+  "failed_processes": 0
+}

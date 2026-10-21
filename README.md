@@ -948,6 +948,14 @@ actual distribution encoder against a disposable Trealla node. Both are included
 in `tools/test.sh` (`unit` and `interop`, respectively); live tests use a fixture-only
 bearer token and do not alter a running deployment.
 
+For fixed fresh-process creation-race diagnostics, use
+`python3 tools/test-creation-race.py --engine LABEL=/path/to/tpl --output /path/to/results.json`
+(repeat `--engine` to compare builds). The default batch runs 2,000 isolated
+races and 1,000 races after the preceding receiver checks per engine. Failed
+steps capture relevant actor/namespace state and non-consuming mailbox snapshots;
+the runner records raw output, watchdog timeouts and engine/runtime hashes.
+See [the diagnostic results and limitations](docs/delegated-lineage-status.md#creation-race-diagnostic-batches).
+
 General `toplevel_spawn/2` with a remote `node/1` now uses a constructor hook,
 matching SWI's dispatch pattern. It delegates to the existing transparent
 `toplevel_spawn` transport command so the peer creates its own PTCP, rather
