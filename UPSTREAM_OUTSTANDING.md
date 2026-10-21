@@ -1,10 +1,11 @@
 # Outstanding Trealla reports from the Web Prolog port
 
-Updated 2026-10-18 from the `trealla-port` work, using Trealla v3.13.10 on
-macOS arm64.  Thank you for the substantial set of fixes and additions already
-made for this port. One minimized module-context bug is ready to send
-upstream, and a newly isolated term-construction bug needs a current-build
-retest before filing.
+HTTP-timeout entry retested on current upstream 2026-10-21; other entries
+retain their 2026-10-18 assessment.
+Unless otherwise noted, observations use Trealla v3.13.10 on macOS arm64.  Thank you for the substantial set of fixes and additions already
+made for this port. The module-context report is ready to send upstream; the
+HTTP read-timeout report was submitted as #1172. The term-construction report still needs a
+current-build retest before filing.
 
 ## Ready to send
 
@@ -45,6 +46,30 @@ inside lists or other containers. The missing qualification caused nested
 server callbacks in the port's supervisor child-specification list to be
 looked up in the wrong module. The port currently works around this by passing
 `Module:ChildSpecs` explicitly.
+
+## Submitted reports awaiting upstream resolution
+
+### BUG-024: HTTP read timeouts are accepted but not enforced
+
+A plain-HTTP peer sends no bytes for 1.2 seconds, but Trealla v3.13.10 with
+`timeout(0.2)` still returns the delayed response successfully. Three runs
+reproduce this using only `library(http)` and a Python standard-library
+fixture. The fixture uses an ephemeral loopback port and stops itself.
+
+```sh
+TPL_LIBRARY_PATH=/path/to/trealla/library \
+  python3 reproducers/bug-024-http-read-timeout.py /path/to/trealla/tpl
+```
+
+[Upstream issue #1172](https://github.com/trealla-prolog/trealla-prolog/issues/1172) and [local report](reproducers/bug-024-http-read-timeout.md),
+[Prolog client](reproducers/bug-024-http-read-timeout.pl), and
+[fixture/runner](reproducers/bug-024-http-read-timeout.py).
+Current upstream v3.13.26 (`7af2b53c4eaa219c5f74b716f37e4f5e1b1917a6`)
+also returned success in three runs: 1.205, 1.207 and 1.205 seconds. The
+canonical upstream tracker was checked across open/closed reports; no direct
+duplicate was found. Older issues #1052 and #1048 are related, as recorded in
+the report. Submitted on 2026-10-21.
+No timeout-enforcement workaround has been added to the port.
 
 ## New report needing a current-build retest
 

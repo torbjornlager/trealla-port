@@ -1489,14 +1489,27 @@ failure/error delivery, and timeout/callback/retry using a gated HTTP reply.
 The same public promise assertions run against native SWI and Trealla through
 the interoperability runner. Ownership, expiry and disposal are unchanged.
 
-The HTTP subset is `timeout/1`, `request_header(Name=Value)`,
+The HTTP subset is `http_timeout/1`, legacy `timeout/1`, `request_header(Name=Value)`,
 `authorization(basic(User,Password))`, `user_agent/1`, `redirect/1`,
 `max_redirect/1`, and `cacert_file/1`. Limits are positive integers; redirect
-counts are nonnegative integers; `redirect/1` is boolean. Timeouts are
-nonnegative numbers or `infinite`. Request timeouts retain Trealla's HTTP
-transport meaning; yield timeouts govern the local wait. No remote execution
-timeout option is added. CA certificate configuration requires a TLS-enabled
-Trealla build.
+counts are nonnegative integers; `redirect/1` is boolean. Explicit
+`http_timeout/1` requires a number and normalises negatives to zero, matching
+SWI's option validation. It overrides legacy `timeout/1` regardless of list
+order; the first occurrence of each name wins, and every occurrence is checked
+before source fetching or resource creation. Only one normalised `timeout/1`
+is forwarded when the explicit option is present. Without it, legacy transport
+`timeout/1` handling (nonnegative numbers or `infinite`) is unchanged. Yield
+timeouts govern the local wait. No remote execution timeout option is added.
+CA certificate configuration requires a TLS-enabled Trealla build.
+
+**Dependency limitation:** Trealla v3.13.10's `http_open/3` sets the stream's
+read timeout, but the runtime stores that value without consulting it in its
+read path. A delayed response can therefore succeed after either transport
+option's interval has elapsed. This batch adds the explicit spelling and
+precedence, not enforcement machinery. `rpc_http_timeout_tests.pl:run/1` checks
+validation, transport mapping, successful requests and promise wait/callback/retry.
+Its separate `diagnose_expiry/1` reproduces the unresolved transport expiry
+problem for both spellings and asynchronous promise collection.
 
 Source text, source URIs and CA filenames accept the existing text formats
 (atoms, strings, or valid character/code lists); `src_list/1` takes a proper

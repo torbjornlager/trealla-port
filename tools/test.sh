@@ -107,6 +107,9 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    http_timeout_port=$((TEST_PORT_BASE + 88))
+    run_with_timeout "HTTP transport timeout option mapping" \
+        "$TPL" -g "consult('$ROOT/rpc_http_timeout_tests.pl'),(catch(rpc_http_timeout_tests:run($http_timeout_port),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Host runtime properties" \
         "$TPL" -g "consult('$ROOT/runtime_property_tests.pl'),(catch(runtime_property_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     http_once_port=$((TEST_PORT_BASE + 87))

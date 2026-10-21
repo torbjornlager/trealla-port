@@ -1117,3 +1117,33 @@ Trealla v3.13.4 supplies both `library(debug)` and
 4. State whether the defect reproduces without this repository.
 5. Link the workaround here and any relevant test.
 6. Add the upstream issue URL and change the status to **Filed**.
+
+
+### BUG-024: HTTP stream read timeout is accepted but not enforced
+
+**Status:** Submitted 2026-10-21 as [Trealla #1172](https://github.com/trealla-prolog/trealla-prolog/issues/1172); reproduced on current upstream v3.13.26
+**Priority:** High
+
+Observed on 2026-10-21 on macOS 26.6.2 arm64 with the matching v3.13.10
+library and a TLS-disabled build. A plain-HTTP loopback peer sends nothing
+for 1.2 seconds; `http_open(URL,Stream,[timeout(0.2)])` still succeeds and
+returns the delayed response. Three standalone runs reproduce this without
+Web Prolog modules, application alarms or asynchronous clients.
+
+The separate unmodified current-upstream v3.13.26 build at commit
+`7af2b53c4eaa219c5f74b716f37e4f5e1b1917a6` also returned success after
+1.205, 1.207 and 1.205 seconds. Its matching library was selected for each
+process; the installed/pinned runtimes and running nodes were left unchanged.
+
+The minimal client and Python standard-library fixture/runner are in
+`reproducers/bug-024-http-read-timeout.pl` and
+`reproducers/bug-024-http-read-timeout.py`. The proposed upstream report,
+expected/actual behaviour, tested environment and read-path observations are
+in [the report](reproducers/bug-024-http-read-timeout.md).
+
+The port documents the dependency limitation and leaves timeout enforcement
+unchanged. Open and closed upstream reports were checked under the canonical
+`trealla-prolog/trealla-prolog` repository name; no direct duplicate was found.
+Related issues #1052 and #1048 concern alarms/socket handling. The submitted
+issue includes the standalone client and fixture. TLS and other platforms
+have not been tested.

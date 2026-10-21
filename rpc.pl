@@ -127,6 +127,7 @@ client_option_type(Kind,Name,Type) :-
 request_option_type(limit,positive_integer).
 request_option_type(once,boolean).
 request_option_type(timeout,timeout).
+request_option_type(http_timeout,number).
 request_option_type(src_text,source_text).
 request_option_type(src_list,list).
 request_option_type(src_predicates,predicate_indicators).
@@ -139,6 +140,7 @@ request_option_type(max_redirect,nonnegative_integer).
 request_option_type(cacert_file,source_text).
 
 validate_client_value(template,_) :- !.
+validate_client_value(number,N) :- !, must_be(number,N).
 validate_client_value(positive_integer,N) :- !,
     must_be(integer,N),
     (N>0 -> true ; throw(error(domain_error(positive_integer,N),client_option/1))).
@@ -229,9 +231,12 @@ base_path_prefix(BasePath, Prefix) :-
 %     - once(+Boolean)
 %       Yield the whole first slice without fetching later pages when true.
 %       Default false. Forwarded to the peer as a query parameter.
-%     - timeout(+SecondsOrInfinite), request_header(+Name=Value),
+%     - http_timeout(+Number), timeout(+SecondsOrInfinite),
+%       request_header(+Name=Value),
 %       authorization(basic(User,Password)), user_agent(+Text),
 %       redirect(+Boolean), max_redirect(+Nonnegative), cacert_file(+File).
+%       Explicit http_timeout/1 overrides legacy timeout/1; negatives become zero.
+%       Read-timeout enforcement depends on the underlying runtime.
 %       Only this documented Trealla HTTP subset is forwarded.
 %       The HTTP library parses `https://` when Trealla is built with TLS and
 %       v3.13.2 verifies the certificate chain and host name by default.
@@ -304,25 +309,43 @@ strip_trailing_slash(URI, Root) :-
     strip_trailing_slash(Root0, Root).
 strip_trailing_slash(URI, URI).
 
-rpc_http_options([], []).
-rpc_http_options([limit(_)|Options], HTTPOptions) :- !,
-    rpc_http_options(Options, HTTPOptions).
-rpc_http_options([template(_)|Options], HTTPOptions) :- !,
-    rpc_http_options(Options, HTTPOptions).
-rpc_http_options([offset(_)|Options], HTTPOptions) :- !,
-    rpc_http_options(Options, HTTPOptions).
-rpc_http_options([once(_)|Options], HTTPOptions) :- !,
-    rpc_http_options(Options, HTTPOptions).
-rpc_http_options([src_text(_)|Options], HTTPOptions) :- !,
-    rpc_http_options(Options, HTTPOptions).
-rpc_http_options([src_list(_)|Options], HTTPOptions) :- !,
-    rpc_http_options(Options, HTTPOptions).
-rpc_http_options([src_predicates(_)|Options], HTTPOptions) :- !,
-    rpc_http_options(Options, HTTPOptions).
-rpc_http_options([src_uri(_)|Options], HTTPOptions) :- !,
-    rpc_http_options(Options, HTTPOptions).
-rpc_http_options([Option|Options], [Option|HTTPOptions]) :-
-    rpc_http_options(Options, HTTPOptions).
+% Explicit transport spelling overrides the legacy timeout/1 independently
+% of list order. Public validation has already checked every occurrence.
+rpc_http_options(Options, HTTPOptions) :-
+    rpc_transport_options(Options, Transport),
+    (memberchk(http_timeout(T),Options) ->
+        Timeout is max(0,T),
+        without_legacy_timeouts(Transport, Rest),
+        HTTPOptions=[timeout(Timeout)|Rest]
+    ; HTTPOptions=Transport).
+
+without_legacy_timeouts([], []).
+without_legacy_timeouts([timeout(_)|Options], Rest) :- !,
+    without_legacy_timeouts(Options,Rest).
+without_legacy_timeouts([Option|Options], [Option|Rest]) :-
+    without_legacy_timeouts(Options,Rest).
+
+rpc_transport_options([http_timeout(_)|Options], HTTPOptions) :- !,
+    rpc_transport_options(Options, HTTPOptions).
+rpc_transport_options([], []).
+rpc_transport_options([limit(_)|Options], HTTPOptions) :- !,
+    rpc_transport_options(Options, HTTPOptions).
+rpc_transport_options([template(_)|Options], HTTPOptions) :- !,
+    rpc_transport_options(Options, HTTPOptions).
+rpc_transport_options([offset(_)|Options], HTTPOptions) :- !,
+    rpc_transport_options(Options, HTTPOptions).
+rpc_transport_options([once(_)|Options], HTTPOptions) :- !,
+    rpc_transport_options(Options, HTTPOptions).
+rpc_transport_options([src_text(_)|Options], HTTPOptions) :- !,
+    rpc_transport_options(Options, HTTPOptions).
+rpc_transport_options([src_list(_)|Options], HTTPOptions) :- !,
+    rpc_transport_options(Options, HTTPOptions).
+rpc_transport_options([src_predicates(_)|Options], HTTPOptions) :- !,
+    rpc_transport_options(Options, HTTPOptions).
+rpc_transport_options([src_uri(_)|Options], HTTPOptions) :- !,
+    rpc_transport_options(Options, HTTPOptions).
+rpc_transport_options([Option|Options], [Option|HTTPOptions]) :-
+    rpc_transport_options(Options, HTTPOptions).
 
 
 %!  rpc_answer(+Answer, +Template, +Offset, +Limit, ...) is nondet.
