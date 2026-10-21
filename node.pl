@@ -41,6 +41,7 @@ Parameters and their defaults:
 | offset     | `0`            | Number of solutions to skip              |
 | limit      | `1000000000`   | Requested page size (owner-clamped)       |
 | format     | `prolog`       | Response format (`prolog` or `json`)     |
+| src_text   | empty          | Private source for this computation     |
 
 Empty values for offset or limit are treated as if the parameter were
 absent (i.e. the default is used), so URLs like `?offset=&limit=1`
@@ -1143,6 +1144,7 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     param(offset,   Params, OffsetAtom,   '0'),
     param(limit,    Params, LimitAtom,    '1000000000'),
     param(format,   Params, Format,       prolog),
+    param(src_text, Params, SourceText, ''),
     forall(member(once=Value,Params),http_once_value(Value,_)),
     param(once, Params, OnceValue, false),
     http_once_value(OnceValue,Once),
@@ -1159,9 +1161,20 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     read_term_from_atom(QTAtom, Goal+Template0, [variable_names(Bindings0)]),
     response_template(Format, Template0, Bindings0, Template),
     profile_check_goal(Profile, Goal, RelationPatterns),
-    sandbox_prepare_goal(Sandbox, Profile, user, Goal, ExecutionGoal),
-    compute_answer(ExecutionGoal, Template, Offset, Limit, Once, Answer),
+    prepare_http_goal(Sandbox, Profile, Goal, SourceText, ExecutionGoal, Source),
+    compute_answer(ExecutionGoal, Template, Offset, Limit, Once, Source, Answer),
     reply_answer(C, Ver, Format, Answer).
+
+% Keep sourceless execution unchanged. Source-bearing queries use the same
+% admission/rewrite and private namespace loader as public actor creation.
+% Carry source and admission policy separately into the cache identity;
+% never key on the fresh private module name or load request source into user.
+prepare_http_goal(Sandbox, Profile, Goal, '', ExecutionGoal, none) :- !,
+    sandbox_prepare_goal(Sandbox, Profile, user, Goal, ExecutionGoal).
+prepare_http_goal(Sandbox, Profile, Goal, Text, Prepared,
+                  source(Sandbox,Profile,Text,Options)) :-
+    sandbox_prepare_spawn(Sandbox,Profile,actor_context,Goal,[src_text(Text)],
+                          Prepared,Options).
 
 http_once_value(true,true) :- !.
 http_once_value(false,false) :- !.
@@ -1412,38 +1425,60 @@ spawn_http_page_producer(Scope,Goal,Template,Pid) :-
     spawn_http_page_producer(Scope,Goal,Template,infinite,Pid).
 
 spawn_http_page_producer(Scope,Goal,Template,Maximum,Pid) :-
+    spawn_http_page_producer(Scope,Goal,Template,Maximum,none,Pid).
+
+spawn_http_page_producer(Scope,Goal,Template,Maximum,Source,Pid) :-
     (nb_current('$http_starting_page',Previous) -> Saved=some(Previous);Saved=none),
     setup_call_cleanup(true,
-      (nb_setval('$http_starting_page',Scope),spawn_http_producer(Goal,Template,Maximum,Pid)),
+      (nb_setval('$http_starting_page',Scope),spawn_http_producer(Goal,Template,Maximum,Source,Pid)),
       (Saved=some(Value) -> nb_setval('$http_starting_page',Value)
       ; nb_delete('$http_starting_page'))).
 
 spawn_http_producer(Goal,Template,Maximum,Pid) :-
+    spawn_http_producer(Goal,Template,Maximum,none,Pid).
+
+spawn_http_producer(Goal,Template,Maximum,source(_,_,_,SourceOptions),Pid) :-
+    Options=[link(false),'$entry_context'(caller)|SourceOptions],
+    (current_http_promise_namespace(Namespace) ->
+        actors:spawn_scoped(node:run_source_producer(Goal,Template,Maximum),
+                            Pid,Options,Namespace,public)
+    ; actors:spawn_runtime(node:run_source_producer(Goal,Template,Maximum),
+                           Pid,Options)).
+spawn_http_producer(Goal,Template,Maximum,none,Pid) :-
     (current_http_promise_namespace(Namespace) ->
         actors:spawn_scoped(node:run_goal_producer_guarded(Goal,Template,Maximum),Pid,
                             [link(false),'$entry_context'(caller)],Namespace,public)
     ; spawn(run_goal_producer_guarded(Goal,Template,Maximum),Pid,[link(false)])).
+
+% The request/cache scope owns termination. In particular, do not let normal
+% module destruction after eos/error race with its monitored stop operation.
+run_source_producer(Goal,Template,Maximum) :-
+    run_goal_producer_guarded(Goal,Template,Maximum),
+    receive({'$stop' -> true}).
 
 compute_answer(Goal, Template, Offset, Limit, Answer) :-
     compute_answer(Goal, Template, Offset, Limit, false, Answer).
 
 % The internal sixth argument is supplied by validated HTTP once handling.
 compute_answer(Goal, Template, Offset, Limit, Once, Answer) :-
+    compute_answer(Goal,Template,Offset,Limit,Once,none,Answer).
+
+compute_answer(Goal,Template,Offset,Limit,Once,Source,Answer) :-
     with_http_page_scope(Scope,
       with_http_page_deadline(
-        compute_request_answer(Scope,Goal,Template,Offset,Limit,Once,Answer))).
+        compute_request_answer(Scope,Goal,Template,Offset,Limit,Once,Source,Answer))).
 
 % A one-slice request never checks out or publishes an ordinary continuation.
 % Bound the producer too: it normally evaluates ahead of its next request.
-compute_request_answer(Scope,Goal,Template,Offset,Limit,true,Answer) :-
+compute_request_answer(Scope,Goal,Template,Offset,Limit,true,Source,Answer) :-
     Maximum is Offset+Limit,
-    spawn_http_page_producer(Scope,Goal,Template,Maximum,Pid),
+    spawn_http_page_producer(Scope,Goal,Template,Maximum,Source,Pid),
     self(Self),
     stream_skip(Pid,Self,Offset,Ended),
     (Ended==true -> Slice=[];stream_collect(Pid,Self,Limit,none,Slice,_)),
     (Slice==[] -> Answer=failure;Answer=success(Slice,false)).
-compute_request_answer(Scope,Goal,Template,Offset,Limit,false,Answer) :-
-    compute_owned_answer(Scope,Goal,Template,Offset,Limit,Answer).
+compute_request_answer(Scope,Goal,Template,Offset,Limit,false,Source,Answer) :-
+    compute_owned_answer(Scope,Goal,Template,Offset,Limit,Source,Answer).
 
 % The request timer spans startup/checkout, skipping, collection and lookahead.
 % It is independent of the producer's per-answer timer and is disarmed before
@@ -1462,12 +1497,15 @@ http_page_deadline_error(Error,Public) :-
     normalize_resource_exception(Error,Public).
 http_page_deadline_error(Error,Error).
 
-compute_owned_answer(Scope,Goal, Template, Offset, Limit, Answer) :-
-    goal_id(Goal-Template, Gid),
+compute_owned_answer(Scope,Goal,Template,Offset,Limit,Answer) :-
+    compute_owned_answer(Scope,Goal,Template,Offset,Limit,none,Answer).
+
+compute_owned_answer(Scope,Goal,Template,Offset,Limit,Source,Answer) :-
+    http_goal_id(Goal,Template,Source,Gid),
     self(Self),
     (   checkout_http_page(Scope,Gid, Offset, ProducerPid, Lookahead)
     ->  true                            % resume suspended producer
-    ;   spawn_http_page_producer(Scope,Goal,Template,ProducerPid),
+    ;   spawn_http_page_producer(Scope,Goal,Template,infinite,Source,ProducerPid),
         (Offset > 0 -> stream_skip(ProducerPid, Self, Offset) ; true),
         Lookahead = none
     ),
@@ -1674,6 +1712,13 @@ stream_skip(Pid,Self,N,Ended) :-
 
 :- dynamic(cache/4).   % cache(GoalId, Offset, ProducerPid, Lookahead)
 
+
+% Separate source context cannot be supplied by impersonating a goal term.
+% Retain the historical key for source-free requests and include the admitted
+% source and policy for private-source continuations.
+http_goal_id(Goal,Template,none,Gid) :- goal_id(Goal-Template,Gid).
+http_goal_id(Goal,Template,source(Mode,Profile,Text,_),Gid) :-
+    goal_id(http_source(Goal,Template,Mode,Profile,Text),Gid).
 
 %!  goal_id(+GoalTemplate, -Gid) is det.
 %

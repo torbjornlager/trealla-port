@@ -487,6 +487,27 @@ the initial walk. Whitelist mode additionally admits only a conservative
 catalog of pure predicates, actor operations, and predicates defined in the
 submitted source. `sandbox(off)` is intended only for trusted development.
 
+HTTP `/call` now consumes the existing `src_text` parameter instead of ignoring
+it. Source-bearing requests reuse the actor source admission and private-module
+loader, including size, profile and sandbox checks. The internal page producer
+owns the private source environment; it survives while a continuation is cached
+and is destroyed when that producer is reclaimed. After a terminal reply the
+source producer waits for its owning scope to stop it, avoiding concurrent
+natural module destruction and monitored termination. Source text and admission
+policy are part of the cache identity, preventing reuse across different source
+programs or policies. Goal/template variables remain shared, including JSON
+binding projection. Source-free HTTP execution is unchanged.
+The [follow-up coverage report](https://github.com/torbjornlager/trinity-conformance/blob/main/reports/2026-10-21-http-source-loading/COVERAGE.md)
+records 10/10 Trealla HTTP baseline cases; unrelated HTTP client/context failures
+remain visible in the matrix.
+
+`http_source_tests.pl` exercises private loading, both sandbox modes, ISOBASE
+admission, source size/syntax rejection, runtime guards, private mutation,
+variable sharing, source/policy cache separation, continuation reuse and cleanup.
+Run it with `tpl -g "use_module(http_source_tests),http_source_tests:run(3097),halt"`
+on an unused loopback port. RPC source options are still materialised by the
+caller into inline text; this repair adds no destination-side URI fetch path.
+
 Public `src_text/1` and `src_list/1` inputs are parsed, checked, rewritten, and
 then loaded as actor-private terms. Unsafe directives, qualified/reserved
 clause heads, and source-level expansion hooks are rejected. Direct public
