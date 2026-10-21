@@ -1,11 +1,78 @@
 # BUG-026: Output capture mixes text between threads
 
-**Status:** Prepared on 2026-10-21; not submitted. Reproduced with the port's
-pinned Trealla v3.13.10 build, revision
-`36f512f595e407e330f6e1f6b4eb339da2b0675e`, on macOS arm64. Current upstream
-has not been tested for this report. No engine changes were made.
+**Status:** Submitted on 2026-10-21 as [Trealla issue #1174](https://github.com/trealla-prolog/trealla-prolog/issues/1174).
+Retested on 2026-10-21 against a fresh,
+unmodified current-upstream checkout. The duplicate search found no exact match.
+The installed runtime and live nodes were left unchanged.
 
-## Proposed upstream report
+## Current-upstream retest
+
+| Build | Revision | Fresh-process outcomes |
+| --- | --- | --- |
+| Pinned Trealla v3.13.10 | `36f512f595e407e330f6e1f6b4eb339da2b0675e` | 20/20 reproduced |
+| Current-upstream Trealla v3.13.26 | `7af2b53c4eaa219c5f74b716f37e4f5e1b1917a6` | 20/20 reproduced |
+| SWI-Prolog 10.1.17 control | installed executable | 5/5 correct |
+
+Both Trealla builds printed `actual(betaomega,alpha)` and exited 1 in every
+trial. The expected result is `actual(beta,alphaomega)` and exit 0. There were
+no stderr diagnostics, native crashes or watchdog timeouts in these trials.
+The message-controlled interleaving uses no sleeps. Each process had a
+15-second external timeout.
+
+The fresh upstream checkout was confirmed equal to `refs/heads/main` using
+`git ls-remote` after testing, and its working tree remained clean. It is
+retained at
+`~/.local/share/trinity-runtime-tests/trealla-output-capture/upstream-2026-10-21`.
+Build command, from that directory:
+
+```sh
+SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk make NOSSL=1 NOFFI=1 -j4
+```
+
+This is an unpatched native macOS arm64 build with threads enabled. TLS and
+optional FFI are disabled; neither is exercised by the reproducer. The initial
+build attempt without `NOFFI=1` stopped because `ffi.h` was unavailable. A clean
+rebuild with the flags above completed. No installation command was run.
+Each Trealla test process used the library directory adjacent to its executable
+through its own `TPL_LIBRARY_PATH`; the shell environment was not changed.
+
+The adjacent [fresh-process runner](bug-026-concurrent-output-capture.py) records
+exact outputs, statuses and hashes in
+[bug-026-capture-results.json](bug-026-capture-results.json). For example:
+
+```sh
+python3 reproducers/bug-026-concurrent-output-capture.py /path/to/tpl --runs 20 --output /tmp/capture-results.json
+```
+
+Runner exit 0 means all observations were classified as either reproduced or
+correct; inspect the counts to distinguish them. The underlying reproducer
+itself exits 1 when the defect is observed.
+The pinned runtime's SHA-256 was checked before and after and is unchanged.
+No engine patch, PATH change or live-node restart was performed.
+
+## Duplicate search
+
+Searched the upstream GitHub issue tracker on 2026-10-21 across open and closed
+reports for `with_output_to`, `capture`, `current_output`, `capture thread`,
+`output thread`, and `with_output_stream`, with additional title/comment searches.
+No exact duplicate was found in the returned results. Closest related reports:
+
+- [#51: Memory streams](https://github.com/trealla-prolog/trealla-prolog/issues/51)
+  introduced output capture and discusses backtracking; its comments do not
+  describe cross-thread capture isolation.
+- [#595: Memory stream create/delete](https://github.com/trealla-prolog/trealla-prolog/issues/595)
+  requests independently named/nested memory streams. Related design history,
+  but no reproducer for two native threads contaminating `with_output_to/2`.
+- [#1029: Issue with threading & stream output](https://github.com/trealla-prolog/trealla-prolog/issues/1029)
+  concerns interleaving of multiple ordinary writes. Its comments note that
+  SWI also interleaves those writes. Here SWI keeps the two captures separate,
+  and explicit messages establish exactly which capture should own each write.
+
+All three are closed. These findings support a separate report, with the related
+issues linked for context; they cannot prove that no differently worded report
+exists.
+
+## Report background
 
 Two overlapping `with_output_to(atom(...), Goal)` calls in different threads
 share captured output. Text written by one thread appears in the other thread's
@@ -26,11 +93,11 @@ Run from this repository, or copy the adjacent Prolog file elsewhere:
 
 Expected: `actual(beta,alphaomega)` and exit status 0.
 
-Actual on the tested Trealla build: `actual(betaomega,alpha)` and exit status 1.
+Actual on both tested Trealla builds: `actual(betaomega,alpha)` and exit status 1.
 SWI-Prolog 10.1.17 returns the expected result and status 0 on the same machine.
 The standalone test leaves both threads joined before checking the results.
 
-In this revision, `library/builtins.pl` implements `with_output_to/2` using
+In both tested revisions, `library/builtins.pl` implements `with_output_to/2` using
 `'$capture_output'/0` and `'$capture_output_to_atom'/1`. In
 `src/bif_streams.c`, both select `q->pl->streams[q->pl->current_output]`.
 `begin_capture` puts captures on that shared stream's capture stack and buffer.

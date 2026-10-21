@@ -1,0 +1,349 @@
+{
+  "tested_on": "2026-10-21",
+  "upstream_revision": "7af2b53c4eaa219c5f74b716f37e4f5e1b1917a6",
+  "build_command": "SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk make NOSSL=1 NOFFI=1 -j4",
+  "upstream": {
+    "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-output-capture/upstream-2026-10-21/tpl",
+    "version": "Trealla Prolog (c) Infradig 2020, v3.13.26",
+    "executable_sha256": "e6756fbf5d643d7949ddb03c469696cd921ccd551bcf7fc75a8d510d37a602bf",
+    "reproducer_sha256": "599ef0ac6090f8682192004a19e0cc95c8abc23f0214666cb1c31b536d965406",
+    "library_path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-output-capture/upstream-2026-10-21/library",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "counts": {
+      "reproduced": 20,
+      "correct": 0,
+      "unexpected": 0,
+      "timeout": 0
+    },
+    "trials": [
+      {
+        "trial": 1,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 2,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 3,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 4,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 5,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 6,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 7,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 8,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 9,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 10,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 11,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 12,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 13,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 14,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 15,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 16,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 17,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 18,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 19,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 20,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "pinned": {
+    "executable": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+    "version": "Trealla Prolog (c) Infradig 2020, v3.13.10",
+    "executable_sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+    "reproducer_sha256": "599ef0ac6090f8682192004a19e0cc95c8abc23f0214666cb1c31b536d965406",
+    "library_path": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/library",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "counts": {
+      "reproduced": 20,
+      "correct": 0,
+      "unexpected": 0,
+      "timeout": 0
+    },
+    "trials": [
+      {
+        "trial": 1,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 2,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 3,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 4,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 5,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 6,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 7,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 8,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 9,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 10,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 11,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 12,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 13,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 14,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 15,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 16,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 17,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 18,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 19,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      },
+      {
+        "trial": 20,
+        "status": "reproduced",
+        "returncode": 1,
+        "stdout": "actual(betaomega,alpha)\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "swi_control": {
+    "version": "SWI-Prolog version 10.1.17 for fat-darwin",
+    "trials": [
+      {
+        "exit": 0,
+        "stdout": "actual(beta,alphaomega)\n",
+        "stderr": ""
+      },
+      {
+        "exit": 0,
+        "stdout": "actual(beta,alphaomega)\n",
+        "stderr": ""
+      },
+      {
+        "exit": 0,
+        "stdout": "actual(beta,alphaomega)\n",
+        "stderr": ""
+      },
+      {
+        "exit": 0,
+        "stdout": "actual(beta,alphaomega)\n",
+        "stderr": ""
+      },
+      {
+        "exit": 0,
+        "stdout": "actual(beta,alphaomega)\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "pinned_runtime_sha256_before_and_after": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+  "environment": "No install, PATH changes, engine patch, or live node restarts"
+}

@@ -947,7 +947,7 @@ engine's public output-capture predicate.
 `source_capture_tests.pl` checks concurrent full/minimal bootstrap generation,
 reply serialization, quoting, variable naming/sharing and surrounding captured
 output. It runs in `tools/test.sh unit`. The separate standalone reproducer and
-prepared (not submitted) upstream report are in
+upstream report (submitted as [#1174](https://github.com/trealla-prolog/trealla-prolog/issues/1174)) are in
 [`reproducers/bug-026-concurrent-output-capture.md`](reproducers/bug-026-concurrent-output-capture.md).
 The [ACTOR conformance rerun](https://github.com/torbjornlager/trinity-conformance/tree/main/reports/2026-10-21-trealla-source-capture)
 records the public-interface checks separately from diagnostics. The original
