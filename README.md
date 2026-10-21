@@ -414,12 +414,19 @@ the certificate chain and host name by default and supports a separate
 `server_name(Host)` when connecting to a pinned numeric address.
 
 The transport also implements optional RFC 6455 subprotocol negotiation.
-The Web Prolog server selects `web-prolog-sync-v1` when offered, advertising
-support for correlated toplevel replies. Connections without an offer (or
-without a matching optional offer) retain the ordinary handshake. Explicitly
+The Web Prolog server prefers `web-prolog-sync-spawn-v1` when offered,
+advertising correlated toplevel replies and request IDs on every spawn success
+and failure. It also accepts `web-prolog-sync-v1` for toplevel correlation alone.
+Connections without an offer (or without a matching optional offer) retain the ordinary handshake. Explicitly
 configured required subprotocols keep their existing policy. The Trealla
-outbound client offers it optionally and records the actual selection. Trinity
-version 1 is also announced with `X-Web-Prolog-Protocol: 1` and its JSON vocabulary.
+outbound client offers both, in that order, and records the actual selection.
+Each outbound spawn now carries a fresh request ID. On the combined subprotocol,
+only matching replies complete the wait; untagged errors are delivered to the
+multifile diagnostic hook `distribution:hook_transport_error(NodeURL,Error)`.
+Mismatched request IDs cannot satisfy another spawn. Legacy connections retain
+serialized spawning and accept untagged replies, whose errors remain ambiguous.
+Connection-loss notifications, monitor delivery and actor messages are unchanged.
+Trinity version 1 is also announced with `X-Web-Prolog-Protocol: 1` and its JSON vocabulary.
 Extensions such as `permessage-deflate` remain unsupported.
 
 ## Native Web Prolog protocol
@@ -831,8 +838,8 @@ qualification problem, now repaired in native SWI, and unrelated peer errors
 entering a later spawn wait. The results and remaining repair boundaries are recorded in
 [`reproducers/port-synchronous-ui-interop.md`](reproducers/port-synchronous-ui-interop.md).
 They do not prevent the local synchronous tutorial example, or the verified
-Trealla-to-SWI and browser-to-SWI paging paths. Delegated-lineage semantics and
-remote spawn-error selection have not been changed in this batch.
+Trealla-to-SWI and browser-to-SWI paging paths. Native spawn-error selection
+now uses explicit capability negotiation; delegated-lineage semantics remain unchanged.
 
 General `toplevel_spawn/2` with a remote `node/1` now uses a constructor hook,
 matching SWI's dispatch pattern. It delegates to the existing transparent
@@ -1475,9 +1482,12 @@ startup failures. Correlation is carried with each request; ordinary actor
 messages and monitor `down` events retain their existing format. Requests
 without an ID retain the legacy reply format. Invalid non-string IDs are
 rejected with an uncorrelated error. This supports native SWI's caller-side
-named-startup reservation without a new protocol negotiation. Tests cover
+named-startup reservation even with older peers that already echo IDs. The new
+combined subprotocol explicitly guarantees error correlation as well. Tests cover
 duplicate-name rejection, failed-start name reuse, monitor delivery and legacy
-replies; `spawn_reply_tests.pl` also checks the encodings directly.
+replies; `spawn_reply_tests.pl` also checks reply decoding, mismatched IDs,
+unrelated errors before/during waits, matching startup errors, legacy fallback
+and connection loss. Its `live/1` check runs unchanged against SWI and Trealla.
 Native SWI halt acknowledgement and normal `down` may arrive
 out of order over different connections. Native SWI and Trealla halt waits now
 require the matching acknowledgement while tolerating an earlier normal

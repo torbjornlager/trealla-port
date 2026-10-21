@@ -57,7 +57,17 @@ query boundary, preserving local query/source context, nested qualifications,
 explicit templates and goal/template variable sharing. This is distinct from
 the local sandbox default-template repair made in this batch.
 
-## Independent uncorrelated-error problem
+## Independent uncorrelated-error problem — repaired for negotiated peers
+
+Native SWI and Trealla now negotiate `web-prolog-sync-spawn-v1`. Both clients
+send fresh spawn request IDs and require a matching response on these
+connections. Untagged errors are diagnostics, not spawn failures. The original
+serialized fallback remains for older peers; without IDs their errors remain
+ambiguous. Connection loss retains its previous behavior. Regression tests
+cover both paths, and live checks pass in all four SWI/Trealla client/peer
+combinations, including reuse after unrelated errors and genuine startup errors.
+
+The following records the pre-repair failure and the remaining lineage issue.
 
 Close the source client connection and try another remote creation through the
 same source node's cached connection. A later creation can fail with a previous
@@ -72,9 +82,9 @@ A fresh-source check also observed an error about access to an already retired
 remote pid being reported as a later spawn failure.
 
 Trealla's command catalog/receiver has no `lineage_close` handler. Native SWI
-sends that command when a delegated lineage is reclaimed. It also forwards
-unreferenced peer errors to the spawn queue; the spawn waiter accepts these as
-legacy spawn errors even when its own request carries a request identifier.
+sends that command when a delegated lineage is reclaimed. Before this repair,
+it also forwarded unreferenced peer errors to the spawn queue; the spawn waiter
+accepted these as legacy spawn errors even when its own request carried an ID.
 The error can therefore outlive the command that caused it and poison a later
 creation. Suppressing `lineage_close` alone would not resolve all such errors.
 
@@ -82,16 +92,16 @@ creation. Suppressing `lineage_close` alone would not resolve all such errors.
 
 1. Completed: normalize outgoing toplevel caller qualification without changing
    local execution, nested explicit qualifications or variable sharing.
-2. Make spawn-error selection unambiguous while retaining genuine legacy-peer
-   startup errors. An explicitly negotiated spawn-correlation capability is a
-   possible approach; it should not be inferred from toplevel correlation alone.
+2. Completed for negotiated peers: isolate spawn replies using the explicit
+   combined capability; preserve legacy startup errors on fallback connections.
+   Toplevel correlation alone is not treated as a spawn-correlation guarantee.
 3. Decide and document delegated-lineage compatibility separately. Silently
    accepting `lineage_close` as a no-op would falsely suggest that remote subtree
    cleanup was enforced. Full lineage handling would extend lifecycle semantics.
 
-The original assessment changed no transport behavior. The subsequent bounded
-native SWI repair changes only outgoing query qualification; lineage behavior
-and spawn-error selection are unchanged.
+The original assessment changed no transport behavior. The native SWI
+qualification repair and SWI/Trealla spawn-correlation repair leave lineage
+behavior unchanged.
 Local synchronous calls and the tutorial are usable independently of these
 remaining interoperability issues. The existing upstream module-table crash
 report (#1173) concerns a separate engine defect.

@@ -30,8 +30,9 @@ SWI-Prolog's WebSocket API: `text(Text)`, `binary(Bytes)`, `ping(Bytes)`,
 
 Both `ws://` and native Trealla `wss://` sockets are supported.  The latter
 requires a Trealla build with OpenSSL enabled.  RFC 6455 subprotocol
-negotiation is optional; Web Prolog servers offer `web-prolog-sync-v1` for
-correlated toplevel requests while retaining unnegotiated legacy connections.
+negotiation is optional; Web Prolog servers prefer `web-prolog-sync-spawn-v1`
+for correlated toplevel and spawn replies, and also offer `web-prolog-sync-v1`
+for toplevel correlation alone. Unnegotiated legacy connections remain supported.
 */
 
 :- use_module(library(sockets)).

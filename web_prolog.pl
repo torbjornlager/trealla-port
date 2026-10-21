@@ -134,7 +134,7 @@ web_prolog_node(Port, Options) :-
     public_url_options(Options, PublicURL, NodeOptions),
     option(websocket_options(WSOptions), NodeOptions, []),
     node(Port, web_prolog_handler(Profile, Sandbox),
-         [websocket_options([optional_subprotocols(['web-prolog-sync-v1'])|WSOptions])|NodeOptions]).
+         [websocket_options([optional_subprotocols(['web-prolog-sync-spawn-v1','web-prolog-sync-v1'])|WSOptions])|NodeOptions]).
 
 configure_node_url(Port, Options, URL) :-
     ( memberchk(node_url(URL0), Options) -> node_url_atom(URL0, URL1)

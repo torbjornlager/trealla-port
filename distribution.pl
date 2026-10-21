@@ -59,6 +59,7 @@ no Logtalk or foreign code.
 
 :- multifile web_prolog:hook_io_request/2.
 :- multifile web_prolog:hook_close_browser_io/1.
+:- multifile hook_transport_error/2. % +NodeURL, +Error (not a spawn reply)
 
 :- dynamic io_endpoint_target/2.
 
@@ -83,9 +84,10 @@ remote_node_open(URL0, remote_node(URL, Reader, Writer), Options) :-
     self(Owner),
     node_connection_options(Options, WebSocketOptions),
     web_prolog_connect(WebSocketURL, WS,
-        [optional_subprotocols(['web-prolog-sync-v1']),selected_subprotocol(Selected)|WebSocketOptions]),
-    ( Selected == 'web-prolog-sync-v1' -> Sync = true ; Sync = false ),
-    spawn(remote_writer_start(WS, URL, Owner, Sync), Writer, [link(false)]),
+        [optional_subprotocols(['web-prolog-sync-spawn-v1','web-prolog-sync-v1']),selected_subprotocol(Selected)|WebSocketOptions]),
+    ( memberchk(Selected,['web-prolog-sync-spawn-v1','web-prolog-sync-v1']) -> Sync = true ; Sync = false ),
+    ( Selected == 'web-prolog-sync-spawn-v1' -> Correlated = true ; Correlated = false ),
+    spawn(remote_writer_start(WS, URL, Owner, capabilities(Sync,Correlated)), Writer, [link(false)]),
     spawn(remote_reader_loop(WS, URL, Writer), Reader, [link(false)]).
 
 node_url_atom(URL, URL) :- atom(URL), !.
@@ -439,8 +441,9 @@ pid_command(Node, RemotePid, Command) :-
                  *        WRITER / READER        *
                  *******************************/
 
-spawn_request(Writer, URL, Mode, Options, Target, JSON, RemotePid) :-
-    self(Caller),
+spawn_request(Writer, URL, Mode, Options, Target, JSON0, RemotePid) :-
+    self(Caller), make_ref(Ref), term_wire_atom(Ref, RequestId),
+    web_prolog:json_add_field(JSON0,request_id-string_atom(RequestId),JSON),
     Writer ! '$spawn_request'(JSON, Mode, Options, Target, Caller),
     await_spawn_reply(Writer, URL, Mode, Options, Target, RemotePid).
 
@@ -461,7 +464,8 @@ await_spawn_reply(Writer, URL, Mode, Options, Target, RemotePid) :-
 enqueue_json(remote_node(_URL, _Reader, Writer), JSON) :-
     Writer ! '$remote_json'(JSON).
 
-remote_writer_start(WS, URL, Owner, Sync) :-
+remote_writer_start(WS, URL, Owner, capabilities(Sync,Correlated)) :-
+    nb_setval('$distribution_spawn_correlated', Correlated),
     nb_setval('$distribution_owner', Owner),
     nb_setval('$distribution_targets', []),
     nb_setval('$distribution_monitors', []),
@@ -525,8 +529,11 @@ writer_message('$spawn_request'(JSON, Mode, Options, Target, Caller), WS, URL,
     ( nonvar(SendError)
     -> Caller ! '$remote_spawn_error'(Writer,SendError),
        writer_notify_connection_closed(URL),Continue=false
-    ; writer_wait_spawn(Writer,Mode,Options,Target,Caller,WS,URL,Continue) ).
+    ; web_prolog:json_text_field(JSON,request_id,RequestId),
+      writer_wait_spawn(Writer,RequestId,Mode,Options,Target,Caller,WS,URL,Continue) ).
 
+writer_message('$wire_spawn_error'(Error),_,URL,true) :- !,
+    transport_error(URL,Error).
 writer_message('$wire_io_ack'(Ack),WS,_,true) :- !,web_prolog_send(WS,Ack).
 writer_message('$remote_lost'(URL, _Reason), _, _, false) :- !,
     writer_notify_connection_closed(URL).
@@ -577,20 +584,41 @@ writer_message('$remote_close', WS, URL, false) :- !,
     catch(ws_close(WS, 1000, normal), _, true).
 writer_message(_, _, _, true).
 
+% Kept for internal legacy-path tests; production waits always have a request ID.
 writer_wait_spawn(Writer,Mode,Options,Target,Caller,WS,URL,Continue) :-
+    writer_wait_spawn(Writer,_,Mode,Options,Target,Caller,WS,URL,Continue).
+writer_wait_spawn(Writer,RequestId,Mode,Options,Target,Caller,WS,URL,Continue) :-
       receive({
         '$wire_io_ack'(Ack) ->
             web_prolog_send(WS,Ack),
-            distribution:writer_wait_spawn(Writer,Mode,Options,Target,Caller,WS,URL,Continue) ;
+            distribution:writer_wait_spawn(Writer,RequestId,Mode,Options,Target,Caller,WS,URL,Continue) ;
+        '$wire_spawn_reply'(ReplyId,Reply) ->
+            ( (var(RequestId);ReplyId==RequestId) ->
+                distribution:writer_spawn_reply(Reply,Writer,Mode,Options,Target,Caller,WS,URL,Continue)
+            ; distribution:writer_wait_spawn(Writer,RequestId,Mode,Options,Target,Caller,WS,URL,Continue) ) ;
         '$wire_spawned'(WirePid) ->
-            distribution:writer_finish_spawn(WirePid,Mode,Options,Target,Caller,WS,URL,Continue) ;
+            ( distribution:spawn_correlation_required ->
+                distribution:transport_error(URL,uncorrelated_spawned(WirePid)),
+                distribution:writer_wait_spawn(Writer,RequestId,Mode,Options,Target,Caller,WS,URL,Continue)
+            ; distribution:writer_finish_spawn(WirePid,Mode,Options,Target,Caller,WS,URL,Continue) ) ;
         '$wire_spawn_error'(Error) ->
-            Caller ! '$remote_spawn_error'(Writer, Error),Continue=true ;
+            ( distribution:spawn_correlation_required ->
+                distribution:transport_error(URL,Error),
+                distribution:writer_wait_spawn(Writer,RequestId,Mode,Options,Target,Caller,WS,URL,Continue)
+            ; Caller ! '$remote_spawn_error'(Writer, Error),Continue=true ) ;
         '$remote_lost'(URL, Reason) ->
             Caller ! '$remote_spawn_error'(Writer,
                          error(remote_connection_closed(URL, Reason),remote_spawn/4)),
             distribution:writer_notify_connection_closed(URL),Continue=false
       }, []).
+
+spawn_correlation_required :-
+    nb_current('$distribution_spawn_correlated',true).
+transport_error(URL,Error) :- forall(hook_transport_error(URL,Error),true).
+writer_spawn_reply(spawned(Pid),_,Mode,Options,Target,Caller,WS,URL,Continue) :-
+    writer_finish_spawn(Pid,Mode,Options,Target,Caller,WS,URL,Continue).
+writer_spawn_reply(error(Error),Writer,_,_,_,Caller,_,_,true) :-
+    Caller ! '$remote_spawn_error'(Writer,Error).
 
 writer_finish_spawn(WirePid,Mode,Options,Target,Caller,WS,URL,Continue) :-
     self(Writer),
@@ -863,11 +891,11 @@ dispatch_remote_event(JSON, URL, Writer) :-
 
 dispatch_remote_type(spawned, JSON, _, Writer) :- !,
     web_prolog:json_pid_field(JSON, pid, WirePid),
-    Writer ! '$wire_spawned'(WirePid).
+    wire_spawn_reply(JSON,spawned(WirePid),Writer).
 dispatch_remote_type(error, JSON, _, Writer) :-
     \+ web_prolog:json_field(JSON, pid, _), !,
     remote_error_term(JSON, Error),
-    Writer ! '$wire_spawn_error'(Error).
+    wire_spawn_reply(JSON,error(Error),Writer).
 dispatch_remote_type(transport_welcome, JSON, _, Writer) :- !,
     web_prolog:json_boolean_default(JSON, answer_terms, false, Exact),
     nb_setval('$distribution_answer_terms', Exact),
@@ -976,6 +1004,12 @@ json_binding_value(string(Chars), Term) :-
 json_event_term(JSON, Key, Term) :-
     web_prolog:json_text_default(JSON, Key, '', Text),
     ( catch(distribution:read_term_from_atom(Text, Term, []), _, fail) -> true ; Term = Text ).
+
+wire_spawn_reply(JSON,Reply,Writer) :-
+    (web_prolog:json_text_field(JSON,request_id,RequestId) ->
+        Writer ! '$wire_spawn_reply'(RequestId,Reply)
+    ; Reply=spawned(Pid) -> Writer ! '$wire_spawned'(Pid)
+    ; Reply=error(Error), Writer ! '$wire_spawn_error'(Error)).
 
 remote_error_term(JSON, error(remote_error(Data), distribution)) :-
     web_prolog:json_text_default(JSON, data, 'Unknown remote error', Data).
