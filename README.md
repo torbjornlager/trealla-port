@@ -900,6 +900,9 @@ is described below; downstream delegation remains separate.
 
 ### Receiving delegated lifetimes from native SWI
 
+See [receiver status and verification](docs/delegated-lineage-status.md) for the
+implemented commits, current checks and remaining diagnostics.
+
 An authenticated node transport with `internal_transport` authority may supply
 SWI's existing `lineage` and optional `account` fields. Both identifiers must be
 32 hexadecimal characters. The default open endpoint does not grant this

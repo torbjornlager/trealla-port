@@ -1,9 +1,10 @@
 # Trealla shutdown-stall investigation — 21 October 2026
 
-Status: investigation recorded at the user's request. **No runtime repair has
-been applied by this investigation.** The installed engine and running nodes
-are unchanged. The reduction needs further work before submitting an upstream
-engine-bug claim.
+Status: historical investigation followed by the implemented repair in
+`e3fee4f`. The initial sections describe the evidence before that repair; the
+later repair section records Claude's implementation and validation. See
+[the current status](delegated-lineage-status.md) for follow-up verification and
+remaining boundaries. The installed engine and running nodes remain unchanged.
 
 ## What I was asked to investigate
 
