@@ -472,16 +472,39 @@ start(Parent, Pid, GoalModule, Goal, Options) :-
         ( assertz(pid_thread(Pid, Thread)),
           assertz(thread_pid(Thread, Pid))
         )),
-    set_parent(Parent),
-    set_spawn_io_target(Parent, Options),
-    option(link(Link), Options, true),
-    ( Link == true, \+ link(Parent, Pid) -> exit(kill) ; true ),
     % exit/1 records the public reason before throwing this private unwind.
     % Swallow only that control token; all ordinary exceptions must reach
     % Trealla's final thread status for monitor delivery. run_actor/5 signals
     % startup only after its scoped temporary module has been prepared.
-    catch(isolation:run_actor(Pid, GoalModule, Goal, Options, Parent),
-          actor_exit, true).
+    % Trealla delivers signals inside the at_exit hook, so the goal's outcome
+    % is captured and actor_finishing/1 recorded while an exit signal can
+    % still land inside this catch. The outcome is replayed only afterwards.
+    catch(run_to_end(Parent, Pid, GoalModule, Goal, Options, Outcome),
+          actor_exit, Outcome = exited),
+    replay_outcome(Outcome).
+
+run_to_end(Parent, Pid, GoalModule, Goal, Options, Outcome) :-
+    (   catch(start_actor(Parent, Pid, GoalModule, Goal, Options), Ball, true)
+    ->  ( var(Ball) -> Outcome0 = true
+        ; Ball == actor_exit -> Outcome0 = exited
+        ; Outcome0 = exception(Ball)
+        )
+    ;   Outcome0 = false
+    ),
+    with_mutex('$actor_registry', assertz(actor_finishing(Pid))),
+    Outcome = Outcome0.
+
+start_actor(Parent, Pid, GoalModule, Goal, Options) :-
+    set_parent(Parent),
+    set_spawn_io_target(Parent, Options),
+    option(link(Link), Options, true),
+    ( Link == true, \+ link(Parent, Pid) -> exit(kill) ; true ),
+    isolation:run_actor(Pid, GoalModule, Goal, Options, Parent).
+
+replay_outcome(true).
+replay_outcome(exited).
+replay_outcome(exception(Ball)) :-
+    throw(Ball).
 
 set_spawn_io_target(_Parent, Options) :-
     option(io_target(Target), Options),
@@ -505,17 +528,18 @@ set_spawn_io_target(Parent, _) :-
 stop(Pid, Parent) :-
     % No thread_detach here: the thread was spawned with detached(true)
     % because Trealla refuses self-detach from inside at_exit.
-    down_reason(Pid, Reason),
+    % Repeated exit signals still reach this hook. Until pid_thread/2 goes,
+    % exit_reason/2 or actor_finishing/1 makes them duplicates; afterwards
+    % they find no actor. Neither may restart an unwind of this teardown.
     with_mutex('$actor_registry',
-        ( retractall(link(Parent, Pid)),
+        ( down_reason_unlocked(Pid, Reason),
+          retractall(link(Parent, Pid)),
           remove_local_registrations(Pid),
           retractall(registered_service(_Name, Pid)),
           retractall(actor_alive(Pid)),
           retractall(actor_namespace(Pid, _)),
           retractall(actor_public_namespace(Pid, _)),
           retractall(delayed_send(_Owner, _Id, Pid)),
-          retractall(pid_thread(Pid, _)),
-          retractall(thread_pid(_, Pid)),
           findall(ChildPid, retract(link(Pid, ChildPid)), ChildPids),
           findall(Other-Ref, retract(monitor(Other, Pid, Ref)), Watchers)
         )),
@@ -570,20 +594,27 @@ actors_unlocked(Namespace, Pids) :-
             Pids).
 
 
-%!  down_reason(+Pid, -Reason) is det.
+%!  down_reason_unlocked(+Pid, -Reason) is det.
 %
 %   Retrieve an explicit exit/1 reason, or use the final native thread status
 %   for ordinary success, failure, and exceptions. Falls back to `noproc` if
-%   the thread disappeared before either form became observable.
+%   the thread disappeared before either form became observable. Called with
+%   the registry mutex held. The PID mapping is withdrawn before the
+%   termination guards, so a signal handled between these steps is still
+%   recognised as a duplicate rather than as a first exit.
 
-down_reason(Pid, Reason) :-
-    retract(exit_reason(Pid, Reason)),
-    !.
-down_reason(Pid, Reason) :-
-    pid_thread(Pid, Thread),
-    catch(thread_property(Thread, status(Reason)), _, fail),
-    !.
-down_reason(_, noproc).
+down_reason_unlocked(Pid, Reason) :-
+    ( pid_thread(Pid, Thread),
+      catch(thread_property(Thread, status(Status)), _, fail)
+    -> true
+    ; Status = noproc
+    ),
+    retractall(pid_thread(Pid, _)),
+    retractall(thread_pid(_, Pid)),
+    ( retract(exit_reason(Pid, Explicit)) -> Reason = Explicit
+    ; Reason = Status
+    ),
+    retractall(actor_finishing(Pid)).
 
 
 
@@ -753,7 +784,7 @@ local_registration_pid(Target, Local) :-
 
 ensure_registerable_local_pid(Target) :-
     ( local_registration_pid(Target,Local)
-    -> ( \+ exit_reason(Local,_), pid_thread(Local,Thread),
+    -> ( \+ exit_reason(Local,_), \+ actor_finishing(Local), pid_thread(Local,Thread),
          catch(thread_property(Thread,status(running)),_,fail)
        -> true
        ; throw(error(existence_error(process,Target),
@@ -849,6 +880,7 @@ send_service(Name, Message) :-
 %   clean actor teardown.
 
 :- dynamic(exit_reason/2).
+:- dynamic(actor_finishing/1).
 
 exit(Reason) :-
     var(Reason),
@@ -859,8 +891,23 @@ exit(Reason) :-
     ( Committed == true -> throw(actor_exit) ; true ).
 
 commit_exit(Self, Reason, Committed) :-
-    ( exit_reason(Self, _) -> Committed = false
+    ( ( exit_reason(Self, _) ; actor_finishing(Self) ) -> Committed = false
     ; assertz(exit_reason(Self, Reason)), Committed = true
+    ).
+
+%   Handler run by an actor thread for exit/2. It names the target PID, so a
+%   signal handled after teardown removed the mapping neither registers the
+%   dying thread under a fresh PID nor unwinds its at_exit hook.
+
+exit_signal(Pid, Reason) :-
+    thread_self(Thread),
+    with_mutex('$actor_registry', commit_exit_signal(Pid, Thread, Reason, Committed)),
+    ( Committed == true -> throw(actor_exit) ; true ).
+
+commit_exit_signal(Pid, Thread, Reason, Committed) :-
+    ( pid_thread(Pid, Current), Current == Thread
+    -> commit_exit(Pid, Reason, Committed)
+    ; Committed = false
     ).
 
 %!  actor_terminating is semidet.
@@ -887,7 +934,7 @@ exit(Pid, Reason) :-
     !.
 exit(Pid, Reason) :-
     ( actor_thread(Pid, Thread) ->
-        catch(thread_signal(Thread, actors:exit(Reason)), _, true)
+        catch(thread_signal(Thread, actors:exit_signal(Pid, Reason)), _, true)
     ; logical_pid(Pid) ->
         true
     ; catch(thread_signal(Pid, actors:exit(Reason)), _, true)
