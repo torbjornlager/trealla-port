@@ -1,0 +1,108 @@
+diff --git a/src/bif_database.c b/src/bif_database.c
+index 012c352..939305b 100644
+--- a/src/bif_database.c
++++ b/src/bif_database.c
+@@ -736,6 +736,10 @@ static bool bif_iso_asserta_1(query *q)
+ 	}
+ 
+ 	term_to_body(p);
++	if (p->error) {
++		parser_destroy(p);
++		return throw_error(q, tmp, q->st.cur_ctx, "syntax_error", "goal_expansion");
++	}
+ 	cell *h = get_head(p->cl->cells);
+ 
+ 	prolog_lock_mod(q->pl, q->st.m);
+@@ -822,6 +826,10 @@ static bool do_assertz_1(query *q)
+ 	}
+ 
+ 	term_to_body(p);
++	if (p->error) {
++		parser_destroy(p);
++		return throw_error(q, tmp, q->st.cur_ctx, "syntax_error", "goal_expansion");
++	}
+ 	cell *h = get_head(p->cl->cells);
+ 
+ 	prolog_lock_mod(q->pl, q->st.m);
+@@ -920,6 +928,10 @@ static bool do_asserta_2(query *q)
+ 	}
+ 
+ 	term_to_body(p);
++	if (p->error) {
++		parser_destroy(p);
++		return throw_error(q, tmp, q->st.cur_ctx, "syntax_error", "goal_expansion");
++	}
+ 	cell *h = get_head(p->cl->cells);
+ 
+ 	prolog_lock_mod(q->pl, q->st.m);
+@@ -1027,6 +1039,10 @@ static bool do_assertz_2(query *q)
+ 	}
+ 
+ 	term_to_body(p);
++	if (p->error) {
++		parser_destroy(p);
++		return throw_error(q, tmp, q->st.cur_ctx, "syntax_error", "goal_expansion");
++	}
+ 	cell *h = get_head(p->cl->cells);
+ 
+ 	prolog_lock_mod(q->pl, q->st.m);
+diff --git a/src/parser.c b/src/parser.c
+index 6fecfaa..5330fe7 100644
+--- a/src/parser.c
++++ b/src/parser.c
+@@ -2553,6 +2553,10 @@ void assign_vars(parser *p, unsigned start, bool rebase)
+ 			char tmpbuf[20];
+ 			snprintf(tmpbuf, sizeof(tmpbuf), "___V%u", c->var_num);
+ 			c->var_num = get_varno(p, tmpbuf, in_body, c->var_num);
++			// Rebasing a runtime ref also replaces its context field with a
++			// real source name: compilation may print/reparse this variable.
++			c->val_off = new_atom(p->pl, tmpbuf);
++			if (c->val_off == ERR_IDX) { p->error = true; return; }
+ 		} else
+ 			c->var_num = get_varno(p, C_STR(p, c), in_body, c->var_num);
+ 
+@@ -2589,6 +2593,10 @@ void assign_vars(parser *p, unsigned start, bool rebase)
+ 			char tmpbuf[20];
+ 			snprintf(tmpbuf, sizeof(tmpbuf), "___V%u", c->var_num);
+ 			c->var_num = get_varno(p, tmpbuf, in_body, c->var_num);
++			// Rebasing a runtime ref also replaces its context field with a
++			// real source name: compilation may print/reparse this variable.
++			c->val_off = new_atom(p->pl, tmpbuf);
++			if (c->val_off == ERR_IDX) { p->error = true; return; }
+ 		} else
+ 			c->var_num = get_varno(p, C_STR(p, c), in_body, c->var_num);
+ 
+@@ -3348,10 +3356,23 @@ static cell *goal_expansion_(parser *p, cell *goal)
+ 	p->pl->in_goal_expansion = true;
+ 	const unsigned num_vars_before = p->cl->num_vars;
+ 	parser *p2 = parser_create(exp_m);
+-	check_error(p2, query_destroy(q));
++	if (!p2) {
++		query_destroy(q);
++		p->error = true;
++		p->pl->in_goal_expansion = false;
++		SB_free(s);
++		return goal;
++	}
+ 	q->top = p2;
+ 	p2->cl->num_vars = p->cl->num_vars;
+-	if (!vartab_copy(p2, p)) { p->error = true; }
++	if (!vartab_copy(p2, p)) {
++		parser_destroy(p2);
++		query_destroy(q);
++		p->error = true;
++		p->pl->in_goal_expansion = false;
++		SB_free(s);
++		return goal;
++	}
+ 	p2->reuse = true;
+ 	p2->line_num = p->line_num;
+ 	p2->skip = true;
+@@ -3362,6 +3383,7 @@ static cell *goal_expansion_(parser *p, cell *goal)
+ 		parser_destroy(p2);
+ 		query_destroy(q);
+ 		p->error = true;
++		p->pl->in_goal_expansion = false;
+ 		SB_free(s);
+ 		return goal;
+ 	}

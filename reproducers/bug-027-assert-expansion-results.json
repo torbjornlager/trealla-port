@@ -1,0 +1,1895 @@
+{
+  "started_at": "2026-10-21T12:26:00.915144+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "inputs": {
+    "bug-027-assert-goal-expansion.pl": "5e671141c4129773058781182fbbd4d55f23251bf9267a9d54f76eec525c5eb7",
+    "bug-027-assert-goal-expansion-tests.pl": "26536e2cfc9022b2d131db3643e2c72197778d7ffb7ed0ee92e6e92698e8c9a0"
+  },
+  "engines": {
+    "pinned": {
+      "executable": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "executable_sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+      "library_path": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/library",
+      "trials": [
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 1,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 2,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 3,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 4,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 5,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 6,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 7,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 8,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 9,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 10,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 11,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 12,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 13,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 14,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 15,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 16,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 17,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 18,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 19,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 20,
+          "correct": false
+        }
+      ],
+      "regressions": [
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a1",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a1",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a1",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z1",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z1",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z1",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a2",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a2",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a2",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z2",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z2",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z2",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a1",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a1",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a1",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z1",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z1",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z1",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a2",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a2",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a2",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z2",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z2",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z2",
+          "trial": 3,
+          "passed": false
+        }
+      ],
+      "version": {
+        "returncode": 0,
+        "stdout": "trealla(3,13,10,[])\n",
+        "stderr": ""
+      },
+      "ground_controls": [
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        }
+      ]
+    },
+    "upstream": {
+      "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-output-capture/upstream-2026-10-21/tpl",
+      "executable_sha256": "e6756fbf5d643d7949ddb03c469696cd921ccd551bcf7fc75a8d510d37a602bf",
+      "library_path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-output-capture/upstream-2026-10-21/library",
+      "trials": [
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 1,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 2,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 3,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 4,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 5,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 6,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 7,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 8,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 9,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 10,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 11,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 12,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 13,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 14,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 15,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 16,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 17,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 18,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 19,
+          "correct": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "first([a-a-a])\nground(error(error(existence_error(procedure,ground_marker/0),ground_marker/0)))\nafter(error(error(existence_error(procedure,mark/2),mark/2)))\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, probe_module:1\n",
+          "trial": 20,
+          "correct": false
+        }
+      ],
+      "regressions": [
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a1",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a1",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a1",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z1",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z1",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z1",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a2",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a2",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_a2",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z2",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z2",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "error(existence_error(procedure,mark/2),mark/2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "valid_z2",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a1",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a1",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a1",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z1",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z1",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z1)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z1",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a2",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a2",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(a2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_a2",
+          "trial": 3,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z2",
+          "trial": 1,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z2",
+          "trial": 2,
+          "passed": false
+        },
+        {
+          "returncode": 1,
+          "stdout": "assertion_silently_succeeded(z2)\n",
+          "stderr": "Error: syntax error, near 'match', operator expected, assert_check_module:1\n",
+          "case": "reject_z2",
+          "trial": 3,
+          "passed": false
+        }
+      ],
+      "version": {
+        "returncode": 0,
+        "stdout": "trealla(3,13,26,[])\n",
+        "stderr": ""
+      },
+      "ground_controls": [
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        }
+      ],
+      "port_groups": {
+        "isolation": {
+          "returncode": 0,
+          "stdout": "34. src_text private predicate ok\n35. src_list private predicate ok\n36. source operator directive ok\n37. src_predicates copy ok\n38. private namespaces do not cross-talk ok\n39. toplevel private source ok\n40. source namespace cleanup ok\n41. source preparation error cleanup ok\n102. receive body keeps private source module ok\n103. guarded source receive and timeout callback ok\n104. sandbox nested spawn keeps runtime module ok\n105. nested src_predicates copies private session source ok\n106. sandboxed actor format output ok\n107. private sessions expose sandboxed rpc source options ok\n109. guarded application clause/2 supports meta-interpreters ok\n114. shared database visibility and local shadowing ok\n116. private actor toplevel API surface ok\n117. nested toplevel receive binding is isolated ok\n121. private control commitment semantics ok\n122. private forall transforms nested built-ins and DCGs ok\n",
+          "stderr": "Error: syntax error, missing arg '', $trealla_actor_1000000021:1\n"
+        },
+        "sandbox": {
+          "returncode": 0,
+          "stdout": "47. sandbox mode normalization ok\n48. sandbox goal walker denial ok\n49. public source policy denial ok\n50. checked private source execution ok\n51. runtime meta-call guard ok\n52. conservative whitelist ok\n53. sandbox off compatibility ok\n54. runtime asserted-clause guard ok\n55. producer exception propagation ok\n56. scoped portable abolish/2 ok\n119. sandbox remote-spawn origin allowlist ok\n120. between/3 supports finite and infinite sandbox bounds ok\n144. sandbox exposes send/3 and cancel/1 ok\n145. nested link tutorial source copying and cascade ok\n146. copied sandbox terminal output remains callable ok\n147. actor-aware time/1 and sleep/1 wall timing ok\n148. tutorial parallel sleeps run concurrently ok\n149. copied hand-built toplevel protocol ok\n150. variable-bearing reflected proof tree ok\n151. sandboxed random_member/2 compatibility ok\n153. atom_string/2 and string src_text compatibility ok\n",
+          "stderr": "Error: syntax error, start of rule expected, $trealla_actor_1000000045:1\n"
+        },
+        "toplevel": {
+          "returncode": 0,
+          "stdout": "11. findnsols batches ok\n12. offset ok\n13. toplevel first batch ok\n14. toplevel_next ok\n15. toplevel failure ok\n16. toplevel error ok\n17. toplevel_stop+reuse ok\n18. session multi-call ok\n22. mid-stream limit change ok\n27. toplevel output ok\n28. toplevel input/respond ok\n29. toplevel_abort ok\n99. exact-page self/1 is deterministic ok\n100. paging does not execute the next solution early\n101. flush output uses inherited terminal ok\n111. guarded receive supports SWI ~p formatting ok\n112. sandboxed sleep supports monitored child lifecycle ok\n123. nested toplevel input targets its protocol caller ok\n131. stale deferred commands are scoped to the prior call ok\n152. toplevel once(true) commits the first answer ok\n",
+          "stderr": ""
+        }
+      },
+      "upstream_tests": [
+        {
+          "returncode": 0,
+          "stdout": "1\n2\n3\nf(6,g(h,[1,2,3]))\nf(abc,[1,2,3])\nstill_compound\nf(abc,[1,2,3])\n[1,2,3]\n[2,3]\ng(6,h([1,2]))\n",
+          "stderr": "",
+          "source": "tests/sundry/abolish_in_use.pl",
+          "source_sha256": "ab897b2683303d817d9919c8b1dea6afec3587b6ea75cdf579c2b8484a159a7a",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "c(1)\nbefore-[discontiguous,dynamic]\nc(2)\nreasserted-[dynamic]\nc(3)\nc(4)\nconsulted-[static]\npermission_error\n[a,b]\ncw(new)\ncw(again)\ncw(third)\n[last]\n",
+          "stderr": "",
+          "source": "tests/sundry/abolish_recreate.pl",
+          "source_sha256": "3f90966941980df9ae2f241dd1a3a9986f8074d756cd84ccd97ed78524ee5181",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t_fact: 1\nt_rule: 2\nt_head: 3\nt_asserta: [0,4]\nt_exists: yes\n",
+          "stderr": "",
+          "source": "tests/sundry/assert_new_module.pl",
+          "source_sha256": "ba37078fa2d9a90083730e54a8c37e10436038e36bdbefda09e22f9bc4d6cdb4",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "functor: ok\nfunctor: ok\nfunctor: ok\ncopy_term: ok\ncopy_term: ok\ncopy_term: ok\nsort: ok\nsort: ok\nsort: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/backtrack_create_vars.pl",
+          "source_sha256": "730041bb805c55f9d2777443a6bc7810ac9a9c7d9c80eb2718496a758a39972a",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t_clause: [1-true,2-true,3-true]\nt_retract_all: [1,2,3]/[]\nt_retract_cut: 2/[3]\nt_retractall: []\nt_bound_module: [1,2,3]\nt_retract_rule: A-(user:d(A))\nt_clause_ref: d(1)-true\nt_caller_module: user_d\nt_missing: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/clause_retract_module.pl",
+          "source_sha256": "33c131d3a125a24598df70f5725173875b91d9adc4339d00936792a389ad8082",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "dcg consult: all rules agree\n",
+          "stderr": "",
+          "source": "tests/sundry/dcg_consult.pl",
+          "source_sha256": "880920fd56bc46473f9358c7d656c1980e12b97fbf250d967ea709a94c211d51",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "dcg corpus: all rules agree\n",
+          "stderr": "",
+          "source": "tests/sundry/dcg_corpus.pl",
+          "source_sha256": "2eed8a7f0fccc0dfcd7a5adb978772789a06e0d8871030cc2fc4e3616af8d153",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "dcg differential: 38 cases, 3 divergences, 1 expected diffs\n",
+          "stderr": "",
+          "source": "tests/sundry/dcg_differential.pl",
+          "source_sha256": "33328a75568490697f78cfb716b960ef788c9b9b31a30eff2a20dae925860ca4",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "quad driver: 58 of 58 acceptable\n",
+          "stderr": "",
+          "source": "tests/sundry/dcg_quads.pl",
+          "source_sha256": "2b31165131faeacdfa08ce44626761c76b80dd59fd3d5e5cc425271a3e732e9f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "dcg tabling: left_recursion_parses ok\ndcg tabling: left_recursion_rejects ok\ndcg tabling: plain_tabled_dcg ok\ndcg tabling: plain_tabled_rejects ok\ndcg tabling: rename_ran_on_translated_clause ok\n",
+          "stderr": "",
+          "source": "tests/sundry/dcg_tabling.pl",
+          "source_sha256": "fff982fb79e89e6aa767f4ddde54205bc5ffe200fdb0b4521b0f88c09956373f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "once\nab\nab\nseen(1)\n",
+          "stderr": "",
+          "source": "tests/sundry/engine_first_goal.pl",
+          "source_sha256": "d41cd997d936394662aa7f42d6d29581ceb22066236e269f2be88ada9c36ecb0",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first-yes\ntwice-no\nafter_retract-no\nafter_abolish-no\nleft-[4]\nlive-yes\nleft2-[4]\n",
+          "stderr": "",
+          "source": "tests/sundry/erase_stale.pl",
+          "source_sha256": "9e2ffeb6bfcb1955d176eb69868ae1a48720e6dbe334b86edad757a2a2925773",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "identity ok\nrule_identity ok\nhook ok\nsingle_pass ok\nmanual_fixpoint ok\ndcg ok\nhook_output_dcg ok\n",
+          "stderr": "",
+          "source": "tests/sundry/expand_term.pl",
+          "source_sha256": "01bbbb8acb4c70aeb1138ba3fa7898a2dd747c41cc32567c35793b0c7a6b349d",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ok\n",
+          "stderr": "",
+          "source": "tests/sundry/goal_expansion_renames.pl",
+          "source_sha256": "141aa8514e9470d964c1defead7107934f9cfbd3ee23a76c8ea68a3ccd10c292",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "through_head_var(f(a))\ntail([2,3])\nmiddle(2)\nother_functor(no)\ntwo_anons(yes)\nstring_goal(yes)\nmember([a,b,c])\nfunctor_vars_differ(no)\nfunctor_vars_same(yes)\n",
+          "stderr": "",
+          "source": "tests/sundry/head_anon_args.pl",
+          "source_sha256": "13bfed80749625dbb0ab7e6179b01a4cdef407d90aeb2120bcc87f3ba46a4ec5",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t1 200 [1,4,7,10] | 201 [0,1,4,10] 1000\nt2 86 [0-3,1-10,2-17] | 87 [8-1,0-3,1-10] 9-2000\nt3 200 [2,5,8] none [b-2,a-1]\nt4 202 [y- -2,y- -1,3-3]\nt5 201 200\nt6 [120,30,30,30,0,120,0,120,0]\nt7 15 [3,43,83] none 2250 [7,47,87,127,167,207,247,287,327,367,407,447,487,527,567] [7,47,87,127,167,207,287,327,367,407,447,487,527,567,9000]\nt8 [aa] [aa,bb] [aa] [cc] [zz,aa] [ee,dd] []\n",
+          "stderr": "",
+          "source": "tests/sundry/index_key_chains.pl",
+          "source_sha256": "dbf06c16ab337970f15afc3dadf53a11eb95c726a8ebeb202f6bd2ed3844ba92",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rat/float: missing 0\nrat/big: missing 0\nbig/float: missing 0\nrat/int: missing 0\nfloat/int: missing 0\nbig/int: missing 0\n",
+          "stderr": "",
+          "source": "tests/sundry/index_mixed_numbers.pl",
+          "source_sha256": "8677328beeaaefde6c6503b1afcb09e96a6bf0ff2ac01cd5760926ebd2659458",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "d(f(A,B),t(f(A,B))).\nd(f(_,_),u).\nd(g(_),v).\n",
+          "stderr": "",
+          "source": "tests/sundry/listing_functor_vars.pl",
+          "source_sha256": "bab033ec571f569cb4b4ef42f9c683554370a0614106b91c72346c94cb242fb2",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "% lists:lm_probe/1\nlm_probe(1).\nlm_probe(2) :-\n   user:true.\n% lists:lm_probe\nlm_probe(1).\nlm_probe(2) :-\n   user:true.\n% lm_probe/1\nlm_probe(user_version).\nexistence_error(module,nomod)\n",
+          "stderr": "",
+          "source": "tests/sundry/listing_module.pl",
+          "source_sha256": "228008c4df6818890beca0415d0a1befb0649e71498bc9bfeddd029a93501b0e",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "conj: call ok, asserted ok\ndisj: call ok, asserted ok\nite: call ok, asserted ok\nsoft: call ok, asserted ok\nif3: call ok, asserted ok\nconsulted: ok, last declared dynamic\n",
+          "stderr": "",
+          "source": "tests/sundry/long_bodies.pl",
+          "source_sha256": "c1257aeec956d354e4dc9b3461c69ee19c44244553222be9a2b38696cdd5e0fe",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t_call: c(2)\nt_once: c(2)\nt_ignore: c(3)\nt_findall: c(3)\nt_findnsols: [c(2)/[x,x],c(4)/[x,x],c(5)/[x]]\nt_chunks_hide: [unbound/[1],unbound/[2]]\nt_cut_via_var: [call-kept,once-kept,var-kept,not-kept,findall-kept]\nt_page: [[a,b],[c,d,e],[f,g]]\n",
+          "stderr": "",
+          "source": "tests/sundry/meta_call_shares_terms.pl",
+          "source_sha256": "89151a9269c7a56502db771f058f0a0a4e2a23e829b0b35b97ea8bd2261fa76a",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t_zero: 2\nt_caret: 2\nt_bagof: [1,2]\nt_forall: ok\nt_user: 3\n",
+          "stderr": "",
+          "source": "tests/sundry/meta_goal_module.pl",
+          "source_sha256": "ac4af2d567f80d9eaa172fe4f1ce5bcc6f137c88df2ac8c49538e0b2586bdb0a",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "user:call(a)\nuser:once(b)\nuser:ignore(c)\nuser:call(d,1)\nuser:e\nuser:once(f)\n",
+          "stderr": "",
+          "source": "tests/sundry/meta_qualify_call.pl",
+          "source_sha256": "6afc4638fb4f89993f3800cb3e8102971c30e1944b91b7e8d74897b93be73096",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "asserted([97,98,233])\nblackboard([97,98,233])\nstored(same)\nafter_close([97,98,233])\nrest([97,98,233])\ntail([98,233])\nsub([97,98])\nonce([97,98,233])\nfindall([97,98,233])\ntabled([97,98,233])\n",
+          "stderr": "",
+          "source": "tests/sundry/mmap_lifetime.pl",
+          "source_sha256": "a5db6b975a3fb3e09ee6903c3df990e9a0ac8fcd1c0dd729a3f81608a8403a2d",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "type_error(module,42)\ntype_error(module,42)\ntype_error(module,f(x))\ntype_error(module,42)\ntype_error(module,42)\ntype_error(module,f(x))\ntype_error(module,42)\ninstantiation_error\nfindall(?,0,-)\nassertz(:)\n",
+          "stderr": "",
+          "source": "tests/sundry/module_qualifier_errors.pl",
+          "source_sha256": "fdd348197a7dd8dfaed6a887cbfef78b6d8f9bc022647ef5f8555c0b68b2e74f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "name(12,[49,50])\nname(' 12',[32,49,50])\nname(26,[48,120,49,65])\nname('- 3',[45,32,51])\nname('',[])\nname(ab,[a,b])\nname(foo,[102,111,111])\nname(12,[49,50])\nname(1.5,[49,46,53])\ntype_error(atomic,f(x))\ninstantiation_error\natom_to_term('foo(X, Y, X)',foo(A,B,A),['X'=A,'Y'=B])\natom_to_term(' foo ',foo,[])\natom_to_term(12,12,[])\natom_to_term('a. b',a,[])\ntype_error(string,f(x))\nsyntax_error(end_of_string)\ninstantiation_error\nfailed\npredicate_property(format(A,B),built_in)\nformat_enumerates_built_in\n[x/0]\n[term_expansion/2,x/0]\n",
+          "stderr": "",
+          "source": "tests/sundry/name_atom_to_term.pl",
+          "source_sha256": "26a74d4b5c934fe7f23807ca06a6eba1f589cde989317363d465f45c9ef4502f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "atom-200-1-598\ncompound-200-1-598\nsecond-200-1-598\n",
+          "stderr": "",
+          "source": "tests/sundry/reconsult_index_walk.pl",
+          "source_sha256": "49e1547a9fbc66e910e286c670ccdbbed8980f6c237c4d0b37fde92bdead4b03",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t1(1,f(a,text,g(1,2,3)))\nt1(2,f(a,text,g(1,2,3)))\nt1(3,f(a,text,g(1,2,3)))\nt2(1,f(b,text,g(7,8,9)))\nt2(2,f(b,text,g(7,8,9)))\n",
+          "stderr": "",
+          "source": "tests/sundry/retract_bound_clause.pl",
+          "source_sha256": "d3ccefd5c721bd960ec0d84fbe1eda80959e9bf30f006ffee9e4a04999223653",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "retract: [1,4,7,10,13,16,19]\ncall_retract: [1,4,7,10,13,16,19]\nonce_retract: [1,4,7,10,13,16,19]\nclause: [1,4,7,10,13,16,19]\nretract rule: [1,2,3]\nretract fact: [1,2,3]\n",
+          "stderr": "",
+          "source": "tests/sundry/retract_during_walk.pl",
+          "source_sha256": "2b36859b066408898df94f2c09f263707d85db46fd15a5d82883531620c48e4f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "clause(1,true)\nnot_retracted\nuser_foo_kept\nrms_baz_retracted\nuser_retract_ok\n",
+          "stderr": "",
+          "source": "tests/sundry/retract_module_scope.pl",
+          "source_sha256": "bb5a9531d45a20b88f472db1a4233d9485d6bc0789add837bc832890cf234a98",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "(A is 1+2)-safe\ndouble(3,A)-safe\nmaplist(double,[1,2],A)-safe\nappend(A,B,[a])-safe\nloop(5)-safe\nevens([1,2],A)-safe\nshell(ls)-permission_error(call,sandboxed,shell(A))\nevil-permission_error(call,sandboxed,shell(A))\nindirect-permission_error(call,sandboxed,shell(A))\nmaplist([A]>>shell(A),[ls])-permission_error(call,sandboxed,shell(B))\ncall(A)-instantiation_error\ninclude(A,[1],B)-instantiation_error\nfindall(A,member(A,[1]),B)-safe\nfindall(A,shell(ls),B)-permission_error(call,sandboxed,shell(C))\nsetof(A,B^member(A-B,[a-1]),C)-safe\ncatch(true,A,shell(ls))-permission_error(call,sandboxed,shell(B))\nsetup_call_cleanup(true,true,shell(ls))-permission_error(call,sandboxed,shell(A))\n(\\+shell(ls))-permission_error(call,sandboxed,shell(A))\nonce(member(A,[a]))-safe\ncall(member,A,[a])-safe\ncall(shell,ls)-permission_error(call,sandboxed,shell(A))\nformat([~,w,~,n],[x])-safe\nformat([~,@,~,n],[shell(ls)])-permission_error(call,sandboxed,shell(A))\nwith_output_to(atom(A),writeln(x))-safe\nwith_output_to(user_error,writeln(x))-permission_error(call,sandboxed,with_output_to(A,B))\nphrase(([a],[b]),[a,b])-safe\nwrite(x)-permission_error(call,sandboxed,write(A))\nopen(f,write,A)-permission_error(call,sandboxed,open(B,C,D))\n(system:shell(ls))-permission_error(call,sandboxed,shell(A))\n(nosuch:foo)-permission_error(call,sandboxed,nosuch:foo)\nassertz(counter(1))-safe\nassertz((counter(1):-shell(ls)))-permission_error(call,sandboxed,assertz(A))\nassertz(lists:foo(1))-permission_error(call,sandboxed,assertz(lists:foo(1)))\nclause(lists:append(A,B,C),D)-permission_error(call,sandboxed,clause(lists:append(E,F,G),H))\nnb_setval(my_counter,1)-safe\nnb_setval(other,1)-permission_error(call,sandboxed,nb_setval(A,B))\ntrusted(x)-safe\nrun_it(true)-safe\nrun_it(shell(ls))-permission_error(call,sandboxed,shell(A))\ntwice(true)-safe\ntwice(shell(ls))-permission_error(call,sandboxed,shell(A))\nnosuch(1)-existence_error(procedure,user:nosuch(A))\n8\npermission_error(call,sandboxed,shell(A))\ncall(A)-(user:call(sandbox:safe_call(user:A)))\nfindall(A,B,C)-(user:findall(A,sandbox:safe_call(user:B),C))\nsetof(A,B^C,D)-(user:setof(A,B^(sandbox:safe_call(user:C)),D))\nmaplist(A,[1])-(user:maplist(sandbox:safe_call(user:A),[1]))\ncatch(A,B,true)-(user:catch(sandbox:safe_call(user:A),B,true))\n(A:foo)-(user:sandbox:safe_call(user:A:foo))\nmaplist(double,[1],A)-(user:maplist(double,[1],A))\nforall(member(A,[true,shell(ls)]),call(A))-permission_error(call,sandboxed,shell(B))\n(double=double,call(double,3,6),6==6)-yes\n(A=shell,call(A,ls))-permission_error(call,sandboxed,shell(B))\n(double=double,maplist(double,[1,2],[2,4]),[2,4]==[2,4])-yes\n(A=shell,maplist(A,[ls]))-permission_error(call,sandboxed,shell(B))\n(A=system,A:shell(ls))-permission_error(call,sandboxed,shell(B))\n(A=(true,shell(ls)),A)-permission_error(call,sandboxed,shell(B))\n([A]>>(A>0)=[A]>>(A>0),maplist([A]>>(A>0),[1]))-yes\n(A=[B]>>shell(B),maplist(A,[ls]))-permission_error(call,sandboxed,shell(C))\ncall(A)-instantiation_error\nsafe_call(shell,ls)-permission_error(call,sandboxed,shell(A))\n(true,sandbox:assertz(safe_meta(shell(A),B,[])))-permission_error(call,sandboxed,sandbox:assertz(safe_meta(shell(C),D,[])))\n(true,lists:assertz(injected(1)))-permission_error(call,sandboxed,lists:assertz(injected(1)))\n(true,lists:findall(A,member(A,[a]),B))-permission_error(call,sandboxed,lists:findall(C,member(C,[a]),D))\n(true,sbpriv:pub(A))-safe\n(true,sbpriv:hidden(A))-permission_error(call,sandboxed,sbpriv:hidden(B))\n(true,sandbox:safe_call(sbpriv:hidden(A)))-permission_error(call,sandboxed,sbpriv:hidden(B))\nassertz(term_expansion(a,b))-permission_error(call,sandboxed,assertz(A))\n(A=sbpriv:hidden(B),call(A))-permission_error(call,sandboxed,sbpriv:hidden(C))\n(sbpriv:pub(secret)=sbpriv:pub(secret),call(sbpriv:pub(secret)),secret==secret)-yes\n(sandbox:assertz(safe_global_variable(gv)))-permission_error(modify,static_procedure,safe_global_variable(gv))\n",
+          "stderr": "",
+          "source": "tests/sundry/sandbox.pl",
+          "source_sha256": "c13de22a16708d735c777f7865a7c95f8a6923c16f973b0f22a288c60ef975e2",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ok([p/1,q/1])\nok([counter/1,inc/0])\nok([go/0,run/1])\npermission_error(call,sandboxed,shell(A))\npermission_error(call,sandboxed,shell(A))\npermission_error(call,sandboxed,shell(A))\nhello_from_init\nok([p/0])\npermission_error(execute,sandboxed_directive,(:- dynamic user:secret/1))\npermission_error(execute,sandboxed_directive,(:- multifile sandbox:safe_primitive/1))\npermission_error(modify,sandboxed_procedure,sandbox:safe_primitive/1)\npermission_error(modify,sandboxed_procedure,user:term_expansion/2)\npermission_error(modify,sandboxed_procedure,term_expansion/2)\npermission_error(modify,static_procedure,atom_length/2)\nok([~~> / 2])\nok([p/0])\nuser_eq_ok\nok([s/1])\npermission_error(execute,sandboxed_directive,(:- set_prolog_flag(verbose,normal)))\npermission_error(load,sandboxed,library('../etc/passwd'))\npermission_error(execute,sandboxed_directive,(:- use_module('/etc/passwd')))\npermission_error(execute,sandboxed_directive,(:- include(foo)))\npermission_error(execute,sandboxed_directive,(:- module(m,[])))\nok([g/2])\nsyntax_error(mismatched_parens_or_brackets_or_braces)\nrun_true_ok\npermission_error(call,sandboxed,shell(A))\ndirect(permission_error(call,sandboxed,shell(A)))\n[1,2]\nterms_ok\ndomain_error(sandbox_source,file(x))\ncheck_false_loaded\n",
+          "stderr": "",
+          "source": "tests/sundry/sandbox_load.pl",
+          "source_sha256": "8c45d3772c3029c213666d55fea7e5426e60a0ab2ee678e3371b374d5f10a7ce",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "predicate_property(foo(A),number_of_clauses(2))\npredicate_property(foo(A),number_of_rules(1))\npredicate_property(d(A),number_of_clauses(0))\npredicate_property(d(A),defined)\npredicate_property(m(A),defined)\nno(predicate_property(m(A),number_of_clauses(B)))\nno(predicate_property(nope(A),defined))\npredicate_property(append(A,B,C),interpreted)\nno(predicate_property(atom_length(A,B),interpreted))\npredicate_property(atom_length(A,B),iso)\nno(predicate_property(foo(A),iso))\npredicate_property(forall(A,B),(meta_predicate forall(0,0)))\npredicate_property(format(A,B),(meta_predicate format(+,:)))\n[dynamic,defined,interpreted,number_of_clauses(2),number_of_rules(1)]\nfindall(A,'$clause'(foo(B),A),[(bar(C),member(C,[1])),true])\n'$clause'(lists:append([],A,A),true)\npermission_error(access,private_procedure,atom_length/2)\nno('$clause'(atom_length(A,B),C))\npermission_error(access,private_procedure,foo/1)\nno(clause(foo(A),B))\nnb_current(k1,f(x))\nno(nb_current(nokey,A))\ntype_error(atom,1)\nno(nb_current(1,A))\nfindall(A,(nb_current(A,B),memberchk(A,[k1,k2])),[k1,k2])\nnb_delete(k1)\nno(nb_current(k1,A))\ncompound_name_arity(f(A,B),f,2)\ncompound_name_arity(g(a,b,c),g,3)\ntype_error(compound,abc)\nno(compound_name_arity(abc,A,B))\ncompound_name_arguments(f(a,b),f,[a,b])\ncompound_name_arguments(h(1),h,[1])\nf(A,A)=@=f(B,B)\nno(f(A,A)=@=f(B,C))\nf(A)\\=@=f(a)\nexpand_goal((sq(3,A), \\+sq(2,B)),(A is 3*3, \\+B is 2*2))\nformat_types([~,w,' ',a,n,d,' ',~,a,~,n],[any,atom])\nformat_types('~*c~t~20|~@',[number,integer,callable])\nformat_types([~,p,' ',~,e,' ',~,s,' ',~,'3',d],[any,float,text,integer])\nexistence_error(format_character,y)\nno(format_types([~,y],A))\n",
+          "stderr": "",
+          "source": "tests/sundry/sandbox_prereqs.pl",
+          "source_sha256": "657ca6caa1fe0cc57da1fa662f65bee3d46571b86cd91d036bc1340ac04b4c1c",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "findall: ok\nsetof: ok\ncall barrier: ok\nleft recursion: ok\nmutual: ok\ncycle: ok\nscc merge: ok\nfib: ok\nvariant answers: ok\norder independence: ok\nanswer sharing: ok\ngenerate mode: ok\nbacktrack variants: ok\nmany variants: ok\nthreads: ok\nabolish_table: ok\nflag off: ok\nflag on: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/tabling.pl",
+          "source_sha256": "050e8d89530dd0d456435b3c3efe7de65f16ce53d24176f1821aa2fc95bf12c1",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "assert/retract: ok\ntransitive: ok\nnon-incremental table frozen: ok\nuntracked pred ignored: ok\ninvalidate subsumptive: ok\nno spurious recompute: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/tabling_incremental.pl",
+          "source_sha256": "0c2fc41136747c84186c5dd46486c6f2ceeb2c1634dd56f046d5ad80fe95e082",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "shared reuse: ok\nprivate not shared: ok\nshared term integrity: ok\nabolish reaches shared: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/tabling_shared.pl",
+          "source_sha256": "6622abf1de08ed1bbb6ad7dc826832719fcc9c84d997f4849d8a10e9f2687562",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "spawn_send_recv: ok\nlink_exit_reasons: ok\nrecv_timeout_option: ok\nrestart_budget_exhausted: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/task_actors.pl",
+          "source_sha256": "ec1dc17a4c8c725abab4c6e87ad43a5290b20bb657a9ac9c88b02af55998ff1f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "atm: ok\nbound_var: ok\nin_list: ok\nint: ok\nlit: ok\nnested: ok\nvia_var: ok\ndistinct: ok\nshared: ok\ngoal_var: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/task_args.pl",
+          "source_sha256": "af97b4fd3c72409f2dbb0ff9401c875cd8b9d84c842f9b1f9297aadeaa18bb4b",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "cancel_stops_task: ok\ncancel_missing_qid_throws: ok\ncancel_non_task_throws: ok\ncancel_with_pending_mail: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/task_cancel.pl",
+          "source_sha256": "fe94db8b1dba47431e91e17c0301a6e637a7a4f0ffd581d2703b742bc21041ed",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "spawner_need_not_wait: ok\nowner_waits_child_runs: ok\nnesting_is_recursive: ok\ngap_in_chain_does_not_sever: ok\nspawn_order_is_fifo: ok\nend_wait_releases_first_wait: ok\nend_wait_releases_second_wait: ok\nend_wait_without_wait: ok\nwait_with_no_tasks: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/task_ownership.pl",
+          "source_sha256": "565fcbe51dc1d00e12698285ada7e79647ce1307bb439b4b826d7128af8a8065",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "1 2 3 4 5 6 7 8 9 10 \nbacklog: ok\nend_wait_once: ok\n1 2 3 \nyields: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/tasks_scheduler.pl",
+          "source_sha256": "ce7643ed8855fe174080335e6f3a143078111118618768d527fc5bccb3d0a67d",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "r_nd: [[a,a,a],[a,a,b],[a,b,a],[a,b,b],[b,a,a],[b,a,b],[b,b,a],[b,b,b]]\nr_lu: [5,4,3,2,1]\nr_cut: [1]\nr_out: f(1)\nr_share: 1\nr_ex: big(5)\nr_ball: foo\nr_bt: [1,2,3]\nr_fewer: [1,2,3]\nr_more: f(e([1,2,3]))\nr_calln: done\nr_freeze: woke(1)\nr_bigint: 1\nr_string: 45\nr_unbound: shared\nr_alt: [first,second]\nr_chain: end\n",
+          "stderr": "",
+          "source": "tests/sundry/tco_tail_calls.pl",
+          "source_sha256": "1f0218f6e8a6f231956892aafc1298d072cfb8eab2618049591418b2d6a4968c",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "1\ngone\nexistence_error(procedure,p/1)\n[3]\nsyntax_error(operator_expected)\noops\ngone\n[a,b]\ngone\npermission_error(destroy,module,user)\npermission_error(destroy,module,lists)\npermission_error(create,module,tmapp)\ntmapp_kept\nnamed(old)\nexistence_error(procedure,p/1)\ntm6(new)\ndone\n",
+          "stderr": "",
+          "source": "tests/sundry/temporary_module.pl",
+          "source_sha256": "a041f2f037d89ad2b7ead037df61164e8098a84b2d086d8eba3f6d4effe4215c",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "variables_1000(ok)\nsingletons_1000([])\nvariables_over_g(ok)\nsingletons_over_g([])\nshared_once([])\norder_and_singletons(ok)\nshared_twice(ok)\n",
+          "stderr": "",
+          "source": "tests/sundry/term_variables_shared.pl",
+          "source_sha256": "b132b8f07aa338b7acb4fbb1f5748fd587d08a52b932a7071ad7ce543e5715dc",
+          "passed": true
+        }
+      ]
+    },
+    "candidate": {
+      "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-assert-expansion-candidate/tpl",
+      "executable_sha256": "f2a74a948aec7590adb78ef9258ec9590ae59b34a84536e49f904324c5610ced",
+      "library_path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-assert-expansion-candidate/library",
+      "trials": [
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 1,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 2,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 3,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 4,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 5,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 6,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 7,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 8,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 9,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 10,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 11,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 12,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 13,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 14,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 15,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 16,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 17,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 18,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 19,
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first([a-a-a])\nground(ok)\nafter([a-a-b])\n",
+          "stderr": "",
+          "trial": 20,
+          "correct": true
+        }
+      ],
+      "regressions": [
+        {
+          "returncode": 0,
+          "stdout": "passed(a1,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_a1",
+          "trial": 1,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(a1,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_a1",
+          "trial": 2,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(a1,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_a1",
+          "trial": 3,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(z1,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_z1",
+          "trial": 1,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(z1,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_z1",
+          "trial": 2,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(z1,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_z1",
+          "trial": 3,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(a2,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_a2",
+          "trial": 1,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(a2,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_a2",
+          "trial": 2,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(a2,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_a2",
+          "trial": 3,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(z2,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_z2",
+          "trial": 1,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(z2,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_z2",
+          "trial": 2,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "passed(z2,['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "valid_z2",
+          "trial": 3,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(a1,error(syntax_error(goal_expansion),asserta/1))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_a1",
+          "trial": 1,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(a1,error(syntax_error(goal_expansion),asserta/1))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_a1",
+          "trial": 2,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(a1,error(syntax_error(goal_expansion),asserta/1))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_a1",
+          "trial": 3,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(z1,error(syntax_error(goal_expansion),assertz/1))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_z1",
+          "trial": 1,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(z1,error(syntax_error(goal_expansion),assertz/1))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_z1",
+          "trial": 2,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(z1,error(syntax_error(goal_expansion),assertz/1))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_z1",
+          "trial": 3,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(a2,error(syntax_error(goal_expansion),asserta/2))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_a2",
+          "trial": 1,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(a2,error(syntax_error(goal_expansion),asserta/2))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_a2",
+          "trial": 2,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(a2,error(syntax_error(goal_expansion),asserta/2))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_a2",
+          "trial": 3,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(z2,error(syntax_error(goal_expansion),assertz/2))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_z2",
+          "trial": 1,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(z2,error(syntax_error(goal_expansion),assertz/2))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_z2",
+          "trial": 2,
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rejected(z2,error(syntax_error(goal_expansion),assertz/2))\nrecovered(['O\\'Brien\\\\path'-'O\\'Brien\\\\path'-b])\n",
+          "stderr": "",
+          "case": "reject_z2",
+          "trial": 3,
+          "passed": true
+        }
+      ],
+      "version": {
+        "returncode": 0,
+        "stdout": "trealla(3,13,26,[])\n",
+        "stderr": ""
+      },
+      "ground_controls": [
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ground(ok)\n",
+          "stderr": "",
+          "correct": true
+        }
+      ],
+      "port_groups": {
+        "isolation": {
+          "returncode": 0,
+          "stdout": "34. src_text private predicate ok\n35. src_list private predicate ok\n36. source operator directive ok\n37. src_predicates copy ok\n38. private namespaces do not cross-talk ok\n39. toplevel private source ok\n40. source namespace cleanup ok\n41. source preparation error cleanup ok\n102. receive body keeps private source module ok\n103. guarded source receive and timeout callback ok\n104. sandbox nested spawn keeps runtime module ok\n105. nested src_predicates copies private session source ok\n106. sandboxed actor format output ok\n107. private sessions expose sandboxed rpc source options ok\n109. guarded application clause/2 supports meta-interpreters ok\n114. shared database visibility and local shadowing ok\n116. private actor toplevel API surface ok\n117. nested toplevel receive binding is isolated ok\n121. private control commitment semantics ok\n122. private forall transforms nested built-ins and DCGs ok\n",
+          "stderr": ""
+        },
+        "sandbox": {
+          "returncode": 0,
+          "stdout": "47. sandbox mode normalization ok\n48. sandbox goal walker denial ok\n49. public source policy denial ok\n50. checked private source execution ok\n51. runtime meta-call guard ok\n52. conservative whitelist ok\n53. sandbox off compatibility ok\n54. runtime asserted-clause guard ok\n55. producer exception propagation ok\n56. scoped portable abolish/2 ok\n119. sandbox remote-spawn origin allowlist ok\n120. between/3 supports finite and infinite sandbox bounds ok\n144. sandbox exposes send/3 and cancel/1 ok\n145. nested link tutorial source copying and cascade ok\n146. copied sandbox terminal output remains callable ok\n147. actor-aware time/1 and sleep/1 wall timing ok\n148. tutorial parallel sleeps run concurrently ok\n149. copied hand-built toplevel protocol ok\n150. variable-bearing reflected proof tree ok\n151. sandboxed random_member/2 compatibility ok\n153. atom_string/2 and string src_text compatibility ok\n",
+          "stderr": ""
+        },
+        "toplevel": {
+          "returncode": 0,
+          "stdout": "11. findnsols batches ok\n12. offset ok\n13. toplevel first batch ok\n14. toplevel_next ok\n15. toplevel failure ok\n16. toplevel error ok\n17. toplevel_stop+reuse ok\n18. session multi-call ok\n22. mid-stream limit change ok\n27. toplevel output ok\n28. toplevel input/respond ok\n29. toplevel_abort ok\n99. exact-page self/1 is deterministic ok\n100. paging does not execute the next solution early\n101. flush output uses inherited terminal ok\n111. guarded receive supports SWI ~p formatting ok\n112. sandboxed sleep supports monitored child lifecycle ok\n123. nested toplevel input targets its protocol caller ok\n131. stale deferred commands are scoped to the prior call ok\n152. toplevel once(true) commits the first answer ok\n",
+          "stderr": ""
+        }
+      },
+      "upstream_tests": [
+        {
+          "returncode": 0,
+          "stdout": "1\n2\n3\nf(6,g(h,[1,2,3]))\nf(abc,[1,2,3])\nstill_compound\nf(abc,[1,2,3])\n[1,2,3]\n[2,3]\ng(6,h([1,2]))\n",
+          "stderr": "",
+          "source": "tests/sundry/abolish_in_use.pl",
+          "source_sha256": "ab897b2683303d817d9919c8b1dea6afec3587b6ea75cdf579c2b8484a159a7a",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "c(1)\nbefore-[discontiguous,dynamic]\nc(2)\nreasserted-[dynamic]\nc(3)\nc(4)\nconsulted-[static]\npermission_error\n[a,b]\ncw(new)\ncw(again)\ncw(third)\n[last]\n",
+          "stderr": "",
+          "source": "tests/sundry/abolish_recreate.pl",
+          "source_sha256": "3f90966941980df9ae2f241dd1a3a9986f8074d756cd84ccd97ed78524ee5181",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t_fact: 1\nt_rule: 2\nt_head: 3\nt_asserta: [0,4]\nt_exists: yes\n",
+          "stderr": "",
+          "source": "tests/sundry/assert_new_module.pl",
+          "source_sha256": "ba37078fa2d9a90083730e54a8c37e10436038e36bdbefda09e22f9bc4d6cdb4",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "functor: ok\nfunctor: ok\nfunctor: ok\ncopy_term: ok\ncopy_term: ok\ncopy_term: ok\nsort: ok\nsort: ok\nsort: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/backtrack_create_vars.pl",
+          "source_sha256": "730041bb805c55f9d2777443a6bc7810ac9a9c7d9c80eb2718496a758a39972a",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t_clause: [1-true,2-true,3-true]\nt_retract_all: [1,2,3]/[]\nt_retract_cut: 2/[3]\nt_retractall: []\nt_bound_module: [1,2,3]\nt_retract_rule: A-(user:d(A))\nt_clause_ref: d(1)-true\nt_caller_module: user_d\nt_missing: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/clause_retract_module.pl",
+          "source_sha256": "33c131d3a125a24598df70f5725173875b91d9adc4339d00936792a389ad8082",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "dcg consult: all rules agree\n",
+          "stderr": "",
+          "source": "tests/sundry/dcg_consult.pl",
+          "source_sha256": "880920fd56bc46473f9358c7d656c1980e12b97fbf250d967ea709a94c211d51",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "dcg corpus: all rules agree\n",
+          "stderr": "",
+          "source": "tests/sundry/dcg_corpus.pl",
+          "source_sha256": "2eed8a7f0fccc0dfcd7a5adb978772789a06e0d8871030cc2fc4e3616af8d153",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "dcg differential: 38 cases, 3 divergences, 1 expected diffs\n",
+          "stderr": "",
+          "source": "tests/sundry/dcg_differential.pl",
+          "source_sha256": "33328a75568490697f78cfb716b960ef788c9b9b31a30eff2a20dae925860ca4",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "quad driver: 58 of 58 acceptable\n",
+          "stderr": "",
+          "source": "tests/sundry/dcg_quads.pl",
+          "source_sha256": "2b31165131faeacdfa08ce44626761c76b80dd59fd3d5e5cc425271a3e732e9f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "dcg tabling: left_recursion_parses ok\ndcg tabling: left_recursion_rejects ok\ndcg tabling: plain_tabled_dcg ok\ndcg tabling: plain_tabled_rejects ok\ndcg tabling: rename_ran_on_translated_clause ok\n",
+          "stderr": "",
+          "source": "tests/sundry/dcg_tabling.pl",
+          "source_sha256": "fff982fb79e89e6aa767f4ddde54205bc5ffe200fdb0b4521b0f88c09956373f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "once\nab\nab\nseen(1)\n",
+          "stderr": "",
+          "source": "tests/sundry/engine_first_goal.pl",
+          "source_sha256": "d41cd997d936394662aa7f42d6d29581ceb22066236e269f2be88ada9c36ecb0",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "first-yes\ntwice-no\nafter_retract-no\nafter_abolish-no\nleft-[4]\nlive-yes\nleft2-[4]\n",
+          "stderr": "",
+          "source": "tests/sundry/erase_stale.pl",
+          "source_sha256": "9e2ffeb6bfcb1955d176eb69868ae1a48720e6dbe334b86edad757a2a2925773",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "identity ok\nrule_identity ok\nhook ok\nsingle_pass ok\nmanual_fixpoint ok\ndcg ok\nhook_output_dcg ok\n",
+          "stderr": "",
+          "source": "tests/sundry/expand_term.pl",
+          "source_sha256": "01bbbb8acb4c70aeb1138ba3fa7898a2dd747c41cc32567c35793b0c7a6b349d",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ok\n",
+          "stderr": "",
+          "source": "tests/sundry/goal_expansion_renames.pl",
+          "source_sha256": "141aa8514e9470d964c1defead7107934f9cfbd3ee23a76c8ea68a3ccd10c292",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "through_head_var(f(a))\ntail([2,3])\nmiddle(2)\nother_functor(no)\ntwo_anons(yes)\nstring_goal(yes)\nmember([a,b,c])\nfunctor_vars_differ(no)\nfunctor_vars_same(yes)\n",
+          "stderr": "",
+          "source": "tests/sundry/head_anon_args.pl",
+          "source_sha256": "13bfed80749625dbb0ab7e6179b01a4cdef407d90aeb2120bcc87f3ba46a4ec5",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t1 200 [1,4,7,10] | 201 [0,1,4,10] 1000\nt2 86 [0-3,1-10,2-17] | 87 [8-1,0-3,1-10] 9-2000\nt3 200 [2,5,8] none [b-2,a-1]\nt4 202 [y- -2,y- -1,3-3]\nt5 201 200\nt6 [120,30,30,30,0,120,0,120,0]\nt7 15 [3,43,83] none 2250 [7,47,87,127,167,207,247,287,327,367,407,447,487,527,567] [7,47,87,127,167,207,287,327,367,407,447,487,527,567,9000]\nt8 [aa] [aa,bb] [aa] [cc] [zz,aa] [ee,dd] []\n",
+          "stderr": "",
+          "source": "tests/sundry/index_key_chains.pl",
+          "source_sha256": "dbf06c16ab337970f15afc3dadf53a11eb95c726a8ebeb202f6bd2ed3844ba92",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "rat/float: missing 0\nrat/big: missing 0\nbig/float: missing 0\nrat/int: missing 0\nfloat/int: missing 0\nbig/int: missing 0\n",
+          "stderr": "",
+          "source": "tests/sundry/index_mixed_numbers.pl",
+          "source_sha256": "8677328beeaaefde6c6503b1afcb09e96a6bf0ff2ac01cd5760926ebd2659458",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "d(f(A,B),t(f(A,B))).\nd(f(_,_),u).\nd(g(_),v).\n",
+          "stderr": "",
+          "source": "tests/sundry/listing_functor_vars.pl",
+          "source_sha256": "bab033ec571f569cb4b4ef42f9c683554370a0614106b91c72346c94cb242fb2",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "% lists:lm_probe/1\nlm_probe(1).\nlm_probe(2) :-\n   user:true.\n% lists:lm_probe\nlm_probe(1).\nlm_probe(2) :-\n   user:true.\n% lm_probe/1\nlm_probe(user_version).\nexistence_error(module,nomod)\n",
+          "stderr": "",
+          "source": "tests/sundry/listing_module.pl",
+          "source_sha256": "228008c4df6818890beca0415d0a1befb0649e71498bc9bfeddd029a93501b0e",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "conj: call ok, asserted ok\ndisj: call ok, asserted ok\nite: call ok, asserted ok\nsoft: call ok, asserted ok\nif3: call ok, asserted ok\nconsulted: ok, last declared dynamic\n",
+          "stderr": "",
+          "source": "tests/sundry/long_bodies.pl",
+          "source_sha256": "c1257aeec956d354e4dc9b3461c69ee19c44244553222be9a2b38696cdd5e0fe",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t_call: c(2)\nt_once: c(2)\nt_ignore: c(3)\nt_findall: c(3)\nt_findnsols: [c(2)/[x,x],c(4)/[x,x],c(5)/[x]]\nt_chunks_hide: [unbound/[1],unbound/[2]]\nt_cut_via_var: [call-kept,once-kept,var-kept,not-kept,findall-kept]\nt_page: [[a,b],[c,d,e],[f,g]]\n",
+          "stderr": "",
+          "source": "tests/sundry/meta_call_shares_terms.pl",
+          "source_sha256": "89151a9269c7a56502db771f058f0a0a4e2a23e829b0b35b97ea8bd2261fa76a",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t_zero: 2\nt_caret: 2\nt_bagof: [1,2]\nt_forall: ok\nt_user: 3\n",
+          "stderr": "",
+          "source": "tests/sundry/meta_goal_module.pl",
+          "source_sha256": "ac4af2d567f80d9eaa172fe4f1ce5bcc6f137c88df2ac8c49538e0b2586bdb0a",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "user:call(a)\nuser:once(b)\nuser:ignore(c)\nuser:call(d,1)\nuser:e\nuser:once(f)\n",
+          "stderr": "",
+          "source": "tests/sundry/meta_qualify_call.pl",
+          "source_sha256": "6afc4638fb4f89993f3800cb3e8102971c30e1944b91b7e8d74897b93be73096",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "asserted([97,98,233])\nblackboard([97,98,233])\nstored(same)\nafter_close([97,98,233])\nrest([97,98,233])\ntail([98,233])\nsub([97,98])\nonce([97,98,233])\nfindall([97,98,233])\ntabled([97,98,233])\n",
+          "stderr": "",
+          "source": "tests/sundry/mmap_lifetime.pl",
+          "source_sha256": "a5db6b975a3fb3e09ee6903c3df990e9a0ac8fcd1c0dd729a3f81608a8403a2d",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "type_error(module,42)\ntype_error(module,42)\ntype_error(module,f(x))\ntype_error(module,42)\ntype_error(module,42)\ntype_error(module,f(x))\ntype_error(module,42)\ninstantiation_error\nfindall(?,0,-)\nassertz(:)\n",
+          "stderr": "",
+          "source": "tests/sundry/module_qualifier_errors.pl",
+          "source_sha256": "fdd348197a7dd8dfaed6a887cbfef78b6d8f9bc022647ef5f8555c0b68b2e74f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "name(12,[49,50])\nname(' 12',[32,49,50])\nname(26,[48,120,49,65])\nname('- 3',[45,32,51])\nname('',[])\nname(ab,[a,b])\nname(foo,[102,111,111])\nname(12,[49,50])\nname(1.5,[49,46,53])\ntype_error(atomic,f(x))\ninstantiation_error\natom_to_term('foo(X, Y, X)',foo(A,B,A),['X'=A,'Y'=B])\natom_to_term(' foo ',foo,[])\natom_to_term(12,12,[])\natom_to_term('a. b',a,[])\ntype_error(string,f(x))\nsyntax_error(end_of_string)\ninstantiation_error\nfailed\npredicate_property(format(A,B),built_in)\nformat_enumerates_built_in\n[x/0]\n[term_expansion/2,x/0]\n",
+          "stderr": "",
+          "source": "tests/sundry/name_atom_to_term.pl",
+          "source_sha256": "26a74d4b5c934fe7f23807ca06a6eba1f589cde989317363d465f45c9ef4502f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "atom-200-1-598\ncompound-200-1-598\nsecond-200-1-598\n",
+          "stderr": "",
+          "source": "tests/sundry/reconsult_index_walk.pl",
+          "source_sha256": "49e1547a9fbc66e910e286c670ccdbbed8980f6c237c4d0b37fde92bdead4b03",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "t1(1,f(a,text,g(1,2,3)))\nt1(2,f(a,text,g(1,2,3)))\nt1(3,f(a,text,g(1,2,3)))\nt2(1,f(b,text,g(7,8,9)))\nt2(2,f(b,text,g(7,8,9)))\n",
+          "stderr": "",
+          "source": "tests/sundry/retract_bound_clause.pl",
+          "source_sha256": "d3ccefd5c721bd960ec0d84fbe1eda80959e9bf30f006ffee9e4a04999223653",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "retract: [1,4,7,10,13,16,19]\ncall_retract: [1,4,7,10,13,16,19]\nonce_retract: [1,4,7,10,13,16,19]\nclause: [1,4,7,10,13,16,19]\nretract rule: [1,2,3]\nretract fact: [1,2,3]\n",
+          "stderr": "",
+          "source": "tests/sundry/retract_during_walk.pl",
+          "source_sha256": "2b36859b066408898df94f2c09f263707d85db46fd15a5d82883531620c48e4f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "clause(1,true)\nnot_retracted\nuser_foo_kept\nrms_baz_retracted\nuser_retract_ok\n",
+          "stderr": "",
+          "source": "tests/sundry/retract_module_scope.pl",
+          "source_sha256": "bb5a9531d45a20b88f472db1a4233d9485d6bc0789add837bc832890cf234a98",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "(A is 1+2)-safe\ndouble(3,A)-safe\nmaplist(double,[1,2],A)-safe\nappend(A,B,[a])-safe\nloop(5)-safe\nevens([1,2],A)-safe\nshell(ls)-permission_error(call,sandboxed,shell(A))\nevil-permission_error(call,sandboxed,shell(A))\nindirect-permission_error(call,sandboxed,shell(A))\nmaplist([A]>>shell(A),[ls])-permission_error(call,sandboxed,shell(B))\ncall(A)-instantiation_error\ninclude(A,[1],B)-instantiation_error\nfindall(A,member(A,[1]),B)-safe\nfindall(A,shell(ls),B)-permission_error(call,sandboxed,shell(C))\nsetof(A,B^member(A-B,[a-1]),C)-safe\ncatch(true,A,shell(ls))-permission_error(call,sandboxed,shell(B))\nsetup_call_cleanup(true,true,shell(ls))-permission_error(call,sandboxed,shell(A))\n(\\+shell(ls))-permission_error(call,sandboxed,shell(A))\nonce(member(A,[a]))-safe\ncall(member,A,[a])-safe\ncall(shell,ls)-permission_error(call,sandboxed,shell(A))\nformat([~,w,~,n],[x])-safe\nformat([~,@,~,n],[shell(ls)])-permission_error(call,sandboxed,shell(A))\nwith_output_to(atom(A),writeln(x))-safe\nwith_output_to(user_error,writeln(x))-permission_error(call,sandboxed,with_output_to(A,B))\nphrase(([a],[b]),[a,b])-safe\nwrite(x)-permission_error(call,sandboxed,write(A))\nopen(f,write,A)-permission_error(call,sandboxed,open(B,C,D))\n(system:shell(ls))-permission_error(call,sandboxed,shell(A))\n(nosuch:foo)-permission_error(call,sandboxed,nosuch:foo)\nassertz(counter(1))-safe\nassertz((counter(1):-shell(ls)))-permission_error(call,sandboxed,assertz(A))\nassertz(lists:foo(1))-permission_error(call,sandboxed,assertz(lists:foo(1)))\nclause(lists:append(A,B,C),D)-permission_error(call,sandboxed,clause(lists:append(E,F,G),H))\nnb_setval(my_counter,1)-safe\nnb_setval(other,1)-permission_error(call,sandboxed,nb_setval(A,B))\ntrusted(x)-safe\nrun_it(true)-safe\nrun_it(shell(ls))-permission_error(call,sandboxed,shell(A))\ntwice(true)-safe\ntwice(shell(ls))-permission_error(call,sandboxed,shell(A))\nnosuch(1)-existence_error(procedure,user:nosuch(A))\n8\npermission_error(call,sandboxed,shell(A))\ncall(A)-(user:call(sandbox:safe_call(user:A)))\nfindall(A,B,C)-(user:findall(A,sandbox:safe_call(user:B),C))\nsetof(A,B^C,D)-(user:setof(A,B^(sandbox:safe_call(user:C)),D))\nmaplist(A,[1])-(user:maplist(sandbox:safe_call(user:A),[1]))\ncatch(A,B,true)-(user:catch(sandbox:safe_call(user:A),B,true))\n(A:foo)-(user:sandbox:safe_call(user:A:foo))\nmaplist(double,[1],A)-(user:maplist(double,[1],A))\nforall(member(A,[true,shell(ls)]),call(A))-permission_error(call,sandboxed,shell(B))\n(double=double,call(double,3,6),6==6)-yes\n(A=shell,call(A,ls))-permission_error(call,sandboxed,shell(B))\n(double=double,maplist(double,[1,2],[2,4]),[2,4]==[2,4])-yes\n(A=shell,maplist(A,[ls]))-permission_error(call,sandboxed,shell(B))\n(A=system,A:shell(ls))-permission_error(call,sandboxed,shell(B))\n(A=(true,shell(ls)),A)-permission_error(call,sandboxed,shell(B))\n([A]>>(A>0)=[A]>>(A>0),maplist([A]>>(A>0),[1]))-yes\n(A=[B]>>shell(B),maplist(A,[ls]))-permission_error(call,sandboxed,shell(C))\ncall(A)-instantiation_error\nsafe_call(shell,ls)-permission_error(call,sandboxed,shell(A))\n(true,sandbox:assertz(safe_meta(shell(A),B,[])))-permission_error(call,sandboxed,sandbox:assertz(safe_meta(shell(C),D,[])))\n(true,lists:assertz(injected(1)))-permission_error(call,sandboxed,lists:assertz(injected(1)))\n(true,lists:findall(A,member(A,[a]),B))-permission_error(call,sandboxed,lists:findall(C,member(C,[a]),D))\n(true,sbpriv:pub(A))-safe\n(true,sbpriv:hidden(A))-permission_error(call,sandboxed,sbpriv:hidden(B))\n(true,sandbox:safe_call(sbpriv:hidden(A)))-permission_error(call,sandboxed,sbpriv:hidden(B))\nassertz(term_expansion(a,b))-permission_error(call,sandboxed,assertz(A))\n(A=sbpriv:hidden(B),call(A))-permission_error(call,sandboxed,sbpriv:hidden(C))\n(sbpriv:pub(secret)=sbpriv:pub(secret),call(sbpriv:pub(secret)),secret==secret)-yes\n(sandbox:assertz(safe_global_variable(gv)))-permission_error(modify,static_procedure,safe_global_variable(gv))\n",
+          "stderr": "",
+          "source": "tests/sundry/sandbox.pl",
+          "source_sha256": "c13de22a16708d735c777f7865a7c95f8a6923c16f973b0f22a288c60ef975e2",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "ok([p/1,q/1])\nok([counter/1,inc/0])\nok([go/0,run/1])\npermission_error(call,sandboxed,shell(A))\npermission_error(call,sandboxed,shell(A))\npermission_error(call,sandboxed,shell(A))\nhello_from_init\nok([p/0])\npermission_error(execute,sandboxed_directive,(:- dynamic user:secret/1))\npermission_error(execute,sandboxed_directive,(:- multifile sandbox:safe_primitive/1))\npermission_error(modify,sandboxed_procedure,sandbox:safe_primitive/1)\npermission_error(modify,sandboxed_procedure,user:term_expansion/2)\npermission_error(modify,sandboxed_procedure,term_expansion/2)\npermission_error(modify,static_procedure,atom_length/2)\nok([~~> / 2])\nok([p/0])\nuser_eq_ok\nok([s/1])\npermission_error(execute,sandboxed_directive,(:- set_prolog_flag(verbose,normal)))\npermission_error(load,sandboxed,library('../etc/passwd'))\npermission_error(execute,sandboxed_directive,(:- use_module('/etc/passwd')))\npermission_error(execute,sandboxed_directive,(:- include(foo)))\npermission_error(execute,sandboxed_directive,(:- module(m,[])))\nok([g/2])\nsyntax_error(mismatched_parens_or_brackets_or_braces)\nrun_true_ok\npermission_error(call,sandboxed,shell(A))\ndirect(permission_error(call,sandboxed,shell(A)))\n[1,2]\nterms_ok\ndomain_error(sandbox_source,file(x))\ncheck_false_loaded\n",
+          "stderr": "",
+          "source": "tests/sundry/sandbox_load.pl",
+          "source_sha256": "8c45d3772c3029c213666d55fea7e5426e60a0ab2ee678e3371b374d5f10a7ce",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "predicate_property(foo(A),number_of_clauses(2))\npredicate_property(foo(A),number_of_rules(1))\npredicate_property(d(A),number_of_clauses(0))\npredicate_property(d(A),defined)\npredicate_property(m(A),defined)\nno(predicate_property(m(A),number_of_clauses(B)))\nno(predicate_property(nope(A),defined))\npredicate_property(append(A,B,C),interpreted)\nno(predicate_property(atom_length(A,B),interpreted))\npredicate_property(atom_length(A,B),iso)\nno(predicate_property(foo(A),iso))\npredicate_property(forall(A,B),(meta_predicate forall(0,0)))\npredicate_property(format(A,B),(meta_predicate format(+,:)))\n[dynamic,defined,interpreted,number_of_clauses(2),number_of_rules(1)]\nfindall(A,'$clause'(foo(B),A),[(bar(C),member(C,[1])),true])\n'$clause'(lists:append([],A,A),true)\npermission_error(access,private_procedure,atom_length/2)\nno('$clause'(atom_length(A,B),C))\npermission_error(access,private_procedure,foo/1)\nno(clause(foo(A),B))\nnb_current(k1,f(x))\nno(nb_current(nokey,A))\ntype_error(atom,1)\nno(nb_current(1,A))\nfindall(A,(nb_current(A,B),memberchk(A,[k1,k2])),[k1,k2])\nnb_delete(k1)\nno(nb_current(k1,A))\ncompound_name_arity(f(A,B),f,2)\ncompound_name_arity(g(a,b,c),g,3)\ntype_error(compound,abc)\nno(compound_name_arity(abc,A,B))\ncompound_name_arguments(f(a,b),f,[a,b])\ncompound_name_arguments(h(1),h,[1])\nf(A,A)=@=f(B,B)\nno(f(A,A)=@=f(B,C))\nf(A)\\=@=f(a)\nexpand_goal((sq(3,A), \\+sq(2,B)),(A is 3*3, \\+B is 2*2))\nformat_types([~,w,' ',a,n,d,' ',~,a,~,n],[any,atom])\nformat_types('~*c~t~20|~@',[number,integer,callable])\nformat_types([~,p,' ',~,e,' ',~,s,' ',~,'3',d],[any,float,text,integer])\nexistence_error(format_character,y)\nno(format_types([~,y],A))\n",
+          "stderr": "",
+          "source": "tests/sundry/sandbox_prereqs.pl",
+          "source_sha256": "657ca6caa1fe0cc57da1fa662f65bee3d46571b86cd91d036bc1340ac04b4c1c",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "findall: ok\nsetof: ok\ncall barrier: ok\nleft recursion: ok\nmutual: ok\ncycle: ok\nscc merge: ok\nfib: ok\nvariant answers: ok\norder independence: ok\nanswer sharing: ok\ngenerate mode: ok\nbacktrack variants: ok\nmany variants: ok\nthreads: ok\nabolish_table: ok\nflag off: ok\nflag on: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/tabling.pl",
+          "source_sha256": "050e8d89530dd0d456435b3c3efe7de65f16ce53d24176f1821aa2fc95bf12c1",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "assert/retract: ok\ntransitive: ok\nnon-incremental table frozen: ok\nuntracked pred ignored: ok\ninvalidate subsumptive: ok\nno spurious recompute: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/tabling_incremental.pl",
+          "source_sha256": "0c2fc41136747c84186c5dd46486c6f2ceeb2c1634dd56f046d5ad80fe95e082",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "shared reuse: ok\nprivate not shared: ok\nshared term integrity: ok\nabolish reaches shared: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/tabling_shared.pl",
+          "source_sha256": "6622abf1de08ed1bbb6ad7dc826832719fcc9c84d997f4849d8a10e9f2687562",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "spawn_send_recv: ok\nlink_exit_reasons: ok\nrecv_timeout_option: ok\nrestart_budget_exhausted: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/task_actors.pl",
+          "source_sha256": "ec1dc17a4c8c725abab4c6e87ad43a5290b20bb657a9ac9c88b02af55998ff1f",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "atm: ok\nbound_var: ok\nin_list: ok\nint: ok\nlit: ok\nnested: ok\nvia_var: ok\ndistinct: ok\nshared: ok\ngoal_var: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/task_args.pl",
+          "source_sha256": "af97b4fd3c72409f2dbb0ff9401c875cd8b9d84c842f9b1f9297aadeaa18bb4b",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "cancel_stops_task: ok\ncancel_missing_qid_throws: ok\ncancel_non_task_throws: ok\ncancel_with_pending_mail: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/task_cancel.pl",
+          "source_sha256": "fe94db8b1dba47431e91e17c0301a6e637a7a4f0ffd581d2703b742bc21041ed",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "spawner_need_not_wait: ok\nowner_waits_child_runs: ok\nnesting_is_recursive: ok\ngap_in_chain_does_not_sever: ok\nspawn_order_is_fifo: ok\nend_wait_releases_first_wait: ok\nend_wait_releases_second_wait: ok\nend_wait_without_wait: ok\nwait_with_no_tasks: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/task_ownership.pl",
+          "source_sha256": "565fcbe51dc1d00e12698285ada7e79647ce1307bb439b4b826d7128af8a8065",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "1 2 3 4 5 6 7 8 9 10 \nbacklog: ok\nend_wait_once: ok\n1 2 3 \nyields: ok\n",
+          "stderr": "",
+          "source": "tests/sundry/tasks_scheduler.pl",
+          "source_sha256": "ce7643ed8855fe174080335e6f3a143078111118618768d527fc5bccb3d0a67d",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "r_nd: [[a,a,a],[a,a,b],[a,b,a],[a,b,b],[b,a,a],[b,a,b],[b,b,a],[b,b,b]]\nr_lu: [5,4,3,2,1]\nr_cut: [1]\nr_out: f(1)\nr_share: 1\nr_ex: big(5)\nr_ball: foo\nr_bt: [1,2,3]\nr_fewer: [1,2,3]\nr_more: f(e([1,2,3]))\nr_calln: done\nr_freeze: woke(1)\nr_bigint: 1\nr_string: 45\nr_unbound: shared\nr_alt: [first,second]\nr_chain: end\n",
+          "stderr": "",
+          "source": "tests/sundry/tco_tail_calls.pl",
+          "source_sha256": "1f0218f6e8a6f231956892aafc1298d072cfb8eab2618049591418b2d6a4968c",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "1\ngone\nexistence_error(procedure,p/1)\n[3]\nsyntax_error(operator_expected)\noops\ngone\n[a,b]\ngone\npermission_error(destroy,module,user)\npermission_error(destroy,module,lists)\npermission_error(create,module,tmapp)\ntmapp_kept\nnamed(old)\nexistence_error(procedure,p/1)\ntm6(new)\ndone\n",
+          "stderr": "",
+          "source": "tests/sundry/temporary_module.pl",
+          "source_sha256": "a041f2f037d89ad2b7ead037df61164e8098a84b2d086d8eba3f6d4effe4215c",
+          "passed": true
+        },
+        {
+          "returncode": 0,
+          "stdout": "variables_1000(ok)\nsingletons_1000([])\nvariables_over_g(ok)\nsingletons_over_g([])\nshared_once([])\norder_and_singletons(ok)\nshared_twice(ok)\n",
+          "stderr": "",
+          "source": "tests/sundry/term_variables_shared.pl",
+          "source_sha256": "b132b8f07aa338b7acb4fbb1f5748fd587d08a52b932a7071ad7ce543e5715dc",
+          "passed": true
+        }
+      ]
+    }
+  },
+  "finished_at": "2026-10-21T12:26:22.440327+00:00",
+  "upstream_revision": "7af2b53c4eaa219c5f74b716f37e4f5e1b1917a6",
+  "pinned_revision": "36f512f595e407e330f6e1f6b4eb339da2b0675e",
+  "build_command": "SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk make NOSSL=1 NOFFI=1 -j4",
+  "port_revision": "446491ba86b7c024a5e468d704562aad58581fd5",
+  "patch_sha256": "e7bfc37adcd62c44f1b99f012f92dcc6cbac758b65a995d5235c79eafdb2ecd2",
+  "runner_sha256": "307caeb673a62af4980185683b2bee56534ccfd5145eaf92c48f10c1f520823e",
+  "pinned_runtime_sha256_before_and_after": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+  "source_scope": "Candidate changes only src/parser.c and src/bif_database.c in a separate build; installed runtime, live nodes, and port runtime sources unchanged."
+}

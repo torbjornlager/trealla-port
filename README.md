@@ -955,6 +955,16 @@ intermittent source-parsing failure is retained in the earlier GNU framing
 report; the independently reproduced capture corruption strongly supports,
 but does not conclusively establish, its cause.
 
+The remaining isolation/sandbox parser diagnostics have a separate standalone
+reduction in [`reproducers/bug-027-assert-goal-expansion.md`](reproducers/bug-027-assert-goal-expansion.md).
+Rebased runtime variables can be misprinted in an internal goal-expansion query;
+the failing path can leave later expansion disabled while assertion still
+succeeds. A separate experimental engine build fixes the recorded cases and
+passes the bounded regression comparison. The patch and raw results accompany
+the report submitted as [#1175](https://github.com/trealla-prolog/trealla-prolog/issues/1175). The installed engine and port runtime sources
+remain unchanged by that investigation; its results do not claim a production
+engine upgrade or eliminate the original capture report's causal qualification.
+
 Public remote `demonitor/1-2` now checks caller ownership under the actor
 registry mutex, performs distribution work without that mutex held, then retires
 the caller's record under the mutex. Previously the manager's route reply could
