@@ -813,7 +813,12 @@ sandbox_toplevel_synch(Mode,Profile,Module,AppPIs,Kind,Pid,Goal0,Answer,Options0
     sandbox_check_goal_(Mode,Profile,Module,AppPIs,Goal0),
     check_receive_options(Mode,Profile,Module,AppPIs,Options0),
     forall(member(on_timeout(Callback),Options0),profile_check_goal(Profile,Callback)),
-    rewrite_receive_options(Mode,Profile,Module,AppPIs,Options0,Options),
+    rewrite_receive_options(Mode,Profile,Module,AppPIs,Options0,Options1),
+    % Keep the public default template independent of the execution guard.
+    % Otherwise the local call/1 protection becomes visible in answer rows.
+    (Kind==call, \+memberchk(template(_),Options1) ->
+        strip_module(Goal0,_,Template),Options=[template(Template)|Options1]
+    ; Options=Options1),
     (toplevel_actors:remote_toplevel_route(ResolvedPid,_) -> Goal=Goal0
     ; rewrite_goal(Mode,Profile,Module,AppPIs,Goal0,Prepared),
       % The wrapper strips outer caller qualification. Nest prepared helpers

@@ -175,6 +175,16 @@ sandbox_workers(P) :-
        call(WorkerQuery),Workers=success(P,[worker_exit(_,killed)],false),var(WorkerError))).
 sandbox_query_answers(Mode,P) :-
     sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
+      toplevel_call_synch(P,true,Default),DefaultCall),
+    call(DefaultCall),Default==success(P,[true],false),
+    sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
+      toplevel_call_synch(P,member(DefaultX,[a,b]),FirstDefault,
+        [limit(1),timeout(2)]),DefaultPage),
+    call(DefaultPage),FirstDefault==success(P,[member(a,[a,b])],true),var(DefaultX),
+    sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
+      toplevel_next_synch(P,LastDefault),DefaultNext),
+    call(DefaultNext),LastDefault==success(P,[member(b,[a,b])],false),
+    sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
       toplevel_call_synch(P,catch(throw(pair(V,V)),E,true),Answer,
         [template(E),timeout(2)]),Checked),
     call(Checked),

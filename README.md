@@ -813,11 +813,22 @@ option behaviour.
 The local sandbox adapter nests prepared query goals inside `call/1`, keeping
 qualified private helpers below the wrapper's outer caller qualification.
 The source-less worker preparer traverses this call while retaining its control
-boundary. The worker-query test helper uses the same protection. Remote queries
+boundary. Synchronous calls retain the original unqualified goal as the default
+template before this protection is added, so public sandboxed calls return the
+same answer rows as direct calls. Explicit templates retain their sharing and
+option precedence. The worker-query test helper uses the same protection. Remote queries
 still send portable goals without sender-private rewrites; general outer-module
 qualification semantics are unchanged. Regression checks cover both sandbox
 policies, source-less and private-source toplevels, sharing, paging, and remote
 calls against SWI and Trealla.
+
+Public demonstrator checks also found a native SWI-to-Trealla remote-query
+qualification problem, now repaired in native SWI, and unrelated peer errors
+entering a later spawn wait. The results and remaining repair boundaries are recorded in
+[`reproducers/port-synchronous-ui-interop.md`](reproducers/port-synchronous-ui-interop.md).
+They do not prevent the local synchronous tutorial example, or the verified
+Trealla-to-SWI and browser-to-SWI paging paths. Delegated-lineage semantics and
+remote spawn-error selection have not been changed in this batch.
 
 General `toplevel_spawn/2` with a remote `node/1` now uses a constructor hook,
 matching SWI's dispatch pattern. It delegates to the existing transparent
