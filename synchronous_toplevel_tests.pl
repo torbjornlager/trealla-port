@@ -18,6 +18,7 @@ run :-
     timeout_callbacks,
     deadline_and_unrelated,
     termination,
+    exit_unwind,
     admission,
     private_context,
     private_query,
@@ -126,6 +127,42 @@ termination :-
     dies,
     findall(R,actors:monitor(Self,_,R),After),Before==After,
     writeln('termination fails fast and private monitors are removed: ok').
+% A committed actor exit must terminate a toplevel between pages or during
+% execution, rather than becoming error(P,actor_exit). A user-thrown
+% actor_exit remains an ordinary query error, and unrelated monitors stay.
+exit_unwind :-
+    spawn(receive({finish -> true}),Other,[link(false)]),monitor(Other,OtherRef),
+    setup_call_cleanup(true,
+      (exit_between_pages,exit_during_query,user_actor_exit,
+       \+receive({down(Other,OtherRef,_) -> true},[timeout(0),on_timeout(fail)]),
+       Other ! finish,
+       receive({down(Other,OtherRef,true) -> true},[timeout(1),on_timeout(fail)])),
+      (exit(Other,kill),demonitor(OtherRef,[flush]))),
+    writeln('committed exit escapes query errors; user actor_exit and unrelated monitors kept: ok').
+exit_between_pages :-
+    toplevel_spawn(P,[session(true),link(false)]),monitor(P,Ref),
+    toplevel_call_synch(P,member(X,[a,b]),A,[template(X),limit(1)]),
+    A==success(P,[a],true),
+    exit(P,kill),
+    exit_down(P,Ref).
+exit_during_query :-
+    toplevel_spawn(P,[session(true),link(false)]),monitor(P,Ref),
+    toplevel_call(P,(sleep(0.05),self(Me),Me ! never,receive({never_sent -> true}))),
+    sleep(0.2),
+    exit(P,kill),
+    exit_down(P,Ref).
+exit_down(P,Ref) :-
+    receive({down(P,Ref,Reason) -> true},[timeout(2),on_timeout(throw(no_toplevel_down(P)))]),
+    (Reason==kill -> true ; throw(unexpected_toplevel_down(Reason))),
+    \+receive({error(P,_) -> true;'$toplevel_reply'(_,error(P,_)) -> true},
+              [timeout(0),on_timeout(fail)]).
+user_actor_exit :-
+    toplevel_spawn(P,[session(true),link(false)]),monitor(P,Ref),
+    setup_call_cleanup(true,
+      (toplevel_call_synch(P,throw(actor_exit),E),E==error(P,actor_exit),
+       toplevel_call_synch(P,true,T),T==success(P,[true],false),
+       \+receive({down(P,Ref,_) -> true},[timeout(0),on_timeout(fail)])),
+      (exit(P,kill),demonitor(Ref,[flush]))).
 dies :-
     spawn(receive({'$call'(_,_) -> exit(killed)}),P,[link(false)]),
     catch(toplevel_call_synch(P,true,_,[timeout(1)]),E,true),

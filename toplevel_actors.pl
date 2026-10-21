@@ -291,8 +291,11 @@ receive_with_idle_limit(Clauses, IdleLimit) :-
 %   `target/1`, and page-count cells inside the catch frame.
 %
 %   `'$abort_goal'` is re-thrown unchanged so that session/3's outer
-%   catch can restart the actor in state s1.  All other exceptions
-%   are reported as `error(Pid, Error)` on the current target.
+%   catch can restart the actor in state s1.  `actor_exit` escapes to
+%   the actor's termination handling once exit/1 has committed a reason,
+%   including while the query waits between pages.  All other exceptions,
+%   including a user-thrown `actor_exit`, are reported as
+%   `error(Pid, Error)` on the current target.
 
 run_call(Pid, Goal, Template, Offset, Limit0, Target1,
          TimeLimit, IdleLimit) :-
@@ -340,6 +343,11 @@ handle_error(_Pid, _Target, _Orig, '$abort_goal') :- !,
     throw('$abort_goal').
 handle_error(_Pid, _Target, _Orig, '$resource_idle') :- !,
     throw('$resource_idle').
+% Only an exit already committed by actors:exit/1 escapes to start/5. A user
+% goal throwing the same atom remains an ordinary query error.
+handle_error(_Pid, _Target, _Orig, actor_exit) :-
+    actor_terminating, !,
+    throw(actor_exit).
 handle_error(Pid, Target, Orig, Error) :-
     (   nonvar(Target), Target = target(_)
     ->  answer_target(Target, Out)
