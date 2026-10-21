@@ -824,6 +824,9 @@ sandbox_toplevel_synch(Mode,Profile,Module,AppPIs,Kind,Pid,Goal0,Answer,Options0
       % The wrapper strips outer caller qualification. Nest prepared helpers
       % under call/1 so their execution modules survive that boundary.
       Goal=call(Prepared)),
+    % Preparation has one result. Do not retain its alternatives across a
+    % synchronous request, or revisit them when output unification fails.
+    !,
     (Kind==call -> toplevel_actors:toplevel_call_synch(ResolvedPid,Goal,Answer,RuntimeModule:Options)
     ; toplevel_actors:toplevel_next_synch(ResolvedPid,Answer,RuntimeModule:Options)).
 

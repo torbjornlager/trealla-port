@@ -822,6 +822,10 @@ qualification semantics are unchanged. Regression checks cover both sandbox
 policies, source-less and private-source toplevels, sharing, paging, and remote
 calls against SWI and Trealla.
 
+The synchronous sandbox adapter commits its completed preparation before
+sending a request, so returned answers leave no preparation choicepoint and
+output mismatch cannot backtrack into another send.
+
 Public demonstrator checks also found a native SWI-to-Trealla remote-query
 qualification problem, now repaired in native SWI, and unrelated peer errors
 entering a later spawn wait. The results and remaining repair boundaries are recorded in

@@ -5,7 +5,11 @@
 :- use_module(sandbox_policy,[]).
 :- use_module(profile_policy,[]).
 :- use_module(distribution,[]).
-:- meta_predicate with_top(1).
+:- meta_predicate with_top(1), no_choicepoint(0).
+
+no_choicepoint(Goal) :-
+    call_cleanup(call(Goal),Done=true),
+    (Done==true -> true ; throw(spurious_synchronous_choicepoint)).
 
 run :-
     with_top(synchronous_toplevel_tests:answers),
@@ -176,32 +180,39 @@ sandbox_workers(P) :-
 sandbox_query_answers(Mode,P) :-
     sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
       toplevel_call_synch(P,true,Default),DefaultCall),
-    call(DefaultCall),Default==success(P,[true],false),
+    no_choicepoint(DefaultCall),Default==success(P,[true],false),
     sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
       toplevel_call_synch(P,member(DefaultX,[a,b]),FirstDefault,
         [limit(1),timeout(2)]),DefaultPage),
-    call(DefaultPage),FirstDefault==success(P,[member(a,[a,b])],true),var(DefaultX),
+    no_choicepoint(DefaultPage),FirstDefault==success(P,[member(a,[a,b])],true),var(DefaultX),
     sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
       toplevel_next_synch(P,LastDefault),DefaultNext),
-    call(DefaultNext),LastDefault==success(P,[member(b,[a,b])],false),
+    no_choicepoint(DefaultNext),LastDefault==success(P,[member(b,[a,b])],false),
     sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
       toplevel_call_synch(P,catch(throw(pair(V,V)),E,true),Answer,
         [template(E),timeout(2)]),Checked),
-    call(Checked),
+    no_choicepoint(Checked),
     Answer=success(P,[pair(A,B)],false),var(A),A==B,var(V),var(E),
     sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
       toplevel_call_synch(P,between(1,2,X),Page,
         [template(X-X),limit(1),timeout(2)]),Paged),
-    call(Paged),Page==success(P,[1-1],true),var(X),
+    no_choicepoint(Paged),Page==success(P,[1-1],true),var(X),
     sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
       toplevel_next_synch(P,Last,[timeout(2)]),Next),
-    call(Next),Last==success(P,[2-2],false),
+    no_choicepoint(Next),Last==success(P,[2-2],false),
     sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
       toplevel_call_synch(P,fail,Failed,[timeout(2)]),Failure),
-    call(Failure),Failed==failure(P),
+    no_choicepoint(Failure),Failed==failure(P),
     sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
       toplevel_call_synch(P,throw(query_error),Error,[timeout(2)]),Thrown),
-    call(Thrown),Error==error(P,query_error).
+    no_choicepoint(Thrown),Error==error(P,query_error),
+    (Mode==blacklist ->
+      sandbox_policy:sandbox_prepare_goal(Mode,actor,user,
+        toplevel_call_synch(P,missing_sync_probe(Who),Missing,
+          [template(Who),limit(1)]),MissingCall),
+      no_choicepoint(MissingCall),
+      Missing=error(P,error(existence_error(procedure,_),_)),var(Who)
+    ; true).
 
 sandbox_private_context(Mode) :-
     self(Self),
