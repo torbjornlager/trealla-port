@@ -487,19 +487,47 @@ the initial walk. Whitelist mode additionally admits only a conservative
 catalog of pure predicates, actor operations, and predicates defined in the
 submitted source. `sandbox(off)` is intended only for trusted development.
 
+The stateless HTTP execution context explicitly provides the RPC client:
+`rpc/2-3`, `promise/3-4`, `yield/2-3` and `promise_cleanup/1`. Load `rpc.pl`
+before extending `rpc:hook_promise_owner/1`; on the tested Trealla build,
+creating that hook first can leave a hook-only module that subsequent imports
+do not complete. Source-free sandbox runtime guards use an internal HTTP
+context: execution resolves through `node`, while database guards retain their existing `user`
+scope. Client calls inside `catch/3` and guarded meta-calls therefore resolve
+the same implementation as direct calls without exposing node bookkeeping. Private-source guards retain their actor
+context. Profile/sandbox admission, request-local promise ownership, callbacks
+and the client implementations are unchanged.
+
+All HTTP page producers now park after a final/error reply until their existing
+request scope stops them, matching the private-source producer rule. This
+avoids a natural actor exit racing monitored request cleanup during nested HTTP
+calls. Cached continuations, whole-page deadlines and public replies retain
+their existing semantics.
+
+Run the fresh-process regression matrix with
+`python3 tools/test-http-client-context.py --tpl /path/to/tpl`.
+It starts disposable loopback nodes through `node.pl` and `distribution.pl`,
+in blacklist and whitelist modes, without preloading the client in the fixture.
+Its 80 checks cover direct/nested calls, sharing, default and explicit promise
+templates, timeout callbacks/retry, invalid references, disposal, cross-request
+ownership, private sources and sandbox rejection. The
+[client-context follow-up](https://github.com/torbjornlager/trinity-conformance/blob/main/reports/2026-10-21-http-client-context/COVERAGE.md)
+records the shared conformance rerun; remaining GNU-to-Trealla and bare-operator
+framing differences are separate diagnostics/failures.
+
 HTTP `/call` now consumes the existing `src_text` parameter instead of ignoring
 it. Source-bearing requests reuse the actor source admission and private-module
 loader, including size, profile and sandbox checks. The internal page producer
 owns the private source environment; it survives while a continuation is cached
 and is destroyed when that producer is reclaimed. After a terminal reply the
-source producer waits for its owning scope to stop it, avoiding concurrent
+producer waits for its owning scope to stop it, avoiding concurrent
 natural module destruction and monitored termination. Source text and admission
 policy are part of the cache identity, preventing reuse across different source
 programs or policies. Goal/template variables remain shared, including JSON
 binding projection. Source-free HTTP execution is unchanged.
 The [follow-up coverage report](https://github.com/torbjornlager/trinity-conformance/blob/main/reports/2026-10-21-http-source-loading/COVERAGE.md)
-records 10/10 Trealla HTTP baseline cases; unrelated HTTP client/context failures
-remain visible in the matrix.
+records 10/10 Trealla HTTP baseline cases before the client-context repair
+described above; that earlier matrix remains historical evidence.
 
 `http_source_tests.pl` exercises private loading, both sandbox modes, ISOBASE
 admission, source size/syntax rejection, runtime guards, private mutation,

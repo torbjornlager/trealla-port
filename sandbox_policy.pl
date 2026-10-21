@@ -863,8 +863,11 @@ guarded_assert_ref(Operation, Mode, Profile, Module, AppPIs, Clause0, Ref) :-
     context_module(Module, RuntimeModule),
     Goal =.. [Operation, Clause, Ref], call(RuntimeModule:Goal).
 
+% HTTP client/control resolution must not move database guards into node.
+call_in_context(http_context, Goal) :- !, node:run_http_query(Goal).
 call_in_context(Module, Goal) :- context_module(Module, RuntimeModule), call(RuntimeModule:Goal).
 
+context_module(http_context, user) :- !.
 context_module(actor_context, Module) :- !,
     actors:self(Pid),
     ( isolation:actor_source_module(Pid, Module) -> true

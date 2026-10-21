@@ -195,6 +195,8 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/spawn_option_tests.pl'),(spawn_option_tests->halt;halt(1))"
     run_with_timeout "RPC client option validation" \
         "$TPL" -g "consult('$ROOT/rpc_option_tests.pl'),(rpc_option_tests->halt;halt(1))"
+    run_with_timeout "HTTP client execution context" \
+        python3 "$ROOT/tools/test-http-client-context.py" --tpl "$TPL"
     run_with_timeout "promise ownership" \
         "$TPL" -g "consult('$ROOT/rpc_ownership_tests.pl'),(rpc_ownership_tests->halt;halt(1))"
     run_with_timeout "promise lifecycle" \

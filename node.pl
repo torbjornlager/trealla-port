@@ -115,6 +115,10 @@ waits for their normal cleanup under a bounded timeout.
 % A public HTTP request has an independent promise owner. Only the execution
 % producer receives this scope; actors spawned by it inherit the namespace.
 :- dynamic http_promise_namespace/2.
+% Load the client before extending its owner hook: Trealla otherwise sees
+% a hook-only rpc module and may leave the client predicates unavailable.
+:- use_module(rpc).
+
 :- multifile rpc:hook_promise_owner/1.
 rpc:hook_promise_owner(client_namespace(Namespace)) :-
     node:current_http_promise_namespace(Namespace).
@@ -132,7 +136,6 @@ with_http_promise_namespace(Goal) :-
 :- use_module(library(json), [json_chars//1]).
 :- use_module(library(uri), [www_form_encode/2]).
 :- use_module(actors).
-:- use_module(rpc, [runtime_property/1]).
 :- use_module(profile_policy).
 :- use_module(auth_policy).
 :- use_module(governance_policy).
@@ -1165,16 +1168,20 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     compute_answer(ExecutionGoal, Template, Offset, Limit, Once, Source, Answer),
     reply_answer(C, Ver, Format, Answer).
 
-% Keep sourceless execution unchanged. Source-bearing queries use the same
+% Source-free runtime guards use an HTTP execution context while retaining
+% user database scope. Source-bearing queries use the same
 % admission/rewrite and private namespace loader as public actor creation.
 % Carry source and admission policy separately into the cache identity;
 % never key on the fresh private module name or load request source into user.
 prepare_http_goal(Sandbox, Profile, Goal, '', ExecutionGoal, none) :- !,
-    sandbox_prepare_goal(Sandbox, Profile, user, Goal, ExecutionGoal).
+    sandbox_prepare_goal(Sandbox, Profile, http_context, Goal, ExecutionGoal).
 prepare_http_goal(Sandbox, Profile, Goal, Text, Prepared,
                   source(Sandbox,Profile,Text,Options)) :-
     sandbox_prepare_spawn(Sandbox,Profile,actor_context,Goal,[src_text(Text)],
                           Prepared,Options).
+
+% Called only by the sandbox adapter after its ordinary admission/rewrite.
+run_http_query(Goal) :- call(Goal).
 
 http_once_value(true,true) :- !.
 http_once_value(false,false) :- !.
@@ -1440,19 +1447,19 @@ spawn_http_producer(Goal,Template,Maximum,Pid) :-
 spawn_http_producer(Goal,Template,Maximum,source(_,_,_,SourceOptions),Pid) :-
     Options=[link(false),'$entry_context'(caller)|SourceOptions],
     (current_http_promise_namespace(Namespace) ->
-        actors:spawn_scoped(node:run_source_producer(Goal,Template,Maximum),
+        actors:spawn_scoped(node:run_http_producer(Goal,Template,Maximum),
                             Pid,Options,Namespace,public)
-    ; actors:spawn_runtime(node:run_source_producer(Goal,Template,Maximum),
+    ; actors:spawn_runtime(node:run_http_producer(Goal,Template,Maximum),
                            Pid,Options)).
 spawn_http_producer(Goal,Template,Maximum,none,Pid) :-
     (current_http_promise_namespace(Namespace) ->
-        actors:spawn_scoped(node:run_goal_producer_guarded(Goal,Template,Maximum),Pid,
+        actors:spawn_scoped(node:run_http_producer(Goal,Template,Maximum),Pid,
                             [link(false),'$entry_context'(caller)],Namespace,public)
-    ; spawn(run_goal_producer_guarded(Goal,Template,Maximum),Pid,[link(false)])).
+    ; spawn(run_http_producer(Goal,Template,Maximum),Pid,[link(false)])).
 
 % The request/cache scope owns termination. In particular, do not let normal
-% module destruction after eos/error race with its monitored stop operation.
-run_source_producer(Goal,Template,Maximum) :-
+% actor/module destruction after eos/error race with its monitored stop operation.
+run_http_producer(Goal,Template,Maximum) :-
     run_goal_producer_guarded(Goal,Template,Maximum),
     receive({'$stop' -> true}).
 
