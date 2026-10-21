@@ -1,0 +1,214 @@
+{
+  "pinned": {
+    "double": [
+      {
+        "returncode": 1,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2120902757,1263264848)\nfirst_closed\nsecond_closed\nstalled_actor(2120902757,'$thread'(15),unavailable,[kill])\nstalled_actor(1263264848,'$thread'(16),unavailable,[kill])\nprobe_timeout\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1644218534,1263348883)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1119384960,1263365690)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1692367885,1263416111)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 1,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1167534311,1263432918)\nfirst_closed\nsecond_closed\nroot_down\nstalled_actor(1263432918,'$thread'(16),unavailable,[kill])\nprobe_timeout\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 1,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2265350810,1263466532)\nfirst_closed\nsecond_closed\nstalled_actor(2265350810,'$thread'(15),unavailable,[kill])\nstalled_actor(1263466532,'$thread'(16),unavailable,[kill])\nprobe_timeout\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1215683662,1263500146)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 1,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2838333735,1263516953)\nfirst_closed\nsecond_closed\nroot_down\nstalled_actor(1263516953,'$thread'(16),unavailable,[kill])\nprobe_timeout\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2313500161,1263533760)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1788666587,1263550567)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      }
+    ],
+    "single": [
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2886483086,1263550567)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1311982364,1263600988)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2934632437,1263617795)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2409798863,1263634602)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1884965289,1263651409)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2982781788,1263685023)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2457948214,1263701830)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1933114640,1263718637)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1408281066,1263735444)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2506097565,1263769058)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "upstream": {
+    "double": [
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1806084589,2587639824)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1387378050,1349370380)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2763488881,2988269256)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 1,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2809395628,2031543861)\nfirst_closed\nsecond_closed\nroot_down\nstalled_actor(2031543861,'$thread'(16),unavailable,[kill])\nprobe_timeout\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2609326241,1062565826)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 1,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2092631033,2744813471)\nfirst_closed\nsecond_closed\nroot_down\nstalled_actor(2744813471,'$thread'(16),unavailable,[kill])\nprobe_timeout\n",
+        "stderr": ""
+      },
+      {
+        "timeout": true,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1505255216,1548156478)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2746303095,2125561059)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1378548029,2644303174)\nfirst_closed\nsecond_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 1,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1246760277,2997094732)\nfirst_closed\nsecond_closed\nroot_down\nstalled_actor(2997094732,'$thread'(16),unavailable,[kill])\nprobe_timeout\n",
+        "stderr": ""
+      }
+    ],
+    "single": [
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2200746934,2818984925)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2659626148,2931183317)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2198843579,2258879478)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1700291500,2634227872)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2247900973,1398157865)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1368227682,2102350004)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1066319219,2124293784)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(2186524567,2408527038)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1657027641,2776659590)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      },
+      {
+        "returncode": 0,
+        "stdout": "before_family_a\nafter_family_a\nafter_family_b\nbefore_close(1545769235,2952189480)\nfirst_closed\nroot_down\ndescendants, names, promises, late admission and unrelated lineages: ok\n",
+        "stderr": ""
+      }
+    ]
+  }
+}

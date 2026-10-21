@@ -1,0 +1,603 @@
+{
+  "started_at": "2026-10-21T16:47:47.891030+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "source": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/port-repeated-exit-cleanup.pl",
+  "source_sha256": "a6e9273c37ab3d836acb69960c5861ca1ce52665f50ce38a74b0bdd6f5cab2f7",
+  "engines": {
+    "pinned": {
+      "executable": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "executable_sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+      "library_path": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/library",
+      "trials": {
+        "withdraw": [
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 1,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 2,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 3,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 4,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 5,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 6,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 7,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 8,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 9,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 10,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 11,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 12,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 13,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 14,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 15,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 16,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 17,
+            "matches_expected": false
+          },
+          {
+            "returncode": 1,
+            "stdout": "missing_cleanup(withdraw,second_request(true),reason_recorded(yes))\n",
+            "stderr": "",
+            "trial": 18,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 19,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 20,
+            "matches_expected": false
+          }
+        ],
+        "retain": [
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 1,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 2,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 3,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 4,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 5,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 6,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 7,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 8,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 9,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 10,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 11,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 12,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 13,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 14,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 15,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 16,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 17,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 18,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 19,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 20,
+            "matches_expected": true
+          }
+        ]
+      },
+      "version": {
+        "returncode": 0,
+        "stdout": "trealla(3,13,10,[])\n",
+        "stderr": ""
+      },
+      "source_revision": "36f512f595e407e330f6e1f6b4eb339da2b0675e"
+    },
+    "upstream": {
+      "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-shutdown-stall/upstream-2026-10-21/tpl",
+      "executable_sha256": "99b0115e85deb4a5b4b3ae2ba28a0ff36733aef575b3ba2a30b739f007177a41",
+      "library_path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-shutdown-stall/upstream-2026-10-21/library",
+      "trials": {
+        "withdraw": [
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 1,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 2,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 3,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 4,
+            "matches_expected": false
+          },
+          {
+            "returncode": 1,
+            "stdout": "missing_cleanup(withdraw,second_request(true),reason_recorded(yes))\n",
+            "stderr": "",
+            "trial": 5,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 6,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 7,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 8,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 9,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 10,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 11,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 12,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 13,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 14,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 15,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 16,
+            "matches_expected": false
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 17,
+            "matches_expected": false
+          },
+          {
+            "returncode": 1,
+            "stdout": "missing_cleanup(withdraw,second_request(true),reason_recorded(yes))\n",
+            "stderr": "",
+            "trial": 18,
+            "matches_expected": true
+          },
+          {
+            "returncode": 1,
+            "stdout": "missing_cleanup(withdraw,second_request(true),reason_recorded(yes))\n",
+            "stderr": "",
+            "trial": 19,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "",
+            "stderr": "",
+            "trial": 20,
+            "matches_expected": false
+          }
+        ],
+        "retain": [
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 1,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 2,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 3,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 4,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 5,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 6,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 7,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 8,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 9,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 10,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 11,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 12,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 13,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 14,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 15,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 16,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 17,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 18,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 19,
+            "matches_expected": true
+          },
+          {
+            "returncode": 0,
+            "stdout": "completed(retain,second_request(false))\n",
+            "stderr": "",
+            "trial": 20,
+            "matches_expected": true
+          }
+        ]
+      },
+      "version": {
+        "returncode": 0,
+        "stdout": "trealla(3,13,26,[])\n",
+        "stderr": ""
+      },
+      "source_revision": "7af2b53c4eaa219c5f74b716f37e4f5e1b1917a6"
+    }
+  },
+  "finished_at": "2026-10-21T16:47:51.784195+00:00"
+}
