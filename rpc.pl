@@ -540,7 +540,7 @@ dispose_accessible_promise(Reference,Owner) :-
 % mutex. Signal workers and wait for collector release only after unlocking.
 dispose_namespace_promises(Namespace) :-
     must_be(ground,Namespace),
-    (Namespace=ws_client(_) -> true
+    ((Namespace=ws_client(_);Namespace=ws_lineage(_,_)) -> true
     ; throw(error(domain_error(websocket_namespace,Namespace),dispose_namespace_promises/1))),
     setup_call_cleanup(
         promise_transaction(retire_namespace_promises(Namespace,Jobs)),

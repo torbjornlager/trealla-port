@@ -85,6 +85,7 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- use_module(node).
 :- use_module(rpc, [dispose_namespace_promises/1]).
 :- use_module(websocket).
+:- use_module(receiver_lineage, []).
 
 :- op(200, xfx, @).
 
@@ -189,8 +190,10 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
 % Each subsystem releases its mutex before the next begins. Connection actor
 % shutdown remains in the surrounding cleanup even if promise disposal errors.
 retire_websocket_namespace(Namespace) :-
-    actors:retire_registry_namespace(Namespace),
-    rpc:dispose_namespace_promises(Namespace).
+    setup_call_cleanup(true,
+        (actors:retire_registry_namespace(Namespace),
+         rpc:dispose_namespace_promises(Namespace)),
+        receiver_lineage:close_connection(Namespace)).
 
 read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
     ws_receive(WS, Frame),
@@ -323,7 +326,8 @@ dispatch_governed(Command, JSON, Relay, Reader, Profile, Sandbox,
     enforce_ws_command_rate_limit(Principal, Identity, Command),
     enforce_spawn_rate_limit(Command, Principal, Identity),
     profile_check_command(Profile, Command),
-    dispatch(Command, JSON, Relay, Reader, Profile, Sandbox).
+    receiver_lineage:with_wire_context(JSON, Relay, Principal, Command,
+        web_prolog:dispatch(Command, JSON, Relay, Reader, Profile, Sandbox)).
 
 enforce_spawn_rate_limit(Command, Principal, Identity) :-
     ( Command == toplevel_spawn
@@ -331,12 +335,15 @@ enforce_spawn_rate_limit(Command, Principal, Identity) :-
     ; true
     ).
 
+dispatch(lineage_close, _, _, _, _, _) :- !,
+    actors:current_actor_namespace(Namespace),
+    receiver_lineage:close_namespace(Namespace).
 dispatch(transport_hello, JSON, Relay, Reader, Profile, Sandbox) :- !,
     json_integer_default(JSON, version, 1, Version),
     json_boolean_default(JSON, io_ack, false, IoAck),
     json_boolean_default(JSON, answer_terms, false, AnswerTerms),
     ( Version =:= 1 ->
-        Relay ! '$transport_hello'(Version, IoAck, AnswerTerms, Profile, Sandbox, Reader),
+        relay_request(Relay, '$transport_hello'(Version, IoAck, AnswerTerms, Profile, Sandbox, Reader)),
         thread_get_message(Reader, '$transport_ready'(Relay))
     ; throw(error(domain_error(web_prolog_protocol_version, Version),
                   web_prolog_handler/2))
@@ -350,7 +357,7 @@ dispatch(toplevel_spawn, JSON, Relay, _, Profile, Sandbox) :- !,
     spawn_io_options(JSON, Relay, Options1, Options),
     thread_self(Reader),
     spawn_reply_context(toplevel_spawn, JSON, Context),
-    Relay ! '$toplevel_spawn'(Options, Reader, Context),
+    relay_request(Relay, '$toplevel_spawn'(Options, Reader, Context)),
     await_relay_spawn(Reader).
 dispatch(toplevel_call, JSON, Relay, _, Profile, Sandbox) :- !,
     json_text_field(JSON, goal, GoalText),
@@ -360,17 +367,17 @@ dispatch(toplevel_call, JSON, Relay, _, Profile, Sandbox) :- !,
     import_browser_pids(Goal0-Options0, Relay, Goal-Options),
     sandbox_prepare_spawn(Sandbox, Profile, actor_context, Goal, Options,
                           GuardedGoal, PreparedOptions),
-    Relay ! '$toplevel_call'(JSON, GuardedGoal, PreparedOptions).
+    relay_request(Relay, '$toplevel_call'(JSON, GuardedGoal, PreparedOptions)).
 dispatch(toplevel_next, JSON, Relay, _, _, _) :- !,
-    Relay ! '$ws_command'(toplevel_next, JSON).
+    relay_request(Relay, '$ws_command'(toplevel_next, JSON)).
 dispatch(toplevel_stop, JSON, Relay, _, _, _) :- !,
-    Relay ! '$ws_command'(toplevel_stop, JSON).
+    relay_request(Relay, '$ws_command'(toplevel_stop, JSON)).
 dispatch(toplevel_abort, JSON, Relay, _, _, _) :- !,
-    Relay ! '$ws_command'(toplevel_abort, JSON).
+    relay_request(Relay, '$ws_command'(toplevel_abort, JSON)).
 dispatch(toplevel_halt, JSON, Relay, _, _, _) :- !,
-    Relay ! '$ws_command'(toplevel_halt, JSON).
+    relay_request(Relay, '$ws_command'(toplevel_halt, JSON)).
 dispatch(toplevel_respond, JSON, Relay, _, _, _) :- !,
-    Relay ! '$ws_command'(toplevel_respond, JSON).
+    relay_request(Relay, '$ws_command'(toplevel_respond, JSON)).
 dispatch(browser_io_reply, JSON, Relay, _, _, _) :- !,
     json_text_field(JSON, request_id, RequestId),
     json_text_field(JSON, status, Status),
@@ -396,7 +403,7 @@ dispatch(spawn, JSON, Relay, Reader, Profile, Sandbox) :- !,
     safe_spawn_options(PreparedOptions, Options1),
     spawn_io_options(JSON, Relay, Options1, Options),
     spawn_reply_context(spawn, JSON, Context),
-    Relay ! '$spawn'(GuardedGoal, Options, Reader, Context),
+    relay_request(Relay, '$spawn'(GuardedGoal, Options, Reader, Context)),
     await_relay_spawn(Reader).
 
 await_relay_spawn(Reader) :-
@@ -406,18 +413,24 @@ await_relay_spawn(Reader) :-
     ; throw(error(unexpected_relay_reply(Reply), web_prolog_handler/2))
     ).
 dispatch(send, JSON, Relay, _, _, _) :- !,
-    Relay ! '$ws_command'(send, JSON).
+    relay_request(Relay, '$ws_command'(send, JSON)).
 dispatch(monitor, JSON, Relay, _, _, _) :- !,
-    Relay ! '$ws_command'(monitor, JSON).
+    relay_request(Relay, '$ws_command'(monitor, JSON)).
 dispatch(demonitor, JSON, Relay, _, _, _) :- !,
-    Relay ! '$ws_command'(demonitor, JSON).
+    relay_request(Relay, '$ws_command'(demonitor, JSON)).
 dispatch(exit, JSON, Relay, _, _, _) :- !,
-    Relay ! '$ws_command'(exit, JSON).
+    relay_request(Relay, '$ws_command'(exit, JSON)).
 dispatch(io_request, JSON, Relay, _, _, _) :- !,
-    Relay ! '$io_request'(JSON).
+    relay_request(Relay, '$io_request'(JSON)).
 dispatch(Command, _, _, _, _, _) :-
     throw(error(domain_error(web_prolog_command, Command),
                 web_prolog_handler/2)).
+
+% Queue the validated context with the command; the relay multiplexes lineages.
+relay_request(Relay, Message) :-
+    actors:current_actor_namespace(Namespace),
+    (Namespace=ws_lineage(_,_) -> Relay ! '$lineage'(Namespace,Message)
+    ; Relay ! Message).
 
 relay_command(toplevel_call, JSON, Relay) :- !,
     owned_pid(JSON, Relay, session, Pid),
@@ -494,7 +507,9 @@ relay_command(monitor, JSON, Relay) :- !,
     relay_add_monitor(Pid, Ref).
 relay_command(demonitor, JSON, _Relay) :- !,
     json_term_field(JSON, ref, Ref),
-    relay_remove_monitor(Ref).
+    (relay_monitors(Monitors),memberchk(monitor(Pid,Ref),Monitors) ->
+        (receiver_lineage:check_actor(Pid) -> relay_remove_monitor(Ref) ; true)
+    ; true).
 relay_command(exit, JSON, Relay) :- !,
     owned_pid(JSON, Relay, any, Pid),
     json_term_default(JSON, reason, kill, Reason0),
@@ -508,7 +523,7 @@ owned_pid(JSON, _Relay, Kind, WirePid, RuntimePid) :-
     json_pid_field(JSON, pid, WirePid),
     ( Kind == any -> relay_actor(WirePid, RuntimePid, _)
     ; relay_actor(WirePid, RuntimePid, Kind)
-    ), !.
+    ), receiver_lineage:check_actor(RuntimePid), !.
 owned_pid(JSON, _, _, WirePid, _) :-
     json_pid_field(JSON, pid, WirePid),
     throw(error(permission_error(access, web_prolog_actor, WirePid),
@@ -551,6 +566,11 @@ relay_loop(WS) :-
             )
     }, []).
 
+relay_message(WS, '$lineage'(Namespace,Message)) :- !,
+    catch(actors:with_actor_namespace(Namespace,
+              (receiver_lineage:ensure_open(Namespace),
+               once(web_prolog:relay_message(WS,Message)))),
+          Error, web_prolog:lineage_command_error(WS,Message,Error)).
 relay_message(_, '$ws_close') :- !,
     self(Relay),
     close_browser_io(Relay),
@@ -616,6 +636,12 @@ relay_message(WS, '$spawn'(Goal, Options, Reader, Context)) :- !,
         ),
         Error,
         thread_send_message(Reader, '$spawn_failed'(Error))).
+
+lineage_command_error(_, '$spawn'(_,_,Reader,_), Error) :- !,
+    thread_send_message(Reader,'$spawn_failed'(Error)).
+lineage_command_error(_, '$toplevel_spawn'(_,Reader,_), Error) :- !,
+    thread_send_message(Reader,'$spawn_failed'(Error)).
+lineage_command_error(WS, _, Error) :- send_event(WS,error(Error)).
 
 run_spawn_goal(statechart_actor:run_chart(Model,M,P,App,Trace)) :- !,
     statechart_actor:run_chart(Model,M,P,App,Trace).

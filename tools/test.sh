@@ -173,6 +173,8 @@ run_unit() {
         "$TPL" -g "(catch((consult('$ROOT/remote_supervisor_tests.pl'),remote_supervisor_tests:remote_supervisor_tests,remote_supervisor_tests:remote_supervisor_policy_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "atomic remote named startup" \
         "$TPL" -g "(catch((consult('$ROOT/remote_named_tests.pl'),remote_named_tests:remote_named_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "receiver delegated lineage cleanup" \
+        "$TPL" -g "(catch((consult('$ROOT/receiver_lineage_tests.pl'),receiver_lineage_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "WebSocket namespace promise disposal" \
         "$TPL" -g "(catch((consult('$ROOT/rpc_namespace_tests.pl'),rpc_namespace_tests:rpc_namespace_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "WebSocket namespace teardown" \
@@ -415,7 +417,7 @@ run_interop() {
     fi
 
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port,[load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8'])])"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port,[bearer_token(peer,'lineage-test-peer',[execute,internal_transport]),load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8'])])"
     trealla_remote_pid=$STARTED_PID
     sleep 0.2
     kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
@@ -466,6 +468,9 @@ run_interop() {
     run_with_timeout "Trealla remote supervisor receiver" \
         "$TPL" -g "(catch((consult('$ROOT/remote_supervisor_tests.pl'),remote_supervisor_tests:remote_supervisor_live_test($trealla_remote_port),remote_supervisor_tests:remote_supervisor_source_test($trealla_remote_port),remote_supervisor_tests:remote_supervisor_extended_test($trealla_remote_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
     if [ -f "$TRINITY_NODE_FILE" ]; then
+        run_with_timeout "Native SWI delegated lineage -> Trealla" \
+            "$SWIPL" -q -s "$ROOT/swi_lineage_compat.pl" \
+            -g "(catch(swi_lineage_compat:run($swi_actor_home_port,$trealla_remote_port,'$TRINITY_NODE_FILE'),E,(print_message(error,E),fail))->halt;halt(1))"
         run_with_timeout "Native SWI supervisor constructor -> Trealla" \
             "$SWIPL" -q -s "$ROOT/swi_supervisor_compat.pl" \
             -g "swi_supervisor_compat:run($swi_actor_home_port,$trealla_remote_port,'$TRINITY_NODE_FILE'),halt"

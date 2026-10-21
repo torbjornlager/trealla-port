@@ -67,7 +67,8 @@ ambiguous. Connection loss retains its previous behavior. Regression tests
 cover both paths, and live checks pass in all four SWI/Trealla client/peer
 combinations, including reuse after unrelated errors and genuine startup errors.
 
-The following records the pre-repair failure and the remaining lineage issue.
+The following records the historical failure; receiver-side lineage support is
+now implemented as described below.
 
 Close the source client connection and try another remote creation through the
 same source node's cached connection. A later creation can fail with a previous
@@ -81,7 +82,8 @@ error(remote_spawn_failed(
 A fresh-source check also observed an error about access to an already retired
 remote pid being reported as a later spawn failure.
 
-Trealla's command catalog/receiver has no `lineage_close` handler. Native SWI
+At the time of that assessment, Trealla's command catalog/receiver had no
+`lineage_close` handler. Native SWI
 sends that command when a delegated lineage is reclaimed. Before this repair,
 it also forwarded unreferenced peer errors to the spawn queue; the spawn waiter
 accepted these as legacy spawn errors even when its own request carried an ID.
@@ -95,13 +97,16 @@ creation. Suppressing `lineage_close` alone would not resolve all such errors.
 2. Completed for negotiated peers: isolate spawn replies using the explicit
    combined capability; preserve legacy startup errors on fallback connections.
    Toplevel correlation alone is not treated as a spawn-correlation guarantee.
-3. Decide and document delegated-lineage compatibility separately. Silently
-   accepting `lineage_close` as a no-op would falsely suggest that remote subtree
-   cleanup was enforced. Full lineage handling would extend lifecycle semantics.
+3. Completed for the receiving node: validated authenticated lineage contexts,
+   local actor/registration/promise cleanup, and rejection after closure.
+   `receiver_lineage_tests.pl` and `swi_lineage_compat.pl` cover this boundary.
+   Forwarding delegated ownership or cleanup to further remote nodes remains
+   separate; accepting a close command does not imply network-wide cancellation.
 
 The original assessment changed no transport behavior. The native SWI
-qualification repair and SWI/Trealla spawn-correlation repair leave lineage
-behavior unchanged.
+qualification repair and SWI/Trealla spawn-correlation repair did not change
+lineage behavior. The subsequent receiver-side repair adds the bounded support
+described in the runtime README.
 Local synchronous calls and the tutorial are usable independently of these
 remaining interoperability issues. The existing upstream module-table crash
 report (#1173) concerns a separate engine defect.

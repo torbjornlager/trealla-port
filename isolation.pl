@@ -134,10 +134,10 @@ run_actor(Pid, GoalModule, Goal, Options, Parent) :-
 prepare_actor_and_signal(Pid, GoalModule, Options, Module, Parent,
                          PrepareToken) :-
     catch((prepare_actor_module(Pid, GoalModule, Options, Module),
-           actors:publish_spawn_name(Pid,Options)),
+           actors:publish_spawn_name(Pid,Options),
+           actors:signal_actor_started(Pid,Parent)),
           Error,
-          throw('$actor_prepare_error'(PrepareToken, Error))),
-    actors:actor_send(Parent, '$actor_started'(Pid, ok)).
+          throw('$actor_prepare_error'(PrepareToken, Error))).
 
 % Explicit lifecycle retained for diagnostics and callers that prepare a
 % module independently of an actor goal. Actor threads use run_actor/5.

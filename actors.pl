@@ -14,6 +14,7 @@
          demonitor/2,            % +Ref, +Options
          publish_remote_spawn_name/2, % internal remote startup
          rollback_remote_spawn_name/2,
+         with_actor_namespace/2, % internal receiver command context
          retire_registry_namespace/1, % internal WebSocket teardown
          remove_remote_aliases/1, % internal distribution cleanup
          register/2,             % +Name, +Pid
@@ -155,6 +156,8 @@ Reply = hello.
 :- meta_predicate(with_spawn_name(+, -, 1)).
 :- meta_predicate(spawn_runtime(0, -, +)).
 :- meta_predicate(spawn_scoped(0, -, +, +, +)).
+:- meta_predicate(with_actor_namespace(+, 0)).
+:- dynamic receiver_namespace_context/2, lineage_preparing/1.
 :- meta_predicate(receive(:, +)).
 :- meta_predicate(discard_deferred(1)).
 
@@ -396,6 +399,7 @@ spawn_local(Goal, Pid, Options0, Namespace, Visibility) :-
 
 spawn_local_locked(Self, GoalModule, Goal, Options, Namespace, Visibility,
                    Pid) :-
+    (Namespace=ws_lineage(_,_) -> ensure_registry_namespace_open(Namespace) ; true),
     live_actor_count_unlocked(LiveCount),
     forall(hook_admit_spawn(LiveCount, Options), true),
     make_pid_unlocked(Pid),
@@ -411,6 +415,7 @@ spawn_local_locked(Self, GoalModule, Goal, Options, Namespace, Visibility,
     % observes the missing relation and exits instead of becoming an orphan.
     assertz(actor_alive(Pid)),
     remember_actor_namespace(Visibility, Pid, Namespace),
+    (Namespace=ws_lineage(_,_) -> assertz(lineage_preparing(Pid)) ; true),
     install_spawn_relations(Self, Pid, Options),
     catch(thread_create(start(Self, Pid, GoalModule, Goal, Options), _Thread,
                         ThreadOptions),
@@ -427,9 +432,17 @@ rollback_spawn(Parent, Pid) :-
     retractall(link(Parent, Pid)),
     retractall(monitor(Parent, Pid, Pid)),
     retractall(actor_alive(Pid)),
+    retractall(lineage_preparing(Pid)),
     retractall(actor_namespace(Pid, _)),
     retractall(actor_public_namespace(Pid, _)).
 
+with_actor_namespace(Namespace, Goal) :-
+    thread_self(Thread),
+    setup_call_cleanup(asserta(receiver_namespace_context(Thread,Namespace),Ref),
+                       call(Goal),erase(Ref)).
+
+current_actor_namespace(Namespace) :-
+    thread_self(Thread),receiver_namespace_context(Thread,Current),!,Namespace=Current.
 current_actor_namespace(Namespace) :-
     thread_self(Thread),
     thread_pid(Thread, Pid),
@@ -506,6 +519,18 @@ replay_outcome(exited).
 replay_outcome(exception(Ball)) :-
     throw(Ball).
 
+% A closing lineage leaves preparation under the loader's existing bounds.
+% Check admission, publish readiness and enqueue the startup answer under the
+% same mutex used by closure. Cleanup can then signal only activated actors.
+signal_actor_started(Pid, Parent) :-
+    actor_namespace(Pid,Namespace),Namespace=ws_lineage(_,_),!,
+    actor_thread(Parent,ParentThread),
+    with_mutex('$actor_registry',
+        (ensure_registry_namespace_open(Namespace),
+         thread_send_message(ParentThread,'$actor_started'(Pid,ok)),
+         retractall(lineage_preparing(Pid)))).
+signal_actor_started(Pid, Parent) :- actor_send(Parent,'$actor_started'(Pid,ok)).
+
 set_spawn_io_target(_Parent, Options) :-
     option(io_target(Target), Options),
     !,
@@ -537,6 +562,7 @@ stop(Pid, Parent) :-
           remove_local_registrations(Pid),
           retractall(registered_service(_Name, Pid)),
           retractall(actor_alive(Pid)),
+          retractall(lineage_preparing(Pid)),
           retractall(actor_namespace(Pid, _)),
           retractall(actor_public_namespace(Pid, _)),
           retractall(delayed_send(_Owner, _Id, Pid)),
@@ -748,7 +774,7 @@ register(Name, Pid) :-
 % scopes participate in this batch; HTTP and trusted standalone use stay open.
 registration_namespace(Namespace) :-
     current_actor_namespace(Scope),
-    ( nonvar(Scope), Scope=ws_client(_), ground(Scope) -> Namespace=Scope
+    ( nonvar(Scope), (Scope=ws_client(_);Scope=ws_lineage(_,_)), ground(Scope) -> Namespace=Scope
     ; Namespace=none ).
 
 ensure_registry_namespace_open(Namespace) :-
@@ -759,7 +785,7 @@ ensure_registry_namespace_open(Namespace) :-
 
 retire_registry_namespace(Namespace) :-
     must_be(ground,Namespace),
-    ( Namespace=ws_client(_) -> true
+    ( (Namespace=ws_client(_);Namespace=ws_lineage(_,_)) -> true
     ; throw(error(domain_error(websocket_namespace,Namespace),retire_registry_namespace/1)) ),
     with_mutex('$actor_registry',
         ( (closed_registry_namespace(Namespace) -> true

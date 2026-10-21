@@ -895,7 +895,55 @@ entering a later spawn wait. The results and remaining repair boundaries are rec
 [`reproducers/port-synchronous-ui-interop.md`](reproducers/port-synchronous-ui-interop.md).
 They do not prevent the local synchronous tutorial example, or the verified
 Trealla-to-SWI and browser-to-SWI paging paths. Native spawn-error selection
-now uses explicit capability negotiation; delegated-lineage semantics remain unchanged.
+now uses explicit capability negotiation. Receiver-side delegated-lineage cleanup
+is described below; downstream delegation remains separate.
+
+### Receiving delegated lifetimes from native SWI
+
+An authenticated node transport with `internal_transport` authority may supply
+SWI's existing `lineage` and optional `account` fields. Both identifiers must be
+32 hexadecimal characters. The default open endpoint does not grant this
+authority: configure peer bearer credentials or the existing trusted-header
+boundary explicitly. No deployment credentials or trust policy are changed by
+this repair. Lineage identity is scoped to the accepted connection;
+reusing a token on another connection does not share ownership. The account field
+is validated, but Trealla retains its existing resource accounting rather than
+claiming SWI's aggregate delegated-account implementation.
+
+The receiver carries the lineage with queued commands and installs it during
+actor creation. Local descendants inherit that namespace, including children
+created with `link(false)`. Ordinary name lookup and uniqueness remain node-wide;
+registration ownership and promise access distinguish the delegated namespaces.
+Actor control and monitor removal through the relay respect those boundaries.
+
+`lineage_close` closes admission, removes that namespace's registrations and name
+reservations, disposes of its promises, and requests termination of all its local
+actors. Closing admission and reserving local actors share the registry mutex,
+so a racing creation is either included in cleanup or rejected. Children still
+preparing source reach a closed-namespace startup error before entering their
+goal; preparation retains the existing loader limits. Repeated closure
+is harmless; later requests for the closed lineage are rejected. Closing the
+connection closes every delegated namespace on it. Other lineages, connections,
+legacy actors and unrelated monitor references are preserved by explicit lineage
+closure. Toplevels in the lineage terminate too, whether they are executing a
+query or waiting between pages; termination is reported by the normal `down`
+notification rather than as a query error. The command carries no new
+completion acknowledgement: termination notifications remain the way to observe
+actor termination.
+
+This is **receiver-side support**. Trealla does not yet propagate this ownership
+to further remote nodes or forward lineage closure through them. It provides no
+blanket remote cancellation or no-orphan guarantee. Commands without lineage
+metadata retain the existing connection behaviour; public browser clients cannot
+assert transport lineage authority.
+
+`receiver_lineage_tests.pl` covers validation, sandbox boundaries, context
+restoration, detached descendants, names, promises, repeated closure, queued and
+concurrent creation, and connection teardown. `swi_lineage_compat.pl` exercises
+multiplexed wire commands, legacy traffic, monitor preservation and native SWI's
+actual distribution encoder against a disposable Trealla node. Both are included
+in `tools/test.sh` (`unit` and `interop`, respectively); live tests use a fixture-only
+bearer token and do not alter a running deployment.
 
 General `toplevel_spawn/2` with a remote `node/1` now uses a constructor hook,
 matching SWI's dispatch pattern. It delegates to the existing transparent

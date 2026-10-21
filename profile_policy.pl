@@ -119,6 +119,7 @@ profile_check_command(Profile, Command) :-
     ).
 
 command_required_profile(transport_hello, relation).
+command_required_profile(lineage_close, relation).
 command_required_profile(toplevel_spawn, isotope).
 command_required_profile(toplevel_call, isotope).
 command_required_profile(toplevel_next, isotope).
