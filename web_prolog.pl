@@ -674,9 +674,10 @@ relay_message(WS, '$io_request'(JSON)) :- !,
 relay_message(WS, down(RuntimePid, _DefaultRef, Reason)) :- !,
     ( relay_actor(WirePid, RuntimePid, ActorKind) ->
         relay_take_monitors(RuntimePid, Refs),
-        ( Refs == [] -> send_event(WS, down(WirePid, WirePid, Reason))
-        ; send_down_events(WS, WirePid, Refs, Reason)
-        ),
+        % Explicit/private monitors supplement the ordinary lifecycle event.
+        % A coincident reference must not produce a duplicate notification.
+        unique_monitor_refs([WirePid|Refs], NotifyRefs),
+        send_down_events(WS, WirePid, NotifyRefs, Reason),
         ( relay_take_halt(RuntimePid, HaltWirePid) ->
             send_event(WS, halted(HaltWirePid, true))
         ; true
@@ -916,6 +917,12 @@ relay_answer_terms(Value) :-
 relay_delete_state(Kind) :-
     relay_state_key(Kind, Key),
     ( nb_current(Key, _) -> nb_delete(Key) ; true ).
+
+unique_monitor_refs([], []).
+unique_monitor_refs([Ref|Refs], [Ref|Unique]) :-
+    exclude(identical_monitor_ref(Ref), Refs, Rest),
+    unique_monitor_refs(Rest, Unique).
+identical_monitor_ref(Left, Right) :- Left == Right.
 
 send_down_events(_, _, [], _).
 send_down_events(WS, Pid, [Ref|Refs], Reason) :-

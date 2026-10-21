@@ -666,16 +666,23 @@ demonitor(Ref) :-
 demonitor(Ref, Options) :-
     self(Self),
     with_mutex('$actor_registry',
-        ( forall(hook_demonitor(Ref), true),
-          retractall(monitor(Self, _, Ref))
-        )),
+        (monitor(Self, _, Ref) -> Owned=true ; Owned=false)),
+    % Distribution may wait for the manager/writer, whose replies also need
+    % this registry. Never hold its mutex across that communication.
+    ( Owned == true ->
+        forall(actors:hook_demonitor(Ref), true),
+        with_mutex('$actor_registry', retractall(monitor(Self, _, Ref)))
+    ; true ),
     (   option(flush, Options)
-    ->  receive({
-            down(_, Ref, _) ->
-                true
-        }, [timeout(0)])
+    ->  flush_monitor_messages(Ref)
     ;   true
     ).
+
+flush_monitor_messages(Ref) :-
+    receive({
+        down(_, ActualRef, _) if ActualRef == Ref ->
+            actors:flush_monitor_messages(Ref)
+    }, [timeout(0)]).
 
 
 %!  register(+Name, +Pid) is det.

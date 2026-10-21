@@ -336,3 +336,22 @@ case or a proven diagnosis. Restart-specific regressions and the full unit
 suite pass; broader runtime/thread/source-lifecycle repair remains separate.
 The full interoperability matrix passed on the subsequent restart-failure
 verification rerun; the intermittent crash remains pending.
+
+## BUG-025: Concurrent module-table growth and lookup
+
+**Submitted:** [Trealla #1173](https://github.com/trealla-prolog/trealla-prolog/issues/1173), 2026-10-21.
+The standalone reproducer needs only Trealla: one thread runs list predicates
+while the main thread creates modules. Unmodified v3.13.10 crashed in 70/100
+fresh processes; current-upstream v3.13.26 (`7af2b53c`) crashed in 40/50.
+A separate candidate build protects module-ID allocation/table growth and both
+query-side module lookups with the same instance lock. It passed 100/100 on
+each revision, 20/20 original overlapping-connection checks against SWI and
+unmodified Trealla, and six local receive/monitor/cleanup regression groups.
+No installed runtime was changed. The saved diagnostic now preserves the
+original overlap; simply closing the first connection before opening the second
+does not reproduce it in the checks performed.
+
+Reproducer, runner, candidate patch and detailed report:
+[`reproducers/bug-025-module-map-growth.md`](reproducers/bug-025-module-map-growth.md).
+This establishes a reduced engine failure independently of Web Prolog. It does
+not establish that every historical `match_head` crash had this cause.

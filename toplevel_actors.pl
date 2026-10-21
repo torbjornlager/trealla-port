@@ -132,6 +132,7 @@ worker_query_module(Module) :-
     ).
 
 :- meta_predicate(toplevel_spawn(-, :)).
+:- multifile hook_toplevel_spawn/3.
 
 
 
@@ -177,6 +178,10 @@ toplevel_spawn(Pid) :-
 toplevel_spawn(Pid, Options0) :-
     strip_module(Options0, SourceModule, Options1),
     validate_toplevel_spawn_options(Options1,runtime),
+    (hook_toplevel_spawn(Pid,SourceModule,Options1) -> true
+    ; local_toplevel_spawn(Pid,SourceModule,Options1)).
+
+local_toplevel_spawn(Pid, SourceModule, Options1) :-
     isolation:rewrite_source_options(Options1, SourceModule, Options),
     self(Self),
     option(target(Target), Options, Self),

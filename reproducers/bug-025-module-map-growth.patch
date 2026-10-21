@@ -1,0 +1,35 @@
+--- a/src/module.c
++++ b/src/module.c
+@@ -3852,8 +3852,10 @@
+ 
+ 		init_lock(&m->guard);
+ 		m->pl = pl;
++		prolog_lock(pl);
+ 		m->id = ++pl->next_mod_id;
+ 		modmap_set(pl, m->id, m);
++		prolog_unlock(pl);
+ 	}
+ 
+ 	m->filename = set_known(m, name);
+--- a/src/query.c
++++ b/src/query.c
+@@ -2242,7 +2242,9 @@
+ 	q->st.instr = f->instr;
+ 	q->st.cur_ctx = f->prev;
+ 	f = GET_CURR_FRAME();
++	prolog_lock(q->pl);
+ 	q->st.m = module_by_id(q->pl, f->mid);
++	prolog_unlock(q->pl);
+ 	return true;
+ }
+ 
+@@ -2268,7 +2270,9 @@
+ 	do {
+ 		frame *f = GET_CURR_FRAME();
+ 		f->chgen = q->st.instr->chgen;
++		prolog_lock(q->pl);
+ 		q->st.m = module_by_id(q->pl, q->st.instr->mid);
++		prolog_unlock(q->pl);
+ 		q->st.instr = q->st.instr->ret_instr;
+ 	} while (is_end(q->st.instr) && q->st.instr->ret_instr);
+ }

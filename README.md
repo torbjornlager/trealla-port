@@ -819,11 +819,69 @@ qualification semantics are unchanged. Regression checks cover both sandbox
 policies, source-less and private-source toplevels, sharing, paging, and remote
 calls against SWI and Trealla.
 
-A separate creation limitation remains: the general `toplevel_spawn/2` path
-with `node/1` can ship Trealla's private `session/5` entry to native SWI, which
-does not define it. The live wrapper checks use the existing explicit
-`remote_node_open/2` and `remote_toplevel_spawn/3` constructor instead. This batch
-does not repair that cross-runtime creation path.
+General `toplevel_spawn/2` with a remote `node/1` now uses a constructor hook,
+matching SWI's dispatch pattern. It delegates to the existing transparent
+`toplevel_spawn` transport command so the peer creates its own PTCP, rather
+than receiving Trealla's private `session/5`. Local creation and ordinary remote
+actor spawning are unchanged. The existing handshake retains caller-owned
+links and monitors, pid routes and explicit answer targets. Source options are
+materialised in order under the sender's existing policy and source-module
+context. Requested session/time/idle options reach the destination, which
+applies its own owner ceilings; sender-side PTCP ceilings are not substituted.
+The explicit remote API remains available. `remote_toplevel_creation_tests.pl`
+covers validation and local creation, plus general creation against both native
+peers with source text, lists, copied predicates and URI source, paging, variable
+sharing, target changes, duplicate-option precedence, monitors and cleanup.
+
+The WebSocket relay sends the ordinary lifecycle down event alongside all
+registered explicit monitor references. A temporary synchronous monitor no longer
+suppresses the spawn-time notification when a one-shot query finishes before
+private monitor cleanup. References are deduplicated by strict identity; removing
+one explicit reference leaves the default event and other actors' monitors
+unchanged. The actor is retired once, so repeated termination events do not
+repeat notifications. `termination_notification_tests.pl` checks actual WebSocket
+frames and public calls against SWI and Trealla, including private filtering,
+explicit demonitoring and independent application monitors. Private wait cleanup
+and the wire format are unchanged.
+
+The transparent and explicit notification checks run in separate client
+processes. On the pinned Trealla v3.13.10 engine,
+`termination_notification_tests:combined_connections_diagnostic(URL)` can
+SIGSEGV in `match_head` when opening an explicit connection while the cached
+transparent connection remains alive after its checks. The sequence also crashes with the pre-repair demonitor implementation;
+its runtime cause remains unresolved. Both paths pass independently. This
+combined sequence remains a diagnostic, not a passing conformance assertion.
+The follow-up reduction, stress runner, candidate engine patch and upstream
+report are in `reproducers/bug-025-module-map-growth.*`. They isolate concurrent
+module-table growth and lookup without Web Prolog or network code. The installed
+runtime has not been patched.
+
+Public remote `demonitor/1-2` now checks caller ownership under the actor
+registry mutex, performs distribution work without that mutex held, then retires
+the caller's record under the mutex. Previously the manager's route reply could
+wait on the same registry while the caller held it, making lookup time out and
+leaving the writer's watcher active after local retirement. The distribution
+hook and writer both restrict removal to the caller's reference. A fresh internal
+acknowledgement ticket confirms writer removal before `flush` drains all queued
+notifications for that exact reference. Other messages, application monitors and
+private wait monitors remain independent; repeat/unknown removals are idempotent.
+The private monitor on the writer is removed on every exit path. A stopped writer
+completes local withdrawal; a live writer that does not acknowledge within two
+seconds raises `error(remote_demonitor_timeout(Pid),demonitor/2)` and retains the
+caller's target-monitor record for retry. Wire protocols and the explicit remote
+API are unchanged. `remote_demonitor_tests.pl` covers the lock interaction,
+acknowledgement ordering, multiple queued notifications, ownership boundaries,
+repeat removal, writer loss/timeouts and public calls against both native peers.
+
+
+The remaining wide-atom observation is kept separately in
+`remote_toplevel_creation_diagnostics.pl`, not counted as a passing conformance
+assertion. Native SWI's current portability check rejects wide-character atoms
+(`ucs_text` blobs), so an asynchronous answer containing such an atom can lack
+the negotiated canonical `term` field; the Trealla client reports
+`remote_answer_protocol_error(missing_term)`. Unicode URI source is still fetched
+and loaded in the creation tests, with an ASCII result payload.
+
 
 The native client exports `remote_toplevel_call_synch(Node,Pid,Goal,Answer)`
 and its five-argument form with options, plus

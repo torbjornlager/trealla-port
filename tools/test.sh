@@ -107,6 +107,12 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Owned remote demonitor acknowledgement and flush" \
+        "$TPL" -g "consult('$ROOT/remote_demonitor_tests.pl'),(catch(remote_demonitor_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Independent termination notification references" \
+        "$TPL" -g "consult('$ROOT/termination_notification_tests.pl'),(catch(termination_notification_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "General toplevel creation validation and local path" \
+        "$TPL" -g "consult('$ROOT/remote_toplevel_creation_tests.pl'),(catch(remote_toplevel_creation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Public synchronous toplevel wrappers" \
         "$TPL" -g "consult('$ROOT/synchronous_toplevel_tests.pl'),(catch(synchronous_toplevel_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     http_timeout_port=$((TEST_PORT_BASE + 88))
@@ -360,6 +366,14 @@ run_interop() {
             -g "use_module('$TRINITY_NODE_FILE'),node:node($swi_actor_port,[profile(actor),auth(open)]),thread_get_message(stop)"
         swi_actor_pid=$STARTED_PID
         wait_for_port "$swi_actor_port" || fail "SWI actor node did not start on port $swi_actor_port"
+        run_with_timeout "Public remote demonitor -> SWI" \
+            "$TPL" -g "consult('$ROOT/remote_demonitor_tests.pl'),(catch(remote_demonitor_tests:live('http://localhost:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+        run_with_timeout "Termination notifications -> SWI" \
+            "$TPL" -g "consult('$ROOT/termination_notification_tests.pl'),(catch(termination_notification_tests:live('http://localhost:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+        run_with_timeout "Explicit termination notifications -> SWI" \
+            "$TPL" -g "consult('$ROOT/termination_notification_tests.pl'),(catch(termination_notification_tests:explicit_live('http://localhost:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+        run_with_timeout "General remote toplevel creation -> SWI" \
+            "$TPL" -g "consult('$ROOT/remote_toplevel_creation_tests.pl'),(catch(remote_toplevel_creation_tests:live('http://localhost:$swi_actor_port','http://127.0.0.1:$source_port/source.pl'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Public synchronous wrappers -> SWI" \
             "$TPL" -g "consult('$ROOT/synchronous_toplevel_tests.pl'),(catch(synchronous_toplevel_tests:live('http://127.0.0.1:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Public runtime properties (swi_native)" \
@@ -401,6 +415,14 @@ run_interop() {
     trealla_remote_pid=$STARTED_PID
     sleep 0.2
     kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
+    run_with_timeout "Public remote demonitor -> Trealla" \
+        "$TPL" -g "consult('$ROOT/remote_demonitor_tests.pl'),(catch(remote_demonitor_tests:live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Termination notifications -> Trealla" \
+        "$TPL" -g "consult('$ROOT/termination_notification_tests.pl'),(catch(termination_notification_tests:live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Explicit termination notifications -> Trealla" \
+        "$TPL" -g "consult('$ROOT/termination_notification_tests.pl'),(catch(termination_notification_tests:explicit_live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "General remote toplevel creation -> Trealla" \
+        "$TPL" -g "consult('$ROOT/remote_toplevel_creation_tests.pl'),(catch(remote_toplevel_creation_tests:live('http://localhost:$trealla_remote_port','http://127.0.0.1:$source_port/source.pl'),E,(writeq(E),nl,fail))->halt;halt(1))"
     if [ -f "$TRINITY_NODE_FILE" ]; then
         run_with_timeout "Native SWI first-slice RPC -> Trealla" \
             "$SWIPL" -q -g "use_module('$TRINITY_NODE_FILE'),findall(X,rpc:rpc('http://127.0.0.1:$trealla_remote_port',member(X,[a,b,c,d,e]),[limit(2),once(true)]),[a,b]),findall(X,rpc:rpc('http://127.0.0.1:$trealla_remote_port',member(X,[a,b,c,d,e]),[limit(2),once(false)]),[a,b,c,d,e]),halt"

@@ -1,0 +1,2173 @@
+{
+  "pinned": {
+    "version": "Trealla Prolog (c) Infradig 2020, v3.13.10",
+    "sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "counts": {
+      "passed": 30,
+      "signal": 70,
+      "failed": 0,
+      "timeout": 0
+    },
+    "runs": [
+      {
+        "trial": 1,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0455
+      },
+      {
+        "trial": 2,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.05
+      },
+      {
+        "trial": 3,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0476
+      },
+      {
+        "trial": 4,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0409
+      },
+      {
+        "trial": 5,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0437
+      },
+      {
+        "trial": 6,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1906
+      },
+      {
+        "trial": 7,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1811
+      },
+      {
+        "trial": 8,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0385
+      },
+      {
+        "trial": 9,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0362
+      },
+      {
+        "trial": 10,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0392
+      },
+      {
+        "trial": 11,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1794
+      },
+      {
+        "trial": 12,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0379
+      },
+      {
+        "trial": 13,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1861
+      },
+      {
+        "trial": 14,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1792
+      },
+      {
+        "trial": 15,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0339
+      },
+      {
+        "trial": 16,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.038
+      },
+      {
+        "trial": 17,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1748
+      },
+      {
+        "trial": 18,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0351
+      },
+      {
+        "trial": 19,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0389
+      },
+      {
+        "trial": 20,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0366
+      },
+      {
+        "trial": 21,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0379
+      },
+      {
+        "trial": 22,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0363
+      },
+      {
+        "trial": 23,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0438
+      },
+      {
+        "trial": 24,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0375
+      },
+      {
+        "trial": 25,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0391
+      },
+      {
+        "trial": 26,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1837
+      },
+      {
+        "trial": 27,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1792
+      },
+      {
+        "trial": 28,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.039
+      },
+      {
+        "trial": 29,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0389
+      },
+      {
+        "trial": 30,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0426
+      },
+      {
+        "trial": 31,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1824
+      },
+      {
+        "trial": 32,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0385
+      },
+      {
+        "trial": 33,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0418
+      },
+      {
+        "trial": 34,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0363
+      },
+      {
+        "trial": 35,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0418
+      },
+      {
+        "trial": 36,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0416
+      },
+      {
+        "trial": 37,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1802
+      },
+      {
+        "trial": 38,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0414
+      },
+      {
+        "trial": 39,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1821
+      },
+      {
+        "trial": 40,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0407
+      },
+      {
+        "trial": 41,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0374
+      },
+      {
+        "trial": 42,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1784
+      },
+      {
+        "trial": 43,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0396
+      },
+      {
+        "trial": 44,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0401
+      },
+      {
+        "trial": 45,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0402
+      },
+      {
+        "trial": 46,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0409
+      },
+      {
+        "trial": 47,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1818
+      },
+      {
+        "trial": 48,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.036
+      },
+      {
+        "trial": 49,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.034
+      },
+      {
+        "trial": 50,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1739
+      },
+      {
+        "trial": 51,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0378
+      },
+      {
+        "trial": 52,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0332
+      },
+      {
+        "trial": 53,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1801
+      },
+      {
+        "trial": 54,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1691
+      },
+      {
+        "trial": 55,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.033
+      },
+      {
+        "trial": 56,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1721
+      },
+      {
+        "trial": 57,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.034
+      },
+      {
+        "trial": 58,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0385
+      },
+      {
+        "trial": 59,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0369
+      },
+      {
+        "trial": 60,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0385
+      },
+      {
+        "trial": 61,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.181
+      },
+      {
+        "trial": 62,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0397
+      },
+      {
+        "trial": 63,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0372
+      },
+      {
+        "trial": 64,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0403
+      },
+      {
+        "trial": 65,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1792
+      },
+      {
+        "trial": 66,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1813
+      },
+      {
+        "trial": 67,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1838
+      },
+      {
+        "trial": 68,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0379
+      },
+      {
+        "trial": 69,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0391
+      },
+      {
+        "trial": 70,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1781
+      },
+      {
+        "trial": 71,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0409
+      },
+      {
+        "trial": 72,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0408
+      },
+      {
+        "trial": 73,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0387
+      },
+      {
+        "trial": 74,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0438
+      },
+      {
+        "trial": 75,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0406
+      },
+      {
+        "trial": 76,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1811
+      },
+      {
+        "trial": 77,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0393
+      },
+      {
+        "trial": 78,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1725
+      },
+      {
+        "trial": 79,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1779
+      },
+      {
+        "trial": 80,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.035
+      },
+      {
+        "trial": 81,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1772
+      },
+      {
+        "trial": 82,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1685
+      },
+      {
+        "trial": 83,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0369
+      },
+      {
+        "trial": 84,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.034
+      },
+      {
+        "trial": 85,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0404
+      },
+      {
+        "trial": 86,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1802
+      },
+      {
+        "trial": 87,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0406
+      },
+      {
+        "trial": 88,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0446
+      },
+      {
+        "trial": 89,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0393
+      },
+      {
+        "trial": 90,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1802
+      },
+      {
+        "trial": 91,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0421
+      },
+      {
+        "trial": 92,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0382
+      },
+      {
+        "trial": 93,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0386
+      },
+      {
+        "trial": 94,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0383
+      },
+      {
+        "trial": 95,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0394
+      },
+      {
+        "trial": 96,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0396
+      },
+      {
+        "trial": 97,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0373
+      },
+      {
+        "trial": 98,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1832
+      },
+      {
+        "trial": 99,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0395
+      },
+      {
+        "trial": 100,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0406
+      }
+    ]
+  },
+  "patched": {
+    "version": "Trealla Prolog (c) Infradig 2020, v3.13.10-dirty",
+    "sha256": "a9895279b8964f6bfeecb368d653e0b1b8825821d4b26a1eba5bbc1d619ced61",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "counts": {
+      "passed": 100,
+      "signal": 0,
+      "failed": 0,
+      "timeout": 0
+    },
+    "runs": [
+      {
+        "trial": 1,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.2025
+      },
+      {
+        "trial": 2,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1944
+      },
+      {
+        "trial": 3,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1809
+      },
+      {
+        "trial": 4,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1798
+      },
+      {
+        "trial": 5,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1803
+      },
+      {
+        "trial": 6,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1912
+      },
+      {
+        "trial": 7,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1888
+      },
+      {
+        "trial": 8,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1809
+      },
+      {
+        "trial": 9,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.187
+      },
+      {
+        "trial": 10,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1816
+      },
+      {
+        "trial": 11,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1791
+      },
+      {
+        "trial": 12,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1888
+      },
+      {
+        "trial": 13,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1771
+      },
+      {
+        "trial": 14,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1819
+      },
+      {
+        "trial": 15,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1801
+      },
+      {
+        "trial": 16,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.177
+      },
+      {
+        "trial": 17,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1802
+      },
+      {
+        "trial": 18,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1763
+      },
+      {
+        "trial": 19,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1777
+      },
+      {
+        "trial": 20,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1788
+      },
+      {
+        "trial": 21,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1765
+      },
+      {
+        "trial": 22,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1773
+      },
+      {
+        "trial": 23,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1797
+      },
+      {
+        "trial": 24,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1808
+      },
+      {
+        "trial": 25,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1778
+      },
+      {
+        "trial": 26,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1826
+      },
+      {
+        "trial": 27,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1774
+      },
+      {
+        "trial": 28,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1803
+      },
+      {
+        "trial": 29,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1779
+      },
+      {
+        "trial": 30,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1771
+      },
+      {
+        "trial": 31,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1781
+      },
+      {
+        "trial": 32,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1765
+      },
+      {
+        "trial": 33,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1765
+      },
+      {
+        "trial": 34,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1785
+      },
+      {
+        "trial": 35,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.178
+      },
+      {
+        "trial": 36,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1768
+      },
+      {
+        "trial": 37,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1774
+      },
+      {
+        "trial": 38,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1788
+      },
+      {
+        "trial": 39,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.179
+      },
+      {
+        "trial": 40,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1766
+      },
+      {
+        "trial": 41,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1769
+      },
+      {
+        "trial": 42,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1793
+      },
+      {
+        "trial": 43,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1777
+      },
+      {
+        "trial": 44,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1768
+      },
+      {
+        "trial": 45,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1813
+      },
+      {
+        "trial": 46,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1782
+      },
+      {
+        "trial": 47,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1766
+      },
+      {
+        "trial": 48,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1797
+      },
+      {
+        "trial": 49,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1781
+      },
+      {
+        "trial": 50,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1778
+      },
+      {
+        "trial": 51,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1822
+      },
+      {
+        "trial": 52,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1833
+      },
+      {
+        "trial": 53,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1779
+      },
+      {
+        "trial": 54,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1768
+      },
+      {
+        "trial": 55,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1757
+      },
+      {
+        "trial": 56,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.179
+      },
+      {
+        "trial": 57,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1843
+      },
+      {
+        "trial": 58,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1766
+      },
+      {
+        "trial": 59,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1789
+      },
+      {
+        "trial": 60,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1763
+      },
+      {
+        "trial": 61,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1803
+      },
+      {
+        "trial": 62,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1774
+      },
+      {
+        "trial": 63,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.178
+      },
+      {
+        "trial": 64,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1778
+      },
+      {
+        "trial": 65,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1784
+      },
+      {
+        "trial": 66,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1769
+      },
+      {
+        "trial": 67,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1801
+      },
+      {
+        "trial": 68,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1874
+      },
+      {
+        "trial": 69,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1804
+      },
+      {
+        "trial": 70,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1829
+      },
+      {
+        "trial": 71,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1765
+      },
+      {
+        "trial": 72,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1799
+      },
+      {
+        "trial": 73,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1822
+      },
+      {
+        "trial": 74,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1768
+      },
+      {
+        "trial": 75,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1769
+      },
+      {
+        "trial": 76,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1849
+      },
+      {
+        "trial": 77,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1779
+      },
+      {
+        "trial": 78,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.177
+      },
+      {
+        "trial": 79,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1766
+      },
+      {
+        "trial": 80,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.18
+      },
+      {
+        "trial": 81,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1779
+      },
+      {
+        "trial": 82,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.177
+      },
+      {
+        "trial": 83,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1764
+      },
+      {
+        "trial": 84,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1784
+      },
+      {
+        "trial": 85,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1775
+      },
+      {
+        "trial": 86,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1769
+      },
+      {
+        "trial": 87,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1803
+      },
+      {
+        "trial": 88,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1765
+      },
+      {
+        "trial": 89,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1793
+      },
+      {
+        "trial": 90,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1824
+      },
+      {
+        "trial": 91,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1815
+      },
+      {
+        "trial": 92,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.178
+      },
+      {
+        "trial": 93,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.178
+      },
+      {
+        "trial": 94,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.177
+      },
+      {
+        "trial": 95,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1819
+      },
+      {
+        "trial": 96,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1808
+      },
+      {
+        "trial": 97,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1766
+      },
+      {
+        "trial": 98,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1789
+      },
+      {
+        "trial": 99,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1767
+      },
+      {
+        "trial": 100,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1793
+      }
+    ]
+  },
+  "upstream": {
+    "version": "Trealla Prolog (c) Infradig 2020, v3.13.26",
+    "sha256": "42574e9b8cd30e9e8eb909583ff6cee054acb8289e7e0ef0aecef0d0ad4ebe42",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "counts": {
+      "passed": 10,
+      "signal": 40,
+      "failed": 0,
+      "timeout": 0
+    },
+    "runs": [
+      {
+        "trial": 1,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0349
+      },
+      {
+        "trial": 2,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0339
+      },
+      {
+        "trial": 3,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0382
+      },
+      {
+        "trial": 4,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0346
+      },
+      {
+        "trial": 5,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0385
+      },
+      {
+        "trial": 6,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0385
+      },
+      {
+        "trial": 7,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0342
+      },
+      {
+        "trial": 8,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0392
+      },
+      {
+        "trial": 9,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0356
+      },
+      {
+        "trial": 10,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1805
+      },
+      {
+        "trial": 11,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0351
+      },
+      {
+        "trial": 12,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0383
+      },
+      {
+        "trial": 13,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0342
+      },
+      {
+        "trial": 14,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0383
+      },
+      {
+        "trial": 15,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0344
+      },
+      {
+        "trial": 16,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0344
+      },
+      {
+        "trial": 17,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0345
+      },
+      {
+        "trial": 18,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0364
+      },
+      {
+        "trial": 19,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1748
+      },
+      {
+        "trial": 20,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0339
+      },
+      {
+        "trial": 21,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.035
+      },
+      {
+        "trial": 22,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0359
+      },
+      {
+        "trial": 23,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.035
+      },
+      {
+        "trial": 24,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1755
+      },
+      {
+        "trial": 25,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0346
+      },
+      {
+        "trial": 26,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0337
+      },
+      {
+        "trial": 27,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1767
+      },
+      {
+        "trial": 28,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0337
+      },
+      {
+        "trial": 29,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.035
+      },
+      {
+        "trial": 30,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0344
+      },
+      {
+        "trial": 31,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0342
+      },
+      {
+        "trial": 32,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1738
+      },
+      {
+        "trial": 33,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0355
+      },
+      {
+        "trial": 34,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1767
+      },
+      {
+        "trial": 35,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0362
+      },
+      {
+        "trial": 36,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.04
+      },
+      {
+        "trial": 37,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1773
+      },
+      {
+        "trial": 38,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1709
+      },
+      {
+        "trial": 39,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1751
+      },
+      {
+        "trial": 40,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0359
+      },
+      {
+        "trial": 41,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0371
+      },
+      {
+        "trial": 42,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.035
+      },
+      {
+        "trial": 43,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0387
+      },
+      {
+        "trial": 44,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0413
+      },
+      {
+        "trial": 45,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1784
+      },
+      {
+        "trial": 46,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0354
+      },
+      {
+        "trial": 47,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0339
+      },
+      {
+        "trial": 48,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0384
+      },
+      {
+        "trial": 49,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0362
+      },
+      {
+        "trial": 50,
+        "status": "signal",
+        "returncode": -11,
+        "seconds": 0.0362
+      }
+    ]
+  },
+  "upstream-patched": {
+    "version": "Trealla Prolog (c) Infradig 2020, v3.13.26-dirty",
+    "sha256": "399544212b1e4fc07e108c4049737050e278c940f326ff606ca0e16689da472d",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "counts": {
+      "passed": 100,
+      "signal": 0,
+      "failed": 0,
+      "timeout": 0
+    },
+    "runs": [
+      {
+        "trial": 1,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.197
+      },
+      {
+        "trial": 2,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1802
+      },
+      {
+        "trial": 3,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.179
+      },
+      {
+        "trial": 4,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.177
+      },
+      {
+        "trial": 5,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1839
+      },
+      {
+        "trial": 6,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1794
+      },
+      {
+        "trial": 7,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1774
+      },
+      {
+        "trial": 8,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1779
+      },
+      {
+        "trial": 9,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1826
+      },
+      {
+        "trial": 10,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1822
+      },
+      {
+        "trial": 11,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1794
+      },
+      {
+        "trial": 12,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1781
+      },
+      {
+        "trial": 13,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1774
+      },
+      {
+        "trial": 14,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1822
+      },
+      {
+        "trial": 15,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1783
+      },
+      {
+        "trial": 16,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1779
+      },
+      {
+        "trial": 17,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1787
+      },
+      {
+        "trial": 18,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1774
+      },
+      {
+        "trial": 19,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.178
+      },
+      {
+        "trial": 20,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1791
+      },
+      {
+        "trial": 21,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1808
+      },
+      {
+        "trial": 22,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1785
+      },
+      {
+        "trial": 23,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1816
+      },
+      {
+        "trial": 24,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1768
+      },
+      {
+        "trial": 25,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1835
+      },
+      {
+        "trial": 26,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1825
+      },
+      {
+        "trial": 27,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1776
+      },
+      {
+        "trial": 28,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1822
+      },
+      {
+        "trial": 29,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1769
+      },
+      {
+        "trial": 30,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1773
+      },
+      {
+        "trial": 31,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.185
+      },
+      {
+        "trial": 32,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.183
+      },
+      {
+        "trial": 33,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.182
+      },
+      {
+        "trial": 34,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1826
+      },
+      {
+        "trial": 35,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1801
+      },
+      {
+        "trial": 36,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.184
+      },
+      {
+        "trial": 37,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.179
+      },
+      {
+        "trial": 38,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1826
+      },
+      {
+        "trial": 39,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1807
+      },
+      {
+        "trial": 40,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1772
+      },
+      {
+        "trial": 41,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.179
+      },
+      {
+        "trial": 42,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1819
+      },
+      {
+        "trial": 43,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1772
+      },
+      {
+        "trial": 44,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1792
+      },
+      {
+        "trial": 45,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1802
+      },
+      {
+        "trial": 46,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1767
+      },
+      {
+        "trial": 47,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1812
+      },
+      {
+        "trial": 48,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1791
+      },
+      {
+        "trial": 49,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1775
+      },
+      {
+        "trial": 50,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1804
+      },
+      {
+        "trial": 51,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1801
+      },
+      {
+        "trial": 52,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1783
+      },
+      {
+        "trial": 53,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1849
+      },
+      {
+        "trial": 54,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1912
+      },
+      {
+        "trial": 55,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1876
+      },
+      {
+        "trial": 56,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1843
+      },
+      {
+        "trial": 57,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1825
+      },
+      {
+        "trial": 58,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1885
+      },
+      {
+        "trial": 59,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1875
+      },
+      {
+        "trial": 60,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.184
+      },
+      {
+        "trial": 61,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1816
+      },
+      {
+        "trial": 62,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1844
+      },
+      {
+        "trial": 63,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1834
+      },
+      {
+        "trial": 64,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1801
+      },
+      {
+        "trial": 65,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1792
+      },
+      {
+        "trial": 66,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1805
+      },
+      {
+        "trial": 67,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1816
+      },
+      {
+        "trial": 68,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1779
+      },
+      {
+        "trial": 69,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1811
+      },
+      {
+        "trial": 70,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.18
+      },
+      {
+        "trial": 71,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1829
+      },
+      {
+        "trial": 72,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1811
+      },
+      {
+        "trial": 73,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1779
+      },
+      {
+        "trial": 74,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1825
+      },
+      {
+        "trial": 75,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1795
+      },
+      {
+        "trial": 76,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1858
+      },
+      {
+        "trial": 77,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1784
+      },
+      {
+        "trial": 78,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1821
+      },
+      {
+        "trial": 79,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1817
+      },
+      {
+        "trial": 80,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1793
+      },
+      {
+        "trial": 81,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1808
+      },
+      {
+        "trial": 82,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1806
+      },
+      {
+        "trial": 83,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1839
+      },
+      {
+        "trial": 84,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1802
+      },
+      {
+        "trial": 85,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1803
+      },
+      {
+        "trial": 86,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1807
+      },
+      {
+        "trial": 87,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1779
+      },
+      {
+        "trial": 88,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1791
+      },
+      {
+        "trial": 89,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.18
+      },
+      {
+        "trial": 90,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1778
+      },
+      {
+        "trial": 91,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1783
+      },
+      {
+        "trial": 92,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1783
+      },
+      {
+        "trial": 93,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.177
+      },
+      {
+        "trial": 94,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1799
+      },
+      {
+        "trial": 95,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1771
+      },
+      {
+        "trial": 96,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1782
+      },
+      {
+        "trial": 97,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.178
+      },
+      {
+        "trial": 98,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1778
+      },
+      {
+        "trial": 99,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.1813
+      },
+      {
+        "trial": 100,
+        "status": "passed",
+        "returncode": 0,
+        "seconds": 0.2
+      }
+    ]
+  },
+  "application": {
+    "patched_client_revision": "7af2b53c4eaa219c5f74b716f37e4f5e1b1917a6 + candidate patch",
+    "swi_peer": {
+      "passed": 10,
+      "failed": 0
+    },
+    "unmodified_trealla_peer": {
+      "passed": 10,
+      "failed": 0
+    },
+    "regression_groups_passed": [
+      "actors/receive",
+      "remote_demonitor",
+      "termination_notification_frames",
+      "synchronous_toplevel_wrappers",
+      "correlated_writer",
+      "namespace"
+    ]
+  }
+}

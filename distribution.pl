@@ -251,7 +251,14 @@ remote_demonitor(Node, Ref) :-
 remote_toplevel_spawn(Node, RemotePid, Options0) :-
     remote_toplevel_spawn_mode(Node,RemotePid,Options0,explicit).
 
-% Chart-owned toplevels need the ordinary transparent name/monitor handshake.
+% Match SWI's constructor hook: ask the peer to create its own PTCP instead
+% of exporting Trealla's private session/5 as an ordinary actor entry point.
+toplevel_actors:hook_toplevel_spawn(Pid,SourceModule,Options) :-
+    option(node(URL0),Options), URL0 \== localhost, !,
+    node_url_atom(URL0,URL), transparent_node(URL,Node),
+    remote_toplevel_spawn_mode(Node,Pid,SourceModule:Options,transparent).
+
+% General and chart-owned toplevels use the transparent name/monitor handshake.
 remote_toplevel_spawn_mode(Node, RemotePid, Options0, Mode) :-
     strip_module(Options0, SourceModule, Options1),
     (Mode==transparent -> Scope=runtime;Scope=public),
@@ -556,6 +563,11 @@ writer_message('$transparent_monitor'(WirePid, Ref, Watcher, Caller), _, _,
     Caller ! '$transparent_monitor_ready'(Ref).
 writer_message('$transparent_demonitor'(Ref), _, _, true) :- !,
     writer_remove_monitor(Ref).
+writer_message('$transparent_demonitor'(Ref, Watcher, Ticket), _, _, true) :- !,
+    writer_monitors(Monitors),
+    exclude(writer_owned_monitor(Ref,Watcher),Monitors,Rest),
+    nb_setval('$distribution_monitors',Rest),
+    Watcher ! '$transparent_demonitor_done'(Ticket).
 writer_message('$target_stopped'(Target), _, _, true) :- !,
     writer_remove_watcher(Target).
 writer_message('$owner_event'(Event), _, _, true) :- !,
@@ -689,6 +701,8 @@ writer_remove_monitor(Ref) :-
     nb_setval('$distribution_monitors', Rest).
 
 writer_monitor_ref(Ref, monitor(_, Ref, _)).
+writer_owned_monitor(Ref,Watcher,monitor(_,StoredRef,StoredWatcher)) :-
+    Ref == StoredRef, Watcher == StoredWatcher.
 
 writer_remove_watcher(Watcher) :-
     writer_monitors(Monitors),
@@ -1158,9 +1172,16 @@ actors:hook_monitor(Watcher, RemotePid, Ref) :-
                                     monitor/2))) ]).
 
 actors:hook_demonitor(Ref) :-
-    actors:monitor(_, RemotePid, Ref),
+    self(Watcher),actors:monitor(Watcher, RemotePid, Ref),
     remote_pid_writer(RemotePid, Writer, _),
-    Writer ! '$transparent_demonitor'(Ref).
+    make_ref(Ticket),
+    setup_call_cleanup(monitor(Writer,PrivateRef),
+      once((Writer ! '$transparent_demonitor'(Ref,Watcher,Ticket),
+            receive({
+              '$transparent_demonitor_done'(Ticket) -> true;
+              down(Writer,PrivateRef,_) -> true
+            },[timeout(2),on_timeout(throw(error(remote_demonitor_timeout(RemotePid),demonitor/2)))]))),
+      demonitor(PrivateRef,[flush])).
 
 actors:hook_stop(Target) :-
     forget_io_endpoints_for_target(Target),
