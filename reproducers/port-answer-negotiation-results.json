@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-21T19:32:55.628527+00:00",
+  "scope": "Trealla receiver recognition of native SWI protocol-header canonical-answer opt-in",
+  "repository_heads": {
+    "trealla": "67cae967132839d27523b0adaaefd13d54733a77",
+    "swi": "88d5732c428cb3d4e47b7ae49c2762ee01233503"
+  },
+  "engines": {
+    "swi": "SWI-Prolog version 10.1.17 for fat-darwin",
+    "trealla": "v3.13.10",
+    "trealla_executable_sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563"
+  },
+  "source_sha256": {
+    "node.pl": "b0b4607e5bfc8bf335c8b9ede8a4e76a4c6400030210f506a120a1e5b63ecd22",
+    "web_prolog.pl": "9bb0bfb78293b7d365b355f94e83ef66e001ef6b6874d95892857e3b115a6271",
+    "answer_negotiation_tests.pl": "e564e9b5fb4e9b2a412e6d55aa11cb02be15ea9034e73a24bebf2e9f06126096",
+    "swi_websocket_interop.pl": "4781d4385b9540c6f53464fb213c46b224a3c24e54c46c0c126ce4c88c4d817d",
+    "unicode_answer_tests.pl": "4b4c973808d70f65f26d6cc3eca4875e10ef479fc6277e56c8cbb1f48f54b8d7"
+  },
+  "unit_check": {
+    "goal": "answer_negotiation_tests:run",
+    "returncode": 0,
+    "stdout": "Answer negotiation context, exceptional cleanup and thread isolation: ok\n"
+  },
+  "live_checks": [
+    {
+      "client": "trealla",
+      "peer": "swi",
+      "returncode": 0,
+      "stdout": "Unicode answers, errors, paging and sharing on http://localhost:54877: passed\n",
+      "stderr": ""
+    },
+    {
+      "client": "trealla",
+      "peer": "trealla",
+      "returncode": 0,
+      "stdout": "Unicode answers, errors, paging and sharing on http://localhost:54878: passed\n",
+      "stderr": ""
+    },
+    {
+      "client": "swi",
+      "peer": "swi",
+      "returncode": 0,
+      "stdout": "Unicode answers, errors, paging and sharing on http://localhost:54877: passed\n",
+      "stderr": "% Library was moved: library(http/json) --> library(json)\n% Started server at http://localhost:54879/\nWarning: [Thread main] Ambiguous operation on stream pair <stream>(0x149f1a090,0x149f1a250)\nWarning: [Thread main] Ambiguous operation on stream pair <stream>(0x149f1a090,0x149f1a250)\n"
+    },
+    {
+      "client": "swi",
+      "peer": "trealla",
+      "returncode": 0,
+      "stdout": "Unicode answers, errors, paging and sharing on http://localhost:54878: passed\n",
+      "stderr": "% Library was moved: library(http/json) --> library(json)\n% Started server at http://localhost:54879/\nWarning: [Thread main] Ambiguous operation on stream pair <stream>(0x1058f3840,0x1058f39b0)\nWarning: [Thread main] Ambiguous operation on stream pair <stream>(0x1058f3840,0x1058f39b0)\n"
+    },
+    {
+      "case": "canonical_answer_client_test",
+      "returncode": 0,
+      "stdout": "SWI -> Trealla canonical and legacy asynchronous answers: ok\n",
+      "stderr": "% Library was moved: library(http/json) --> library(json)\n"
+    },
+    {
+      "case": "header_answer_client_test",
+      "returncode": 0,
+      "stdout": "Header opt-in, legacy isolation and transport_hello overrides: ok\n",
+      "stderr": "% Library was moved: library(http/json) --> library(json)\n"
+    },
+    {
+      "case": "browser_correlation_client_test",
+      "returncode": 0,
+      "stdout": "Browser caller correlation and mixed asynchronous paging: ok\n",
+      "stderr": "% Library was moved: library(http/json) --> library(json)\n"
+    },
+    {
+      "case": "browser_io_client_test",
+      "returncode": 0,
+      "stdout": "SWI browser terminal acknowledgement test: ok\n",
+      "stderr": "% Library was moved: library(http/json) --> library(json)\n"
+    }
+  ],
+  "qualifications": [
+    "All four client/peer combinations use the same full assertions, including asynchronous structured errors and literal VAR/1 fidelity.",
+    "Header/hello tests exercise opt-in, false/omitted/true overrides, simultaneous isolated connections, fresh headerless connection, failure, paging and sandbox denial.",
+    "Existing browser correlation and terminal acknowledgement wire checks pass; browser runtimes unchanged.",
+    "Disposable native nodes only; live n3/n5 and installed engines unchanged.",
+    "Not a full conformance or full unit rerun; no new strict client handling of malformed negotiated payloads."
+  ]
+}

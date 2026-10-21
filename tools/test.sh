@@ -107,6 +107,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Canonical answer negotiation context" \
+        "$TPL" -g "consult('$ROOT/answer_negotiation_tests.pl'),(catch(answer_negotiation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Concurrent bootstrap and reply serialization" \
         "$TPL" -g "consult('$ROOT/source_capture_tests.pl'),(catch(source_capture_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Owned remote demonitor acknowledgement and flush" \
@@ -348,6 +350,9 @@ run_interop() {
     run_with_timeout "SWI client -> Trealla canonical and legacy asynchronous answers" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "canonical_answer_client_test($trealla_protocol_port),halt"
+    run_with_timeout "SWI client -> Trealla header answer negotiation and isolation" \
+        "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+        -g "header_answer_client_test($trealla_protocol_port),halt"
     run_with_timeout "browser caller correlation -> Trealla" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "browser_correlation_client_test($trealla_protocol_port),halt"
@@ -439,7 +444,7 @@ run_interop() {
             "$SWIPL" -q -g "use_module('$TRINITY_NODE_FILE'),findall(X,rpc:rpc('http://127.0.0.1:$trealla_remote_port',member(X,[a,b,c,d,e]),[limit(2),once(true)]),[a,b]),findall(X,rpc:rpc('http://127.0.0.1:$trealla_remote_port',member(X,[a,b,c,d,e]),[limit(2),once(false)]),[a,b,c,d,e]),halt"
         run_with_timeout "Unicode remote answers: SWI -> Trealla" \
             "$SWIPL" -q -s "$ROOT/unicode_answer_tests.pl" \
-            -g "node:node($swi_actor_home_port,[profile(actor),auth(open)]),(catch(unicode_answer_tests:live_success('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+            -g "node:node($swi_actor_home_port,[profile(actor),auth(open)]),(catch(unicode_answer_tests:live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Unicode remote answers: Trealla -> Trealla" \
             "$TPL" -g "consult('$ROOT/unicode_answer_tests.pl'),(catch(unicode_answer_tests:live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Native SWI statechart constructor -> Trealla" \

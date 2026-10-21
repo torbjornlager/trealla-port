@@ -1048,21 +1048,17 @@ so Unicode answers no longer lose their negotiated canonical `term` payload.
 assertions with Trealla and SWI clients against native peers through
 `tools/test.sh interop`. The former `wide_answer/2` observation in
 `remote_toplevel_creation_diagnostics.pl` is superseded by those regressions.
-This changes no Trealla or browser runtime code.
+That native SWI filter repair itself changes no Trealla or browser runtime code.
 
-One separate legacy-path diagnostic remains: SWI's current transparent client
-does not opt into Trealla's canonical asynchronous answer extension. Its Unicode
-success and paging checks pass, but error terms arrive as `remote_error(Text)`
-and a literal `'$VAR'(1)` can be reconstructed as a variable. The fixture's
-`legacy_diagnostic/3` records that observation; `live_success/1` tests only the
-Unicode success/paging guarantees on that path. Full error fidelity is asserted
-on the other three native client/peer combinations, without treating legacy
-reconstruction as a canonical pass. Negotiation changes remain separate work.
-The [focused live results](reproducers/port-unicode-answers-results.json) retain
-all four client/peer outcomes and the separate legacy observation. Native SWI's
-92-test T0 tier and its exact-answer cross-node regression also passed. These
-checks used disposable nodes, leaving installed engines and live n3/n5 unchanged;
-they are not a full conformance rerun.
+Trealla now recognises native SWI's existing `X-Web-Prolog-Protocol` request
+header and enables canonical asynchronous answers before the relay processes
+commands. The former SWI-to-Trealla legacy reconstruction diagnostic is now a
+required assertion in `unicode_answer_tests:live/1`: all four native client/peer
+combinations must preserve Unicode success/error terms, literal `'$VAR'/1`,
+variable sharing and paging. The earlier
+[Unicode batch results](reproducers/port-unicode-answers-results.json) retain
+the before-repair observation rather than being rewritten as later passes.
+The current negotiation results are recorded separately below.
 
 
 The native client exports `remote_toplevel_call_synch(Node,Pid,Goal,Answer)`
@@ -1115,13 +1111,34 @@ Existing PTCP handling can also turn an active-computation cancellation
 interrupt into an error answer; the synchronous API preserves that answer
 rather than inventing a down event.
 
-Clients may request `answer_terms:true` in `transport_hello`; the server
+Native peers can opt in through the `X-Web-Prolog-Protocol` HTTP upgrade header,
+as on SWI. Header presence selects the existing canonical representation; it
+does not authenticate the peer or grant any capabilities. The connection reader
+carries one initial boolean into its relay and removes its context on normal or
+exceptional unwind, including upgrade failure. No unsolicited welcome frame or
+new wire command is added. Headerless connections start in legacy mode.
+
+Clients may also request `answer_terms:true` in `transport_hello`; the server
 acknowledges it in `transport_welcome` for that connection. Negotiated success
 events include `term`, a Prolog text representation of the entire solution
 list; negotiated actor errors include the exception term in the same field.
 Parse it once to preserve sharing across the payload. Failure needs no extra
-payload. Existing display fields remain available, and connections that omit
-the capability or request `false` retain legacy answers.
+payload. Existing display fields remain available. An explicit hello with
+`answer_terms:false`, or one omitting the field, sets legacy mode even after a
+header opt-in; a later true setting enables canonical mode again. These are the
+existing hello semantics. Without either opt-in, connections retain legacy answers.
+
+`answer_negotiation_tests.pl` checks exceptional context cleanup, concurrent
+thread isolation and the absence of authority granted by the header.
+`swi_websocket_interop:header_answer_client_test/1` checks first-command header
+opt-in without a hello, concurrent header/headerless connections, hello overrides,
+fresh legacy connections, canonical success/error/failure/paging and sandbox
+rejection. It and the existing canonical/legacy wire tests run in
+`tools/test.sh interop`; the context tests run in the unit group.
+The [focused negotiation results](reproducers/port-answer-negotiation-results.json)
+record the native client matrix and wire compatibility checks. Disposable nodes
+were used; installed engines and live n3/n5 were unchanged. This is not a full
+conformance rerun or a repair to stricter client-side malformed-payload handling.
 
 For explicit answer templates, use `format(prolog)` in the call options (or
 the JSON command's `format:"prolog"` field). This preserves the first explicit

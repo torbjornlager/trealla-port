@@ -152,6 +152,7 @@ with_http_promise_namespace(Goal) :-
 :- meta_predicate(node(+, 2, +)).
 
 :- dynamic connection_governance/4.
+:- dynamic connection_answer_terms/2.
 :- dynamic node_listener/4.
 :- dynamic node_connection/4.
 :- dynamic node_stopping/1.
@@ -712,7 +713,8 @@ handle_ws_route(_Port, C, Ver, Peer, Headers, WebSocketHandler,
     -> quota_identity(Principal, Peer, websocket, Identity),
        setup_call_cleanup(
            set_connection_governance(Principal, Identity, ClientIP),
-           ( ws_accept(C, Headers, WebSocket, WebSocketOptions),
+           ( set_connection_answer_terms(Headers),
+             ws_accept(C, Headers, WebSocket, WebSocketOptions),
              call(WebSocketHandler, WebSocket, PathAtom) ),
            clear_connection_governance)
     ; audit_principal(Principal, AuditPrincipal),
@@ -1000,7 +1002,18 @@ set_connection_governance(Principal, Identity, ClientIP) :-
 
 clear_connection_governance :-
     thread_self(Thread),
-    retractall(connection_governance(Thread, _, _, _)).
+    retractall(connection_governance(Thread, _, _, _)),
+    retractall(connection_answer_terms(Thread, _)).
+
+% Match SWI's header opt-in. This is representation metadata, not authority.
+set_connection_answer_terms(Headers) :-
+    thread_self(Thread),
+    (memberchk('x-web-prolog-protocol'-_, Headers) -> Enabled=true ; Enabled=false),
+    retractall(connection_answer_terms(Thread, _)),
+    assertz(connection_answer_terms(Thread, Enabled)).
+
+current_connection_answer_terms(Enabled) :-
+    thread_self(Thread),connection_answer_terms(Thread,Enabled),!.
 
 current_connection_governance(Principal, Identity) :-
     thread_self(Thread),

@@ -12,6 +12,7 @@
             protocol_client_test/1,
             rebuilt_query_client_test/1,
             canonical_answer_client_test/1,
+            header_answer_client_test/1,
             correlation_client_test/2,
             browser_correlation_client_test/1,
             connection_thread_parity_test/1,
@@ -350,6 +351,27 @@ canonical_answer_session(WS, Exact) :-
     ; Hello = json{command:"transport_hello",version:1,answer_terms:Exact} ),
     send_json(WS,Hello), receive_json(WS,Welcome),
     ( Exact == true -> Welcome.answer_terms == true ; Welcome.answer_terms == false ),
+    canonical_answer_body(WS,Exact).
+
+% Keep header and headerless connections alive together; repeat after explicit
+% hello overrides to catch relay-state leakage and preserve existing semantics.
+header_answer_client_test(Port) :-
+    format(atom(URL),'ws://127.0.0.1:~w/ws',[Port]),
+    setup_call_cleanup(
+      http_open_websocket(URL,Native,[timeout(5),request_header('X-Web-Prolog-Protocol'='1')]),
+      setup_call_cleanup(http_open_websocket(URL,Legacy,[timeout(5)]),
+        (canonical_answer_body(Native,true),canonical_answer_body(Legacy,false),
+         canonical_answer_session(Native,false),
+         canonical_answer_session(Native,omitted),
+         canonical_answer_session(Native,true),
+         canonical_answer_body(Legacy,false),canonical_answer_body(Native,true)),
+        ws_close(Legacy,1000,done)),
+      ws_close(Native,1000,done)),
+    setup_call_cleanup(http_open_websocket(URL,Fresh,[timeout(5)]),
+      canonical_answer_body(Fresh,false),ws_close(Fresh,1000,done)),
+    writeln('Header opt-in, legacy isolation and transport_hello overrides: ok').
+
+canonical_answer_body(WS, Exact) :-
     send_json(WS,json{command:"toplevel_spawn",options:"[session(true)]"}),
     receive_json(WS,Spawned), Pid = Spawned.pid,
     ( Exact == true

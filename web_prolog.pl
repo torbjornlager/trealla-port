@@ -43,6 +43,9 @@ This is a native Trealla implementation of version 1 of the JSON actor
 protocol used by the Trinity demonstrator.  It deliberately has no Logtalk
 dependency.  The transport is one JSON object per WebSocket text frame; Prolog
 terms inside JSON fields use quoted Prolog syntax.
+The X-Web-Prolog-Protocol request header opts into canonical asynchronous
+answer payloads at connection startup, matching native SWI. Headerless peers
+retain legacy replies unless transport_hello enables the extension.
 
 The module implements the core node-to-node vocabulary: `spawn`, `send`,
 `monitor`, `demonitor`, `exit`, `toplevel_spawn`, `toplevel_call`,
@@ -169,13 +172,16 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
     ( node:current_connection_governance(Principal, Identity) -> true
     ; Principal = principal(local, [admin]), Identity = local
     ),
+    ( node:current_connection_answer_terms(AnswerTerms) -> true
+    ; AnswerTerms=false
+    ),
     thread_self(Reader),
     make_ref(NamespaceId),
     Namespace = ws_client(NamespaceId),
     setup_call_cleanup(
         true,
         ( actors:spawn_scoped(
-              relay_start(WS, Principal, Identity), Relay,
+              relay_start(WS, Principal, Identity, AnswerTerms), Relay,
               [link(false)], Namespace, internal),
           setup_call_cleanup(
               observe_activity_start(ws_connection, Reader, Principal, websocket),
@@ -547,12 +553,12 @@ send_to_target(actor(Pid), Message) :-
                  *           RELAY               *
                  *******************************/
 
-relay_start(WS, Principal, Identity) :-
+relay_start(WS, Principal, Identity, AnswerTerms) :-
     relay_set_actors([]),
     relay_set_monitors([]),
     relay_set_halts([]),
     relay_set_governance(Principal, Identity),
-    relay_set_answer_terms(false),
+    relay_set_answer_terms(AnswerTerms),
     relay_loop(WS).
 
 relay_loop(WS) :-
