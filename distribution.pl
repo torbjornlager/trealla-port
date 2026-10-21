@@ -267,6 +267,8 @@ remote_toplevel_spawn_mode(Node, RemotePid, Options0, Mode) :-
                              options-string_atom(OptionsText)], Fields),
     web_prolog:object(Fields, JSON),
     spawn_request(Writer, URL, Mode, Options1, Target, JSON, RemotePid),
+    % Public pid-based wrappers must reuse this owning connection.
+    (Mode==explicit -> manager_register_route(RemotePid,Writer) ; true),
     (Mode==transparent,memberchk(target(ReplyTarget),Options1) ->
       node_wire_pid(Node,RemotePid,WirePid),Writer ! '$remote_set_target'(WirePid,ReplyTarget)
     ; true).
@@ -314,14 +316,19 @@ remote_toplevel_next_synch(Node,Pid,Answer,Options) :-
     synchronous_remote(next,Node,Pid,true,user,Answer,Options).
 
 synchronous_remote(Kind,Node,Pid,Goal,FallbackModule,Answer,Options0) :-
+    synchronous_remote(Kind,Node,Pid,Goal,FallbackModule,Answer,Options0,legacy).
+synchronous_remote(Kind,Node,Pid,Goal,FallbackModule,Answer,Options0,Routing) :-
     strip_module(Options0,Caller0,Options), must_be(list,Options),
     ( nonvar(Caller0) -> Caller=Caller0
     ; self(Actor),isolation:actor_source_module(Actor,Source) -> Caller=Source
     ; Caller=FallbackModule ),
     self(Self), sync_options(Options,Kind,Self,Query,Wait),
     node_wire_pid(Node,Pid,WirePid), Node=remote_node(URL,_,Writer),
-    make_ref(RequestRef), MonitorRef='$sync_monitor'(RequestRef),
-    portable_term_for_writer(Writer,Goal-Query,PortableGoal-PortableOptions),
+    make_ref(FreshRef),
+    (Routing==caller -> RequestRef='$toplevel_sync'(FreshRef) ; RequestRef=FreshRef),
+    MonitorRef='$sync_monitor'(RequestRef),
+    (Routing==caller -> WireQuery=[target(Self)|Query] ; WireQuery=Query),
+    portable_term_for_writer(Writer,Goal-WireQuery,PortableGoal-PortableOptions),
     ( Kind == call -> Message='$call'(PortableGoal,['$request_ref'(RequestRef)|PortableOptions])
     ; Message='$next'(['$request_ref'(RequestRef)|PortableOptions]) ),
     web_prolog:canonical_answer_text(Message,Text),
@@ -522,6 +529,16 @@ writer_message('$wire_event'(WirePid, Type, Event), _, URL, true) :- !,
     -> (writer_sync_down(WirePid,Ref,Reason)->true;true)
     ; writer_deliver_event(WirePid, Event) ),
     writer_note_terminal(Type, WirePid).
+writer_message('$local_actor_message'(_, '$toplevel_reply'(Ref,Reply)),_,URL,true) :-
+    ground(Ref),
+    nb_getval('$distribution_waiters',Waiters),
+    member(waiter(Ref,WirePid,_,Caller),Waiters),
+    endpoint_sync_answer(Reply,WirePid,URL,Answer), !,
+    Caller ! '$sync_answer'(Ref,Answer).
+% A late public-wrapper reply has no waiter after release. Its tagged
+% reference is private; ordinary application/legacy envelopes still pass on.
+writer_message('$local_actor_message'(_, '$toplevel_reply'(Ref,_)),_,_,true) :-
+    ground(Ref),Ref='$toplevel_sync'(_), !.
 writer_message('$local_actor_message'(TargetId, Message), _, _, true) :- !,
     self(Writer),
     distribution_manager(Manager),
@@ -594,6 +611,17 @@ rollback_monitor(Pid,Watcher,Ref,monitor(Pid,Ref,Watcher)).
 
 writer_owner(Owner) :-
     nb_getval('$distribution_owner', Owner).
+
+% The peer's public URL can alias the registered connection URL. The writer
+% and waiter identify the peer; return the caller's existing pid spelling.
+endpoint_sync_answer(success(P,Rows,More),WirePid,URL,success(WirePid@URL,Rows,More)) :-
+    endpoint_sync_pid(P,WirePid,URL).
+endpoint_sync_answer(failure(P),WirePid,URL,failure(WirePid@URL)) :-
+    endpoint_sync_pid(P,WirePid,URL).
+endpoint_sync_answer(error(P,E),WirePid,URL,error(WirePid@URL,E)) :-
+    endpoint_sync_pid(P,WirePid,URL).
+endpoint_sync_pid(P,WirePid,_URL) :- P==WirePid, !.
+endpoint_sync_pid(P,WirePid,_URL) :- nonvar(P),P=Id@_,Id==WirePid.
 
 writer_add_waiter(Ref,Pid,Mon,Caller) :-
     nb_getval('$distribution_waiters',Waiters),

@@ -42,6 +42,7 @@ distribution_sync_tests :-
     nb_setval('$distribution_targets',[]),
     distribution:writer_message('$wire_event'(7,down,down(7,'$sync_monitor'(100),kill)),unused,unused,true),
     receive({down(7,'$sync_monitor'(100),_)->fail},[timeout(0),on_timeout(true)]),
+    endpoint_reply_vectors,
     close_confirmation_vectors,
     writeln('Outbound synchronous vectors: ok').
 
@@ -56,3 +57,17 @@ close_confirmation_vectors :-
     Probe ! finish,
     receive({down(Probe,Ref,true) -> true},[timeout(2),on_timeout(fail)]),
     distribution:wait_thread_end(Probe,0).
+
+endpoint_reply_vectors :-
+    self(Self),
+    nb_setval('$distribution_waiters',[waiter('$toplevel_sync'(700),17,701,Self)]),
+    distribution:writer_message('$local_actor_message'(900,
+      '$toplevel_reply'('$toplevel_sync'(700),success(17@'http://localhost:1234',[pair(X,X)],false))),
+      unused,'http://127.0.0.1:1234',true),
+    receive({'$sync_answer'('$toplevel_sync'(700),Reply) ->
+      Reply=success(17@'http://127.0.0.1:1234',[pair(A,B)],false),var(A),A==B},
+      [timeout(0),on_timeout(fail)]),
+    nb_setval('$distribution_waiters',[]),
+    distribution:writer_message('$local_actor_message'(900,
+      '$toplevel_reply'('$toplevel_sync'(700),failure(17))),unused,'http://127.0.0.1:1234',true),
+    receive({'$sync_answer'('$toplevel_sync'(700),_) -> fail},[timeout(0),on_timeout(true)]).

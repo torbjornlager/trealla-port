@@ -196,6 +196,8 @@ meta_goal_arguments(first_solution(_, Goals), Goals) :- is_list(Goals).
 meta_goal_arguments(first_solution(_, Goals, _), Goals) :- is_list(Goals).
 meta_goal_arguments(toplevel_call(_, Goal), [Goal]).
 meta_goal_arguments(toplevel_call(_, Goal, _), [Goal]).
+meta_goal_arguments(toplevel_call_synch(_,Goal,_),[Goal]).
+meta_goal_arguments(toplevel_call_synch(_,Goal,_,_),[Goal]).
 meta_goal_arguments(supervisor_spawn(Specs, _), Goals) :-
     supervisor_spec_goals(Specs, Goals).
 meta_goal_arguments(supervisor_spawn(Specs, _, _), Goals) :-
@@ -267,6 +269,10 @@ actor_predicate(toplevel_spawn, 1).
 actor_predicate(toplevel_spawn, 2).
 actor_predicate(toplevel_call, 2).
 actor_predicate(toplevel_call, 3).
+actor_predicate(toplevel_call_synch,3).
+actor_predicate(toplevel_call_synch,4).
+actor_predicate(toplevel_next_synch,2).
+actor_predicate(toplevel_next_synch,3).
 actor_predicate(toplevel_next, 1).
 actor_predicate(toplevel_next, 2).
 actor_predicate(toplevel_stop, 1).

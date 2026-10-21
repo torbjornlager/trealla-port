@@ -107,6 +107,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Public synchronous toplevel wrappers" \
+        "$TPL" -g "consult('$ROOT/synchronous_toplevel_tests.pl'),(catch(synchronous_toplevel_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     http_timeout_port=$((TEST_PORT_BASE + 88))
     run_with_timeout "HTTP transport timeout option mapping" \
         "$TPL" -g "consult('$ROOT/rpc_http_timeout_tests.pl'),(catch(rpc_http_timeout_tests:run($http_timeout_port),E,(writeq(E),nl,fail))->halt;halt(1))"
@@ -358,6 +360,8 @@ run_interop() {
             -g "use_module('$TRINITY_NODE_FILE'),node:node($swi_actor_port,[profile(actor),auth(open)]),thread_get_message(stop)"
         swi_actor_pid=$STARTED_PID
         wait_for_port "$swi_actor_port" || fail "SWI actor node did not start on port $swi_actor_port"
+        run_with_timeout "Public synchronous wrappers -> SWI" \
+            "$TPL" -g "consult('$ROOT/synchronous_toplevel_tests.pl'),(catch(synchronous_toplevel_tests:live('http://127.0.0.1:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Public runtime properties (swi_native)" \
             "$TPL" -g "consult('$ROOT/runtime_property_tests.pl'),(catch(runtime_property_tests:live('http://127.0.0.1:$swi_actor_port',swi_native),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Trealla first-slice RPC -> SWI" \
@@ -419,6 +423,8 @@ run_interop() {
         "$TPL" -g "consult('$ROOT/spawn_option_tests.pl'),(spawn_options_live_test($trealla_remote_port)->halt;halt(1))"
     run_with_timeout "Trealla validated RPC and promise HTTP options" \
         "$TPL" -g "consult('$ROOT/rpc_option_tests.pl'),(rpc_options_live_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "Public synchronous wrappers -> Trealla" \
+        "$TPL" -g "consult('$ROOT/synchronous_toplevel_tests.pl'),(catch(synchronous_toplevel_tests:live('http://127.0.0.1:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Public runtime properties (trealla_native)" \
         "$TPL" -g "consult('$ROOT/runtime_property_tests.pl'),(catch(runtime_property_tests:live('http://127.0.0.1:$trealla_remote_port',trealla_native),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Trealla first-slice RPC -> Trealla" \

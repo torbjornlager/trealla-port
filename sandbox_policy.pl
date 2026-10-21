@@ -16,6 +16,7 @@
          sandbox_call/12,
          sandbox_spawn/7,
          sandbox_toplevel_call/7,
+         sandbox_toplevel_synch/9,
          sandbox_control_catch/4,
          sandbox_format/2,
          sandbox_time/2,
@@ -254,6 +255,8 @@ meta_goal_parts(first_solution(_,Goals), Goals) :- is_list(Goals).
 meta_goal_parts(first_solution(_,Goals,_), Goals) :- is_list(Goals).
 meta_goal_parts(toplevel_call(_,Goal), [Goal]).
 meta_goal_parts(toplevel_call(_,Goal,_), [Goal]).
+meta_goal_parts(toplevel_call_synch(_,Goal,_),[Goal]).
+meta_goal_parts(toplevel_call_synch(_,Goal,_,_),[Goal]).
 meta_goal_parts(supervisor_spawn(Specs,_), Goals) :-
     supervisor_spec_goals(Specs, Goals).
 meta_goal_parts(supervisor_spawn(Specs,_,_), Goals) :-
@@ -555,6 +558,7 @@ reserved_source_name(supervisor_stop).
 reserved_source_name(sandbox_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_toplevel_call).
+reserved_source_name(sandbox_toplevel_synch).
 reserved_source_name(sandbox_format).
 reserved_source_name(sandbox_time).
 reserved_source_name(sandbox_sleep).
@@ -661,6 +665,10 @@ rewrite_goal_(M,P,C,A,receive(Q0,O0),receive(Q,O)) :- rewrite_receive(M,P,C,A,Q0
 rewrite_goal_(M,P,C,A,spawn(X),sandbox_policy:sandbox_spawn(M,P,C,A,X,_,[])).
 rewrite_goal_(M,P,C,A,spawn(X,Pid),sandbox_policy:sandbox_spawn(M,P,C,A,X,Pid,[])).
 rewrite_goal_(M,P,C,A,spawn(X,Pid,O),sandbox_policy:sandbox_spawn(M,P,C,A,X,Pid,O)).
+rewrite_goal_(M,P,C,A,toplevel_call_synch(Pid,X,R),sandbox_policy:sandbox_toplevel_synch(M,P,C,A,call,Pid,X,R,[])).
+rewrite_goal_(M,P,C,A,toplevel_call_synch(Pid,X,R,O),sandbox_policy:sandbox_toplevel_synch(M,P,C,A,call,Pid,X,R,O)).
+rewrite_goal_(M,P,C,A,toplevel_next_synch(Pid,R),sandbox_policy:sandbox_toplevel_synch(M,P,C,A,next,Pid,true,R,[])).
+rewrite_goal_(M,P,C,A,toplevel_next_synch(Pid,R,O),sandbox_policy:sandbox_toplevel_synch(M,P,C,A,next,Pid,true,R,O)).
 rewrite_goal_(M,P,C,A,toplevel_call(Pid,X),sandbox_policy:sandbox_toplevel_call(M,P,C,A,Pid,X,[])).
 rewrite_goal_(M,P,C,A,toplevel_call(Pid,X,O),sandbox_policy:sandbox_toplevel_call(M,P,C,A,Pid,X,O)).
 rewrite_goal_(M,P,C,A,once(X0),once(X)) :- rewrite_goal(M,P,C,A,X0,X).
@@ -795,6 +803,24 @@ sandbox_spawn(Mode, Profile, Module, _AppPIs, Goal0, Pid, Options0) :-
                           Goal, Options),
     actors:spawn(Goal, Pid, Options),
     !.
+
+% Runtime checks cover computed callbacks/options as well as the query goal.
+sandbox_toplevel_synch(Mode,Profile,Module,AppPIs,Kind,Pid,Goal0,Answer,Options0) :-
+    context_module(Module,RuntimeModule),
+    toplevel_actors:synchronous_options(Kind,RuntimeModule:Options0,_,_,_),
+    toplevel_actors:synchronous_pid(Pid,ResolvedPid),
+    profile_check_goal(Profile,Goal0),
+    sandbox_check_goal_(Mode,Profile,Module,AppPIs,Goal0),
+    check_receive_options(Mode,Profile,Module,AppPIs,Options0),
+    forall(member(on_timeout(Callback),Options0),profile_check_goal(Profile,Callback)),
+    rewrite_receive_options(Mode,Profile,Module,AppPIs,Options0,Options),
+    (toplevel_actors:remote_toplevel_route(ResolvedPid,_) -> Goal=Goal0
+    ; rewrite_goal(Mode,Profile,Module,AppPIs,Goal0,Prepared),
+      % The wrapper strips outer caller qualification. Nest prepared helpers
+      % under call/1 so their execution modules survive that boundary.
+      Goal=call(Prepared)),
+    (Kind==call -> toplevel_actors:toplevel_call_synch(ResolvedPid,Goal,Answer,RuntimeModule:Options)
+    ; toplevel_actors:toplevel_next_synch(ResolvedPid,Answer,RuntimeModule:Options)).
 
 sandbox_toplevel_call(Mode, Profile, Module, AppPIs, Pid, Goal0, Options) :-
     profile_check_goal(Profile, Goal0),
@@ -959,6 +985,8 @@ actor_safe_pi(make_ref/1). actor_safe_pi(flush/0).
 actor_safe_pi(actors/1).
 actor_safe_pi(toplevel_spawn/1). actor_safe_pi(toplevel_spawn/2).
 actor_safe_pi(toplevel_call/2). actor_safe_pi(toplevel_call/3).
+actor_safe_pi(toplevel_call_synch/3). actor_safe_pi(toplevel_call_synch/4).
+actor_safe_pi(toplevel_next_synch/2). actor_safe_pi(toplevel_next_synch/3).
 actor_safe_pi(toplevel_next/1). actor_safe_pi(toplevel_next/2).
 actor_safe_pi(toplevel_halt/1). actor_safe_pi(toplevel_halt/2).
 actor_safe_pi(toplevel_stop/1). actor_safe_pi(toplevel_abort/1).

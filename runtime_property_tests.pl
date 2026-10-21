@@ -39,11 +39,11 @@ toplevel_check(Options,Expected) :-
     self(Self),
     toplevel_spawn(Pid,[target(Self),session(true),link(false),monitor(true)|Options]),
     setup_call_cleanup(true,
-      (toplevel_call(Pid,findall(P,runtime_property(P),Properties),
-                     [template(Properties),limit(1)]),
-       receive({success(Pid,[Actual],false) -> Actual==Expected;
-                error(Pid,E) -> throw(E)},
-               [timeout(3),on_timeout(throw(runtime_property_timeout))])),
+      (toplevel_call_synch(Pid,findall(P,runtime_property(P),Properties),Answer,
+         [template(Properties),limit(1),
+          timeout(3),on_timeout(throw(runtime_property_timeout))]),
+       (Answer=error(Pid,E) -> throw(E)
+       ; Answer=success(Pid,[Actual],false),Actual==Expected)),
       (exit(Pid,kill),receive({down(Pid,Pid,_) -> true},
                            [timeout(3),on_timeout(fail)]))).
 

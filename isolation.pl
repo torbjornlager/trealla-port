@@ -268,6 +268,7 @@ sourceless_worker_goal(sandbox_policy:sandbox_control_catch(C,G0,E,H0),
     sourceless_worker_goal(G0,G), sourceless_worker_goal(H0,H).
 sourceless_worker_goal(catch(G0,E,H0), catch(G,E,H)) :- !,
     sourceless_worker_goal(G0,G), sourceless_worker_goal(H0,H).
+sourceless_worker_goal(call(G0), call(G)) :- !, sourceless_worker_goal(G0,G).
 sourceless_worker_goal(once(G0), once(G)) :- !, sourceless_worker_goal(G0,G).
 sourceless_worker_goal(ignore(G0), ignore(G)) :- !, sourceless_worker_goal(G0,G).
 sourceless_worker_goal((\+G0), (\+G)) :- !, sourceless_worker_goal(G0,G).
@@ -318,6 +319,10 @@ actor_query_goal(Module, receive(Clauses0, Options0),
     call_in_module(Module, '$actor_qualify_receive'(Clauses0, Clauses)),
     call_in_module(Module, '$actor_qualify_receive_options'(Options0, Options)),
     Qualified = Module:Clauses.
+actor_query_goal(Module,toplevel_call_synch(P,G,A),toplevel_actors:toplevel_call_synch(P,Module:G,A,Module:[])) :- !.
+actor_query_goal(Module,toplevel_call_synch(P,G,A,O),toplevel_actors:toplevel_call_synch(P,Module:G,A,Module:O)) :- !.
+actor_query_goal(Module,toplevel_next_synch(P,A),toplevel_actors:toplevel_next_synch(P,A,Module:[])) :- !.
+actor_query_goal(Module,toplevel_next_synch(P,A,O),toplevel_actors:toplevel_next_synch(P,A,Module:O)) :- !.
 actor_query_goal(_, runtime_property(Property), rpc:runtime_property(Property)) :- !.
 actor_query_goal(_, rpc(URI, Goal), rpc:rpc(URI, Goal)) :- !.
 actor_query_goal(_, rpc(URI, Goal, Options),
@@ -685,7 +690,7 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     absolute_file_name('statechart_actor.pl',StatechartFile,[]),
     format(Out, ':- use_module(~q).~n',[StatechartFile]),
     format(Out, ':- use_module(~q).~n', [ActorsFile]),
-    format(Out, ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
+    format(Out, ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_call_synch/3,toplevel_call_synch/4,toplevel_next_synch/2,toplevel_next_synch/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
     format(Out, ':- use_module(~q, [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,yield/2,yield/3,runtime_property/1]).~n', [RpcFile]),
     format(Out, ':- use_module(~q, [server_spawn/3,server_spawn/4,server_request/3,server_request/4,server_promise/3,server_promise/4,server_yield/2,server_yield/3,server_yield/4,server_upgrade/2,server_upgrade/3,server_halt/2,server_stop/2]).~n', [ServerActorFile]),
     format(Out, ':- use_module(~q, [supervisor_spawn/2,supervisor_spawn/3,supervisor_spawn_child/3,supervisor_terminate_child/3,supervisor_delete_child/3,supervisor_respawn_child/3,supervisor_which_children/2,supervisor_count_children/2,supervisor_halt/1,supervisor_stop/1]).~n', [SupervisorActorFile]),
@@ -693,7 +698,7 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, 'parallel(Goals) :- parallel:parallel_in(~q,Goals).~n', [Module]),
     format(Out, 'first_solution(Solution,Goals) :- parallel:first_solution_in(~q,Solution,Goals,[on_fail(continue),on_error(stop)]).~n', [Module]),
     format(Out, 'first_solution(Solution,Goals,Options) :- parallel:first_solution_in(~q,Solution,Goals,Options).~n', [Module]),
-    format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_control_catch/4,sandbox_format/2,sandbox_sleep/1,sandbox_between/3,sandbox_atom_string/2,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
+    format(Out, ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_toplevel_synch/9,sandbox_control_catch/4,sandbox_format/2,sandbox_sleep/1,sandbox_between/3,sandbox_atom_string/2,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     format(Out, ':- dynamic \'$actor_source_pi\'/1.~n', []),
     format(Out, ':- dynamic \'$actor_dynamic_pi\'/1.~n', []),
     format(Out, ':- dynamic \'$actor_discontiguous_pi\'/1.~n', []),
@@ -795,6 +800,10 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_call\'(toplevel_halt(Pid,Wait)) :- !, toplevel_actors:toplevel_halt(Pid,Wait).~n', []),
     format(Out, '\'$actor_call\'(toplevel_stop(Pid)) :- !, toplevel_actors:toplevel_stop(Pid).~n', []),
     format(Out, '\'$actor_call\'(toplevel_abort(Pid)) :- !, toplevel_actors:toplevel_abort(Pid).~n', []),
+    format(Out, '\'$actor_call\'(toplevel_call_synch(P,G,A)) :- !, toplevel_actors:toplevel_call_synch(P,~q:G,A,~q:[]).~n', [Module,Module]),
+    format(Out, '\'$actor_call\'(toplevel_call_synch(P,G,A,O)) :- !, toplevel_actors:toplevel_call_synch(P,~q:G,A,~q:O).~n', [Module,Module]),
+    format(Out, '\'$actor_call\'(toplevel_next_synch(P,A)) :- !, toplevel_actors:toplevel_next_synch(P,A,~q:[]).~n', [Module]),
+    format(Out, '\'$actor_call\'(toplevel_next_synch(P,A,O)) :- !, toplevel_actors:toplevel_next_synch(P,A,~q:O).~n', [Module]),
     format(Out, '\'$actor_call\'(runtime_property(Property)) :- !, rpc:runtime_property(Property).~n', []),
     format(Out, '\'$actor_call\'(rpc(URI,Goal)) :- !, rpc:rpc(URI,Goal).~n', []),
     format(Out, '\'$actor_call\'(rpc(URI,Goal,Options)) :- !, rpc:rpc(URI,Goal,Options).~n', []),
@@ -848,6 +857,8 @@ write_bootstrap_(Out, Module, ActorsFile, ToplevelFile,
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_random_member(Element,List), random_member(Element,List)) :- !.~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_time(_Context,Goal0), time(Goal)) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:Call0, Call) :- nonvar(Call0), functor(Call0,sandbox_call,Arity), Arity >= 5, Arity =< 12, !, Call0 =.. [sandbox_call,_M,_P,_C,_A,Closure0|Extra0], \'$actor_strip_source_module\'(Closure0,Closure), \'$actor_strip_source_args\'(Extra0,Extra), Call =.. [call,Closure|Extra].~n', []),
+    format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_toplevel_synch(_M,_P,_C,_A,call,Pid,G0,R,O0), toplevel_call_synch(Pid,G,R,O)) :- !, \'$actor_strip_source_module\'(G0,G), \'$actor_strip_source_module\'(O0,O).~n', []),
+    format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_toplevel_synch(_M,_P,_C,_A,next,Pid,_G,R,O0), toplevel_next_synch(Pid,R,O)) :- !, \'$actor_strip_source_module\'(O0,O).~n', []),
     format(Out, '\'$actor_strip_source_module\'(sandbox_policy:sandbox_control_catch(_Module,Goal0,Catcher,Recover0), catch(Goal,Catcher,Recover)) :- !, \'$actor_strip_source_module\'(Goal0,Goal), \'$actor_strip_source_module\'(Recover0,Recover).~n', []),
     format(Out, '\'$actor_strip_source_module\'(actors:receive_empty, receive({})) :- !.~n', []),
     format(Out, '\'$actor_strip_source_module\'(\'$actor_sandbox_spawn\'(_M,_P,_C,_A,Goal0,Pid,Options0), spawn(Goal,Pid,Options)) :- !, \'$actor_strip_source_module\'(Goal0,Goal), \'$actor_strip_source_module\'(Options0,Options).~n', []),

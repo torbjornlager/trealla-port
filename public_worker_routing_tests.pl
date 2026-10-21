@@ -41,15 +41,18 @@ private_source :-
     writeln('Private-source worker predicates and sharing remain available: ok').
 
 query(Pid,Goal,Template,Expected) :-
-    toplevel_call(Pid,Goal,[template(Template),limit(1)]),
-    receive({
-      success(Pid,Slice,More) ->
+    % Goal may already contain a qualified sandbox helper. Keep its
+    % qualification nested below the wrapper's outer caller context.
+    toplevel_call_synch(Pid,call(Goal),Answer,
+      [template(Template),limit(1),
+       timeout(3),on_timeout(throw(public_worker_query_timeout(Goal)))]),
+    ( Answer=success(Pid,Slice,More) ->
         Slice=Expected,
         (More==false -> true
-        ; throw(unexpected_worker_continuation(Goal)));
-      error(Pid,Error) -> throw(public_worker_query_error(Error));
-      failure(Pid) -> throw(public_worker_query_failed(Goal))
-    },[timeout(3),on_timeout(throw(public_worker_query_timeout(Goal)))]).
+        ; throw(unexpected_worker_continuation(Goal)))
+    ; Answer=error(Pid,Error) -> throw(public_worker_query_error(Error))
+    ; Answer=failure(Pid) -> throw(public_worker_query_failed(Goal))
+    ).
 
 % Check the preparer itself without PTCP's native offset/2 wrapper.
 native_control_scope :-
@@ -57,11 +60,16 @@ native_control_scope :-
     \+call(Cut),
     isolation:sourceless_worker_goal((parallel([true])->fail;true),Conditional),
     \+call(Conditional),
+    isolation:sourceless_worker_goal(call(((parallel([true]),!,fail);true)),NestedCut),
+    \+call(NestedCut),
+    isolation:sourceless_worker_goal((call((parallel([true]),!)),fail;true),CallBoundary),
+    call(CallBoundary),
     writeln('Worker preparation preserves native cut and conditional scopes: ok').
 
 query_fails(Pid,Goal) :-
-    toplevel_call(Pid,Goal,[limit(1)]),
-    receive({failure(Pid) -> true;
-             success(Pid,_,_) -> throw(unexpected_control_success);
-             error(Pid,Error) -> throw(Error)},
-      [timeout(3),on_timeout(throw(public_control_timeout(Goal)))]).
+    toplevel_call_synch(Pid,Goal,Answer,
+      [limit(1),timeout(3),on_timeout(throw(public_control_timeout(Goal)))]),
+    ( Answer=failure(Pid) -> true
+    ; Answer=success(Pid,_,_) -> throw(unexpected_control_success)
+    ; Answer=error(Pid,Error) -> throw(Error)
+    ).

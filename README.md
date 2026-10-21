@@ -776,9 +776,54 @@ name/pid routing is unchanged.
 These tags let the existing synchronous wrappers discard a late reply from a
 timed-out request without confusing it with the next request. Timeout does not
 cancel execution. Browser target updates are kept in actor-local nonbacktrackable
-state because Trealla's `nb_setarg/3` cannot store compound endpoints. This batch
-also supports the explicit remote synchronous APIs below; it does not unify
-local and remote toplevel wrappers.
+state because Trealla's `nb_setarg/3` cannot store compound endpoints.
+
+The public `toplevel_call_synch/3-4` and `toplevel_next_synch/2-3` wrappers now
+support local toplevel pids and registered remote toplevel pids. Ordinary aliases
+resolve through the existing registry. Registered remote routes reuse the
+explicit correlated client below; unknown remote routes fail explicitly rather
+than falling back to an uncorrelated asynchronous wait. Local requests select
+the caller as target, use a fresh private reference, and remove/flush only their
+own monitor on success, failure, exception or interruption. An old correlated
+reply for the same toplevel is discarded without restarting the original wait
+deadline. Replies for other toplevels and ordinary asynchronous messages remain
+available. The reply is selected before output unification, so an output
+mismatch consumes it and fails.
+
+The wrappers separate query options (`template/1`, `offset/1`, `limit/1`,
+`once/1`) from local receive options (`timeout/1`, `on_timeout/1`). Next accepts
+only `limit/1` among query options. All occurrences are validated before sending;
+`target/1` must equal the caller, and `io_target/1` is unsupported here. They are
+exported through `actor_api.pl` and private actor bootstraps, with ACTOR-profile
+and sandbox checks on query goals and computed timeout callbacks. Private actor
+callback context and sharing are retained. In standalone modules, explicitly
+qualify next-call options (`Module:Options`) when a callback needs that module;
+the existing list-valued meta-argument qualification gap can otherwise lose it.
+`synchronous_toplevel_tests.pl` checks the public local API and remote calls
+against both native peers. The explicit remote constructor now registers its
+returned pid/connection route; no links or monitors are added by that registration.
+The wrapper's remote path explicitly selects its caller, and the existing writer
+waiter accepts either typed correlated replies or endpoint-delivered private
+reply envelopes. Only live waiters claim replies, and tagged public-wrapper
+replies arriving after release are discarded. The peer's advertised URL may be
+an alias of the connection URL; replies retain the caller's registered pid form.
+Existing asynchronous and explicit remote APIs retain their reply formats and
+option behaviour.
+
+The local sandbox adapter nests prepared query goals inside `call/1`, keeping
+qualified private helpers below the wrapper's outer caller qualification.
+The source-less worker preparer traverses this call while retaining its control
+boundary. The worker-query test helper uses the same protection. Remote queries
+still send portable goals without sender-private rewrites; general outer-module
+qualification semantics are unchanged. Regression checks cover both sandbox
+policies, source-less and private-source toplevels, sharing, paging, and remote
+calls against SWI and Trealla.
+
+A separate creation limitation remains: the general `toplevel_spawn/2` path
+with `node/1` can ship Trealla's private `session/5` entry to native SWI, which
+does not define it. The live wrapper checks use the existing explicit
+`remote_node_open/2` and `remote_toplevel_spawn/3` constructor instead. This batch
+does not repair that cross-runtime creation path.
 
 The native client exports `remote_toplevel_call_synch(Node,Pid,Goal,Answer)`
 and its five-argument form with options, plus

@@ -34,6 +34,8 @@
          toplevel_spawn/2,       % -Pid, +Options
          toplevel_call/2,        % +Pid, :Goal
          toplevel_call/3,        % +Pid, :Goal, +Options
+         toplevel_call_synch/3, toplevel_call_synch/4,
+         toplevel_next_synch/2, toplevel_next_synch/3,
          toplevel_next/1,        % +Pid
          toplevel_next/2,        % +Pid, +Options
          toplevel_halt/1,        % +Pid
@@ -519,6 +521,110 @@ toplevel_next(Pid) :-
 toplevel_next(Pid, Options) :-
     Pid ! '$next'(Options).
 
+
+%! toplevel_call_synch(+Pid, :Goal, -Answer, :Options) is semidet.
+% One correlated reply; a receive timeout does not cancel the computation.
+:- meta_predicate toplevel_call_synch(+,0,-), toplevel_call_synch(+,0,-,:),
+                  toplevel_next_synch(+,-), toplevel_next_synch(+,-,:).
+toplevel_call_synch(Pid,Goal,Answer) :-
+    toplevel_call_synch(Pid,Goal,Answer,[]).
+toplevel_call_synch(Pid,Goal,Answer,Options) :-
+    synchronous_toplevel(call,Pid,Goal,Answer,Options).
+toplevel_next_synch(Pid,Answer) :-
+    toplevel_next_synch(Pid,Answer,[]).
+toplevel_next_synch(Pid,Answer,Options) :-
+    synchronous_toplevel(next,Pid,true,Answer,Options).
+
+synchronous_toplevel(Kind,Pid0,Goal0,Answer,Options0) :-
+    synchronous_pid(Pid0,Pid),
+    strip_module(Goal0,GoalModule,Goal),
+    strip_module(Options0,OptionModule,RawOptions),
+    (nonvar(OptionModule) -> ContextOptions=Options0
+    ; self(Self),isolation:actor_source_module(Self,Source) -> ContextOptions=Source:RawOptions
+    ; nonvar(GoalModule) -> ContextOptions=GoalModule:RawOptions
+    ; ContextOptions=user:RawOptions),
+    synchronous_options(Kind,ContextOptions,Caller,Query,Wait),
+    (remote_toplevel_route(Pid,Node) ->
+        append(Query,Wait,Options),
+        (Kind==call -> distribution:synchronous_remote(call,Node,Pid,Goal,Caller,Answer,Caller:Options,caller)
+        ; distribution:synchronous_remote(next,Node,Pid,true,Caller,Answer,Caller:Options,caller))
+    ; compound(Pid),functor(Pid,@,2) ->
+        throw(error(permission_error(use,toplevel_correlation,Pid),synchronous_toplevel/5))
+    ; make_ref(RequestRef),
+      setup_call_cleanup(monitor(Pid,MonitorRef),
+        once(( (Kind==call -> toplevel_call(Pid,Goal,['$request_ref'(RequestRef)|Query])
+          ; toplevel_next(Pid,['$request_ref'(RequestRef)|Query])),
+          synchronous_answer(Pid,MonitorRef,RequestRef,Answer,Caller,Wait))),
+        demonitor(MonitorRef,[flush]))
+    ).
+
+synchronous_pid(Pid0,Pid) :-
+    must_be(nonvar,Pid0),
+    (atom(Pid0) -> whereis(Pid0,Pid),
+        (Pid==undefined -> throw(toplevel_down(no_process)) ; true)
+    ; integer(Pid0) -> Pid=Pid0
+    ; compound(Pid0),functor(Pid0,@,2) -> Pid=Pid0
+    ; throw(error(domain_error(toplevel_pid,Pid0),synchronous_toplevel/5))).
+
+synchronous_options(Kind,Options0,Caller,[target(Self)|Query],Wait) :-
+    strip_module(Options0,Caller0,Options),
+    (nonvar(Caller0) -> Caller=Caller0
+    ; self(Actor),isolation:actor_source_module(Actor,Source) -> Caller=Source
+    ; Caller=user),
+    catch((must_be(list,Options),self(Self),
+           split_synchronous_options(Options,Kind,Self,Query,Wait)),
+      error(Formal,_),
+      ( (Kind==call -> PI=toplevel_call_synch/4 ; PI=toplevel_next_synch/3),
+        throw(error(Formal,context(toplevel_actors:PI,'invalid synchronous toplevel option'))))).
+split_synchronous_options([],_,_,[],[]).
+split_synchronous_options([Option|Options],Kind,Self,Query,Wait) :-
+    must_be(nonvar,Option),
+    (compound(Option),functor(Option,Name,1),
+     synchronous_option(Kind,Name,Destination,Type) ->
+        arg(1,Option,Value),synchronous_option_value(Type,Value,Self),
+        (Destination==query -> Query=[Option|Qs],Wait=Ws
+        ; Destination==wait -> Query=Qs,Wait=[Option|Ws]
+        ; Query=Qs,Wait=Ws)
+    ; (Kind==call -> Domain=toplevel_call_synch_option ; Domain=toplevel_next_synch_option),
+      throw(error(domain_error(Domain,Option),split_synchronous_options/5))),
+    split_synchronous_options(Options,Kind,Self,Qs,Ws).
+synchronous_option(_,target,routing,target).
+synchronous_option(_,timeout,wait,timeout).
+synchronous_option(_,on_timeout,wait,callable).
+synchronous_option(_,limit,query,positive_integer).
+synchronous_option(call,template,query,term).
+synchronous_option(call,offset,query,nonneg).
+synchronous_option(call,once,query,boolean).
+synchronous_option_value(term,_,_) :- !.
+synchronous_option_value(target,Target,Self) :- !,
+    must_be(nonvar,Target),
+    (Target==Self -> true ; throw(error(domain_error(synchronous_toplevel_target,Target),synchronous_options/5))).
+synchronous_option_value(timeout,T,_) :- !,
+    must_be(number,T),
+    (T>=0 -> true ; throw(error(domain_error(not_less_than_zero,T),synchronous_options/5))).
+synchronous_option_value(positive_integer,N,_) :- !,
+    must_be(integer,N),
+    (N>0 -> true ; throw(error(domain_error(positive_integer,N),synchronous_options/5))).
+synchronous_option_value(Type,Value,_) :- must_be(Type,Value).
+
+synchronous_answer(Pid,MonRef,RequestRef,Answer,Caller,Options) :-
+    option(on_timeout(Callback),Options,true),
+    (option(timeout(T),Options) ->
+        (T>0 -> get_time(Now),Deadline is Now+T,Wait=[deadline(Deadline)]
+        ; Wait=[timeout(0)])
+    ; Wait=[]),
+    once(synchronous_receive(Pid,MonRef,RequestRef,Answer,Caller,Callback,Wait)).
+synchronous_receive(Pid,MonRef,RequestRef,Answer,Caller,Callback,Wait) :-
+    receive({
+      '$toplevel_reply'(ReplyRef,Reply) if toplevel_actors:synchronous_reply_pid(Reply,Pid) ->
+        (ReplyRef==RequestRef -> Answer=Reply
+        ; toplevel_actors:synchronous_receive(Pid,MonRef,RequestRef,Answer,Caller,Callback,Wait));
+      down(_,Ref,Reason) if Ref==MonRef -> throw(toplevel_down(Reason))
+    },[on_timeout(toplevel_actors:synchronous_callback(Caller,Callback))|Wait]).
+synchronous_reply_pid(success(P,_,_),Pid) :- P==Pid.
+synchronous_reply_pid(failure(P),Pid) :- P==Pid.
+synchronous_reply_pid(error(P,_),Pid) :- P==Pid.
+synchronous_callback(Caller,Callback) :- call(Caller:Callback).
 
 %!  toplevel_halt(+Pid) is det.
 %!  toplevel_halt(+Pid, -Reply) is det.

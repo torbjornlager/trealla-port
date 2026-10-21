@@ -155,11 +155,15 @@ shared_sync_client(Node,P,Parent) :-
     Parent ! shared_sync_result(Me,Answer).
 
 sync_legacy_test(Port) :-
-    distribution_url(Port,URL),remote_node_open(URL,Node),remote_toplevel_spawn(Node,P,[session(true)]),
+    format(atom(URL),'ws://127.0.0.1:~w/actor',[Port]),remote_node_open(URL,Node),remote_toplevel_spawn(Node,P,[session(true)]),
     catch(remote_toplevel_call_synch(Node,P,true,_,[timeout(0)]),Error,true),
     Error=error(permission_error(use,toplevel_correlation,URL),_),
     catch(remote_toplevel_next_synch(Node,P,_,[timeout(0)]),NextError,true),
     NextError=error(permission_error(use,toplevel_correlation,URL),_),
+    catch(toplevel_actors:toplevel_call_synch(P,true,_,[timeout(0)]),PublicError,true),
+    PublicError=error(permission_error(use,toplevel_correlation,URL),_),
+    catch(toplevel_actors:toplevel_next_synch(P,_,[timeout(0)]),PublicNextError,true),
+    PublicNextError=error(permission_error(use,toplevel_correlation,URL),_),
     remote_toplevel_call(Node,P,true,[]),
     receive({success(P,[swi],false)->true},[timeout(3),on_timeout(fail)]),
     remote_toplevel_halt(Node,P),receive_halted(P),remote_node_close(Node),
