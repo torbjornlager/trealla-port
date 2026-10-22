@@ -1,5 +1,7 @@
 # BUG-027: Assertion goal expansion misprints runtime variables and disables later expansion
 
+**Closure verification (2026-10-22):** [Trealla #1175](https://github.com/trealla-prolog/trealla-prolog/issues/1175) is now closed as completed. The standalone reproducer passed 20/20 trials, ground controls 5/5 and bounded assertion checks 24/24. These checks use unmodified upstream v3.14.5 (`beed430`), not our candidate engine patches. Installed runtimes are unchanged. [Results and closure comments](upstream-closure-verification-2026-10-22/REPORT.md). Earlier observations below are retained as history.
+
 **Status:** Submitted on 2026-10-21 as [Trealla issue #1175](https://github.com/trealla-prolog/trealla-prolog/issues/1175), including the complete candidate diff. The candidate engine patch
 is experimental, tested only in a separate v3.13.26 build. No installed engine,
 port runtime source or live node was changed.

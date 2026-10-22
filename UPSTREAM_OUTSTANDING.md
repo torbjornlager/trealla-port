@@ -1,5 +1,12 @@
 # Outstanding Trealla reports from the Web Prolog port
 
+**2026-10-22 closure checkpoint:** #1172–#1175 are closed as completed after
+verification on unmodified upstream v3.14.5 (`beed430`). The module-import
+report #1176 remains open; its passing checks use a separate candidate patch.
+Installed runtimes are unchanged. See the [verification results and closure
+comments](reproducers/upstream-closure-verification-2026-10-22/REPORT.md).
+Older assessments below are retained as historical context.
+
 HTTP-timeout entry retested on a separate upstream build 2026-10-22; other entries
 retain their 2026-10-18 assessment.
 Unless otherwise noted, observations use Trealla v3.13.10 on macOS arm64.  Thank you for the substantial set of fixes and additions already
@@ -47,7 +54,7 @@ server callbacks in the port's supervisor child-specification list to be
 looked up in the wrong module. The port currently works around this by passing
 `Module:ChildSpecs` explicitly.
 
-## Submitted reports awaiting upstream resolution
+## Reports verified fixed upstream
 
 ### BUG-024: HTTP read timeouts are accepted but not enforced
 

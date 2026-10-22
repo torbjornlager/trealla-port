@@ -1,0 +1,70 @@
+[
+  {
+    "number": 1172,
+    "title": "http_open/3 accepts timeout/1 but does not enforce read timeout",
+    "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1172",
+    "state": "closed",
+    "state_reason": "completed",
+    "closed_at": "2026-10-22T08:51:24Z",
+    "comments": [
+      {
+        "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1172#issuecomment-6336735833",
+        "body": "Verified fixed on a separate, unmodified upstream v3.14.5 build at `beed430deca9fa48adf028541ea4c3e2bd8d3641`, with its matching standard library (macOS arm64, SDK 15.4, NOSSL=1 NOFFI=1).\n\nThe original silent-peer reproducer now raises a read-timeout error in all three runs after 0.203, 0.202 and 0.203 seconds for timeout(0.2), instead of succeeding after the 1.2-second delayed reply. Both upstream regression suites also matched their complete expected output: `stream_read_timeout.pl` (21 lines) and `task_read_timeout.pl` (9 lines), with exit status 0.\n\nClosing the reported plain-HTTP timeout issue as fixed. TLS and other platforms were not retested. Our installed v3.13.10 runtime remains unchanged. Thank you for the fix!",
+        "id": 6336735833
+      }
+    ]
+  },
+  {
+    "number": 1173,
+    "title": "Concurrent module-table growth can race module_by_id() and cause SIGSEGV",
+    "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1173",
+    "state": "closed",
+    "state_reason": "completed",
+    "closed_at": "2026-10-22T08:53:12Z",
+    "comments": [
+      {
+        "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1173#issuecomment-6336769274",
+        "body": "Verified fixed on unmodified upstream v3.14.5, commit `beed430deca9fa48adf028541ea4c3e2bd8d3641`, using its matching adjacent standard library (separate macOS arm64 build, SDK 15.4, NOSSL=1 NOFFI=1). This build includes the upstream module-map fixes, including `85bded90` and `51c6e316`; our candidate patch was not applied.\n\nThe original standalone module-map reproducer passed **100/100 fresh-process runs**: each printed `module_map_passed` and exited 0, with no signals, Prolog failures or 15-second watchdog timeouts. The worker still executes 200,000 list operations while the main thread creates 300 modules; its overlap and thread_join status check are unchanged.\n\nClosing this specific module-table growth/lookup report as fixed. This does not claim that all historical threading crashes are resolved. Our installed runtime remains unchanged. Thank you!",
+        "id": 6336769274
+      }
+    ]
+  },
+  {
+    "number": 1174,
+    "title": "with_output_to/2 mixes captured output between concurrent threads",
+    "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1174",
+    "state": "closed",
+    "state_reason": "completed",
+    "closed_at": "2026-10-22T08:53:43Z",
+    "comments": [
+      {
+        "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1174#issuecomment-6336778730",
+        "body": "Verified fixed on a separate, unmodified upstream v3.14.5 build at `beed430deca9fa48adf028541ea4c3e2bd8d3641`, with its matching standard library (macOS arm64, SDK 15.4, NOSSL=1 NOFFI=1). This includes the upstream capture fixes `30a0a237`, `cd44cfe4` and `c83bb017`; no local engine patch was applied.\n\nThe original standalone, message-controlled concurrent capture reproducer returned exactly `actual(beta,alphaomega)` and exited 0 in **20/20 fresh-process runs**. There were no mixed-capture results, stderr diagnostics, unexpected outcomes or 15-second watchdog timeouts. The original interleaving is preserved; no sleeps were added.\n\nClosing the reported cross-thread output-capture issue as fixed. Our installed runtime remains unchanged. Thank you!",
+        "id": 6336778730
+      }
+    ]
+  },
+  {
+    "number": 1175,
+    "title": "Assertion goal expansion can emit malformed queries and disable later expansion",
+    "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1175",
+    "state": "closed",
+    "state_reason": "completed",
+    "closed_at": "2026-10-22T08:54:07Z",
+    "comments": [
+      {
+        "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1175#issuecomment-6336786313",
+        "body": "Verified fixed on separate, unmodified upstream v3.14.5 at `beed430deca9fa48adf028541ea4c3e2bd8d3641`, with its matching adjacent standard library (macOS arm64, SDK 15.4, NOSSL=1 NOFFI=1). This contains the upstream assertion/expansion fixes, including `fa8ec503` and `f4c239ba`; our candidate patch was not applied.\n\n- Original standalone reproducer: **20/20 fresh-process runs** returned exactly `first([a-a-a])`, `ground(ok)`, `after([a-a-b])`, with exit status 0 and empty stderr.\n- Ground controls: **5/5 pass**.\n- Bounded assertion checks: **24/24 pass** (three fresh runs for each valid/rejected `asserta/1`, `assertz/1`, `asserta/2`, `assertz/2` case), including quoting, variable sharing, clause references, cut behavior, rejection of invalid expansion and successful expansion after an error.\n\nThere were no watchdog timeouts or parser diagnostics in these checks. Closing this assertion goal-expansion report as fixed. This is not a claim that every loader or lifecycle diagnostic is resolved; #1176 remains separate. Our installed runtime remains unchanged. Thank you!",
+        "id": 6336786313
+      }
+    ]
+  },
+  {
+    "number": 1176,
+    "title": "File-path use_module reconsults an already loaded module and erases asserted runtime state",
+    "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1176",
+    "state": "open",
+    "state_reason": null,
+    "closed_at": null
+  }
+]

@@ -1,5 +1,7 @@
 # BUG-025: Concurrent module-table growth and lookup
 
+**Closure verification (2026-10-22):** [Trealla #1173](https://github.com/trealla-prolog/trealla-prolog/issues/1173) is now closed as completed. The original standalone module-map stress reproducer passed 100/100 fresh-process trials. These checks use unmodified upstream v3.14.5 (`beed430`), not our candidate engine patches. Installed runtimes are unchanged. [Results and closure comments](upstream-closure-verification-2026-10-22/REPORT.md). Earlier observations below are retained as history.
+
 **Status:** Submitted on 2026-10-21 as [Trealla issue #1173](https://github.com/trealla-prolog/trealla-prolog/issues/1173).
 
 The following is the submitted report. The adjacent `.pl` and `.py` files

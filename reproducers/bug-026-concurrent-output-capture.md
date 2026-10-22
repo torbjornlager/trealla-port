@@ -1,5 +1,7 @@
 # BUG-026: Output capture mixes text between threads
 
+**Closure verification (2026-10-22):** [Trealla #1174](https://github.com/trealla-prolog/trealla-prolog/issues/1174) is now closed as completed. The original message-controlled capture reproducer returned the expected result in 20/20 fresh-process trials. These checks use unmodified upstream v3.14.5 (`beed430`), not our candidate engine patches. Installed runtimes are unchanged. [Results and closure comments](upstream-closure-verification-2026-10-22/REPORT.md). Earlier observations below are retained as history.
+
 **Status:** Submitted on 2026-10-21 as [Trealla issue #1174](https://github.com/trealla-prolog/trealla-prolog/issues/1174).
 Retested on 2026-10-21 against a fresh,
 unmodified current-upstream checkout. The duplicate search found no exact match.

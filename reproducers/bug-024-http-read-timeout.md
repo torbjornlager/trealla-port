@@ -1,5 +1,7 @@
 # Upstream report: HTTP read timeout is accepted but not enforced
 
+**Closure verification (2026-10-22):** [Trealla #1172](https://github.com/trealla-prolog/trealla-prolog/issues/1172) is now closed as completed. The standalone timeout reproducer passed three trials and both upstream timeout suites matched their complete expected output. These checks use unmodified upstream v3.14.5 (`beed430`), not our candidate engine patches. Installed runtimes are unchanged. [Results and closure comments](upstream-closure-verification-2026-10-22/REPORT.md). Earlier observations below are retained as history.
+
 **Status:** Submitted on 2026-10-21 as [Trealla issue #1172](https://github.com/trealla-prolog/trealla-prolog/issues/1172).
 Reproduced on v3.13.10 and a
 separate unmodified current-upstream v3.13.26 build; duplicate search completed
