@@ -1816,6 +1816,20 @@ validation, transport mapping, successful requests and promise wait/callback/ret
 Its separate `diagnose_expiry/1` reproduces the unresolved transport expiry
 problem for both spellings and asynchronous promise collection.
 
+A [separate upstream v3.14.5 verification](reproducers/port-http-timeout-upstream-2026-10-22/REPORT.md)
+confirms that the newer engine enforces the tested plain-HTTP read timeouts.
+The installed/pinned engine has not been upgraded. The port now acquires promise
+HTTP streams in the setup of `setup_call_cleanup/3`, so successful reads and
+read/parse exceptions close the acquired stream. A local yield timeout still
+leaves the request available for retry. The malformed-reply regression runs in
+the default pinned-engine unit suite; body/partial-read timeout checks pass on
+the separate upstream build. The separate private actor callback hang remains
+unresolved and still blocks treating that build as a drop-in replacement.
+`tools/test-http-timeout-enforcement.py` runs the focused fixture against an
+explicitly selected engine, retaining failed cleanup assertions rather than
+counting a timeout error alone as success. Destination-side timeout semantics
+are unchanged.
+
 Source text, source URIs and CA filenames accept the existing text formats
 (atoms, strings, or valid character/code lists); `src_list/1` takes a proper
 term list and `src_predicates/1` takes a list of atom/nonnegative-integer

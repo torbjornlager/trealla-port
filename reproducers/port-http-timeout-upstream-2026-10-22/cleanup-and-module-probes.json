@@ -1,0 +1,44 @@
+[
+  {
+    "engine": "pinned",
+    "case": "module_stream_probe",
+    "exit_code": 0,
+    "stdout": "error(permission_error(access,private_procedure,'$stream_property'/2),stream_property/2)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "pinned",
+    "case": "guarded_call_cleanup",
+    "exit_code": 0,
+    "stdout": "streams(3,3)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "pinned",
+    "case": "setup_call_cleanup",
+    "exit_code": 0,
+    "stdout": "streams(3,3)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "upstream",
+    "case": "module_stream_probe",
+    "exit_code": 0,
+    "stdout": "error(permission_error(access,private_procedure,'$stream_property'/2),stream_property/2)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "upstream",
+    "case": "guarded_call_cleanup",
+    "exit_code": 0,
+    "stdout": "cleanup_stream_unbound\nerror(timeout_error(read,'$stream'(3)),getline/2)\nstreams(3,4)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "upstream",
+    "case": "setup_call_cleanup",
+    "exit_code": 0,
+    "stdout": "error(timeout_error(read,'$stream'(3)),getline/2)\nstreams(3,3)\n",
+    "stderr": ""
+  }
+]

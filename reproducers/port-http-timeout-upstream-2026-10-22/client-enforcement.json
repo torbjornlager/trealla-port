@@ -1,0 +1,10 @@
+{
+  "exit_code": 1,
+  "stdout": "rpc headers [http_timeout(0.2)]: timeout; stream reclaimed; next request succeeds\nrpc headers [timeout(0.2)]: timeout; stream reclaimed; next request succeeds\nrpc body [http_timeout(0.2)]: timeout; stream reclaimed; next request succeeds\nrpc body [timeout(0.2)]: timeout; stream reclaimed; next request succeeds\nrpc partial [http_timeout(0.2)]: timeout; stream reclaimed; next request succeeds\nrpc partial [timeout(0.2)]: timeout; stream reclaimed; next request succeeds\nrpc headers [timeout(5),http_timeout(0.2)]: timeout; stream reclaimed; next request succeeds\nrpc headers [http_timeout(0.2),timeout(5)]: timeout; stream reclaimed; next request succeeds\npromise headers: callback then error answer; queue, worker, timer and stream reclaimed\nerror(timeout_enforcement_check_failed(streams(body,3,4)),rpc_http_timeout_enforcement_tests/1)\n",
+  "stderr": "",
+  "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/tpl",
+  "library": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/library",
+  "elapsed_seconds": 3.129,
+  "scope": "Plain HTTP; delayed headers, body and partial line; no TLS",
+  "passed": false
+}

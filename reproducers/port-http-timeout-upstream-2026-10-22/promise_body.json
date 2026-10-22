@@ -1,0 +1,11 @@
+{
+  "exit_code": 1,
+  "stdout": "error(timeout_enforcement_check_failed(streams(body,3,4)),rpc_http_timeout_enforcement_tests/1)\n",
+  "stderr": "",
+  "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/tpl",
+  "library": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/library",
+  "case": "promise_body",
+  "elapsed_seconds": 0.562,
+  "scope": "Plain HTTP; delayed headers, body and partial line; no TLS",
+  "passed": false
+}

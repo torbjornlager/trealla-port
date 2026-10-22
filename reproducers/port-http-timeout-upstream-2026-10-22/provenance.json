@@ -1,0 +1,36 @@
+{
+  "checked_on": "2026-10-22",
+  "upstream_revision": "beed430deca9fa48adf028541ea4c3e2bd8d3641",
+  "upstream_version": "Trealla Prolog (c) Infradig 2020, v3.14.5",
+  "included_timeout_fixes": [
+    "7e13de807293af4ddb411902a1ca4bdec987352f",
+    "f8790c5cb6b0ae3ad0dee73b78e5a920bc1c85fc",
+    "2ff66ea060ae1aa46618a5d506a57f2b49854480"
+  ],
+  "build": {
+    "command": "SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk make NOSSL=1 NOFFI=1 -j4",
+    "tls": false,
+    "ffi": false,
+    "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22",
+    "log": "build.log"
+  },
+  "repository_head": "96f2badea97892c947d427b3aa9ba2cde8ee8760",
+  "runtime_sources_unchanged": true,
+  "upstream_sources_clean": true,
+  "pinned_executable_sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+  "pinned_executable_unchanged": true,
+  "upstream_executable_sha256": "5cb6b4c9d4dcd88211443151660c0c2ecf79326b61612191d95a46c95a1d420e",
+  "test_hashes": {
+    "rpc_http_timeout_enforcement_tests.pl": "f00b4ee2b8fbe19fd698e3be0b69f97f5f16ba5fa6fc4b02dc6711c295b03765",
+    "tools/test-http-timeout-enforcement.py": "d50ae9146ced2d454c6a755bce0e8192456ea19cfb9ebd8ad969c6bf6b3ae058",
+    "rpc_http_timeout_tests.pl": "398d6751dd2e9a7b33a36c2b6de0a2567248758e9e40c079c1d8369cf82d5c8a",
+    "rpc_promise_tests.pl": "2b310a42accfa4ea8834773e034e646e4a2c1f825e034121ef203f0233d93663",
+    "rpc_lifecycle_tests.pl": "e3d77a374f126db15c444824f7459d97fc0914b3f623588c181efde2b0a19b05",
+    "rpc_option_tests.pl": "202c9a4c481238286b67f8135970ab2b22789011dfd3695f0f335c02a585d49a",
+    "rpc.pl": "de3a5c965137134bab4123116e76b2c1f8936bcb20ee530d9bbebbe10bff5a87",
+    "reproducers/bug-024-http-read-timeout.pl": "056e61590c217334248c07da133a2d769846b14695e504fc18f05c50212a5ec9",
+    "reproducers/bug-024-http-read-timeout.py": "4f32d43165443604b7c98b494a650fef75af05bbf1a2e38f1c0f05ce30d869eb"
+  },
+  "scope": "Assessment only: no engine installation, runtime source repair or live n3/n5 restart; plain HTTP, no TLS.",
+  "verdict": "Timeout fix verified; not a drop-in upgrade. Promise body/partial-read stream leak and private actor callback hang remain."
+}

@@ -120,6 +120,8 @@ run_unit() {
     run_with_timeout "Public synchronous toplevel wrappers" \
         "$TPL" -g "consult('$ROOT/synchronous_toplevel_tests.pl'),(catch(synchronous_toplevel_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     http_timeout_port=$((TEST_PORT_BASE + 88))
+    run_with_timeout "Promise stream cleanup on malformed replies" \
+        python3 "$ROOT/tools/test-http-timeout-enforcement.py" --tpl "$TPL" --case parse_error
     run_with_timeout "HTTP transport timeout option mapping" \
         "$TPL" -g "consult('$ROOT/rpc_http_timeout_tests.pl'),(catch(rpc_http_timeout_tests:run($http_timeout_port),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Host runtime properties" \

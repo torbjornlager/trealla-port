@@ -1,0 +1,11 @@
+{
+  "exit_code": 0,
+  "stdout": "short local waits preserve retry; final success reclaims resources: ok\nHTTP timeout case retry_success: passed\n",
+  "stderr": "",
+  "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/tpl",
+  "library": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/library",
+  "case": "retry_success",
+  "elapsed_seconds": 0.564,
+  "scope": "Plain HTTP; delayed headers, body and partial line; no TLS",
+  "passed": true
+}

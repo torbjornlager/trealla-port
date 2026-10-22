@@ -1,6 +1,6 @@
 # Outstanding Trealla reports from the Web Prolog port
 
-HTTP-timeout entry retested on current upstream 2026-10-21; other entries
+HTTP-timeout entry retested on a separate upstream build 2026-10-22; other entries
 retain their 2026-10-18 assessment.
 Unless otherwise noted, observations use Trealla v3.13.10 on macOS arm64.  Thank you for the substantial set of fixes and additions already
 made for this port. The module-context report is ready to send upstream; the
@@ -70,6 +70,16 @@ canonical upstream tracker was checked across open/closed reports; no direct
 duplicate was found. Older issues #1052 and #1048 are related, as recorded in
 the report. Submitted on 2026-10-21.
 No timeout-enforcement workaround has been added to the port.
+
+**2026-10-22 verification:** upstream v3.14.5 (`beed430`) contains the stream and
+task timeout fixes. Our original reproducer now raises read-timeout errors at
+about 0.2 seconds, and both upstream timeout suites match their expected output.
+This does not yet justify upgrading the installed engine: an existing private
+actor callback regression hangs in this build. The accompanying port stream-scope
+leak is now repaired with setup-scoped acquisition; malformed replies and upstream
+body/partial-read timeouts reclaim their streams. Installed engines remain
+unchanged. See the [verification report](reproducers/port-http-timeout-upstream-2026-10-22/REPORT.md)
+for all passes, failures, probes and upgrade boundaries.
 
 ## New report needing a current-build retest
 

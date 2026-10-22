@@ -510,12 +510,12 @@ rpc_fetch_answer(BaseURI, GoalAtom, TemplateAtom, Offset, Limit, LoadText,
            '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog&once=~w',
            [RootURI, GoalEnc, TemplateEnc, Offset, Limit, Once]),
     rpc_source_url(URL0, LoadText, URL),
-    call_cleanup(
-        (http_open(URL, Stream, HTTPOptions),
-         getline(Stream, BodyChars),
+    setup_call_cleanup(
+        http_open(URL, Stream, HTTPOptions),
+        (getline(Stream, BodyChars),
          atom_chars(BodyAtom, BodyChars),
          read_term_from_atom(BodyAtom, Answer, [])),
-        (var(Stream) -> true ; close(Stream))).
+        close(Stream)).
 
 promise_auto_cleanup(Reference, Seconds) :-
     sleep(Seconds), dispose_promise(Reference).

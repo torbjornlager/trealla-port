@@ -1,0 +1,62 @@
+[
+  {
+    "label": "pinned",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "Trealla Prolog (c) Infradig 2020, v3.13.10\nsuccess([o,k]) after 1.207 seconds\n",
+    "stderr": ""
+  },
+  {
+    "label": "pinned",
+    "trial": 2,
+    "exit_code": 0,
+    "stdout": "Trealla Prolog (c) Infradig 2020, v3.13.10\nsuccess([o,k]) after 1.206 seconds\n",
+    "stderr": ""
+  },
+  {
+    "label": "pinned",
+    "trial": 3,
+    "exit_code": 0,
+    "stdout": "Trealla Prolog (c) Infradig 2020, v3.13.10\nsuccess([o,k]) after 1.204 seconds\n",
+    "stderr": ""
+  },
+  {
+    "label": "upstream",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "Trealla Prolog (c) Infradig 2020, v3.14.5\nerror(error(timeout_error(read,'$stream'(3)),getline/2)) after 0.203 seconds\n",
+    "stderr": ""
+  },
+  {
+    "label": "upstream",
+    "trial": 2,
+    "exit_code": 0,
+    "stdout": "Trealla Prolog (c) Infradig 2020, v3.14.5\nerror(error(timeout_error(read,'$stream'(3)),getline/2)) after 0.202 seconds\n",
+    "stderr": ""
+  },
+  {
+    "label": "upstream",
+    "trial": 3,
+    "exit_code": 0,
+    "stdout": "Trealla Prolog (c) Infradig 2020, v3.14.5\nerror(error(timeout_error(read,'$stream'(3)),getline/2)) after 0.203 seconds\n",
+    "stderr": ""
+  },
+  {
+    "label": "stream_read_timeout",
+    "exit_code": 0,
+    "stdout": "getline_2: timeout_error fast\ngetline_3: timeout_error fast\nget_char_2: timeout_error fast\nread_term_2: timeout_error fast\npartial_line: timeout_error fast\nterm_continuation: timeout_error fast\ndata_in_time: success fast\ngetlines_2: timeout_error fast\nzero_with_input: success fast\nzero_silent: timeout_error fast\nnegative: timeout_error fast\nrational: timeout_error fast\nhuge_float: time_limit_exceeded fast\nhuge_bigint: time_limit_exceeded fast\nnot_a_number: error(type_error(float,foo),set_stream/2) fast\nsecond_timeout: timeout_error fast\nalarm_first: time_limit_exceeded fast\ninfinite: time_limit_exceeded fast\nrecover: timeout_error error(syntax_error(operator_expected),read_term/3) success\nprops: [infinite] [0.2,0.0,0.0,2147483.647,infinite] found infinite\nhttp_open: timeout_error fast\n",
+    "stderr": "",
+    "expected": "getline_2: timeout_error fast\ngetline_3: timeout_error fast\nget_char_2: timeout_error fast\nread_term_2: timeout_error fast\npartial_line: timeout_error fast\nterm_continuation: timeout_error fast\ndata_in_time: success fast\ngetlines_2: timeout_error fast\nzero_with_input: success fast\nzero_silent: timeout_error fast\nnegative: timeout_error fast\nrational: timeout_error fast\nhuge_float: time_limit_exceeded fast\nhuge_bigint: time_limit_exceeded fast\nnot_a_number: error(type_error(float,foo),set_stream/2) fast\nsecond_timeout: timeout_error fast\nalarm_first: time_limit_exceeded fast\ninfinite: time_limit_exceeded fast\nrecover: timeout_error error(syntax_error(operator_expected),read_term/3) success\nprops: [infinite] [0.2,0.0,0.0,2147483.647,infinite] found infinite\nhttp_open: timeout_error fast\n",
+    "exact_stdout_match": true,
+    "elapsed_seconds": 4.612
+  },
+  {
+    "label": "task_read_timeout",
+    "exit_code": 0,
+    "stdout": "getline_2: timeout_error fast\nget_char_2: timeout_error fast\nread_term_2: timeout_error fast\nzero_silent: timeout_error fast\nzero_with_input: success fast\ndata_in_time: success fast\ninfinite: success fast\nhttp_gaps_within_timeout: success fast\nhttp_gap_past_timeout: timeout_error fast\n",
+    "stderr": "",
+    "expected": "getline_2: timeout_error fast\nget_char_2: timeout_error fast\nread_term_2: timeout_error fast\nzero_silent: timeout_error fast\nzero_with_input: success fast\ndata_in_time: success fast\ninfinite: success fast\nhttp_gaps_within_timeout: success fast\nhttp_gap_past_timeout: timeout_error fast\n",
+    "exact_stdout_match": true,
+    "elapsed_seconds": 2.492
+  }
+]

@@ -1,0 +1,45 @@
+[
+  {
+    "stage": "promise_retry_tests",
+    "exit_code": 0,
+    "stdout": "timeout returns an answer and preserves retry: ok\nstage_passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "stage": "promise_callback_tests",
+    "exit_code": 0,
+    "stdout": "callback answers, failure, exceptions and retry: ok\nstage_passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "stage": "promise_actor_callback_test",
+    "exit_code": null,
+    "timeout": true,
+    "stdout": "",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "stage": "promise_missing_tests",
+    "exit_code": 0,
+    "stdout": "unknown, consumed, cleaned and expired references: ok\nstage_passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "stage": "promise_output_tests",
+    "exit_code": 0,
+    "stdout": "output matching happens after message selection and consumption: ok\nstage_passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "stage": "promise_worker_tests",
+    "exit_code": 0,
+    "stdout": "worker failure and exceptions are delivered; remote failure is preserved: ok\nstage_passed\n",
+    "stderr": "",
+    "passed": true
+  }
+]

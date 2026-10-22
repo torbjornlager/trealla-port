@@ -1,0 +1,65 @@
+[
+  {
+    "engine": "pinned",
+    "goal": "rpc_http_timeout_tests:run(57496)",
+    "exit_code": 0,
+    "stdout": "HTTP timeout options: all regressions passed\n",
+    "stderr": "% Started server at http://localhost:57496/\n",
+    "passed": true
+  },
+  {
+    "engine": "pinned",
+    "goal": "rpc_promise_tests",
+    "exit_code": 0,
+    "stdout": "timeout returns an answer and preserves retry: ok\ncallback answers, failure, exceptions and retry: ok\nprivate actor callback source context: ok\nunknown, consumed, cleaned and expired references: ok\noutput matching happens after message selection and consumption: ok\nworker failure and exceptions are delivered; remote failure is preserved: ok\nPromise/yield correctness: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "pinned",
+    "goal": "rpc_lifecycle_tests",
+    "exit_code": 0,
+    "stdout": "collection and output mismatch reclaim queues and threads: ok\nexpiry stops outstanding worker and reclaims resources: ok\nexplicit cleanup reclaims resources and is idempotent: ok\ntimeout releases the collector and preserves retry: ok\ncollector exclusion, interruption and answer retention: ok\ncleanup and expiry wake waiting collectors before queue destruction: ok\ndisposal recovers a concurrently hard-cancelled collector: ok\npartial startup failure and exception roll back resources: ok\nlate delivery and cleanup races leave no resources: ok\nPromise lifecycle: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "pinned",
+    "goal": "rpc_option_tests",
+    "exit_code": 0,
+    "stdout": "unknown, ineffective, output and malformed options: ok\nvalues and every duplicate occurrence are validated: ok\ninvalid options do not fetch source or create promise resources: ok\ninvalid yield options preserve the reference and answer: ok\ndocumented subset, precedence, source formats and sharing: ok\nRPC client option validation: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "upstream",
+    "goal": "rpc_http_timeout_tests:run(57510)",
+    "exit_code": 0,
+    "stdout": "HTTP timeout options: all regressions passed\n",
+    "stderr": "% Started server at http://localhost:57510/\n",
+    "passed": true
+  },
+  {
+    "engine": "upstream",
+    "goal": "rpc_promise_tests",
+    "exit_code": null,
+    "timeout": true,
+    "passed": false
+  },
+  {
+    "engine": "upstream",
+    "goal": "rpc_lifecycle_tests",
+    "exit_code": 0,
+    "stdout": "collection and output mismatch reclaim queues and threads: ok\nexpiry stops outstanding worker and reclaims resources: ok\nexplicit cleanup reclaims resources and is idempotent: ok\ntimeout releases the collector and preserves retry: ok\ncollector exclusion, interruption and answer retention: ok\ncleanup and expiry wake waiting collectors before queue destruction: ok\ndisposal recovers a concurrently hard-cancelled collector: ok\npartial startup failure and exception roll back resources: ok\nlate delivery and cleanup races leave no resources: ok\nPromise lifecycle: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "upstream",
+    "goal": "rpc_option_tests",
+    "exit_code": 0,
+    "stdout": "unknown, ineffective, output and malformed options: ok\nvalues and every duplicate occurrence are validated: ok\ninvalid options do not fetch source or create promise resources: ok\ninvalid yield options preserve the reference and answer: ok\ndocumented subset, precedence, source formats and sharing: ok\nRPC client option validation: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  }
+]
