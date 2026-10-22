@@ -1832,6 +1832,11 @@ A [separate candidate engine repair](reproducers/port-promise-callback-hang-2026
 preserves that state and passes callback and import/reload regressions. It has
 not been installed; separate thread-time module-creation and intermittent
 lifecycle diagnostics remain explicit upgrade blockers.
+A [separate null-parser guard candidate](reproducers/thread-module-creation-2026-10-22/REPORT.md)
+now fixes the reduced thread-time module-creation crash in focused checks;
+its report and tested patch are submitted as [#1177](https://github.com/trealla-prolog/trealla-prolog/issues/1177), but not installed. This guard
+candidate does not include the module-import repair or resolve the intermittent
+lifecycle diagnostic.
 `tools/test-http-timeout-enforcement.py` runs the focused fixture against an
 explicitly selected engine, retaining failed cleanup assertions rather than
 counting a timeout error alone as success. Destination-side timeout semantics

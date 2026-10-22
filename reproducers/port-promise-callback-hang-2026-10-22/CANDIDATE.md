@@ -1,5 +1,10 @@
 # Separate candidate engine repair — 22 October 2026
 
+**Later follow-up:** a [separate guard-only build](../thread-module-creation-2026-10-22/REPORT.md)
+now fixes the thread-time module-creation crash discussed below. It has not
+been combined with this import candidate or installed; the intermittent
+lifecycle diagnostic remains separate. The original results below are retained.
+
 The bounded import repair fixes the reduced lost-state case and the original
 callback hang in a separate build. The installed/pinned engine and production
 port sources remain unchanged. The full engine/application suites and live

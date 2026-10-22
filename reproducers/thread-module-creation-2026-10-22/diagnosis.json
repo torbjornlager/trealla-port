@@ -1,0 +1,26 @@
+{
+  "saved_crash": "tpl-2026-10-22-102913.ips",
+  "crash_context": "Earlier separate import-repair candidate; bif_load_text_2 and its unsafe logging guard were unchanged there.",
+  "exception": {
+    "codes": "0x0000000000000001, 0x0000000000000612",
+    "rawCodes": [
+      1,
+      1554
+    ],
+    "type": "EXC_BAD_ACCESS",
+    "signal": "SIGSEGV",
+    "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000612"
+  },
+  "fault_function": "bif_load_text_2",
+  "fault_offset": 1748,
+  "null_register_x8": 0,
+  "unmodified_disassembly": [
+    "tpl[0x10009ad5c] <+1740>: cbnz   x0, 0x10009ada0           ; <+1808>",
+    "tpl[0x10009ad60] <+1744>: ldr    x8, [x19, #0x38]",
+    "tpl[0x10009ad64] <+1748>: ldrb   w8, [x8, #0x612]",
+    "tpl[0x10009ad68] <+1752>: tbz    w8, #0x6, 0x10009ad90     ; <+1792>",
+    "tpl[0x10009ad6c] <+1756>: ldrb   w8, [x19, #0xb1d]",
+    "tpl[0x10009ad70] <+1760>: tbnz   w8, #0x4, 0x10009ad90     ; <+1792>"
+  ],
+  "explanation": "q->top is at query offset 0x38; the faulting instruction reads the parser flags via null x8 at offset 0x612, before module_create."
+}

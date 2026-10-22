@@ -1,0 +1,65 @@
+[
+  {
+    "engine": "unmodified",
+    "case": "thread_module_creation",
+    "exit_code": -11,
+    "stdout": "",
+    "stderr": "",
+    "expected": "passed(load_new)\npassed(load_existing)\npassed(module_new)\npassed(module_existing)\npassed(command_load)\npassed(command_module)\n",
+    "passed": false
+  },
+  {
+    "engine": "candidate",
+    "case": "thread_module_creation",
+    "exit_code": 0,
+    "stdout": "passed(load_new)\npassed(load_existing)\npassed(module_new)\npassed(module_existing)\npassed(command_load)\npassed(command_module)\n",
+    "stderr": "",
+    "expected": "passed(load_new)\npassed(load_existing)\npassed(module_new)\npassed(module_existing)\npassed(command_load)\npassed(command_module)\n",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "temporary_module",
+    "exit_code": 0,
+    "stdout": "1\ngone\nexistence_error(procedure,p/1)\n[3]\nsyntax_error(operator_expected)\noops\ngone\n[a,b]\ngone\npermission_error(destroy,module,user)\npermission_error(destroy,module,lists)\npermission_error(create,module,tmapp)\ntmapp_kept\nnamed(old)\nexistence_error(procedure,p/1)\ntm6(new)\ndone\n",
+    "stderr": "",
+    "expected": "1\ngone\nexistence_error(procedure,p/1)\n[3]\nsyntax_error(operator_expected)\noops\ngone\n[a,b]\ngone\npermission_error(destroy,module,user)\npermission_error(destroy,module,lists)\npermission_error(create,module,tmapp)\ntmapp_kept\nnamed(old)\nexistence_error(procedure,p/1)\ntm6(new)\ndone\n",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "module_qualifier_errors",
+    "exit_code": 0,
+    "stdout": "type_error(module,42)\ntype_error(module,42)\ntype_error(module,f(x))\ntype_error(module,42)\ntype_error(module,42)\ntype_error(module,f(x))\ntype_error(module,42)\ninstantiation_error\nfindall(?,0,-)\nassertz(:)\n",
+    "stderr": "",
+    "expected": "type_error(module,42)\ntype_error(module,42)\ntype_error(module,f(x))\ntype_error(module,42)\ntype_error(module,42)\ntype_error(module,f(x))\ntype_error(module,42)\ninstantiation_error\nfindall(?,0,-)\nassertz(:)\n",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "meta_goal_module",
+    "exit_code": 0,
+    "stdout": "t_zero: 2\nt_caret: 2\nt_bagof: [1,2]\nt_forall: ok\nt_user: 3\n",
+    "stderr": "",
+    "expected": "t_zero: 2\nt_caret: 2\nt_bagof: [1,2]\nt_forall: ok\nt_user: 3\n",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "retract_module_scope",
+    "exit_code": 0,
+    "stdout": "clause(1,true)\nnot_retracted\nuser_foo_kept\nrms_baz_retracted\nuser_retract_ok\n",
+    "stderr": "",
+    "expected": "clause(1,true)\nnot_retracted\nuser_foo_kept\nrms_baz_retracted\nuser_retract_ok\n",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "op_module_visibility",
+    "exit_code": 0,
+    "stdout": "user- ===> - none\nuser-(<~>)-sees(700,xfx)\nuser-(<<=>>)-sees(700,xfx)\nno_parse('a ===> b')\nparsed(a<~>b)\nopm1- ===> - sees(700,xfx)\nopm1-(<~>)-sees(700,xfx)\nopm1-(<<=>>)-sees(700,xfx)\nopm1_parsed_its_own\nopm3-(=)-none\nuser-(=)-sees(700,xfx)\nuser- ~~> - none\nparsed(x=y)\nuser-(^)-sees(150,xfy)\nopm1-(^)-sees(150,xfy)\n",
+    "stderr": "",
+    "expected": "user- ===> - none\nuser-(<~>)-sees(700,xfx)\nuser-(<<=>>)-sees(700,xfx)\nno_parse('a ===> b')\nparsed(a<~>b)\nopm1- ===> - sees(700,xfx)\nopm1-(<~>)-sees(700,xfx)\nopm1-(<<=>>)-sees(700,xfx)\nopm1_parsed_its_own\nopm3-(=)-none\nuser-(=)-sees(700,xfx)\nuser- ~~> - none\nparsed(x=y)\nuser-(^)-sees(150,xfy)\nopm1-(^)-sees(150,xfy)\n",
+    "passed": true
+  }
+]

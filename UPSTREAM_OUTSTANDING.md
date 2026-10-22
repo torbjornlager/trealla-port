@@ -14,6 +14,24 @@ made for this port. The module-context report is ready to send upstream; the
 HTTP read-timeout report was submitted as #1172. The term-construction report still needs a
 current-build retest before filing.
 
+## Submitted null-parser report
+
+### BUG-029: Thread-time module creation dereferences a null parser
+
+On unmodified upstream v3.14.5 (`beed430`), creating a new module in a native
+thread through `load_text/2` or internal `'$module'/1` dereferences `q->top`
+while deciding whether to print an informational message. A threaded query can
+legitimately have no top-level parser. Both paths crash 5/5 in fresh-process
+checks; existing-module and command-query controls pass.
+
+A separate guard-only candidate adds `q->top &&` at both logging sites. It
+passes 120/120 fresh-process cases, the original thread-import check 3/3,
+the new engine regression and five existing module regressions. The [report](reproducers/bug-029-thread-module-creation.md), [candidate patch with
+tests](reproducers/bug-029-thread-module-creation.patch) and [verification
+results](reproducers/thread-module-creation-2026-10-22/REPORT.md) were submitted
+as [#1177](https://github.com/trealla-prolog/trealla-prolog/issues/1177) on 22 October 2026. The published patch matches the tested diff byte-for-byte. No installed runtime was changed. This candidate does not
+include the separate #1176 repair or address the intermittent lifecycle crash.
+
 ## Ready to send
 
 ### A list-valued `:` meta-argument is not caller-qualified

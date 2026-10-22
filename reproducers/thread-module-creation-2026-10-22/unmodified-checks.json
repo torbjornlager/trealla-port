@@ -1,0 +1,234 @@
+{
+  "source_sha256": "375080aa75f07313b013251b025fe525888c5e635303ae6769490b9b11d37992",
+  "engines": {
+    "unmodified": {
+      "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/tpl",
+      "executable_sha256": "5cb6b4c9d4dcd88211443151660c0c2ecf79326b61612191d95a46c95a1d420e",
+      "library": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/library",
+      "cases": {
+        "load_new": [
+          {
+            "trial": 1,
+            "exit_code": -11,
+            "stdout": "",
+            "stderr": "",
+            "passed": false
+          },
+          {
+            "trial": 2,
+            "exit_code": -11,
+            "stdout": "",
+            "stderr": "",
+            "passed": false
+          },
+          {
+            "trial": 3,
+            "exit_code": -11,
+            "stdout": "",
+            "stderr": "",
+            "passed": false
+          },
+          {
+            "trial": 4,
+            "exit_code": -11,
+            "stdout": "",
+            "stderr": "",
+            "passed": false
+          },
+          {
+            "trial": 5,
+            "exit_code": -11,
+            "stdout": "",
+            "stderr": "",
+            "passed": false
+          }
+        ],
+        "load_existing": [
+          {
+            "trial": 1,
+            "exit_code": 0,
+            "stdout": "passed(load_existing)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 2,
+            "exit_code": 0,
+            "stdout": "passed(load_existing)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 3,
+            "exit_code": 0,
+            "stdout": "passed(load_existing)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 4,
+            "exit_code": 0,
+            "stdout": "passed(load_existing)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 5,
+            "exit_code": 0,
+            "stdout": "passed(load_existing)\n",
+            "stderr": "",
+            "passed": true
+          }
+        ],
+        "module_new": [
+          {
+            "trial": 1,
+            "exit_code": -11,
+            "stdout": "",
+            "stderr": "",
+            "passed": false
+          },
+          {
+            "trial": 2,
+            "exit_code": -11,
+            "stdout": "",
+            "stderr": "",
+            "passed": false
+          },
+          {
+            "trial": 3,
+            "exit_code": -11,
+            "stdout": "",
+            "stderr": "",
+            "passed": false
+          },
+          {
+            "trial": 4,
+            "exit_code": -11,
+            "stdout": "",
+            "stderr": "",
+            "passed": false
+          },
+          {
+            "trial": 5,
+            "exit_code": -11,
+            "stdout": "",
+            "stderr": "",
+            "passed": false
+          }
+        ],
+        "module_existing": [
+          {
+            "trial": 1,
+            "exit_code": 0,
+            "stdout": "passed(module_existing)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 2,
+            "exit_code": 0,
+            "stdout": "passed(module_existing)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 3,
+            "exit_code": 0,
+            "stdout": "passed(module_existing)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 4,
+            "exit_code": 0,
+            "stdout": "passed(module_existing)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 5,
+            "exit_code": 0,
+            "stdout": "passed(module_existing)\n",
+            "stderr": "",
+            "passed": true
+          }
+        ],
+        "command_load": [
+          {
+            "trial": 1,
+            "exit_code": 0,
+            "stdout": "Info: created module 'tmc_command'\npassed(command_load)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 2,
+            "exit_code": 0,
+            "stdout": "Info: created module 'tmc_command'\npassed(command_load)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 3,
+            "exit_code": 0,
+            "stdout": "Info: created module 'tmc_command'\npassed(command_load)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 4,
+            "exit_code": 0,
+            "stdout": "Info: created module 'tmc_command'\npassed(command_load)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 5,
+            "exit_code": 0,
+            "stdout": "Info: created module 'tmc_command'\npassed(command_load)\n",
+            "stderr": "",
+            "passed": true
+          }
+        ],
+        "command_module": [
+          {
+            "trial": 1,
+            "exit_code": 0,
+            "stdout": "Info: created module 'tmc_command_switch'\npassed(command_module)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 2,
+            "exit_code": 0,
+            "stdout": "Info: created module 'tmc_command_switch'\npassed(command_module)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 3,
+            "exit_code": 0,
+            "stdout": "Info: created module 'tmc_command_switch'\npassed(command_module)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 4,
+            "exit_code": 0,
+            "stdout": "Info: created module 'tmc_command_switch'\npassed(command_module)\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "trial": 5,
+            "exit_code": 0,
+            "stdout": "Info: created module 'tmc_command_switch'\npassed(command_module)\n",
+            "stderr": "",
+            "passed": true
+          }
+        ]
+      }
+    }
+  }
+}

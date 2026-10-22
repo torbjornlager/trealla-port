@@ -1,0 +1,86 @@
+[
+  {
+    "engine": "unmodified",
+    "case": "load_new",
+    "exit_code": -11,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "engine": "unmodified",
+    "case": "load_existing",
+    "exit_code": 0,
+    "stdout": "passed(load_existing)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "unmodified",
+    "case": "module_new",
+    "exit_code": -11,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "engine": "unmodified",
+    "case": "module_existing",
+    "exit_code": 0,
+    "stdout": "passed(module_existing)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "unmodified",
+    "case": "command_load",
+    "exit_code": 0,
+    "stdout": "Info: created module 'tmc_command'\npassed(command_load)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "unmodified",
+    "case": "command_module",
+    "exit_code": 0,
+    "stdout": "Info: created module 'tmc_command_switch'\npassed(command_module)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "candidate",
+    "case": "load_new",
+    "exit_code": 0,
+    "stdout": "passed(load_new)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "candidate",
+    "case": "load_existing",
+    "exit_code": 0,
+    "stdout": "passed(load_existing)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "candidate",
+    "case": "module_new",
+    "exit_code": 0,
+    "stdout": "passed(module_new)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "candidate",
+    "case": "module_existing",
+    "exit_code": 0,
+    "stdout": "passed(module_existing)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "candidate",
+    "case": "command_load",
+    "exit_code": 0,
+    "stdout": "Info: created module 'tmc_command'\npassed(command_load)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "candidate",
+    "case": "command_module",
+    "exit_code": 0,
+    "stdout": "Info: created module 'tmc_command_switch'\npassed(command_module)\n",
+    "stderr": ""
+  }
+]
