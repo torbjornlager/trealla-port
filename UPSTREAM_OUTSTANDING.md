@@ -83,6 +83,30 @@ for all passes, failures, probes and upgrade boundaries.
 
 ## New report needing a current-build retest
 
+### File-path module re-import clears runtime state on tested v3.14.5
+
+The apparent private promise callback hang has been reduced independently of
+Web Prolog: import a module with a dynamic predicate, assert a fact, then import
+the same file into another module. On separate upstream `beed430`, all five
+trials lose the fact; pinned v3.13.10 preserves it. Importing by existing module
+name preserves it on both builds. Actor bootstrap file imports erase the parent
+pid mapping and promise record, so startup waits indefinitely and the child
+raises a missing-promise error before reaching the callback.
+
+See the [investigation and reproducer](reproducers/port-promise-callback-hang-2026-10-22/REPORT.md).
+Recommend restoring idempotent file imports in the engine, separately from
+explicit reconsult behavior. No runtime repair or upstream submission has been
+made during the initial trace. A [candidate engine repair](reproducers/port-promise-callback-hang-2026-10-22/CANDIDATE.md)
+has since been built and tested separately; the callback checks, new import
+regressions and existing reload checks pass. The [report draft](reproducers/bug-028-use-module-state.md)
+and [candidate patch](reproducers/bug-028-use-module-state.patch) were submitted as
+[Trealla #1176](https://github.com/trealla-prolog/trealla-prolog/issues/1176)
+after checking open/closed issues and import-related PRs for duplicates.
+The published inline patch matches the tested local patch byte-for-byte.
+Installed engines are unchanged. Separate crash diagnostics are
+retained in the candidate report. This is confirmed on the stated base revision,
+not a claim about later upstream changes.
+
 ### BUG-023: `functor/3`-constructed terms fail callable/arithmetic lookup
 
 On v3.13.10, constructing `X=ok` with `functor/3` and `arg/3`, then calling it,

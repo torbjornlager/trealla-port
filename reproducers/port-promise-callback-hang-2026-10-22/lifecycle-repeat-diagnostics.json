@@ -1,0 +1,56 @@
+[
+  {
+    "engine": "unmodified",
+    "case": "lifecycle",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "collection and output mismatch reclaim queues and threads: ok\nexpiry stops outstanding worker and reclaims resources: ok\nexplicit cleanup reclaims resources and is idempotent: ok\ntimeout releases the collector and preserves retry: ok\ncollector exclusion, interruption and answer retention: ok\ncleanup and expiry wake waiting collectors before queue destruction: ok\ndisposal recovers a concurrently hard-cancelled collector: ok\npartial startup failure and exception roll back resources: ok\nlate delivery and cleanup races leave no resources: ok\nPromise lifecycle: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "unmodified",
+    "case": "lifecycle",
+    "trial": 2,
+    "exit_code": 0,
+    "stdout": "collection and output mismatch reclaim queues and threads: ok\nexpiry stops outstanding worker and reclaims resources: ok\nexplicit cleanup reclaims resources and is idempotent: ok\ntimeout releases the collector and preserves retry: ok\ncollector exclusion, interruption and answer retention: ok\ncleanup and expiry wake waiting collectors before queue destruction: ok\ndisposal recovers a concurrently hard-cancelled collector: ok\npartial startup failure and exception roll back resources: ok\nlate delivery and cleanup races leave no resources: ok\nPromise lifecycle: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "unmodified",
+    "case": "lifecycle",
+    "trial": 3,
+    "exit_code": 0,
+    "stdout": "collection and output mismatch reclaim queues and threads: ok\nexpiry stops outstanding worker and reclaims resources: ok\nexplicit cleanup reclaims resources and is idempotent: ok\ntimeout releases the collector and preserves retry: ok\ncollector exclusion, interruption and answer retention: ok\ncleanup and expiry wake waiting collectors before queue destruction: ok\ndisposal recovers a concurrently hard-cancelled collector: ok\npartial startup failure and exception roll back resources: ok\nlate delivery and cleanup races leave no resources: ok\nPromise lifecycle: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "lifecycle",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "collection and output mismatch reclaim queues and threads: ok\nexpiry stops outstanding worker and reclaims resources: ok\nexplicit cleanup reclaims resources and is idempotent: ok\ntimeout releases the collector and preserves retry: ok\ncollector exclusion, interruption and answer retention: ok\ncleanup and expiry wake waiting collectors before queue destruction: ok\ndisposal recovers a concurrently hard-cancelled collector: ok\npartial startup failure and exception roll back resources: ok\nlate delivery and cleanup races leave no resources: ok\nPromise lifecycle: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "lifecycle",
+    "trial": 2,
+    "exit_code": 0,
+    "stdout": "collection and output mismatch reclaim queues and threads: ok\nexpiry stops outstanding worker and reclaims resources: ok\nexplicit cleanup reclaims resources and is idempotent: ok\ntimeout releases the collector and preserves retry: ok\ncollector exclusion, interruption and answer retention: ok\ncleanup and expiry wake waiting collectors before queue destruction: ok\ndisposal recovers a concurrently hard-cancelled collector: ok\npartial startup failure and exception roll back resources: ok\nlate delivery and cleanup races leave no resources: ok\nPromise lifecycle: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "lifecycle",
+    "trial": 3,
+    "exit_code": 0,
+    "stdout": "collection and output mismatch reclaim queues and threads: ok\nexpiry stops outstanding worker and reclaims resources: ok\nexplicit cleanup reclaims resources and is idempotent: ok\ntimeout releases the collector and preserves retry: ok\ncollector exclusion, interruption and answer retention: ok\ncleanup and expiry wake waiting collectors before queue destruction: ok\ndisposal recovers a concurrently hard-cancelled collector: ok\npartial startup failure and exception roll back resources: ok\nlate delivery and cleanup races leave no resources: ok\nPromise lifecycle: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  }
+]

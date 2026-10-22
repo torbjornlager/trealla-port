@@ -1,0 +1,65 @@
+[
+  {
+    "engine": "unmodified",
+    "case": "use_module_state",
+    "exit_code": 1,
+    "stdout": "Info: created module 'tmp_ums_full'\nfailed(full)\n",
+    "stderr": "",
+    "expected": "Info: created module 'tmp_ums_full'\nfull_import_kept_state\nInfo: created module 'tmp_ums_select'\nselective_import_kept_state\nInfo: created module 'tmp_ums_reexport'\nreexport_kept_state\nthread_import_kept_state\nInfo: created module 'tmp_ums_changed'\nimport_ignores_file_change\nexplicit_consult_reloads\n",
+    "passed": false
+  },
+  {
+    "engine": "candidate",
+    "case": "use_module_state",
+    "exit_code": 0,
+    "stdout": "Info: created module 'tmp_ums_full'\nfull_import_kept_state\nInfo: created module 'tmp_ums_select'\nselective_import_kept_state\nInfo: created module 'tmp_ums_reexport'\nreexport_kept_state\nthread_import_kept_state\nInfo: created module 'tmp_ums_changed'\nimport_ignores_file_change\nexplicit_consult_reloads\n",
+    "stderr": "",
+    "expected": "Info: created module 'tmp_ums_full'\nfull_import_kept_state\nInfo: created module 'tmp_ums_select'\nselective_import_kept_state\nInfo: created module 'tmp_ums_reexport'\nreexport_kept_state\nthread_import_kept_state\nInfo: created module 'tmp_ums_changed'\nimport_ignores_file_change\nexplicit_consult_reloads\n",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "reconsult_module",
+    "exit_code": 0,
+    "stdout": "module([2])\nimported([2])\nself([1])\n",
+    "stderr": "",
+    "expected": "module([2])\nimported([2])\nself([1])\n",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "make_module_state",
+    "exit_code": 0,
+    "stdout": "% tmp_mms_mod.pl changed\nbp([2])\nextra(1)\nnw(new)\n",
+    "stderr": "",
+    "expected": "% tmp_mms_mod.pl changed\nbp([2])\nextra(1)\nnw(new)\n",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "make_same_second",
+    "exit_code": 0,
+    "stdout": "% tmp_mss_src.pl changed\n[new]\n",
+    "stderr": "",
+    "expected": "% tmp_mss_src.pl changed\n[new]\n",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "make_failed_load",
+    "exit_code": 0,
+    "stdout": "% tmp_mfl_src.pl changed\ncf(fixed)\n",
+    "stderr": "",
+    "expected": "% tmp_mfl_src.pl changed\ncf(fixed)\n",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "case": "runtime_consult_base",
+    "exit_code": 0,
+    "stdout": "cwd\n",
+    "stderr": "",
+    "expected": "cwd\n",
+    "passed": true
+  }
+]

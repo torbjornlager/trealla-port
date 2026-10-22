@@ -1,0 +1,5 @@
+{
+  "timeout": true,
+  "stdout": "stage(parent_mutex(unlocked))\nstage(before_spawn)\nstage(owner_begin)\nstage(owner(trusted_local))\nstage(child_mutex(unlocked))\nstage(claim_begin)\nstage(inside_lock)\nstage(access_begin)\nstage(all_threads([main-running,'$thread'(5)-running]))\nstage(all_promise_states([]))\nstage(main_mailbox_empty)\nstage(pid_threads([]))\n",
+  "stderr": ""
+}

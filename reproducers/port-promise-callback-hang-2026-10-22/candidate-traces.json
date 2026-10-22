@@ -1,0 +1,20 @@
+[
+  {
+    "case": "staged_callback",
+    "exit_code": 0,
+    "stdout": "stage(begin)\nstage(promise_created)\nstage(parent(1826210381))\nstage(spawn_returned(1488611965))\nstage(child_enter)\nstage(child_yield(waiting))\nstage(answer(waiting))\nstage(down(true))\nstage(before_cleanup)\nstage(done)\n",
+    "stderr": ""
+  },
+  {
+    "case": "actor_tables",
+    "exit_code": 0,
+    "stdout": "stage(tables(before,[1000000000],[3047469832-main]))\nInfo: created module 'callback_table_probe'\nstage(tables(after,[1000000000],[3047469832-main]))\n",
+    "stderr": ""
+  },
+  {
+    "case": "promise_tables",
+    "exit_code": 0,
+    "stdout": "stage(tables(before,[1000000000],[2593626114-main]))\nInfo: created module 'callback_table_probe'\nstage(tables(after,[1000000000],[2593626114-main]))\n",
+    "stderr": ""
+  }
+]

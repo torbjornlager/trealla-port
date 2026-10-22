@@ -1,0 +1,5 @@
+{
+  "timeout": true,
+  "stdout": "stage(begin)\nstage(promise_created)\nstage(parent(2529507346))\nstage(child_enter)\nstage(child_error(error(existence_error(promise,1000000000),context(rpc:yield/3,'unknown, consumed, or expired promise'))))\n",
+  "stderr": ""
+}

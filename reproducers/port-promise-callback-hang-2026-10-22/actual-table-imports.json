@@ -1,0 +1,30 @@
+[
+  {
+    "engine": "pinned",
+    "imported": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/actors.pl",
+    "exit_code": 0,
+    "stdout": "stage(tables(before,[1000000000],[1451570476-main]))\nInfo: created module 'callback_table_probe'\nstage(tables(after,[1000000000],[1451570476-main]))\n",
+    "stderr": ""
+  },
+  {
+    "engine": "pinned",
+    "imported": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/rpc.pl",
+    "exit_code": 0,
+    "stdout": "stage(tables(before,[1000000000],[1451587283-main]))\nInfo: created module 'callback_table_probe'\nstage(tables(after,[1000000000],[1451587283-main]))\n",
+    "stderr": ""
+  },
+  {
+    "engine": "upstream",
+    "imported": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/actors.pl",
+    "exit_code": 0,
+    "stdout": "stage(tables(before,[1000000000],[2109933649-main]))\nInfo: created module 'callback_table_probe'\nstage(tables(after,[1000000000],[]))\n",
+    "stderr": ""
+  },
+  {
+    "engine": "upstream",
+    "imported": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/rpc.pl",
+    "exit_code": 0,
+    "stdout": "stage(tables(before,[1000000000],[2894601627-main]))\nInfo: created module 'callback_table_probe'\nstage(tables(after,[],[2894601627-main]))\n",
+    "stderr": ""
+  }
+]

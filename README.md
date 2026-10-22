@@ -1823,8 +1823,15 @@ HTTP streams in the setup of `setup_call_cleanup/3`, so successful reads and
 read/parse exceptions close the acquired stream. A local yield timeout still
 leaves the request available for retry. The malformed-reply regression runs in
 the default pinned-engine unit suite; body/partial-read timeout checks pass on
-the separate upstream build. The separate private actor callback hang remains
-unresolved and still blocks treating that build as a drop-in replacement.
+the separate upstream build. The separate private actor callback hang was
+traced to a module-import regression in that engine.
+A [follow-up investigation](reproducers/port-promise-callback-hang-2026-10-22/REPORT.md)
+reduces the apparent callback hang to file-path re-imports clearing framework
+dynamic state on that build. The callback is never reached in the failing run.
+A [separate candidate engine repair](reproducers/port-promise-callback-hang-2026-10-22/CANDIDATE.md)
+preserves that state and passes callback and import/reload regressions. It has
+not been installed; separate thread-time module-creation and intermittent
+lifecycle diagnostics remain explicit upgrade blockers.
 `tools/test-http-timeout-enforcement.py` runs the focused fixture against an
 explicitly selected engine, retaining failed cleanup assertions rather than
 counting a timeout error alone as success. Destination-side timeout semantics

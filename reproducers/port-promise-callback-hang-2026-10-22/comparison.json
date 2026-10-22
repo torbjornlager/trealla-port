@@ -1,0 +1,288 @@
+{
+  "engines": [
+    {
+      "name": "pinned",
+      "executable": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563"
+    },
+    {
+      "name": "upstream",
+      "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/tpl",
+      "sha256": "5cb6b4c9d4dcd88211443151660c0c2ecf79326b61612191d95a46c95a1d420e"
+    }
+  ],
+  "trials": 5,
+  "results": [
+    {
+      "engine": "pinned",
+      "case": "original",
+      "trial": 1,
+      "exit_code": 0,
+      "stdout": "private actor callback source context: ok\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "original",
+      "trial": 2,
+      "exit_code": 0,
+      "stdout": "private actor callback source context: ok\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "original",
+      "trial": 3,
+      "exit_code": 0,
+      "stdout": "private actor callback source context: ok\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "original",
+      "trial": 4,
+      "exit_code": 0,
+      "stdout": "private actor callback source context: ok\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "original",
+      "trial": 5,
+      "exit_code": 0,
+      "stdout": "private actor callback source context: ok\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "file_import",
+      "trial": 1,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "file_import",
+      "trial": 2,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "file_import",
+      "trial": 3,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "file_import",
+      "trial": 4,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "file_import",
+      "trial": 5,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "module_import_control",
+      "trial": 1,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "module_import_control",
+      "trial": 2,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "module_import_control",
+      "trial": 3,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "module_import_control",
+      "trial": 4,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "pinned",
+      "case": "module_import_control",
+      "trial": 5,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "upstream",
+      "case": "original",
+      "trial": 1,
+      "timeout": true,
+      "stdout": "",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "upstream",
+      "case": "original",
+      "trial": 2,
+      "timeout": true,
+      "stdout": "",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "upstream",
+      "case": "original",
+      "trial": 3,
+      "timeout": true,
+      "stdout": "",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "upstream",
+      "case": "original",
+      "trial": 4,
+      "timeout": true,
+      "stdout": "",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "upstream",
+      "case": "original",
+      "trial": 5,
+      "timeout": true,
+      "stdout": "",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "upstream",
+      "case": "file_import",
+      "trial": 1,
+      "exit_code": 1,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([])\nerror(import_lost_state([]),run/1)\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "upstream",
+      "case": "file_import",
+      "trial": 2,
+      "exit_code": 1,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([])\nerror(import_lost_state([]),run/1)\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "upstream",
+      "case": "file_import",
+      "trial": 3,
+      "exit_code": 1,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([])\nerror(import_lost_state([]),run/1)\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "upstream",
+      "case": "file_import",
+      "trial": 4,
+      "exit_code": 1,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([])\nerror(import_lost_state([]),run/1)\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "upstream",
+      "case": "file_import",
+      "trial": 5,
+      "exit_code": 1,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([])\nerror(import_lost_state([]),run/1)\n",
+      "stderr": "",
+      "passed": false
+    },
+    {
+      "engine": "upstream",
+      "case": "module_import_control",
+      "trial": 1,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "upstream",
+      "case": "module_import_control",
+      "trial": 2,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "upstream",
+      "case": "module_import_control",
+      "trial": 3,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "upstream",
+      "case": "module_import_control",
+      "trial": 4,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "engine": "upstream",
+      "case": "module_import_control",
+      "trial": 5,
+      "exit_code": 0,
+      "stdout": "before([kept])\nInfo: created module 'callback_probe_importer'\nafter([kept])\nstate_preserved\ncase_passed\n",
+      "stderr": "",
+      "passed": true
+    }
+  ],
+  "scope": "Investigation only; failures retained, no engine or runtime repair"
+}

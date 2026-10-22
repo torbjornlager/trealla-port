@@ -1,0 +1,16 @@
+[
+  {
+    "case": "promise",
+    "exit_code": 0,
+    "stdout": "timeout returns an answer and preserves retry: ok\ncallback answers, failure, exceptions and retry: ok\nprivate actor callback source context: ok\nunknown, consumed, cleaned and expired references: ok\noutput matching happens after message selection and consumption: ok\nworker failure and exceptions are delivered; remote failure is preserved: ok\nPromise/yield correctness: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "case": "lifecycle",
+    "exit_code": -11,
+    "stdout": "collection and output mismatch reclaim queues and threads: ok\nexpiry stops outstanding worker and reclaims resources: ok\nexplicit cleanup reclaims resources and is idempotent: ok\ntimeout releases the collector and preserves retry: ok\ncollector exclusion, interruption and answer retention: ok\ncleanup and expiry wake waiting collectors before queue destruction: ok\ndisposal recovers a concurrently hard-cancelled collector: ok\npartial startup failure and exception roll back resources: ok\n",
+    "stderr": "",
+    "passed": false
+  }
+]

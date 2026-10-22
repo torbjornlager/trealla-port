@@ -1,0 +1,24 @@
+{
+  "engine": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/tpl",
+  "scope": "Separate diagnostic; no Web Prolog",
+  "results": [
+    {
+      "trial": 1,
+      "exit_code": -11,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "trial": 2,
+      "exit_code": -11,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "trial": 3,
+      "exit_code": -11,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}
