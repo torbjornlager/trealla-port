@@ -18,6 +18,10 @@ current-build retest before filing.
 
 ### BUG-030: Detached exception-status copying races cleanup
 
+**Closed as completed on 23 October 2026**, after [upstream verification](https://github.com/trealla-prolog/trealla-prolog/issues/1178#issuecomment-6362180358).
+The update retains the tight-poll-budget qualification and separately confirms
+the existing mutex-exit repair. #1176 and #1177 remain open pending verification.
+
 Submitted as [#1178](https://github.com/trealla-prolog/trealla-prolog/issues/1178). The standalone reproducer
 crashes 20/20 on pinned v3.13.10 and unmodified v3.14.5; a separate guarded-status
 snapshot candidate passes 20/20 (20,000 iterations), the final lifecycle batch

@@ -113,3 +113,12 @@ require exit 0 and output matching `cancel-status-check.expected`.
 
 Full engine suites, live interoperability, TLS, WASM and other operating systems
 were not tested. No upstream issue was commented on or closed in this batch.
+
+## Upstream follow-up
+
+On 23 October 2026, posted the [verification update](https://github.com/trealla-prolog/trealla-prolog/issues/1178#issuecomment-6362180358) and closed #1178 as completed. The comment explicitly retains the two
+tight-poll-budget failures, distinguishes upstream checks from the separate
+mutex-exit backport suite, and confirms the existing mutex-exit fix.
+#1176 and #1177 were checked and remain open.
+The [posted text](upstream-verification-comment.md) and
+[closure record](upstream-closure.json) are saved locally.
