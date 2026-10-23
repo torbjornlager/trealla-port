@@ -7,6 +7,15 @@
 lifecycle_stage(Stage) :-
     (lifecycle_diagnostics -> writeq(stage(Stage)),nl,flush_output ; true).
 
+% Keep test failures, exceptions and non-returning operations distinguishable.
+lifecycle_step(Stage,Goal) :-
+    lifecycle_stage(enter(Stage)),
+    catch((call(Goal) -> Outcome=success ; Outcome=failure),Error,Outcome=exception(Error)),
+    lifecycle_stage(leave(Stage,Outcome)),
+    (Outcome==success -> true
+    ; Outcome=exception(E) -> throw(E)
+    ; fail).
+
 lifecycle_diagnostic_tests :-
     assertz(lifecycle_diagnostics),
     forall(member(Case,[lifecycle_collection,lifecycle_expiry,lifecycle_cleanup,
@@ -53,7 +62,7 @@ disposal_snapshot(Ref,Q,Snapshot) :-
          (queue_exists(Q) -> HasQueue=true ; HasQueue=false),
          Snapshot=resources(HasRecord,HasQueue))).
 disposal_complete(Ref,Q) :-
-    disposal_snapshot(Ref,Q,Snapshot),
+    lifecycle_step(disposal_snapshot(Ref,Q),disposal_snapshot(Ref,Q,Snapshot)),
     (Snapshot==resources(false,false) -> true
     ; lifecycle_stage(disposal_pending(Ref,Snapshot)),fail).
 queue_exists(Q) :- catch(message_queue_property(Q,size(_)),_,fail).
@@ -139,8 +148,10 @@ lifecycle_hard_cancel_cleanup :-
     start_test_promise(60,300,Ref,R),thread_self(Parent),
     thread_create(user:lifecycle_waiter(Ref,Parent),C,[detached(true)]),
     await(user:has_collector(Ref),200),
-    thread_cancel(C),promise_cleanup(Ref),
-    await(user:thread_gone(C),200),assert_disposed(Ref,R),
+    lifecycle_step(cancel(C),thread_cancel(C)),
+    lifecycle_step(cleanup(Ref),promise_cleanup(Ref)),
+    lifecycle_step(collector_retirement(C),await(user:thread_gone(C),200)),
+    lifecycle_step(disposal(Ref),assert_disposed(Ref,R)),
     writeln('disposal recovers a concurrently hard-cancelled collector: ok').
 
 lifecycle_startup_rollback :-
@@ -164,7 +175,7 @@ lifecycle_delivery_race :-
     writeln('late delivery and cleanup races leave no resources: ok').
 delivery_cleanup_once :-
     lifecycle_stage(race_start),start_test_promise(0,300,Ref,R),
-    lifecycle_stage(race_started(Ref,R)),promise_cleanup(Ref),
+    lifecycle_stage(race_started(Ref,R)),lifecycle_step(cleanup(Ref),promise_cleanup(Ref)),
     lifecycle_stage(race_cleaned(Ref)),rpc:deliver_promise_answer(Ref,success([late],false)),
     lifecycle_stage(race_delivered(Ref)),assert_disposed(Ref,R).
 
