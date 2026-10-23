@@ -1,0 +1,62 @@
+{
+  "installed-run": {
+    "command": [
+      "/Applications/swipl-win.app/Contents/MacOS/swipl",
+      "-q",
+      "-s",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/swi-receive-handoff-check-2026-10-23/probe.pl",
+      "-g",
+      "receive_handoff_swi_gated:run,halt"
+    ],
+    "exit_code": 0,
+    "stdout": "failed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\n",
+    "stderr": "",
+    "missing_count": 20,
+    "version": "SWI-Prolog version 10.1.17 for fat-darwin"
+  },
+  "installed-control": {
+    "command": [
+      "/Applications/swipl-win.app/Contents/MacOS/swipl",
+      "-q",
+      "-s",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/swi-receive-handoff-check-2026-10-23/probe.pl",
+      "-g",
+      "receive_handoff_swi_gated:control,halt"
+    ],
+    "exit_code": 0,
+    "stdout": "Native controls: 5000 passed\n",
+    "stderr": "",
+    "missing_count": 0,
+    "version": "SWI-Prolog version 10.1.17 for fat-darwin"
+  },
+  "separate-jan-fix-run": {
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299/build/src/swipl",
+      "-q",
+      "-s",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/swi-receive-handoff-check-2026-10-23/probe.pl",
+      "-g",
+      "receive_handoff_swi_gated:run,halt"
+    ],
+    "exit_code": 0,
+    "stdout": "failed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\nfailed(missing_unrelated,absent,absent)\n",
+    "stderr": "",
+    "missing_count": 20,
+    "version": "SWI-Prolog version 10.1.18 for arm64-darwin"
+  },
+  "separate-jan-fix-control": {
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299/build/src/swipl",
+      "-q",
+      "-s",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/swi-receive-handoff-check-2026-10-23/probe.pl",
+      "-g",
+      "receive_handoff_swi_gated:control,halt"
+    ],
+    "exit_code": 0,
+    "stdout": "Native controls: 5000 passed\n",
+    "stderr": "",
+    "missing_count": 0,
+    "version": "SWI-Prolog version 10.1.18 for arm64-darwin"
+  }
+}

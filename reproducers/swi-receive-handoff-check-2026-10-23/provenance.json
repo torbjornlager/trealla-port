@@ -1,0 +1,6 @@
+{
+  "swi_adapter": "/Users/torbjorn.lager/Documents/GitHub/trinity-demonstrator/prolog/web_prolog/actors.pl",
+  "adapter_sha256": "2e5137a89096be8c6c960fcd9fff72e11eec9990f817487cc002944ede095727",
+  "demonstrator_commit": "c5757ea5426bc70de7b9328c47b3730d008a138c",
+  "probe_sha256": "cf1af856ba9bb4c24017bdcac4942ce932fc1118635372fcd4969cc1c6223cba"
+}
