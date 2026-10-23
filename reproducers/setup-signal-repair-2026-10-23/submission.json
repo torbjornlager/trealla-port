@@ -1,0 +1,11 @@
+{
+  "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1180",
+  "date": "2026-10-23",
+  "submitted_via": "Signed-in GitHub browser after connector write permission returned 403",
+  "title": "thread_signal/2 can interrupt setup_call_cleanup/3 before cleanup registration, retaining a mutex",
+  "patch_sha256": "c8d347365ff01c92c284163b4bd45a95442984c9454b666a643aec94ccf04016",
+  "body_sha256": "b471418bc978b4f61f8fb98d907d9517c36602f453979cc68fd09c29b46b1db5",
+  "screenshot": "issue-1180-submitted.png",
+  "duplicate_check": "duplicate-searches.json",
+  "layout_corrected_and_verification_rerun": true
+}

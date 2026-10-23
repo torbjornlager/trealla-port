@@ -1,0 +1,45 @@
+{
+  "binaries": {
+    "candidate": {
+      "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "sha256": "fcd3641b5df3c79880c6f0234c3cfbf7ff401bd560c87945825a95cd3ad097d6",
+      "unchanged": true
+    },
+    "unmodified": {
+      "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "sha256": "a89f1f6c04d3e8637e0a8ee87cef03a18fac4dff29f25bb624534f47236fe441",
+      "unchanged": true
+    },
+    "installed_trealla": {
+      "path": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+      "unchanged": true
+    },
+    "installed_swi": {
+      "path": "/Applications/swipl-win.app/Contents/MacOS/swipl",
+      "sha256": "def8dda8fa520840d3bab90a7e429b8672ab9fce183ad3d8b19194c6ddf3470b",
+      "unchanged": true
+    },
+    "installed_swi_framework": {
+      "path": "/Library/Frameworks/swipl.framework/Versions/A/swipl",
+      "sha256": "1a2c01caed7b839d7e44250b514ff481df99bc96585c848f6d607face3a91179",
+      "unchanged": true
+    }
+  },
+  "live_nodes_after": "30612 /Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl -g consult('distribution.pl'),web_prolog:web_prolog_node(3061,[bind_address('127.0.0.1'),node_url('http://localhost:3061'),profile(actor),sandbox(blacklist),auth(open),ws_allowed_origins(['http://localhost:3053','http://localhost:3061'])])\n42134 /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python /tmp/web-prolog-local-ui/n5_frontend.py\n55051 /Applications/swipl-win.app/Contents/MacOS/swipl -q -s /tmp/web-prolog-local-ui/start_local_node_reuse.pl -- n3\n",
+  "live_node_commands_unchanged": true,
+  "engine_source_sha256": {
+    "library/iso_ext.pl": "ab31ec0a3b53c2187e8801d8a40d2ef250320093fc1af22b485568795f4452d3",
+    "library/builtins.pl": "85ceb01069c0dbc5a35b23a9b88ddb131009e001c2b0e9d220ad03a65fe7d3c9",
+    "src/query.c": "001148f6380d6afdd6f3fc2ed67c870038e9242961a5ffeaba1ac866b44f285e",
+    "src/bif_threads.c": "e171b461ec697269d8320d23534fde50443ac034c1592e6fdc6f84652e55aa15"
+  },
+  "probe_sha256": {
+    "controls.pl": "c6a968ac49b427f4df9e41feebad7953790d31c68fcf99a17bf0402f9585ca5a",
+    "probe.pl": "ccdb6d97365e4bcaf0c942b2eca5a162c2d30901c55c478b1d1b2db5c4b8e5e9"
+  },
+  "preexisting_tracked_changes": [
+    "http_paging_cleanup_tests.pl"
+  ],
+  "runtime_changes_made": false
+}

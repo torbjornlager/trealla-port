@@ -1,0 +1,80 @@
+{
+  "engines": {
+    "candidate": {
+      "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "sha256": "39cbd488986bb77f7022684b004317032af4ddeeb3245efc4c439705486549d8",
+      "base_commit": "42ebc2127e3f900036c6bcb54cfc11bec4762eb7",
+      "has_saved_message_patch": true,
+      "engine_source_sha256": {
+        "src/internal.h": "9c7701f0b636ca24386b1a8f317f59718ac8a59251dab70a60fc3537bfb51d8e",
+        "src/bif_control.c": "1e743467778ddb7aa10efd6cfa5995bf8d107742d82b8b35a2eb9f90b420f62a",
+        "src/query.c": "e2fe717529666725cd739e6ff83aa51ca68b1e7d5daa5b04466e6194fc1401c7",
+        "src/query.h": "a8cd3d06f6e2d7de40d912cdf6c67724550312295246461b666f0a7e20cb191a",
+        "src/bif_threads.c": "02f9454264207912dcb3382eeebfa3a956738c7a6b0fb85be70af3457aafdfe4",
+        "library/iso_ext.pl": "746fde23fb021f4c2884e2b8fad997496abdd5b2b5f80acd7f838a26bd0f464d"
+      },
+      "version_stdout": "Trealla Prolog (c) Infradig 2020, unknown"
+    },
+    "unmodified": {
+      "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "sha256": "f2fb9ce0f05b20b997c7fe123069bea5b832b3d3e5ad785970cce98788fd20f6",
+      "base_commit": "42ebc2127e3f900036c6bcb54cfc11bec4762eb7",
+      "has_saved_message_patch": false,
+      "engine_source_sha256": {
+        "src/internal.h": "ad5564a6db661b51f2a7115b34ecadfdc417341fa6426679e73a5512a520dc52",
+        "src/bif_control.c": "1e743467778ddb7aa10efd6cfa5995bf8d107742d82b8b35a2eb9f90b420f62a",
+        "src/query.c": "e2fe717529666725cd739e6ff83aa51ca68b1e7d5daa5b04466e6194fc1401c7",
+        "src/query.h": "a8cd3d06f6e2d7de40d912cdf6c67724550312295246461b666f0a7e20cb191a",
+        "src/bif_threads.c": "45c56534ac80af62dd373a7b2a8f9da3fd76eccc209fd534634a8d89e65700d6",
+        "library/iso_ext.pl": "746fde23fb021f4c2884e2b8fad997496abdd5b2b5f80acd7f838a26bd0f464d"
+      },
+      "version_stdout": "Trealla Prolog (c) Infradig 2020, unknown"
+    }
+  },
+  "unchanged_original_binaries": {
+    "candidate": {
+      "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "sha256": "fcd3641b5df3c79880c6f0234c3cfbf7ff401bd560c87945825a95cd3ad097d6",
+      "unchanged": true
+    },
+    "unmodified": {
+      "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "sha256": "a89f1f6c04d3e8637e0a8ee87cef03a18fac4dff29f25bb624534f47236fe441",
+      "unchanged": true
+    },
+    "installed_trealla": {
+      "path": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+      "unchanged": true
+    },
+    "installed_swi": {
+      "path": "/Applications/swipl-win.app/Contents/MacOS/swipl",
+      "sha256": "def8dda8fa520840d3bab90a7e429b8672ab9fce183ad3d8b19194c6ddf3470b",
+      "unchanged": true
+    },
+    "installed_swi_framework": {
+      "path": "/Library/Frameworks/swipl.framework/Versions/A/swipl",
+      "sha256": "1a2c01caed7b839d7e44250b514ff481df99bc96585c848f6d607face3a91179",
+      "unchanged": true
+    }
+  },
+  "live_nodes_after": "30612 /Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl -g consult('distribution.pl'),web_prolog:web_prolog_node(3061,[bind_address('127.0.0.1'),node_url('http://localhost:3061'),profile(actor),sandbox(blacklist),auth(open),ws_allowed_origins(['http://localhost:3053','http://localhost:3061'])])\n42134 /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python /tmp/web-prolog-local-ui/n5_frontend.py\n55051 /Applications/swipl-win.app/Contents/MacOS/swipl -q -s /tmp/web-prolog-local-ui/start_local_node_reuse.pl -- n3\n",
+  "live_nodes_unchanged": true,
+  "paging_checked_goals_unchanged": {
+    "producer_started": true,
+    "producer_monitor": true,
+    "request_thread": true,
+    "request_signal": true,
+    "request_error": true,
+    "producer_retired": true,
+    "application_monitor": true,
+    "request_terminated": true
+  },
+  "tracked_changes": [
+    "http_paging_cleanup_tests.pl"
+  ],
+  "patch_sha256": "c8d347365ff01c92c284163b4bd45a95442984c9454b666a643aec94ccf04016",
+  "new_runtime_changes": false,
+  "query_header_first": true,
+  "layout_corrected_verification": true
+}

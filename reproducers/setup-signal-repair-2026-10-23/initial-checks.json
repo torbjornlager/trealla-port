@@ -1,0 +1,50 @@
+[
+  {
+    "engine": "candidate",
+    "case": "semantics",
+    "exit_code": 0,
+    "output": "setup signal regressions: ok\n"
+  },
+  {
+    "engine": "candidate",
+    "case": "blocked",
+    "exit_code": 0,
+    "output": "control(blocked,'$thread'(2),interrupted,unlocked,[setup_acquired,cleanup_entered])\n"
+  },
+  {
+    "engine": "candidate",
+    "case": "normal",
+    "exit_code": 0,
+    "output": "control(normal,'$thread'(2),normal,unlocked,[setup_acquired,body_entered,cleanup_entered])\n"
+  },
+  {
+    "engine": "candidate",
+    "case": "body",
+    "exit_code": 0,
+    "output": "control(body,'$thread'(2),interrupted,unlocked,[setup_acquired,cleanup_entered])\n"
+  },
+  {
+    "engine": "unmodified",
+    "case": "semantics",
+    "exit_code": 0,
+    "output": "setup signal regressions: ok\n"
+  },
+  {
+    "engine": "unmodified",
+    "case": "blocked",
+    "exit_code": 0,
+    "output": "control(blocked,'$thread'(2),interrupted,unlocked,[setup_acquired,cleanup_entered])\n"
+  },
+  {
+    "engine": "unmodified",
+    "case": "normal",
+    "exit_code": 0,
+    "output": "control(normal,'$thread'(2),normal,unlocked,[setup_acquired,body_entered,cleanup_entered])\n"
+  },
+  {
+    "engine": "unmodified",
+    "case": "body",
+    "exit_code": 0,
+    "output": "control(body,'$thread'(2),interrupted,unlocked,[setup_acquired,cleanup_entered])\n"
+  }
+]

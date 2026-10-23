@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-23",
+  "searches": [
+    {
+      "query": "repo:trealla-prolog/trealla-prolog setup_call_cleanup",
+      "results": [
+        {
+          "number": 1172,
+          "title": "http_open/3 accepts timeout/1 but does not enforce read timeout",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1172"
+        },
+        {
+          "number": 1099,
+          "title": "quads: input",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1099"
+        },
+        {
+          "number": 1179,
+          "title": "Feature request: interruption-safe dequeue-and-save for selective receive",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1179"
+        },
+        {
+          "number": 62,
+          "title": "phrase_from_file seems broken",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/62"
+        },
+        {
+          "number": 606,
+          "title": "Feature request library(sequence)",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/606"
+        },
+        {
+          "number": 506,
+          "title": "FYI: Compiling Trealla/Windows(11)",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/506"
+        },
+        {
+          "number": 129,
+          "title": "Top-level abort doesn't trigger cleanup handler",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/129"
+        },
+        {
+          "number": 51,
+          "title": "Memory streams",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/51"
+        }
+      ]
+    },
+    {
+      "query": "repo:trealla-prolog/trealla-prolog mutex signal",
+      "results": [
+        {
+          "number": 1178,
+          "title": "Detached exceptional termination races thread_property/2 status copying and causes SIGSEGV",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1178"
+        },
+        {
+          "number": 1051,
+          "title": "Crash with the Logtalk `linda` library tests at halt",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1051"
+        },
+        {
+          "number": 134,
+          "title": "How can I sleep 600 ms",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/134"
+        }
+      ]
+    },
+    {
+      "query": "repo:trealla-prolog/trealla-prolog cleanup registration",
+      "results": [
+        {
+          "number": 1176,
+          "title": "File-path use_module reconsults an already loaded module and erases asserted runtime state",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1176"
+        }
+      ]
+    },
+    {
+      "query": "repo:trealla-prolog/trealla-prolog \"signal mask\"",
+      "results": []
+    },
+    {
+      "query": "repo:trealla-prolog/trealla-prolog \"setup\" \"interrupt\"",
+      "results": [
+        {
+          "number": 1179,
+          "title": "Feature request: interruption-safe dequeue-and-save for selective receive",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1179"
+        },
+        {
+          "number": 1099,
+          "title": "quads: input",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1099"
+        },
+        {
+          "number": 1172,
+          "title": "http_open/3 accepts timeout/1 but does not enforce read timeout",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1172"
+        },
+        {
+          "number": 1051,
+          "title": "Crash with the Logtalk `linda` library tests at halt",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1051"
+        },
+        {
+          "number": 1048,
+          "title": "Sockets issues with the new Logtalk HTTP/HTMX/WebSocket/OpenAPI/REST libraries",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1048"
+        }
+      ]
+    },
+    {
+      "query": "repo:trealla-prolog/trealla-prolog with_mutex",
+      "results": [
+        {
+          "number": 134,
+          "title": "How can I sleep 600 ms",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/134"
+        }
+      ]
+    },
+    {
+      "query": "repo:trealla-prolog/trealla-prolog \"signals\" \"cleanup\"",
+      "results": [
+        {
+          "number": 1173,
+          "title": "Concurrent module-table growth can race module_by_id() and cause SIGSEGV",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1173"
+        },
+        {
+          "number": 1179,
+          "title": "Feature request: interruption-safe dequeue-and-save for selective receive",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1179"
+        },
+        {
+          "number": 948,
+          "title": "Odd (?) fifo behaviour",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/948"
+        },
+        {
+          "number": 1026,
+          "title": "Some flaky multi-threading behaviours detected by Claude",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1026"
+        }
+      ]
+    }
+  ],
+  "reviewed_related": [
+    1179,
+    129,
+    1051,
+    1026,
+    948
+  ],
+  "conclusion": "No dedicated duplicate of the setup/cleanup-registration mutex-retention trigger found."
+}

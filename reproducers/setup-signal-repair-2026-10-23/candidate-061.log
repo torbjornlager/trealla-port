@@ -1,0 +1,10 @@
+startup exception before thread creation leaves no owned producer: ok
+interrupted skip reclaims producer before returning, application monitor retained: ok
+interrupted collect reclaims producer before returning, application monitor retained: ok
+interrupted lookahead reclaims producer before returning, application monitor retained: ok
+abandoned cache checkout reclaims producer; unrelated message and monitor preserved: ok
+published and rechecked-out continuations survive prior request cleanup: ok
+publication releases ownership before explicit cache removal: ok
+terminal success/failure, original query errors and output mismatch clean up: ok
+execution timeout keeps its resource error and reclaims the producer: ok
+HTTP paging cleanup: all regressions passed

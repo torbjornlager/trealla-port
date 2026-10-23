@@ -1,0 +1,2402 @@
+[
+  {
+    "engine": "candidate",
+    "trial": 1,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-001.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 1,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-001.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 2,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-002.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 2,
+    "exit_code": 0,
+    "seconds": 0.337,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-002.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 3,
+    "exit_code": 0,
+    "seconds": 0.298,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-003.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 3,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-003.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 4,
+    "exit_code": 0,
+    "seconds": 0.294,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-004.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 4,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-004.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 5,
+    "exit_code": 0,
+    "seconds": 0.341,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-005.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 5,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-005.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 6,
+    "exit_code": 0,
+    "seconds": 0.348,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-006.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 6,
+    "exit_code": 0,
+    "seconds": 0.348,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-006.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 7,
+    "exit_code": 0,
+    "seconds": 0.296,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-007.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 7,
+    "exit_code": 0,
+    "seconds": 0.343,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-007.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 8,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-008.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 8,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-008.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 9,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-009.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 9,
+    "exit_code": 0,
+    "seconds": 0.348,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-009.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 10,
+    "exit_code": 0,
+    "seconds": 0.342,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-010.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 10,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-010.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 11,
+    "exit_code": 0,
+    "seconds": 0.294,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-011.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 11,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-011.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 12,
+    "exit_code": 0,
+    "seconds": 0.343,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-012.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 12,
+    "exit_code": 0,
+    "seconds": 0.337,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-012.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 13,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-013.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 13,
+    "exit_code": 0,
+    "seconds": 0.348,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-013.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 14,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-014.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 14,
+    "exit_code": 0,
+    "seconds": 0.411,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-014.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 15,
+    "exit_code": 0,
+    "seconds": 0.296,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-015.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 15,
+    "exit_code": 0,
+    "seconds": 0.342,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-015.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 16,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-016.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 16,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-016.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 17,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-017.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 17,
+    "exit_code": 0,
+    "seconds": 0.338,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-017.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 18,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-018.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 18,
+    "exit_code": 0,
+    "seconds": 0.296,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-018.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 19,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-019.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 19,
+    "exit_code": 0,
+    "seconds": 0.341,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-019.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 20,
+    "exit_code": 0,
+    "seconds": 0.298,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-020.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 20,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-020.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 21,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-021.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 21,
+    "exit_code": 0,
+    "seconds": 0.343,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-021.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 22,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-022.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 22,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-022.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 23,
+    "exit_code": 0,
+    "seconds": 0.35,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-023.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 23,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-023.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 24,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-024.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 24,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-024.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 25,
+    "exit_code": 0,
+    "seconds": 0.341,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-025.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 25,
+    "exit_code": 0,
+    "seconds": 0.343,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-025.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 26,
+    "exit_code": 0,
+    "seconds": 0.34,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-026.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 26,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-026.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 27,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-027.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 27,
+    "exit_code": 0,
+    "seconds": 0.339,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-027.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 28,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-028.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 28,
+    "exit_code": 0,
+    "seconds": 0.353,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-028.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 29,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-029.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 29,
+    "exit_code": 0,
+    "seconds": 0.342,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-029.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 30,
+    "exit_code": 0,
+    "seconds": 0.343,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-030.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 30,
+    "exit_code": 0,
+    "seconds": 0.298,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-030.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 31,
+    "exit_code": 0,
+    "seconds": 0.348,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-031.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 31,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-031.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 32,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-032.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 32,
+    "exit_code": 0,
+    "seconds": 0.351,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-032.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 33,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-033.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 33,
+    "exit_code": 0,
+    "seconds": 0.349,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-033.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 34,
+    "exit_code": 0,
+    "seconds": 0.296,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-034.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 34,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-034.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 35,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-035.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 35,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-035.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 36,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-036.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 36,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-036.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 37,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-037.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 37,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-037.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 38,
+    "exit_code": 0,
+    "seconds": 0.296,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-038.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 38,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-038.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 39,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-039.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 39,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-039.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 40,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-040.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 40,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-040.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 41,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-041.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 41,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-041.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 42,
+    "exit_code": 0,
+    "seconds": 0.343,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-042.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 42,
+    "exit_code": 0,
+    "seconds": 0.338,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-042.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 43,
+    "exit_code": 0,
+    "seconds": 0.296,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-043.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 43,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-043.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 44,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-044.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 44,
+    "exit_code": 0,
+    "seconds": 0.338,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-044.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 45,
+    "exit_code": 0,
+    "seconds": 0.292,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-045.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 45,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-045.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 46,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-046.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 46,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-046.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 47,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-047.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 47,
+    "exit_code": 0,
+    "seconds": 0.342,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-047.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 48,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-048.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 48,
+    "exit_code": 0,
+    "seconds": 0.35,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-048.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 49,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-049.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 49,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-049.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 50,
+    "exit_code": 0,
+    "seconds": 0.34,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-050.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 50,
+    "exit_code": 0,
+    "seconds": 0.341,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-050.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 51,
+    "exit_code": 0,
+    "seconds": 0.34,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-051.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 51,
+    "exit_code": 0,
+    "seconds": 0.294,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-051.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 52,
+    "exit_code": 0,
+    "seconds": 0.296,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-052.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 52,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-052.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 53,
+    "exit_code": 0,
+    "seconds": 0.296,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-053.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 53,
+    "exit_code": 0,
+    "seconds": 0.342,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-053.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 54,
+    "exit_code": 0,
+    "seconds": 0.35,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-054.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 54,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-054.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 55,
+    "exit_code": 0,
+    "seconds": 0.34,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-055.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 55,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-055.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 56,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-056.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 56,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-056.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 57,
+    "exit_code": 0,
+    "seconds": 0.349,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-057.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 57,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-057.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 58,
+    "exit_code": 0,
+    "seconds": 0.35,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-058.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 58,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-058.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 59,
+    "exit_code": 0,
+    "seconds": 0.342,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-059.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 59,
+    "exit_code": 0,
+    "seconds": 0.341,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-059.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 60,
+    "exit_code": 0,
+    "seconds": 0.343,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-060.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 60,
+    "exit_code": 0,
+    "seconds": 0.343,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-060.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 61,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-061.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 61,
+    "exit_code": 0,
+    "seconds": 0.35,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-061.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 62,
+    "exit_code": 0,
+    "seconds": 0.298,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-062.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 62,
+    "exit_code": 0,
+    "seconds": 0.298,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-062.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 63,
+    "exit_code": 0,
+    "seconds": 0.349,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-063.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 63,
+    "exit_code": 0,
+    "seconds": 0.352,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-063.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 64,
+    "exit_code": 0,
+    "seconds": 0.403,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-064.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 64,
+    "exit_code": 0,
+    "seconds": 0.348,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-064.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 65,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-065.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 65,
+    "exit_code": 0,
+    "seconds": 0.349,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-065.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 66,
+    "exit_code": 0,
+    "seconds": 0.294,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-066.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 66,
+    "exit_code": 0,
+    "seconds": 0.342,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-066.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 67,
+    "exit_code": 0,
+    "seconds": 0.355,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-067.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 67,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-067.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 68,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-068.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 68,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-068.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 69,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-069.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 69,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-069.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 70,
+    "exit_code": 0,
+    "seconds": 0.349,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-070.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 70,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-070.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 71,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-071.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 71,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-071.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 72,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-072.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 72,
+    "exit_code": 0,
+    "seconds": 0.343,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-072.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 73,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-073.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 73,
+    "exit_code": 0,
+    "seconds": 0.285,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-073.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 74,
+    "exit_code": 0,
+    "seconds": 0.286,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-074.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 74,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-074.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 75,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-075.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 75,
+    "exit_code": 0,
+    "seconds": 0.292,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-075.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 76,
+    "exit_code": 0,
+    "seconds": 0.287,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-076.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 76,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-076.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 77,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-077.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 77,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-077.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 78,
+    "exit_code": 0,
+    "seconds": 0.292,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-078.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 78,
+    "exit_code": 0,
+    "seconds": 0.291,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-078.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 79,
+    "exit_code": 0,
+    "seconds": 0.298,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-079.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 79,
+    "exit_code": 0,
+    "seconds": 0.288,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-079.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 80,
+    "exit_code": 0,
+    "seconds": 0.325,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-080.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 80,
+    "exit_code": 0,
+    "seconds": 0.289,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-080.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 81,
+    "exit_code": 0,
+    "seconds": 0.292,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-081.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 81,
+    "exit_code": 0,
+    "seconds": 0.291,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-081.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 82,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-082.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 82,
+    "exit_code": 0,
+    "seconds": 0.289,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-082.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 83,
+    "exit_code": 0,
+    "seconds": 0.342,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-083.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 83,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-083.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 84,
+    "exit_code": 0,
+    "seconds": 0.297,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-084.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 84,
+    "exit_code": 0,
+    "seconds": 0.294,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-084.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 85,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-085.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 85,
+    "exit_code": 0,
+    "seconds": 0.293,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-085.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 86,
+    "exit_code": 0,
+    "seconds": 0.287,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-086.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 86,
+    "exit_code": 0,
+    "seconds": 0.29,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-086.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 87,
+    "exit_code": 0,
+    "seconds": 0.347,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-087.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 87,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-087.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 88,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-088.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 88,
+    "exit_code": 0,
+    "seconds": 0.348,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-088.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 89,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-089.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 89,
+    "exit_code": 0,
+    "seconds": 0.343,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-089.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 90,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-090.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 90,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-090.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 91,
+    "exit_code": 0,
+    "seconds": 0.289,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-091.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 91,
+    "exit_code": 0,
+    "seconds": 0.288,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-091.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 92,
+    "exit_code": 0,
+    "seconds": 0.29,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-092.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 92,
+    "exit_code": 0,
+    "seconds": 0.29,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-092.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 93,
+    "exit_code": 0,
+    "seconds": 0.296,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-093.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 93,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-093.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 94,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-094.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 94,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-094.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 95,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-095.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 95,
+    "exit_code": 0,
+    "seconds": 0.349,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-095.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 96,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-096.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 96,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-096.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 97,
+    "exit_code": 0,
+    "seconds": 0.344,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-097.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 97,
+    "exit_code": 0,
+    "seconds": 0.345,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-097.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 98,
+    "exit_code": 0,
+    "seconds": 0.346,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-098.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 98,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-098.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 99,
+    "exit_code": 0,
+    "seconds": 0.339,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-099.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 99,
+    "exit_code": 0,
+    "seconds": 0.295,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-099.log"
+  },
+  {
+    "engine": "candidate",
+    "trial": 100,
+    "exit_code": 0,
+    "seconds": 0.294,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/candidate/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "candidate-100.log"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 100,
+    "exit_code": 0,
+    "seconds": 0.333,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/setup-signal-repair-2026-10-23/unmodified/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/setup-signal-repair-2026-10-23/paging-tests.pl'),(catch(http_paging_cleanup_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "log": "unmodified-100.log"
+  }
+]

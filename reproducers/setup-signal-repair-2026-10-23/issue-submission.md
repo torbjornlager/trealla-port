@@ -1,0 +1,294 @@
+On macOS arm64, unmodified v3.14.8 (`42ebc2127e3f900036c6bcb54cfc11bec4762eb7`) can retain a native mutex when a pending thread_signal/2 exception runs immediately after mutex_lock/1 returns, before setup_call_cleanup/3 registers its cleanup. This reproduces without Web Prolog. A separate build with the saved-message receive primitive has the same defect.
+
+## Reproduction
+
+The standalone mutex probe below creates and holds a mutex in the main thread. A worker attempts with_mutex/2; main queues a throwing signal and releases the mutex. After catching the exception, the worker still owns the mutex at lock depth one. On each original engine this reproduced in 50/50 fresh processes.
+
+An even smaller deterministic regression queues a throwing signal inside Setup after a side effect:
+
+```prolog
+thread_self(Self),
+catch(setup_call_cleanup(
+    (writeln(setup), thread_signal(Self,throw(interrupted))),
+    writeln(body),
+    writeln(cleanup)), interrupted, true).
+```
+
+Expected: setup, cleanup. Actual: setup only. The candidate regression file asserts cleanup side effects using nb_setval/2 rather than relying on terminal output. It fails on both original engines and passes on both repaired builds.
+
+## Cause and candidate patch
+
+with_mutex/2 uses setup_call_cleanup(mutex_lock(Id),once(Goal),mutex_unlock(Id)). The setup_call_cleanup/3 library wrapper executes once(Setup) before '$register_cleanup'. The VM's asynchronous signal dispatch has no protection across that interval. A pending signal can therefore throw after acquiring a resource but before installing its cleanup handler.
+
+The candidate patch below adds a query-local, nested asynchronous-signal mask and two private built-ins. The library wrapper restores the previous mask on setup failure/exception, or as the first step inside the protected '$call_cleanup' body once both cleanup and exception recovery are established. Pending signals remain queued until then. VM and native message-wait dispatch respect the mask; ordinary Goal execution remains interruptible. Hard cancellation and synchronous exception handling are not disabled.
+
+Regression tests cover acquisition, native blocking setup receives, ordinary blocking body interruption, setup failure and exception, pending setup signals, nesting, nondeterminism and cut cleanup. The patch also updates one expected diagnostic's generated anonymous variable name (_56 to _60), reflecting the wrapper's additional variables; substantive expected behavior is unchanged.
+
+## Verification
+
+Two separate repaired source copies were built using SDK 15.4, NOSSL=1 NOFFI=1:
+
+| Check | Patched upstream base | Patched receive-handoff base |
+| --- | ---: | ---: |
+| Original native mutex reproducer | 50/50 pass | 50/50 pass |
+| Paging-cleanup group, fresh processes, original assertions and timeouts | 100/100 pass | 100/100 pass |
+| Engine standard suite including two new fixtures | 571/571 pass | 573/573 pass |
+| Setup semantics and acquisition/body controls | pass | pass |
+| Web Prolog worker-scope cleanup regressions | pass | pass |
+| Receive semantics | pass | pass |
+| Receive-handoff interruption stress (requires saved-message primitive) | not run: primitive absent | 1,000 cases pass |
+
+The patch applies cleanly (`git apply --check`) to the original unmodified source. Repaired exports have no .git metadata, so their compiled version string is `unknown`; the base revision and exact candidate diff identify the source tested here. No performance, allocation-failure fault injection, platform matrix or arbitrary continuation capture is claimed.
+
+Installed engines and running n3/n5 were unchanged. The candidate patch is for upstream review; it has not been installed in our working environment.
+
+## Duplicate check and related reports
+
+I searched open and closed issues for `setup_call_cleanup`, `with_mutex`, mutex/signal, cleanup/registration, signal masks, and setup/interruption. #1179 mentions missing setup atomicity in the selective-receive discussion, but requests a separate dequeue-and-save primitive; this report isolates resource acquisition and cleanup registration. #129 concerns top-level abort cleanup, not this acquisition window. #1051 concerns Linda/socket shutdown. I found no dedicated report of this mutex-retention trigger.
+
+<details>
+<summary>Complete standalone mutex reproducer</summary>
+
+```prolog
+:- module(mutex_retention_probe,[run/0]).
+run :- mutex_create(_,[alias(probe_lock)]), thread_self(Main), mutex_lock(probe_lock),
+ thread_create(mutex_retention_probe:worker(Main),Worker,[]),
+ thread_get_message(Main,ready,[timeout(2)]),
+ sleep(0.01),
+ thread_signal(Worker,throw(interrupted)),
+ mutex_unlock(probe_lock),
+ (thread_get_message(Main,caught(Error,Status),[timeout(2)]) ->
+   writeq(result(Worker,Error,Status)),nl,flush_output,
+   (Status==unlocked -> thread_join(Worker,_),halt;halt(1))
+ ; mutex_property(probe_lock,status(Status)),writeq(missing(Worker,Status)),nl,flush_output,halt(2)).
+worker(Main) :-
+ catch((thread_send_message(Main,ready),with_mutex(probe_lock,true)),E,Error=E),
+ mutex_property(probe_lock,status(Status)),
+ thread_send_message(Main,caught(Error,Status)).
+```
+
+Run with the matching adjacent standard library:
+
+```sh
+TPL_LIBRARY_PATH=/path/to/build/library /path/to/build/tpl \
+  -g "consult('probe.pl'),(catch(mutex_retention_probe:run,E,(writeq(E),nl,halt(3)))->halt;halt(4))"
+```
+
+The original engines print `result(Thread,interrupted,locked(Thread,1))` and exit 1; the repaired engines print `unlocked` in the status position and exit 0. The initial readiness message plus 10 ms sleep is a scheduling aid, not a formal barrier proving entry into the native mutex acquire. The queued-in-Setup regression above removes that scheduling dependency.
+
+</details>
+
+<details>
+<summary>Candidate patch, including engine regression tests</summary>
+
+```diff
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -1011,6 +1011,7 @@
+ 
+ struct query_ {
+ 	lnode hdr;							// must be first
++	unsigned setup_signal_mask; // defer asynchronous signals until setup cleanup is registered
+ 	query *prev, *next, *parent;
+ 	module *current_m;
+ 	prolog *pl;
+--- a/src/bif_control.c
++++ b/src/bif_control.c
+@@ -1167,6 +1167,27 @@
+ 	}
+ 
+ 	return true;
++}
++
++// Private setup_call_cleanup signal scope. The Prolog wrapper restores the
++// previous depth on setup failure/exception and inside the protected catcher
++// on success. Nested setups retain their caller's mask.
++static bool bif_sys_setup_signal_mask_1(query *q)
++{
++    GET_FIRST_ARG(p1,any);
++    cell tmp;
++    make_uint(&tmp, q->setup_signal_mask);
++    if (!unify(q, p1, p1_ctx, &tmp, q->st.cur_ctx))
++        return false;
++    q->setup_signal_mask++;
++    return true;
++}
++
++static bool bif_sys_setup_signal_restore_1(query *q)
++{
++    GET_FIRST_ARG(p1,integer);
++    q->setup_signal_mask = get_smalluint(p1);
++    return true;
+ }
+ 
+ static bool bif_sys_register_cleanup_1(query *q)
+@@ -2030,6 +2051,8 @@
+ 	{"$call_check", 1, bif_sys_call_check_1, "+callable", false, false, BLAH},
+ 	{"$drop_barrier", 1, bif_sys_drop_barrier_1, "+integer", false, false, BLAH},
+ 	{"$get_level", 1, bif_sys_get_level_1, "?integer", false, false, BLAH},
++	{"$setup_signal_mask", 1, bif_sys_setup_signal_mask_1, NULL, false, false, BLAH},
++	{"$setup_signal_restore", 1, bif_sys_setup_signal_restore_1, NULL, false, false, BLAH},
+ 	{"$register_cleanup", 1, bif_sys_register_cleanup_1, NULL, false, false, BLAH},
+ 	{"$call_cleanup", 3, bif_sys_call_cleanup_3, NULL, false, false, BLAH},
+ 	{"$fail_on_retry", 1, bif_sys_fail_on_retry_1, "-integer", false, false, BLAH},
+--- a/src/query.c
++++ b/src/query.c
+@@ -3536,7 +3536,7 @@
+ 		// the choicepoint over the handler, and the signal, already taken
+ 		// off the queue, was lost. The next pass delivers it.
+ 
+-		if (q->thread_ptr && !q->retry) {
++		if (q->thread_ptr && !q->retry && !q->setup_signal_mask) {
+ 			thread *t = q->thread_ptr;
+ 
+ 			if (list_count(&t->signals)) {
+--- a/src/query.h
++++ b/src/query.h
+@@ -275,7 +275,7 @@
+ inline static bool alert_pending(const query *q)
+ {
+ 	thread *self = q->thread_ptr ? q->thread_ptr : q->pl->main_thread;
+-	return self && self->alerted;
++	return self && self->alerted && !q->setup_signal_mask;
+ }
+ 
+ // A blocking read or wait that came back interrupted: the thread exits if
+--- a/src/bif_threads.c
++++ b/src/bif_threads.c
+@@ -1017,7 +1017,7 @@
+ 
+ 		acquire_lock(&t->guard);
+ 
+-		if (list_count(&t->signals)) {
++		if (!q->setup_signal_mask && list_count(&t->signals)) {
+ 			release_lock(&t->guard);
+ 			do_signal(t->q, t);
+ 			start(t->q);
+--- a/library/iso_ext.pl
++++ b/library/iso_ext.pl
+@@ -36,14 +36,21 @@
+ :- help(setup_call_cleanup(:callable,:callable,:callable), [iso(false)]).
+ 
+ setup_call_cleanup(S, G, C) :-
+-	once(S),
+-	(var(C) -> throw(error(instantiation_error, setup_call_cleanup/3)); true),
+-	'$register_cleanup'(ignore(C)),
+-	'$call_cleanup'(
+-		call(G),
+-		Err,
+-		(catch(ignore(C), _, true), throw(Err))
+-	).
++    '$setup_signal_mask'(Mask),
++    catch(
++        ( once(S) ->
++            (var(C) -> throw(error(instantiation_error, setup_call_cleanup/3)); true),
++            '$register_cleanup'(ignore(C)),
++            '$call_cleanup'(
++                ('$setup_signal_restore'(Mask), call(G)),
++                Err,
++                (catch(ignore(C), _, true), throw(Err))
++            )
++        ; '$setup_signal_restore'(Mask), fail
++        ),
++        Error,
++        ('$setup_signal_restore'(Mask), throw(Error))
++    ).
+ 
+ :- help(succ(?integer,+integer), [iso(false)]).
+ :- help(succ(+integer,-integer), [iso(false)]).
+--- /dev/null
++++ b/tests/issues/setup_signal_mask.pl
+@@ -0,0 +1,38 @@
++:- module(setup_signal_regressions,[run/0]).
++require(G,Name) :- (call(G)->true;throw(assertion_failed(Name))).
++mark(K) :- nb_getval(events,Es),append(Es,[K],New),nb_setval(events,New).
++reset :- nb_setval(events,[]).
++events(E) :- nb_getval(events,Actual),require(Actual==E,events(Actual,E)).
++queue(G) :- thread_self(Self),thread_signal(Self,G).
++run :-
++ reset,setup_call_cleanup(mark(setup),mark(body),mark(cleanup)),events([setup,body,cleanup]),
++ reset,\+setup_call_cleanup(fail,mark(body),mark(cleanup)),events([]),
++ queue(setup_signal_regressions:mark(after_failure)),true,events([after_failure]),
++ reset,catch(setup_call_cleanup(throw(setup_error),mark(body),mark(cleanup)),E,true),require(E==setup_error,setup_error),events([]),
++ queue(setup_signal_regressions:mark(after_error)),true,events([after_error]),
++ reset,catch(setup_call_cleanup((mark(setup),queue(throw(interrupted))),mark(body),mark(cleanup)),E2,true),require(E2==interrupted,queued_setup),events([setup,cleanup]),
++ reset,catch(setup_call_cleanup(true,(mark(body),throw(body_error)),mark(cleanup)),E3,true),require(E3==body_error,body_error),events([body,cleanup]),
++ reset,once(setup_call_cleanup(true,member(_,[a,b]),mark(cleanup))),events([cleanup]),
++ reset,findall(X,setup_call_cleanup(true,member(X,[a,b]),mark(cleanup)),Xs),require(Xs==[a,b],answers),events([cleanup]),
++ reset,catch(setup_call_cleanup(
++  (setup_call_cleanup((queue(throw(nested)),mark(inner_setup)),mark(inner_body),mark(inner_cleanup)),mark(outer_setup)),
++  mark(outer_body),mark(outer_cleanup)),E4,true),require(E4==nested,nested_error),events([inner_setup,inner_body,inner_cleanup,outer_setup,outer_cleanup]),
++ setup_wait_check,
++ writeln('setup signal regressions: ok').
++
++setup_wait_check :-
++ thread_self(Main),thread_create(setup_signal_regressions:setup_wait_worker(Main),Worker,[]),
++ require(thread_get_message(Main,setup_waiting,[timeout(2)]),setup_waiting),
++ thread_signal(Worker,throw(wait_interrupted)),
++ thread_send_message(Worker,release),
++ require(thread_get_message(Main,wait_result(Error,Es),[timeout(2)]),setup_wait_result),
++ require(Error==wait_interrupted,setup_wait_error(Error)),
++ require(Es==[setup,cleanup],setup_wait_events(Es)),thread_join(Worker,Status),require(Status==true,setup_wait_status(Status)).
++setup_wait_worker(Main) :-
++ reset,
++ catch(setup_call_cleanup(
++  (thread_send_message(Main,setup_waiting),thread_get_message(release),mark(setup)),
++  mark(body),mark(cleanup)),E,true),
++ nb_getval(events,Es),thread_send_message(Main,wait_result(E,Es)).
++
++:- initialization(run).
+--- /dev/null
++++ b/tests/issues/setup_signal_mask.expected
+@@ -0,0 +1 @@
++setup signal regressions: ok
+--- /dev/null
++++ b/tests/issues/setup_signal_mutex.pl
+@@ -0,0 +1,28 @@
++:- module(mutex_retention_controls,[run/1]).
++run(Mode) :-
++ mutex_create(_,[alias(probe_lock)]),thread_self(Main),
++ (Mode==body -> true;mutex_lock(probe_lock)),
++ thread_create(mutex_retention_controls:worker(Main,Mode),Worker,[]),
++ thread_get_message(Main,ready,[timeout(2)]),
++ (Mode==body -> thread_get_message(Main,body_entered,[timeout(2)]);sleep(0.01)),
++ (Mode==normal -> true;thread_signal(Worker,throw(interrupted))),
++ (Mode==body -> true;mutex_unlock(probe_lock)),
++ (thread_get_message(Main,result(Error,Status),[timeout(2)]) ->
++  drain(Main,Events),
++  (expected(Mode,Worker,Error,Status,Events)->thread_join(Worker,_),mutex_destroy(probe_lock);throw(control_failed(Mode)))
++ ;throw(missing_result)).
++worker(Main,Mode) :-
++ catch((thread_send_message(Main,ready),
++  setup_call_cleanup(
++   (mutex_lock(probe_lock),thread_send_message(Main,setup_acquired)),
++   (thread_send_message(Main,body_entered),(Mode==body -> thread_get_message(release);true)),
++   (thread_send_message(Main,cleanup_entered),mutex_unlock(probe_lock))),Error=normal),E,Error=E),
++ mutex_property(probe_lock,status(Status)),thread_send_message(Main,result(Error,Status)).
++drain(Main,[E|Es]) :- thread_get_message(Main,E,[timeout(0)]),!,drain(Main,Es).
++drain(_,[]).
++expected(blocked,_,interrupted,unlocked,[setup_acquired,cleanup_entered]).
++expected(normal,_,normal,unlocked,[setup_acquired,body_entered,cleanup_entered]).
++% body_entered has already been consumed by the main thread.
++expected(body,_,interrupted,unlocked,[setup_acquired,cleanup_entered]).
++
++:- initialization((run(blocked),run(normal),run(body),writeln('mutex acquisition and body interruptibility: ok'))).
+--- /dev/null
++++ b/tests/issues/setup_signal_mutex.expected
+@@ -0,0 +1 @@
++mutex acquisition and body interruptibility: ok
+--- a/tests/issues/test1099.expected
++++ b/tests/issues/test1099.expected
+@@ -2,7 +2,7 @@
+    ?- get_char(C).
+    expected: inputs([a,b]),C=a
+ quads: FAILED test1099.pl:53
+-   ?- get_char(C),get_char(_56).
++   ?- get_char(C),get_char(_60).
+    expected: inputs([a]),C=a
+ quads: FAILED test1099.pl:58
+    ?- get_char(C).
+```
+
+</details>
+
+The report and candidate were prepared with Codex; the trial counts above are from executed checks.

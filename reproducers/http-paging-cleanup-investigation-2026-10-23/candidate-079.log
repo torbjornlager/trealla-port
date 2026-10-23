@@ -1,0 +1,4 @@
+startup exception before thread creation leaves no owned producer: ok
+paging_failure(case(skip,1596850021,2213782436,1000000007),failed(request_error))
+paging_snapshot(case(skip,1596850021,2213782436,1000000007),failed(request_error),deferred([]),native_head(none),mappings([1295303394-main,1596850021-'$thread'(10),2213782436-'$thread'(12)]),live([1596850021,2213782436]),monitors([1295303394-1596850021-1596850021,1295303394-2213782436-1000000007]),claims([2213782436-1000000004]),cache([]),produced([2213782436]))
+page_assertion_failed(request_error)

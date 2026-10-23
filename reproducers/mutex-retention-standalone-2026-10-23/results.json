@@ -1,0 +1,602 @@
+[
+  {
+    "engine": "candidate",
+    "trial": 1,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 1,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 2,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 2,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 3,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 3,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 4,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 4,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 5,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 5,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 6,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 6,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 7,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 7,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 8,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 8,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 9,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 9,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 10,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 10,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 11,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 11,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 12,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 12,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 13,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 13,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 14,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 14,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 15,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 15,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 16,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 16,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 17,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 17,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 18,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 18,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 19,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 19,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 20,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 20,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 21,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 21,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 22,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 22,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 23,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 23,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 24,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 24,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 25,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 25,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 26,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 26,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 27,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 27,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 28,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 28,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 29,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 29,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 30,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 30,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 31,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 31,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 32,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 32,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 33,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 33,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 34,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 34,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 35,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 35,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 36,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 36,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 37,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 37,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 38,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 38,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 39,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 39,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 40,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 40,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 41,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 41,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 42,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 42,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 43,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 43,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 44,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 44,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 45,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 45,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 46,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 46,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 47,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 47,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 48,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 48,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 49,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 49,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "candidate",
+    "trial": 50,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  },
+  {
+    "engine": "unmodified",
+    "trial": 50,
+    "exit_code": 1,
+    "output": "result('$thread'(2),interrupted,locked('$thread'(2),1))\n"
+  }
+]

@@ -38,13 +38,16 @@ interruption(Stage) :-
     self(Parent),
     spawn_runtime(http_paging_cleanup_tests:request(Parent,Stage),Request,
       [monitor(true),link(false),'$entry_context'(caller)]),
-    receive({page_started(Producer) -> true},[timeout(3),on_timeout(fail)]),
-    monitor(Producer,AppRef),
-    actors:actor_thread(Request,Thread),thread_signal(Thread,throw(page_interrupted)),
-    receive({request_error(page_interrupted) -> true},[timeout(3),on_timeout(fail)]),
-    \+actors:actor_thread(Producer,_),
-    receive({down(Producer,AppRef,kill) -> true},[timeout(2),on_timeout(fail)]),
-    receive({down(Request,Request,true) -> true},[timeout(3),on_timeout(fail)]),
+    nb_setval('$paging_test_case',case(Stage,Request,unknown,unknown)),
+    page_expect(producer_started,(receive({page_started(Producer) -> true},[timeout(3),on_timeout(fail)]))),
+    nb_setval('$paging_test_case',case(Stage,Request,Producer,unknown)),
+    page_expect(producer_monitor,(monitor(Producer,AppRef))),
+    nb_setval('$paging_test_case',case(Stage,Request,Producer,AppRef)),
+    page_expect(request_thread,(actors:actor_thread(Request,Thread))),page_expect(request_signal,(thread_signal(Thread,throw(page_interrupted)))),
+    page_expect(request_error,(receive({request_error(page_interrupted) -> true},[timeout(3),on_timeout(fail)]))),
+    page_expect(producer_retired,(\+actors:actor_thread(Producer,_))),
+    page_expect(application_monitor,(receive({down(Producer,AppRef,kill) -> true},[timeout(2),on_timeout(fail)]))),
+    page_expect(request_terminated,(receive({down(Request,Request,true) -> true},[timeout(3),on_timeout(fail)]))),
     format('interrupted ~w reclaims producer before returning, application monitor retained: ok~n',[Stage]).
 request(Parent,Stage) :-
     (Stage==skip -> Offset=1;Offset=0),
@@ -113,3 +116,40 @@ eviction_policy :-
     actors:actor_thread(Pid,_),
     node:stop_http_page_producer(Pid),
     writeln('publication releases ownership before explicit cache removal: ok').
+
+% Diagnostics only. Preserve the checked goals, exact reply patterns and
+% timeout budgets. Successful checks are quiet; a failed check reports its
+% stage instead of returning an unlabelled failure to the test runner.
+:- meta_predicate page_expect(+,0).
+page_expect(Check,Goal) :-
+    ( catch(call(Goal),Error,
+        (page_failure_snapshot(exception(Check,Error)),throw(Error))) -> true
+    ; page_failure_snapshot(failed(Check)),
+      throw(page_assertion_failed(Check))
+    ).
+
+page_failure_snapshot(Check) :-
+    nb_getval('$paging_test_case',Case),
+    writeq(paging_failure(Case,Check)),nl,flush_output,
+    page_probe_step(deferred),actors:deferred_list(Deferred),
+    writeq(main_deferred(Deferred)),nl,flush_output,
+    page_probe_step(native_head),thread_self(Main),
+    (thread_peek_message(Main,Head) -> NativeHead=some(Head);NativeHead=none),
+    writeq(main_native_head(NativeHead)),nl,flush_output,
+    page_probe_step(actor_registry),
+    (setup_call_cleanup(mutex_trylock('$actor_registry'),
+      (findall(P-T,actors:pid_thread(P,T),Mappings),
+       findall(P,actors:actor_alive(P),Live),
+       findall(Owner-P-Ref,actors:monitor(Owner,P,Ref),Monitors)),
+      mutex_unlock('$actor_registry'))
+    -> Registry=state(Mappings,Live,Monitors);Registry=busy),
+    writeq(registry_snapshot(Registry)),nl,flush_output,
+    page_probe_step(page_cache),
+    (setup_call_cleanup(mutex_trylock('$http_page_cache'),
+      (findall(P-Scope,node:http_page_claim(P,Scope),Claims),
+       findall(cache(Gid,Offset,P,Lookahead),node:cache(Gid,Offset,P,Lookahead),Cache)),
+      mutex_unlock('$http_page_cache'))
+    -> CacheState=state(Claims,Cache);CacheState=busy),
+    writeq(cache_snapshot(CacheState)),nl,flush_output,
+    page_probe_step(done).
+page_probe_step(Step) :- writeq(snapshot_step(Step)),nl,flush_output.
