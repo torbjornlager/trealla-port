@@ -1,0 +1,10 @@
+{
+  "SWIPL": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299/build/src/swipl",
+  "TPL": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+  "TPL_LIBRARY_PATH": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/library",
+  "SDKROOT": "/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk",
+  "TEST_PORT_BASE": "44760",
+  "timeout_shim": "/tmp/trinity-acceptance-bin/timeout",
+  "node_path_added_for_wasm_rerun": "/Users/torbjorn.lager/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin",
+  "timeout_shim_sha256": "d023241f7a5692d73768d299c0cc39afe7e718dee58739fc51e346222e705518"
+}

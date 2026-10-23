@@ -29,6 +29,7 @@ accounting :-
     writeln('zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok').
 
 exhaustion(Strategy,Max,Mode) :-
+    nb_setval('$intensity_test_case',case(Strategy,Max,Mode)),
     supervisor_restart_tests:reset,
     thread_self(Observer),assertz(supervisor_restart_tests:observer(Observer)),self(Self),
     (Mode==policies -> AP=0.02,CP=brutal_kill;AP=infinity,CP=0.1),
@@ -40,7 +41,7 @@ exhaustion(Strategy,Max,Mode) :-
     supervisor_spawn(supervisor_restart_tests:[ASource,B,C],Sup,
        [strategy(Strategy),intensity(Max),period(100),monitor(true),link(false)]),
     setup_call_cleanup(true,
-      (supervisor_which_children(Sup,[info(a,PA,_,_),info(b,PB,_,_),info(c,PC,_,_)]),
+      (intensity_expect(children_initial,(supervisor_which_children(Sup,[info(a,PA,_,_),info(b,PB,_,_),info(c,PC,_,_)]))),
        monitor(PA,RA),monitor(PC,RC),monitor(Sup,ExtraSup),
        allowed_restarts(Max,Sup,PB,Last),
        (Mode==policies -> make_ref(Request),send(PA,'$call'(Self,Request,hold)),
@@ -48,19 +49,20 @@ exhaustion(Strategy,Max,Mode) :-
        (Mode==cleanup_error -> assertz(supervisor_restart_tests:stop_fault(c,cleanup_error(c)));true),
        monitor(Last,RB),server_halt(Last,_),
        receive({down(Sup,Sup,shutdown) -> true},[timeout(4),on_timeout(throw(exhaustion_missing(Strategy,Mode)))]),
-       receive({down(Sup,ExtraSup,shutdown) -> true},[timeout(0),on_timeout(fail)]),
-       receive({down(Last,RB,true) -> true},[timeout(1),on_timeout(fail)]),
+       % Independent monitor notifications are separate sends.
+       intensity_expect(extra_supervisor_down,(receive({down(Sup,ExtraSup,shutdown) -> true},[timeout(1),on_timeout(fail)]))),
+       intensity_expect(last_child_down,(receive({down(Last,RB,true) -> true},[timeout(1),on_timeout(fail)]))),
        (Mode==policies -> AR=shutdown,CR=kill
        ; Mode==cleanup_error -> AR=true,CR=shutdown
        ; AR=true,CR=true),
-       receive({down(PA,RA,AR) -> true},[timeout(1),on_timeout(fail)]),
-       receive({down(PC,RC,CR) -> true},[timeout(1),on_timeout(fail)]),
-       BStarts is Max+1,supervisor_restart_tests:attempts(b,BStarts),
-       supervisor_restart_tests:attempts(a,1),supervisor_restart_tests:attempts(c,1),
-       forall(supervisor_restart_tests:identities(P,_,_),\+actors:actor_thread(P,_)),
-       whereis(a,undefined),whereis(b,undefined),whereis(c,undefined),
+       intensity_expect(first_child_down,(receive({down(PA,RA,AR) -> true},[timeout(1),on_timeout(fail)]))),
+       intensity_expect(last_sibling_down,(receive({down(PC,RC,CR) -> true},[timeout(1),on_timeout(fail)]))),
+       BStarts is Max+1,intensity_expect(b_start_count,(supervisor_restart_tests:attempts(b,BStarts))),
+       intensity_expect(a_start_count,(supervisor_restart_tests:attempts(a,1))),intensity_expect(c_start_count,(supervisor_restart_tests:attempts(c,1))),
+       intensity_expect(actors_retired,(forall(supervisor_restart_tests:identities(P,_,_),\+actors:actor_thread(P,_)))),
+       intensity_expect(names_retired,(whereis(a,undefined),whereis(b,undefined),whereis(c,undefined))),
        supervisor_restart_tests:find_stops(Stops),
-       (Mode==normal -> expected_stops(Max,Expected),Stops==Expected;true)),
+       intensity_expect(stop_order,((Mode==normal -> expected_stops(Max,Expected),Stops==Expected;true)))),
       exit(Sup,kill)),
     supervisor_restart_tests:reset,
     format('~w intensity(~w), ~w: no excess replacements, reverse policy cleanup and shutdown reason: ok~n',[Strategy,Max,Mode]).
@@ -99,3 +101,25 @@ isolated_exhaustion(Observer) :-
 abort_control :-
     catch(supervisor_startup:cleanup_child_error('$abort_goal'),Error,true),Error=='$abort_goal',
     writeln('runtime abort control remains a control transfer: ok').
+
+% Diagnostics only: the checked goals, message patterns, expected values and
+% timeout budgets above are unchanged. Successful checks print nothing.
+:- meta_predicate intensity_expect(+,0).
+intensity_expect(Stage,Goal) :-
+    ( call(Goal) -> true
+    ; intensity_failure_snapshot(Stage),
+      throw(intensity_assertion_failed(Stage))
+    ).
+
+intensity_failure_snapshot(Stage) :-
+    nb_getval('$intensity_test_case',Case),
+    actors:deferred_list(Deferred),
+    thread_self(Thread),
+    (thread_peek_message(Thread,Head) -> NativeHead=some(Head);NativeHead=none),
+    with_mutex('$actor_registry',
+      (findall(P-T,actors:pid_thread(P,T),Mappings),
+       findall(P,actors:actor_alive(P),Live))),
+    findall(Id-N,supervisor_restart_tests:attempts(Id,N),Attempts),
+    findall(P-Id-N,supervisor_restart_tests:identities(P,Id,N),Identities),
+    writeq(intensity_failure(Case,Stage,deferred(Deferred),native_head(NativeHead),
+              mappings(Mappings),live(Live),attempts(Attempts),identities(Identities))),nl.

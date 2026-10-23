@@ -1,0 +1,11 @@
+{
+  "label": "trealla-unit",
+  "command": [
+    "sh",
+    "tools/test.sh",
+    "unit"
+  ],
+  "cwd": "/Users/torbjorn.lager/Documents/GitHub/trealla-port",
+  "exit_code": 1,
+  "seconds": 60.094
+}

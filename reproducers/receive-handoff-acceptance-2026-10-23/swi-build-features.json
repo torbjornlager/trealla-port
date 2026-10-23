@@ -1,0 +1,30 @@
+[
+  {
+    "engine": "fixed",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299/build/src/swipl",
+      "-f",
+      "none",
+      "-q",
+      "-g",
+      "current_prolog_flag(version_data,V),writeln(version(V)),current_prolog_flag(bounded,B),writeln(bounded(B)),forall(member(L,[pcre,ssl,crypto]),(catch((use_module(library(L),[]),writeln(available(L))),E,writeln(unavailable(L,E))))),halt"
+    ],
+    "exit_code": 0,
+    "stdout": "version(swi(10,1,18,[]))\nbounded(false)\nunavailable(pcre,error(existence_error(source_sink,library(pcre)),_7836))\navailable(ssl)\navailable(crypto)\n",
+    "stderr": ""
+  },
+  {
+    "engine": "installed",
+    "command": [
+      "/Applications/swipl-win.app/Contents/MacOS/swipl",
+      "-f",
+      "none",
+      "-q",
+      "-g",
+      "current_prolog_flag(version_data,V),writeln(version(V)),current_prolog_flag(bounded,B),writeln(bounded(B)),forall(member(L,[pcre,ssl,crypto]),(catch((use_module(library(L),[]),writeln(available(L))),E,writeln(unavailable(L,E))))),halt"
+    ],
+    "exit_code": 0,
+    "stdout": "version(swi(10,1,18,[]))\nbounded(false)\navailable(pcre)\navailable(ssl)\navailable(crypto)\n",
+    "stderr": ""
+  }
+]

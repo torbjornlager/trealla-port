@@ -1,0 +1,39 @@
+[
+  {
+    "name": "trealla-ui-node",
+    "pid": 19162,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/receive-handoff-acceptance-2026-10-23/trealla-ui-start.pl'),main"
+    ]
+  },
+  {
+    "name": "swi-ui-node",
+    "pid": 19163,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299/build/src/swipl",
+      "-f",
+      "none",
+      "-q",
+      "-s",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/receive-handoff-acceptance-2026-10-23/swi-ui-start.pl"
+    ]
+  },
+  {
+    "name": "trealla-ui-proxy",
+    "pid": 19164,
+    "command": [
+      "python3",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/receive-handoff-acceptance-2026-10-23/trealla-ui-proxy.py"
+    ]
+  },
+  {
+    "name": "swi-ui-proxy",
+    "pid": 19165,
+    "command": [
+      "python3",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/receive-handoff-acceptance-2026-10-23/swi-ui-proxy.py"
+    ]
+  }
+]

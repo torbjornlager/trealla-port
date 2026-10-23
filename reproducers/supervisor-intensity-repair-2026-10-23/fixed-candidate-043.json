@@ -1,0 +1,11 @@
+{
+  "label": "fixed-candidate-043",
+  "command": [
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+    "-g",
+    "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+  ],
+  "exit_code": 0,
+  "seconds": 0.622,
+  "log": "fixed-candidate-043.log"
+}

@@ -1,0 +1,11 @@
+{
+  "label": "control-repaired-candidate-4",
+  "command": [
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+    "-g",
+    "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/supervisor-intensity-repair-2026-10-23/delayed-notification-control.pl'),(catch(intensity_delayed_notification_control:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+  ],
+  "exit_code": 0,
+  "seconds": 0.293,
+  "log": "control-repaired-candidate-4.log"
+}

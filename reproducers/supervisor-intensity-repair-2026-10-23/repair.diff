@@ -1,0 +1,12 @@
+--- before-test-only-repair
++++ supervisor_intensity_tests.pl
+@@ -49,7 +49,8 @@
+        (Mode==cleanup_error -> assertz(supervisor_restart_tests:stop_fault(c,cleanup_error(c)));true),
+        monitor(Last,RB),server_halt(Last,_),
+        receive({down(Sup,Sup,shutdown) -> true},[timeout(4),on_timeout(throw(exhaustion_missing(Strategy,Mode)))]),
+-       intensity_expect(extra_supervisor_down,(receive({down(Sup,ExtraSup,shutdown) -> true},[timeout(0),on_timeout(fail)]))),
++       % Independent monitor notifications are separate sends.
++       intensity_expect(extra_supervisor_down,(receive({down(Sup,ExtraSup,shutdown) -> true},[timeout(1),on_timeout(fail)]))),
+        intensity_expect(last_child_down,(receive({down(Last,RB,true) -> true},[timeout(1),on_timeout(fail)]))),
+        (Mode==policies -> AR=shutdown,CR=kill
+        ; Mode==cleanup_error -> AR=true,CR=shutdown

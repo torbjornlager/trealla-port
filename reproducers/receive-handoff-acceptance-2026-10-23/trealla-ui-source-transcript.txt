@@ -1,0 +1,153 @@
+Browser tab: 2, Title: "The Prolog Trinity demonstrator", URL: "http://localhost:44300/portal".
+1 AXWebArea The Prolog Trinity demonstrator, URL: localhost:44300/portal
+	2 container app
+		3 container
+			4 link Description: Web Prolog logo, Value: trinity.elfenbenstornet.se/
+			5 heading Trinity demonstrator, Value: 1
+				6 text Trinity demonstrator
+			7 text  Your portal to the Prolog Web
+			8 text Browser node
+			9 container Browser help
+				10 text Open the browser-based SWI-Prolog node. Its execution model is selected in Settings.
+			11 link Description: SWI-WASM, Value: localhost:44300/portal?node=swi-wasm
+			12 text Remote nodes
+			13 container Node help
+				14 text Open the live Discovery Hub to inspect available nodes, or jump directly to a node demonstrator with N1–N5.
+			15 link Description: Discovery Hub, Value: n0.elfenbenstornet.se/discovery-hub
+			16 link Description: Open N1 demonstrator, Value: n1.elfenbenstornet.se/demonstrator
+			17 link Description: Open N2 demonstrator, Value: n2.elfenbenstornet.se/demonstrator
+			18 link Description: Open N3 demonstrator, Value: n3.elfenbenstornet.se/demonstrator
+			19 link Description: Open N4 demonstrator, Value: n4.elfenbenstornet.se/demonstrator
+			20 link Description: Open N5 demonstrator, Value: n5.elfenbenstornet.se/demonstrator
+			21 link Description:  Shared DB, Value: localhost:44300/
+			22 link Description: Open admin console, Help: Admin console, Value: localhost:44300/admin
+			23 button Description: Open help, Help: Help
+			24 button Description: Open settings, Help: Settings
+		25 container
+			26 button Hide examples
+			69 text Examples
+			70 text Tutorials
+			71 content list
+				72 link Description: The ACTOR profile, Value: localhost:44300/actor-profile-tutorial
+				73 link Description: The stateful WebSocket API, Value: localhost:44300/actor-api-tutorial
+				74 link Description: Jev agent experiment, Value: localhost:44300/jev-sxml-tutorial
+			75 text Web Prolog code
+			76 content list
+				77 link Description: 01 queens.pl, Value: localhost:44300/examples/actors/01%20queens.pl
+				78 link Description: 02 grammar.pl, Value: localhost:44300/examples/actors/02%20grammar.pl
+				79 link Description: 03 expert-system.pl, Value: localhost:44300/examples/actors/03%20expert-system.pl
+				80 link Description: 04 count_server.pl, Value: localhost:44300/examples/actors/04%20count_server.pl
+				81 link Description: 05 fridge.pl, Value: localhost:44300/examples/actors/05%20fridge.pl
+				82 link Description: 06 ping-pong.pl, Value: localhost:44300/examples/actors/06%20ping-pong.pl
+				83 link Description: 07 selective-receive.pl, Value: localhost:44300/examples/actors/07%20selective-receive.pl
+				84 link Description: 08 priority_queue.pl, Value: localhost:44300/examples/actors/08%20priority_queue.pl
+				85 link Description: 09 alarm.pl, Value: localhost:44300/examples/actors/09%20alarm.pl
+				86 link Description: 10 links.pl, Value: localhost:44300/examples/actors/10%20links.pl
+				87 link Description: 11 ring.pl, Value: localhost:44300/examples/actors/11%20ring.pl
+				88 link Description: 12 dining_philosophers.pl, Value: localhost:44300/examples/actors/12%20dining_philosophers.pl
+				89 link Description: 13 parallel.pl, Value: localhost:44300/examples/actors/13%20parallel.pl
+				90 link Description: 14 backtracking.pl, Value: localhost:44300/examples/actors/14%20backtracking.pl
+				91 link Description: 15 simple_toplevel.pl, Value: localhost:44300/examples/actors/15%20simple_toplevel.pl
+				92 link Description: 16 fridge_server.pl, Value: localhost:44300/examples/actors/16%20fridge_server.pl
+				93 link Description: 17 rpc.pl, Value: localhost:44300/examples/actors/17%20rpc.pl
+				94 link Description: 18 proof-trees.pl, Value: localhost:44300/examples/actors/18%20proof-trees.pl
+				95 link Description: 19 promise-and-yield.pl, Value: localhost:44300/examples/actors/19%20promise-and-yield.pl
+				96 link Description: 20 expert-system-agent.pl, Value: localhost:44300/examples/actors/20%20expert-system-agent.pl
+				97 link Description: 21 model-actor.pl, Value: localhost:44300/examples/actors/21%20model-actor.pl
+				98 link Description: 22 service-policy.pl, Value: localhost:44300/examples/actors/22%20service-policy.pl
+				99 link Description: 23 jev-agent.pl, Value: localhost:44300/examples/actors/23%20jev-agent.pl
+				100 link Description: 24 jev-sxml-agent.pl, Value: localhost:44300/examples/actors/24%20jev-sxml-agent.pl
+			101 text SXML code
+			102 content list
+				103 link Description: 01 pause-and-resume.xml, Value: localhost:44300/examples/statecharts/01%20pause-and-resume.xml
+				104 link Description: 02 spaghetti.xml, Value: localhost:44300/examples/statecharts/02%20spaghetti.xml
+				105 link Description: 03 emotions.xml, Value: localhost:44300/examples/statecharts/03%20emotions.xml
+				106 link Description: 04 clock.xml, Value: localhost:44300/examples/statecharts/04%20clock.xml
+				107 link Description: 05 pingpong.xml, Value: localhost:44300/examples/statecharts/05%20pingpong.xml
+				108 link Description: 06 parallel.xml, Value: localhost:44300/examples/statecharts/06%20parallel.xml
+				109 link Description: 07 deferred-events.xml, Value: localhost:44300/examples/statecharts/07%20deferred-events.xml
+				110 link Description: 08 closure.xml, Value: localhost:44300/examples/statecharts/08%20closure.xml
+				111 link Description: 09 gcd.xml, Value: localhost:44300/examples/statecharts/09%20gcd.xml
+				112 link Description: 10 shared-database.xml, Value: localhost:44300/examples/statecharts/10%20shared-database.xml
+				113 link Description: 11 boxshop-1.xml, Value: localhost:44300/examples/statecharts/11%20boxshop-1.xml
+				114 link Description: 12 boxshop-2.xml, Value: localhost:44300/examples/statecharts/12%20boxshop-2.xml
+				115 link Description: 13 spawn-actor.xml, Value: localhost:44300/examples/statecharts/13%20spawn-actor.xml
+				116 link Description: 14 spawn-toplevel.xml, Value: localhost:44300/examples/statecharts/14%20spawn-toplevel.xml
+				117 link Description: 15 spawn-server.xml, Value: localhost:44300/examples/statecharts/15%20spawn-server.xml
+				118 link Description: 16 spawn-supervisor.xml, Value: localhost:44300/examples/statecharts/16%20spawn-supervisor.xml
+				119 link Description: 17 spawn-statechart.xml, Value: localhost:44300/examples/statecharts/17%20spawn-statechart.xml
+				120 link Description: 18 service-request.xml, Value: localhost:44300/examples/statecharts/18%20service-request.xml
+				121 link Description: 19 model-statechart.xml, Value: localhost:44300/examples/statecharts/19%20model-statechart.xml
+				122 link Description: 20 jev-deployment-assistant.xml, Value: localhost:44300/examples/statecharts/20%20jev-deployment-assistant.xml
+			27 container
+				28 text Editor
+				123 text 06 ping-pong.pl
+			30 container Demonstrator editor
+				31 AXWebArea Demonstrator Editor Frame, URL: localhost:44300/editor_frame?id=editor&mode=none
+					32 container
+						33 text entry area (settable)
+						34 container
+							124 text %%  ping_pong is det. % %   Two actors bouncing a message back and forth. The count server and %   the fridge had a single server talking to the shell; here two spawned %   actors talk to EACH OTHER, which is the first genuinely concurrent %   example in the set. % %   ping_pong/0 spawns a `pong` actor and then a `ping` actor, handing %   ping the pong actor's pid so it knows where to send. ping sends %   ping(Self) and waits for a `pong` reply; pong waits for a ping, %   prints, and replies. They volley N times (N = 3 here); on the last %   round ping sends `finished` instead, and both actors print a final %   line and terminate. Each actor waits for messages in its own mailbox. %   The received-message lines alternate because pong prints before %   replying, and ping prints before sending the next ping. % %   Remote terminal writes follow the same request/reply principle as %   Erlang's I/O protocol: the writer sends an I/O request and waits for %   its corresponding reply before continuing. Here, the shared terminal %   acknowledges acceptance of the output, preserving that order across %   nodes, including when the terminal is hosted in SWI-WASM. %   See https://www.erlang.org/doc/apps/stdlib/io_protocol.html % %   The two finishing lines may appear in either order: ping sends %   `finished` before printing its own line. ping_pong/0 only spawns the %   actors, so the shell may report true before their conversation ends. % %   pong/0 and ping/2 are spawned into separate private modules, so each %   spawn ships exactly the clauses that actor runs via src_predicates. % %   Try adding node('https://n3.elfenbenstornet.se') to pong's spawn %   options and/or node('https://n4.elfenbenstornet.se') to ping's. % %   With no node option, an actor runs on the current node. From SWI-WASM, %   adding just one gives a browser/remote pair; adding both places the %   actors on those two remote nodes. % %   Open the Logger and enable API traffic to inspect the spawn requests %   and replies and verify which nodes host the actors. % % @author https://www.erlang.org/doc/system/conc_prog.html ping(0, Pong_Pid) :-     Pong_Pid ! finished,     format('Ping finished.~n'). ping(N, Pong_Pid) :-
+			36 container
+				37 text Terminal
+				38 container
+					39 container
+						40 text Welcome to 
+						41 text Web Prolog
+						42 text , running
+						43 text the 
+						44 text ACTOR
+						45 text  profile on node 
+						46 text localhost:44300,
+						47 text powered by 
+						48 link Description: SWI-Prolog, Value: swi-prolog.org/
+						49 text .
+						125 text % Spawned new session and loaded 06 ping-pong.pl.
+						127 text ?- ping_pong.
+						128 text true.
+						129 text Pong received ping.
+						130 text Ping received pong.
+						131 text Pong received ping.
+						132 text Ping received pong.
+						133 text Pong received ping.
+						134 text Ping received pong.
+						135 text Ping finished.
+						136 text Pong finished.
+						137 text ?- 
+						138 text supervisor_spawn
+						139 text ([child(waiter,[start(
+						140 text receive
+						141 text ({stop -> true})),restart(temporary)])],Sup,[m
+						142 text onitor(true)]),
+						143 text supervisor_count_children
+						144 text (Sup,Counts),
+						145 text supervisor_halt
+						146 text (Sup),
+						147 text receive
+						148 text ({down(Sup,Su
+						149 text p,Reason) -> true},[timeout(3),on_timeout(throw(missing_supervisor_down))]).
+						150 text Sup = 2353743005,
+						151 text Counts = [specs-1,active-1,supervisors-0,workers-1],
+						152 text Reason = true.
+					50 container
+						51 text ?-  Clipboard textarea for jQuery Terminal
+						52 text entry area (settable) Clipboard textarea for jQuery Terminal, ID: 6otqm2
+				53 text x
+				54 button (collapsed) History, Secondary Actions: Expand
+				126 button (collapsed) Examples, Secondary Actions: Expand
+				55 button Flush, Help: Call flush/0 in the Editor session
+				56 button Actors, Help: Call actors/1 in the Editor session
+				57 button Call
+				58 button (disabled) Next
+				59 button (disabled) Stop
+				60 button Abort
+				61 button Clear
+			62 button Show logger
+		63 container
+			64 text Inspired by 
+			65 link Description: Erlang, Value: erlang.org/
+			66 text , powered by 
+			67 link Description: SWI-Prolog, Value: swi-prolog.org/
+			68 text . Profile: ACTOR  |  Principal: anonymous  |  Auth: OPEN
+
+The focused UI element is 52 text entry area (settable) Clipboard textarea for jQuery Terminal, ID: 6otqm2

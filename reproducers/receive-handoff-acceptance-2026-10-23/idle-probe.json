@@ -1,0 +1,34 @@
+[
+  {
+    "mode": "native",
+    "exit_code": 0,
+    "wall_seconds": 2.0373,
+    "cpu_seconds": 0.034,
+    "stdout": "release_seconds(0.001247).\n",
+    "stderr": ""
+  },
+  {
+    "mode": "adapter",
+    "exit_code": 0,
+    "wall_seconds": 2.0332,
+    "cpu_seconds": 0.0755,
+    "stdout": "release_seconds(0.000884).\n",
+    "stderr": ""
+  },
+  {
+    "mode": "native",
+    "exit_code": 0,
+    "wall_seconds": 2.0282,
+    "cpu_seconds": 0.031,
+    "stdout": "release_seconds(0.001365).\n",
+    "stderr": ""
+  },
+  {
+    "mode": "adapter",
+    "exit_code": 0,
+    "wall_seconds": 2.033,
+    "cpu_seconds": 0.071,
+    "stdout": "release_seconds(0.000889).\n",
+    "stderr": ""
+  }
+]

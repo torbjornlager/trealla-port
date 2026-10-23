@@ -1,0 +1,19 @@
+{
+  "original_test_sha256": "bc00e74b57179fb652ba0fbe21f670577150139701c743508854be4f7c574ee4",
+  "diagnostic_test_sha256": "b78f3c42c24dd74c7fcdfdf7ac40a8d67862ee831e43a96d0ae313e57fc57ac9",
+  "assertions_preserved": {
+    "children_initial": "supervisor_which_children(Sup,[info(a,PA,_,_),info(b,PB,_,_),info(c,PC,_,_)])",
+    "extra_supervisor_down": "receive({down(Sup,ExtraSup,shutdown) -> true},[timeout(0),on_timeout(fail)])",
+    "last_child_down": "receive({down(Last,RB,true) -> true},[timeout(1),on_timeout(fail)])",
+    "first_child_down": "receive({down(PA,RA,AR) -> true},[timeout(1),on_timeout(fail)])",
+    "last_sibling_down": "receive({down(PC,RC,CR) -> true},[timeout(1),on_timeout(fail)])",
+    "b_start_count": "supervisor_restart_tests:attempts(b,BStarts)",
+    "a_start_count": "supervisor_restart_tests:attempts(a,1)",
+    "c_start_count": "supervisor_restart_tests:attempts(c,1)",
+    "actors_retired": "forall(supervisor_restart_tests:identities(P,_,_),\\+actors:actor_thread(P,_))",
+    "names_retired": "whereis(a,undefined),whereis(b,undefined),whereis(c,undefined)",
+    "stop_order": "(Mode==normal -> expected_stops(Max,Expected),Stops==Expected;true)"
+  },
+  "case_context": "set once before startup; successful stage checks do not print",
+  "original_control": "original_tests.pl changes only import paths to absolute paths"
+}

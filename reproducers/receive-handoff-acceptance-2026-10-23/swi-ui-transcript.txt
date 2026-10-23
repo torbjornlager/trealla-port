@@ -1,0 +1,549 @@
+Browser tab: 2, Title: "The Prolog Trinity demonstrator", URL: "http://localhost:44310/portal".
+1 AXWebArea The Prolog Trinity demonstrator, URL: localhost:44310/portal
+	2 container app
+		3 container
+			4 link Description: Web Prolog logo, Value: trinity.elfenbenstornet.se/
+			5 heading Trinity demonstrator, Value: 1
+				6 text Trinity demonstrator
+			7 text  Your portal to the Prolog Web
+			8 text Browser node
+			9 container Browser help
+				10 text Open the browser-based SWI-Prolog node. Its execution model is selected in Settings.
+			11 link Description: SWI-WASM, Value: localhost:44310/portal?node=swi-wasm
+			12 text Remote nodes
+			13 container Node help
+				14 text Open the live Discovery Hub to inspect available nodes, or jump directly to a node demonstrator with N1–N5.
+			15 link Description: Discovery Hub, Value: n0.elfenbenstornet.se/discovery-hub
+			16 link Description: Open N1 demonstrator, Value: n1.elfenbenstornet.se/demonstrator
+			17 link Description: Open N2 demonstrator, Value: n2.elfenbenstornet.se/demonstrator
+			18 link Description: Open N3 demonstrator, Value: n3.elfenbenstornet.se/demonstrator
+			19 link Description: Open N4 demonstrator, Value: n4.elfenbenstornet.se/demonstrator
+			20 link Description: Open N5 demonstrator, Value: n5.elfenbenstornet.se/demonstrator
+			21 link Description:  Shared DB, Value: localhost:44310/
+			22 link Description: Open admin console, Help: Admin console, Value: localhost:44310/admin
+			23 button Description: Open help, Help: Help
+			24 button Description: Open settings, Help: Settings
+		25 container
+			26 button Hide examples
+			27 text Examples
+			28 text Tutorials
+			29 content list
+				30 link Description: The ACTOR profile, Value: localhost:44310/actor-profile-tutorial
+				31 link Description: The stateful WebSocket API, Value: localhost:44310/actor-api-tutorial
+				32 link Description: Jev agent experiment, Value: localhost:44310/jev-sxml-tutorial
+			33 text Web Prolog code
+			34 content list
+				35 link Description: 01 queens.pl, Value: localhost:44310/examples/actors/01%20queens.pl
+				36 link Description: 02 grammar.pl, Value: localhost:44310/examples/actors/02%20grammar.pl
+				37 link Description: 03 expert-system.pl, Value: localhost:44310/examples/actors/03%20expert-system.pl
+				38 link Description: 04 count_server.pl, Value: localhost:44310/examples/actors/04%20count_server.pl
+				39 link Description: 05 fridge.pl, Value: localhost:44310/examples/actors/05%20fridge.pl
+				40 link Description: 06 ping-pong.pl, Value: localhost:44310/examples/actors/06%20ping-pong.pl
+				41 link Description: 07 selective-receive.pl, Value: localhost:44310/examples/actors/07%20selective-receive.pl
+				42 link Description: 08 priority_queue.pl, Value: localhost:44310/examples/actors/08%20priority_queue.pl
+				43 link Description: 09 alarm.pl, Value: localhost:44310/examples/actors/09%20alarm.pl
+				44 link Description: 10 links.pl, Value: localhost:44310/examples/actors/10%20links.pl
+				45 link Description: 11 ring.pl, Value: localhost:44310/examples/actors/11%20ring.pl
+				46 link Description: 12 dining_philosophers.pl, Value: localhost:44310/examples/actors/12%20dining_philosophers.pl
+				47 link Description: 13 parallel.pl, Value: localhost:44310/examples/actors/13%20parallel.pl
+				48 link Description: 14 backtracking.pl, Value: localhost:44310/examples/actors/14%20backtracking.pl
+				49 link Description: 15 simple_toplevel.pl, Value: localhost:44310/examples/actors/15%20simple_toplevel.pl
+				50 link Description: 16 fridge_server.pl, Value: localhost:44310/examples/actors/16%20fridge_server.pl
+				51 link Description: 17 rpc.pl, Value: localhost:44310/examples/actors/17%20rpc.pl
+				52 link Description: 18 proof-trees.pl, Value: localhost:44310/examples/actors/18%20proof-trees.pl
+				53 link Description: 19 promise-and-yield.pl, Value: localhost:44310/examples/actors/19%20promise-and-yield.pl
+				54 link Description: 20 expert-system-agent.pl, Value: localhost:44310/examples/actors/20%20expert-system-agent.pl
+				55 link Description: 21 model-actor.pl, Value: localhost:44310/examples/actors/21%20model-actor.pl
+				56 link Description: 22 service-policy.pl, Value: localhost:44310/examples/actors/22%20service-policy.pl
+				57 link Description: 23 jev-agent.pl, Value: localhost:44310/examples/actors/23%20jev-agent.pl
+				58 link Description: 24 jev-sxml-agent.pl, Value: localhost:44310/examples/actors/24%20jev-sxml-agent.pl
+			59 text SXML code
+			60 content list
+				61 link Description: 01 pause-and-resume.xml, Value: localhost:44310/examples/statecharts/01%20pause-and-resume.xml
+				62 link Description: 02 spaghetti.xml, Value: localhost:44310/examples/statecharts/02%20spaghetti.xml
+				63 link Description: 03 emotions.xml, Value: localhost:44310/examples/statecharts/03%20emotions.xml
+				64 link Description: 04 clock.xml, Value: localhost:44310/examples/statecharts/04%20clock.xml
+				65 link Description: 05 pingpong.xml, Value: localhost:44310/examples/statecharts/05%20pingpong.xml
+				66 link Description: 06 parallel.xml, Value: localhost:44310/examples/statecharts/06%20parallel.xml
+				67 link Description: 07 deferred-events.xml, Value: localhost:44310/examples/statecharts/07%20deferred-events.xml
+				68 link Description: 08 closure.xml, Value: localhost:44310/examples/statecharts/08%20closure.xml
+				69 link Description: 09 gcd.xml, Value: localhost:44310/examples/statecharts/09%20gcd.xml
+				70 link Description: 10 shared-database.xml, Value: localhost:44310/examples/statecharts/10%20shared-database.xml
+				71 link Description: 11 boxshop-1.xml, Value: localhost:44310/examples/statecharts/11%20boxshop-1.xml
+				72 link Description: 12 boxshop-2.xml, Value: localhost:44310/examples/statecharts/12%20boxshop-2.xml
+				73 link Description: 13 spawn-actor.xml, Value: localhost:44310/examples/statecharts/13%20spawn-actor.xml
+				74 link Description: 14 spawn-toplevel.xml, Value: localhost:44310/examples/statecharts/14%20spawn-toplevel.xml
+				75 link Description: 15 spawn-server.xml, Value: localhost:44310/examples/statecharts/15%20spawn-server.xml
+				76 link Description: 16 spawn-supervisor.xml, Value: localhost:44310/examples/statecharts/16%20spawn-supervisor.xml
+				77 link Description: 17 spawn-statechart.xml, Value: localhost:44310/examples/statecharts/17%20spawn-statechart.xml
+				78 link Description: 18 service-request.xml, Value: localhost:44310/examples/statecharts/18%20service-request.xml
+				79 link Description: 19 model-statechart.xml, Value: localhost:44310/examples/statecharts/19%20model-statechart.xml
+				80 link Description: 20 jev-deployment-assistant.xml, Value: localhost:44310/examples/statecharts/20%20jev-deployment-assistant.xml
+			81 container
+				82 text Editor
+				332 text 06 ping-pong.pl
+			84 container Demonstrator editor
+				85 AXWebArea Demonstrator Editor Frame, URL: localhost:44310/editor_frame?id=editor&mode=none
+					86 container
+						87 text entry area (settable)
+						88 container
+							333 text %%  ping_pong is det. % %   Two actors bouncing a message back and forth. The count server and %   the fridge had a single server talking to the shell; here two spawned %   actors talk to EACH OTHER, which is the first genuinely concurrent %   example in the set. % %   ping_pong/0 spawns a `pong` actor and then a `ping` actor, handing %   ping the pong actor's pid so it knows where to send. ping sends %   ping(Self) and waits for a `pong` reply; pong waits for a ping, %   prints, and replies. They volley N times (N = 3 here); on the last %   round ping sends `finished` instead, and both actors print a final %   line and terminate. Each actor waits for messages in its own mailbox. %   The received-message lines alternate because pong prints before %   replying, and ping prints before sending the next ping. % %   Remote terminal writes follow the same request/reply principle as %   Erlang's I/O protocol: the writer sends an I/O request and waits for %   its corresponding reply before continuing. Here, the shared terminal %   acknowledges acceptance of the output, preserving that order across %   nodes, including when the terminal is hosted in SWI-WASM. %   See https://www.erlang.org/doc/apps/stdlib/io_protocol.html % %   The two finishing lines may appear in either order: ping sends %   `finished` before printing its own line. ping_pong/0 only spawns the %   actors, so the shell may report true before their conversation ends. % %   pong/0 and ping/2 are spawned into separate private modules, so each %   spawn ships exactly the clauses that actor runs via src_predicates. % %   Try adding node('https://n3.elfenbenstornet.se') to pong's spawn %   options and/or node('https://n4.elfenbenstornet.se') to ping's. % %   With no node option, an actor runs on the current node. From SWI-WASM, %   adding just one gives a browser/remote pair; adding both places the %   actors on those two remote nodes. % %   Open the Logger and enable API traffic to inspect the spawn requests %   and replies and verify which nodes host the actors. % % @author https://www.erlang.org/doc/system/conc_prog.html ping(0, Pong_Pid) :-     Pong_Pid ! finished,     format('Ping finished.~n'). ping(N, Pong_Pid) :-
+			90 container
+				91 text Terminal
+				92 container
+					93 container
+						94 text Welcome to 
+						95 text Web Prolog
+						96 text , running
+						97 text the 
+						98 text ACTOR
+						99 text  profile on node 
+						100 text localhost:44310,
+						101 text powered by 
+						102 link Description: SWI-Prolog, Value: swi-prolog.org/
+						103 text .
+						139 text ?- runtime_property(implementation(Which)),
+						140 text toplev
+						141 text el_spawn
+						142 text (Pid,[monitor(true)]),toplevel_call_synch
+						143 text (Pid,member(X,[a,b,c]),A,[template(X),limit(2)]),
+						144 text toplevel_next_synch(Pid,B),
+						145 text toplevel_halt
+						146 text (Pid),
+						147 text rec
+						148 text eive
+						149 text ({down(Pid,Pid,Reason) -> true},[timeout(3),o
+						150 text n_timeout(throw(missing_down))]).
+						151 text A = success(1435013959,[a,b],true),
+						152 text B = success(1435013959,[c],false),
+						153 text Pid = 1435013959,
+						154 text Reason = true,
+						155 text Which = swi_native.
+						172 text ?- 
+						173 text supervisor_spawn
+						174 text ([child(waiter,[start(
+						175 text receive
+						176 text (
+						177 text {stop -> true})),restart(temporary)])],Sup,[monit
+						178 text or(true)]),
+						179 text supervisor_count_children
+						180 text (Sup,Counts),
+						181 text supervisor_halt
+						182 text (Sup),
+						183 text receive
+						184 text ({down(Sup,Sup,Reason
+						185 text ) -> true},[timeout(3),on_timeout(throw(missing_s
+						186 text upervisor_down))]).
+						187 text Actor 5592838997 exited: shutdown
+						188 text Counts = [specs-1,active-1,supervisors-0,workers-
+						189 text 1],
+						190 text Reason = true,
+						191 text Sup = 8243362311.
+						204 text ?- 
+						205 text actors
+						206 text (Before),first_solution(X,[(
+						207 text receive
+						208 text ({nev
+						209 text er -> true}),X=slow),X=fast]),catch(parallel([
+						210 text rec
+						211 text eive
+						212 text ({never -> true}),throw(test_error)]),Error,t
+						213 text rue),
+						214 text actors
+						215 text (After),sort(Before,Sorted),sort(After
+						216 text ,Sorted).
+						217 text Actor 9997508261 exited: kill
+						218 text Actor 7773972740 exited: kill
+						219 text After = [5110433368],
+						220 text Before = [5110433368],
+						221 text Error = test_error,
+						222 text Sorted = [5110433368],
+						223 text X = fast.
+						240 text ?- parallel([
+						241 text receive
+						242 text ({never -> true}),
+						243 text receive
+						244 text ({ne
+						245 text ver -> true})]).
+						249 text Actor 2225802536 exited: kill
+						250 text Actor 9560601813 exited: kill
+						251 text Computation aborted.
+						267 text ?- 
+						268 text actors
+						269 text (After),sort($Before,Sorted),sort(After,
+						270 text Sorted).
+						271 text After = [5110433368],
+						272 text Sorted = [5110433368].
+						279 text ?- 
+						280 text promise
+						281 text ('
+						282 link Description: http://localhost:44300, Value: localhost:44300/
+						283 text ',(sleep(0.5),X
+						284 text =ok),Ref,[template(X)]),
+						285 text yield
+						286 text (Ref,Early,[timeout(
+						287 text 0),on_timeout(Early=waiting)]),
+						288 text yield
+						289 text (Ref,Answer),
+						290 text var(X).
+						294 text Answer = success([ok],false),
+						295 text Early = waiting,
+						296 text Ref = 7497439379.
+						302 text ?- 
+						303 text statechart_spawn
+						304 text (Pid,[src_uri('/examples/state
+						305 text charts/01%20pause-and-resume.xml'),monitor(true)]
+						306 text ),
+						307 text statechart_halt
+						308 text (Pid,Reply),
+						309 text receive
+						310 text ({down(Pid,Pi
+						311 text d,Reason) -> true},[timeout(3),on_timeout(throw(m
+						312 text issing_chart_down))]).
+						313 text Pid = 8446115266,
+						314 text Reason = true,
+						315 text Reply = true.
+						334 text % Spawned new session and loaded 06 ping-pong.pl.
+						354 text ?- ping_pong.
+						355 text true.
+						356 text Pong received ping.
+						357 text Ping received pong.
+						358 text Pong received ping.
+						359 text Ping received pong.
+						360 text Pong received ping.
+						361 text Ping received pong.
+						362 text Ping finished.
+						363 text Pong finished.
+						364 text ?- 
+						365 text supervisor_spawn
+						366 text ([child(waiter,[start(
+						367 text receive
+						368 text (
+						369 text {stop -> true})),restart(temporary)])],Sup),
+						370 text super
+						371 text visor_count_children
+						372 text (Sup,Counts),
+						373 text supervisor_halt
+						374 text (
+						375 text Sup).
+						376 text Counts = [specs-1,active-1,supervisors-0,workers-
+						377 text 1],
+						378 text Sup = 5607039297.
+						379 text Actor 6285282326 exited: shutdown
+					104 container
+						297 text ?-  Clipboard textarea for jQuery Terminal
+						106 text entry area (settable) Clipboard textarea for jQuery Terminal, ID: ovx9r0
+				107 text x
+				108 button (collapsed) History, Secondary Actions: Expand
+				335 button (collapsed) Examples, Secondary Actions: Expand
+				109 button Flush, Help: Call flush/0 in the Editor session
+				110 button Actors, Help: Call actors/1 in the Editor session
+				111 button Call
+				112 button (disabled) Next
+				113 button (disabled) Stop
+				114 button Abort
+				115 button Clear
+			116 container
+				117 text Logger
+				380 container (showing 0-500 of 504 items)
+					381 text 17:04:01 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 5607039297,
+  "ref": "5607039297@'http://localh...",
+  "reason": "true"
+} 17:04:01 · ERROR · ACTOR Actor 6285282326 exited: shutdown 17:04:01 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 6285282326,
+  "ref": "6285282326@'http://localh...",
+  "reason": "shutdown"
+} 17:04:01 · INFO · QUERY Counts = [specs-1,active-1,supervisors-0,workers-1],
+Sup = 5607039297. 17:04:01 · API · STATEFUL WEBSOCKET {
+  "type": "success",
+  "pid": 7243207669,
+  "data": [
+    {
+      "Counts": "[specs-1,active-1,supervi...",
+      "Sup": "5607039297@'http://localh..."
+    }
+  ],
+  "more": false
+} 17:04:01 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_call",
+  "pid": 7243207669,
+  "goal": "supervisor_spawn([child(w...",
+  "options": "[limit(1)]"
+} 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 1640929115,
+  "ref": "1640929115@'http://localh...",
+  "reason": "true"
+} 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 8810363401,
+  "ref": "8810363401@'http://localh...",
+  "reason": "true"
+} 17:03:53 · INFO · ACTOR Pong finished. 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "output",
+  "pid": 1640929115,
+  "data": "Pong finished."
+} 17:03:53 · INFO · ACTOR Ping finished. 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "output",
+  "pid": 8810363401,
+  "data": "Ping finished."
+} 17:03:53 · INFO · ACTOR Ping received pong. 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "output",
+  "pid": 8810363401,
+  "data": "Ping received pong."
+} 17:03:53 · INFO · ACTOR Pong received ping. 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "output",
+  "pid": 1640929115,
+  "data": "Pong received ping."
+} 17:03:53 · INFO · ACTOR Ping received pong. 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "output",
+  "pid": 8810363401,
+  "data": "Ping received pong."
+} 17:03:53 · INFO · ACTOR Pong received ping. 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "output",
+  "pid": 1640929115,
+  "data": "Pong received ping."
+} 17:03:53 · INFO · ACTOR Ping received pong. 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "output",
+  "pid": 8810363401,
+  "data": "Ping received pong."
+} 17:03:53 · INFO · ACTOR Pong received ping. 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "output",
+  "pid": 1640929115,
+  "data": "Pong received ping."
+} 17:03:53 · INFO · QUERY true. 17:03:53 · API · STATEFUL WEBSOCKET {
+  "type": "success",
+  "pid": 7243207669,
+  "data": [
+    {}
+  ],
+  "more": false
+} 17:03:53 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_call",
+  "pid": 7243207669,
+  "goal": "ping_pong",
+  "options": "[limit(1)]"
+} 17:03:49 · INFO · INTERACTION POST /interaction_log (durable usage log): {"event":"example_spawn","example":"06 ping-pong.pl","example_url":"/examples/actors/06 ping-pong.pl","source_kind":"prolog","transport":"actor","origin":"editor","device":"mac","timezone":"Europe/Stockholm","language":"en-US"} 17:03:49 · INFO · ACTOR ACTOR session spawned: 7243207669 17:03:49 · API · STATEFUL WEBSOCKET {
+  "type": "spawned",
+  "pid": 7243207669
+} 17:03:49 · API · STATEFUL WEBSOCKET {
+  "type": "halted",
+  "pid": 5110433368,
+  "reply": "true"
+} 17:03:49 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_spawn",
+  "options": "[session(true),src_text('..."
+} 17:03:49 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 5110433368,
+  "ref": "5110433368@'http://localh...",
+  "reason": "true"
+} 17:03:49 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_halt",
+  "pid": 5110433368
+} 17:03:49 · INFO · RUNTIME Loaded example file: 06 ping-pong.pl. 17:03:49 · INFO · RUNTIME Workspace switched to prolog. 17:02:40 · INFO · QUERY Pid = 8446115266,
+Reason = true,
+Reply = true. 17:02:40 · API · STATEFUL WEBSOCKET {
+  "type": "success",
+  "pid": 5110433368,
+  "data": [
+    {
+      "Pid": "8446115266@'http://localh...",
+      "Reason": "true",
+      "Reply": "true"
+    }
+  ],
+  "more": false
+} 17:02:40 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 8446115266,
+  "ref": "8446115266@'http://localh...",
+  "reason": "true"
+} 17:02:40 · TRACE · STATECHART 8446115266: On: '$stop'(5110433368) 17:02:40 · API · STATEFUL WEBSOCKET {
+  "type": "statechart_trace",
+  "pid": 8446115266,
+  "data": "external_event('$stop'(51..."
+} 17:02:40 · TRACE · STATECHART 8446115266: In: [game,play,s1] 17:02:40 · API · STATEFUL WEBSOCKET {
+  "type": "statechart_trace",
+  "pid": 8446115266,
+  "data": "configuration([game,play,..."
+} 17:02:40 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_call",
+  "pid": 5110433368,
+  "goal": "statechart_spawn(Pid,[src...",
+  "options": "[limit(1)]"
+} 17:01:51 · INFO · QUERY Answer = success([ok],false),
+Early = waiting,
+Ref = 7497439379. 17:01:51 · API · STATEFUL WEBSOCKET {
+  "type": "success",
+  "pid": 5110433368,
+  "data": [
+    {
+      "Answer": "success([ok],false)",
+      "Early": "waiting",
+      "Ref": "7497439379",
+      "X": "X"
+    }
+  ],
+  "more": false
+} 17:01:51 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_call",
+  "pid": 5110433368,
+  "goal": "promise('http://localhost...",
+  "options": "[limit(1)]"
+} 17:00:43 · INFO · QUERY After = [5110433368],
+Sorted = [5110433368]. 17:00:43 · API · STATEFUL WEBSOCKET {
+  "type": "success",
+  "pid": 5110433368,
+  "data": [
+    {
+      "After": "[5110433368@'http://local...",
+      "Sorted": "[5110433368@'http://local..."
+    }
+  ],
+  "more": false
+} 17:00:43 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_call",
+  "pid": 5110433368,
+  "goal": "actors(After),sort([51104...",
+  "options": "[limit(1)]"
+} 17:00:39 · ERROR · QUERY Computation aborted. 17:00:39 · API · STATEFUL WEBSOCKET {
+  "type": "abort",
+  "pid": 5110433368
+} 17:00:39 · ERROR · ACTOR Actor 9560601813 exited: kill 17:00:39 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 9560601813,
+  "ref": "9560601813@'http://localh...",
+  "reason": "kill"
+} 17:00:39 · ERROR · ACTOR Actor 2225802536 exited: kill 17:00:39 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 2225802536,
+  "ref": "2225802536@'http://localh...",
+  "reason": "kill"
+} 17:00:39 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_abort",
+  "pid": 5110433368
+} 17:00:35 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_call",
+  "pid": 5110433368,
+  "goal": "parallel([receive({never ...",
+  "options": "[limit(1)]"
+} 17:00:31 · INFO · QUERY After = [5110433368],
+Before = [5110433368],
+Error = test_error,
+Sorted = [5110433368],
+X = fast. 17:00:31 · API · STATEFUL WEBSOCKET {
+  "type": "success",
+  "pid": 5110433368,
+  "data": [
+    {
+      "After": "[5110433368@'http://local...",
+      "Before": "[5110433368@'http://local...",
+      "Error": "test_error",
+      "Sorted": "[5110433368@'http://local...",
+      "X": "fast"
+    }
+  ],
+  "more": false
+} 17:00:31 · ERROR · ACTOR Actor 7773972740 exited: kill 17:00:31 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 7773972740,
+  "ref": "7773972740@'http://localh...",
+  "reason": "kill"
+} 17:00:31 · ERROR · ACTOR Actor 9997508261 exited: kill 17:00:31 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 9997508261,
+  "ref": "9997508261@'http://localh...",
+  "reason": "kill"
+} 17:00:31 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 6205359387,
+  "ref": "6205359387@'http://localh...",
+  "reason": "true"
+} 17:00:31 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_call",
+  "pid": 5110433368,
+  "goal": "actors(Before),first_solu...",
+  "options": "[limit(1)]"
+} 17:00:00 · INFO · QUERY Counts = [specs-1,active-1,supervisors-0,workers-1],
+Reason = true,
+Sup = 8243362311. 17:00:00 · API · STATEFUL WEBSOCKET {
+  "type": "success",
+  "pid": 5110433368,
+  "data": [
+    {
+      "Counts": "[specs-1,active-1,supervi...",
+      "Reason": "true",
+      "Sup": "8243362311@'http://localh..."
+    }
+  ],
+  "more": false
+} 17:00:00 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 8243362311,
+  "ref": "8243362311@'http://localh...",
+  "reason": "true"
+} 17:00:00 · ERROR · ACTOR Actor 5592838997 exited: shutdown 17:00:00 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 5592838997,
+  "ref": "5592838997@'http://localh...",
+  "reason": "shutdown"
+} 17:00:00 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_call",
+  "pid": 5110433368,
+  "goal": "supervisor_spawn([child(w...",
+  "options": "[limit(1)]"
+} 16:59:52 · INFO · QUERY A = success(1435013959,[a,b],true),
+B = success(1435013959,[c],false),
+Pid = 1435013959,
+Reason = true,
+Which = swi_native. 16:59:52 · API · STATEFUL WEBSOCKET {
+  "type": "success",
+  "pid": 5110433368,
+  "data": [
+    {
+      "A": "success(1435013959@'http:...",
+      "B": "success(1435013959@'http:...",
+      "Pid": "1435013959@'http://localh...",
+      "Reason": "true",
+      "Which": "swi_native",
+      "X": "X"
+    }
+  ],
+  "more": false
+} 16:59:52 · API · STATEFUL WEBSOCKET {
+  "type": "down",
+  "pid": 1435013959,
+  "ref": "1435013959@'http://localh...",
+  "reason": "true"
+} 16:59:52 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_call",
+  "pid": 5110433368,
+  "goal": "runtime_property(implemen...",
+  "options": "[limit(1)]"
+} 16:59:52 · INFO · ACTOR ACTOR session spawned: 5110433368 16:59:52 · API · STATEFUL WEBSOCKET {
+  "type": "spawned",
+  "pid": 5110433368
+} 16:59:52 · API · STATEFUL WEBSOCKET {
+  "command": "toplevel_spawn",
+  "options": "[session(true)]"
+} 16:59:52 · INFO · ACTOR ACTOR socket connected. 16:59:34 · INFO · RUNTIME Tutorial bridge connected. 16:59:33 · INFO · INTERACTION POST /interaction_log (durable usage log): {"event":"portal_view","route":"portal","device":"mac","timezone":"Europe/Stockholm","language":"en-US"} 16:59:33 · INFO · RUNTIME Demonstrator frontend loaded. 16:59:33 ·
+				125 checkbox (settable, integer) Description: Info, Value: 1
+				126 text Info
+				127 checkbox (settable, integer) Description: SXML trace, Value: 1
+				128 text SXML trace
+				129 checkbox (settable, integer) Description: API traffic, Value: 1
+				130 text API traffic
+				131 button Clear
+			132 button Hide logger
+		133 container
+			134 text Inspired by 
+			135 link Description: Erlang, Value: erlang.org/
+			136 text , powered by 
+			137 link Description: SWI-Prolog, Value: swi-prolog.org/
+			138 text . Profile: ACTOR  |  Principal: anonymous  |  Auth: OPEN
+
+The focused UI element is 106 text entry area (settable) Clipboard textarea for jQuery Terminal, ID: ovx9r0

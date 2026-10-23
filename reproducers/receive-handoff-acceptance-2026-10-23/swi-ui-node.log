@@ -1,0 +1,20 @@
+Warning: node_shared_db_node_shared_db_runtime_44311:97:
+Warning:    Clauses of node_shared_db_runtime_44311:echo_actor/0 are not together in the source-file
+Warning:    Earlier definition at node_shared_db_node_shared_db_runtime_44311:48
+Warning:    Current predicate: node_shared_db_runtime_44311:service/2
+Warning:    Use :- discontiguous node_shared_db_runtime_44311:echo_actor/0. to suppress this message
+Warning: node_shared_db_node_shared_db_runtime_44311:170:
+Warning:    Clauses of node_shared_db_runtime_44311:human/1 are not together in the source-file
+Warning:    Earlier definition at node_shared_db_node_shared_db_runtime_44311:19
+Warning:    Current predicate: node_shared_db_runtime_44311:mortal/1
+Warning:    Use :- discontiguous node_shared_db_runtime_44311:human/1. to suppress this message
+Warning: node_shared_db_node_shared_db_runtime:97:
+Warning:    Clauses of node_shared_db_runtime:echo_actor/0 are not together in the source-file
+Warning:    Earlier definition at node_shared_db_node_shared_db_runtime:48
+Warning:    Current predicate: node_shared_db_runtime:service/2
+Warning:    Use :- discontiguous node_shared_db_runtime:echo_actor/0. to suppress this message
+Warning: node_shared_db_node_shared_db_runtime:170:
+Warning:    Clauses of node_shared_db_runtime:human/1 are not together in the source-file
+Warning:    Earlier definition at node_shared_db_node_shared_db_runtime:19
+Warning:    Current predicate: node_shared_db_runtime:mortal/1
+Warning:    Use :- discontiguous node_shared_db_runtime:human/1. to suppress this message

@@ -1,0 +1,11 @@
+{
+  "runtime_property_entry": true,
+  "main_pid": true,
+  "exact_common_option_intro": false,
+  "http_timeout_option": true,
+  "rpc_no_offset": true,
+  "promise_offset": true,
+  "timeout_default": true,
+  "no_old_native_intro": true,
+  "no_old_browser_intro": true
+}

@@ -1,0 +1,50 @@
+candidate 1 0 icy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+
+candidate 2 0 icy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+
+candidate 3 0 icy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+
+candidate 4 0 icy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+
+candidate 5 0 icy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+
+unmodified 1 0 icy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+
+unmodified 2 0 icy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+
+unmodified 3 0 icy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+
+unmodified 4 0 icy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+
+unmodified 5 0 icy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+

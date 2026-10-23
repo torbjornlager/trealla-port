@@ -1,0 +1,11 @@
+{
+  "label": "swi-wasm-node-path",
+  "command": [
+    "bash",
+    "tools/test.sh",
+    "WASM"
+  ],
+  "cwd": "/Users/torbjorn.lager/Documents/GitHub/trinity-demonstrator",
+  "exit_code": 1,
+  "seconds": 164.302
+}

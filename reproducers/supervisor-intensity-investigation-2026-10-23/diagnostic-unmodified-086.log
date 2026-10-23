@@ -1,0 +1,4 @@
+zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok
+one_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok
+intensity_failure(case(one_for_all,0,normal),extra_supervisor_down,deferred([stopping(b,1),down(3073238582,1000000049,true),stopping(c,1),down(2998675099,1000000047,true),stopping(a,1),down(1195744077,1000000046,true)]),native_head(none),mappings([1982942831-main]),live([]),attempts([a-1,b-1,c-1]),identities([1195744077-a-1,3073238582-b-1,2998675099-c-1]))
+intensity_assertion_failed(extra_supervisor_down)

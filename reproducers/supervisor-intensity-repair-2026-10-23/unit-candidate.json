@@ -1,0 +1,11 @@
+{
+  "label": "unit-candidate",
+  "command": [
+    "sh",
+    "tools/test.sh",
+    "unit"
+  ],
+  "exit_code": 0,
+  "seconds": 96.697,
+  "log": "unit-candidate.log"
+}

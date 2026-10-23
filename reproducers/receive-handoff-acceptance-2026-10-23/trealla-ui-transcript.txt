@@ -1,0 +1,161 @@
+Browser tab: 2, Title: "The Prolog Trinity demonstrator", URL: "http://localhost:44300/portal".
+1 AXWebArea The Prolog Trinity demonstrator, URL: localhost:44300/portal
+	2 container app
+		3 container
+			4 link Description: Web Prolog logo, Value: trinity.elfenbenstornet.se/
+			5 heading Trinity demonstrator, Value: 1
+				6 text Trinity demonstrator
+			7 text  Your portal to the Prolog Web
+			8 text Browser node
+			9 container Browser help
+				10 text Open the browser-based SWI-Prolog node. Its execution model is selected in Settings.
+			11 link Description: SWI-WASM, Value: localhost:44300/portal?node=swi-wasm
+			12 text Remote nodes
+			13 container Node help
+				14 text Open the live Discovery Hub to inspect available nodes, or jump directly to a node demonstrator with N1–N5.
+			15 link Description: Discovery Hub, Value: n0.elfenbenstornet.se/discovery-hub
+			16 link Description: Open N1 demonstrator, Value: n1.elfenbenstornet.se/demonstrator
+			17 link Description: Open N2 demonstrator, Value: n2.elfenbenstornet.se/demonstrator
+			18 link Description: Open N3 demonstrator, Value: n3.elfenbenstornet.se/demonstrator
+			19 link Description: Open N4 demonstrator, Value: n4.elfenbenstornet.se/demonstrator
+			20 link Description: Open N5 demonstrator, Value: n5.elfenbenstornet.se/demonstrator
+			21 link Description:  Shared DB, Value: localhost:44300/
+			22 link Description: Open admin console, Help: Admin console, Value: localhost:44300/admin
+			23 button Description: Open help, Help: Help
+			24 button Description: Open settings, Help: Settings
+		25 container
+			26 button Show examples
+			27 container
+				28 text Editor
+				29 text <scratch-buffer>
+			30 container Demonstrator editor
+				31 AXWebArea Demonstrator Editor Frame, URL: localhost:44300/editor_frame?id=editor&mode=none
+					32 container
+						33 text entry area (settable)
+						34 container
+							35 text Scratch buffer
+
+
+
+Code typed here is auto-loaded into
+the current actor's private database.
+Selecting an example from the Examples
+drawer overwrites the buffer.
+			36 container
+				37 text Terminal
+				38 container
+					39 container
+						40 text Welcome to 
+						41 text Web Prolog
+						42 text , running
+						43 text the 
+						44 text ACTOR
+						45 text  profile on node 
+						46 text localhost:44300,
+						47 text powered by 
+						48 link Description: SWI-Prolog, Value: swi-prolog.org/
+						49 text .
+						69 text ?- runtime_property(implementation(Which)).
+						70 text Which = trealla_native.
+						71 text ?- 
+						72 text toplevel_spawn
+						73 text (Pid, [monitor(true)]), toplevel_call_synch(Pid, member(X,[a,b,c]), A, [templ
+						74 text ate(X),limit(2)]), toplevel_next_synch(Pid, B), 
+						75 text toplevel_halt
+						76 text (Pid), 
+						77 text receive
+						78 text ({down(Pid,Pid,Reas
+						79 text on) -> true},[timeout(3),on_timeout(throw(missing_down))]).
+						80 text Pid = 2144147711,
+						81 text A = success(2144147711,[a,b],true),
+						82 text B = success(2144147711,[c],false),
+						83 text Reason = true.
+						84 text ?- 
+						85 text supervisor_spawn
+						86 text ([child(waiter,[start(
+						87 text receive
+						88 text ({stop -> true})),restart(temporary)])],Sup,[m
+						89 text onitor(true)]), 
+						90 text supervisor_count_children
+						91 text (Sup,Counts), 
+						92 text supervisor_halt
+						93 text (Sup), 
+						94 text receive
+						95 text ({down(Sup
+						96 text ,Sup,Reason) -> true},[timeout(3),on_timeout(throw(missing_supervisor_down))]).
+						97 text Sup = 2122003539,
+						98 text Counts = [specs-1,active-1,supervisors-0,workers-1],
+						99 text Reason = true.
+						100 text ?- 
+						101 text actors
+						102 text (Before), first_solution(X,[(
+						103 text receive
+						104 text ({never -> true}),X=slow),X=fast]), catch(paralle
+						105 text l([
+						106 text receive
+						107 text ({never -> true}),throw(test_error)]),Error,true), 
+						108 text actors
+						109 text (After), sort(Before,Sorted
+						110 text ),sort(After,Sorted).
+						111 text Before = [1304196112],
+						112 text X = fast,
+						113 text Error = test_error,
+						114 text After = [1304196112],
+						115 text Sorted = [1304196112].
+						116 text ?- parallel([
+						117 text receive
+						118 text ({never -> true}),
+						119 text receive
+						120 text ({never -> true})]).
+						121 text Computation aborted.
+						123 text ?- 
+						124 text actors
+						125 text (After),sort($Before,Sorted),sort(After,Sorted).
+						126 text After = [1304196112],
+						127 text Sorted = [1304196112].
+						128 text ?- 
+						129 text promise
+						130 text ('
+						131 link Description: http://localhost:44310, Value: localhost:44310/
+						132 text ',(sleep(0.5),X=ok),Ref,[template(X)]),
+						133 text yield
+						134 text (Ref,Early,[time
+						135 text out(0),on_timeout(Early=waiting)]),
+						136 text yield
+						137 text (Ref,Answer),var(X).
+						138 text Ref = 1000000046,
+						139 text Early = waiting,
+						140 text Answer = success([ok],false).
+						142 text ?- 
+						143 text statechart_spawn
+						144 text (Pid,[src_uri('/examples/statecharts/01%20pause-and-resume.xml'),monitor(tr
+						145 text ue)]),
+						146 text statechart_halt
+						147 text (Pid,Reply),
+						148 text receive
+						149 text ({down(Pid,Pid,Reason) -> true},[timeout(3),on_timeout
+						150 text (throw(missing_chart_down))]).
+						151 text Pid = 2897409641,
+						152 text Reply = true,
+						153 text Reason = true.
+					50 container
+						141 text ?-  Clipboard textarea for jQuery Terminal
+						52 text entry area (settable) Clipboard textarea for jQuery Terminal, ID: zosj8n
+				53 text x
+				54 button (collapsed) History, Secondary Actions: Expand
+				55 button Flush, Help: Call flush/0 in the Editor session
+				56 button Actors, Help: Call actors/1 in the Editor session
+				57 button Call
+				58 button (disabled) Next
+				59 button (disabled) Stop
+				60 button Abort
+				61 button Clear
+			62 button Show logger
+		63 container
+			64 text Inspired by 
+			65 link Description: Erlang, Value: erlang.org/
+			66 text , powered by 
+			67 link Description: SWI-Prolog, Value: swi-prolog.org/
+			68 text . Profile: ACTOR  |  Principal: anonymous  |  Auth: OPEN
+
+The focused UI element is 52 text entry area (settable) Clipboard textarea for jQuery Terminal, ID: zosj8n

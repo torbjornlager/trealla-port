@@ -1,0 +1,10 @@
+{
+  "label": "engine-misc",
+  "command": [
+    "sh",
+    "tests/run_misc.sh"
+  ],
+  "cwd": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream",
+  "exit_code": 0,
+  "seconds": 57.228
+}

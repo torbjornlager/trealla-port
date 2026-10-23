@@ -1,0 +1,11 @@
+{
+  "label": "unit-unmodified",
+  "command": [
+    "sh",
+    "tools/test.sh",
+    "unit"
+  ],
+  "exit_code": 1,
+  "seconds": 31.079,
+  "log": "unit-unmodified.log"
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "engine": "candidate",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok\nprobe_case(one_for_one,0,normal).\none_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_all,0,normal).\none_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(rest_for_one,0,normal).\nrest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,2,normal).\none_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,policies).\none_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,cleanup_error).\none_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok\nexhaustion cleanup preserves additional child monitors and unrelated queued messages: ok\nruntime abort control remains a control transfer: ok\nSupervisor restart-intensity exhaustion cleanup: all regressions passed\n",
+    "stderr": "",
+    "seconds": 0.604
+  },
+  {
+    "engine": "candidate",
+    "trial": 2,
+    "exit_code": 0,
+    "stdout": "zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok\nprobe_case(one_for_one,0,normal).\none_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_all,0,normal).\none_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(rest_for_one,0,normal).\nrest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,2,normal).\none_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,policies).\none_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,cleanup_error).\none_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok\nexhaustion cleanup preserves additional child monitors and unrelated queued messages: ok\nruntime abort control remains a control transfer: ok\nSupervisor restart-intensity exhaustion cleanup: all regressions passed\n",
+    "stderr": "",
+    "seconds": 0.602
+  },
+  {
+    "engine": "candidate",
+    "trial": 3,
+    "exit_code": 0,
+    "stdout": "zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok\nprobe_case(one_for_one,0,normal).\none_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_all,0,normal).\none_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(rest_for_one,0,normal).\nrest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,2,normal).\none_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,policies).\none_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,cleanup_error).\none_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok\nexhaustion cleanup preserves additional child monitors and unrelated queued messages: ok\nruntime abort control remains a control transfer: ok\nSupervisor restart-intensity exhaustion cleanup: all regressions passed\n",
+    "stderr": "",
+    "seconds": 0.592
+  },
+  {
+    "engine": "candidate",
+    "trial": 4,
+    "exit_code": 0,
+    "stdout": "zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok\nprobe_case(one_for_one,0,normal).\none_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_all,0,normal).\none_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(rest_for_one,0,normal).\nrest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,2,normal).\none_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,policies).\none_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,cleanup_error).\none_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok\nexhaustion cleanup preserves additional child monitors and unrelated queued messages: ok\nruntime abort control remains a control transfer: ok\nSupervisor restart-intensity exhaustion cleanup: all regressions passed\n",
+    "stderr": "",
+    "seconds": 0.593
+  },
+  {
+    "engine": "candidate",
+    "trial": 5,
+    "exit_code": 0,
+    "stdout": "zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok\nprobe_case(one_for_one,0,normal).\none_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_all,0,normal).\none_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(rest_for_one,0,normal).\nrest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,2,normal).\none_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,policies).\none_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,cleanup_error).\none_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok\nexhaustion cleanup preserves additional child monitors and unrelated queued messages: ok\nruntime abort control remains a control transfer: ok\nSupervisor restart-intensity exhaustion cleanup: all regressions passed\n",
+    "stderr": "",
+    "seconds": 0.596
+  },
+  {
+    "engine": "unmodified",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok\nprobe_case(one_for_one,0,normal).\none_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_all,0,normal).\none_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(rest_for_one,0,normal).\nrest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,2,normal).\none_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,policies).\none_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,cleanup_error).\none_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok\nexhaustion cleanup preserves additional child monitors and unrelated queued messages: ok\nruntime abort control remains a control transfer: ok\nSupervisor restart-intensity exhaustion cleanup: all regressions passed\n",
+    "stderr": "",
+    "seconds": 0.61
+  },
+  {
+    "engine": "unmodified",
+    "trial": 2,
+    "exit_code": 0,
+    "stdout": "zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok\nprobe_case(one_for_one,0,normal).\none_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_all,0,normal).\none_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(rest_for_one,0,normal).\nrest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,2,normal).\none_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,policies).\none_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,cleanup_error).\none_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok\nexhaustion cleanup preserves additional child monitors and unrelated queued messages: ok\nruntime abort control remains a control transfer: ok\nSupervisor restart-intensity exhaustion cleanup: all regressions passed\n",
+    "stderr": "",
+    "seconds": 0.594
+  },
+  {
+    "engine": "unmodified",
+    "trial": 3,
+    "exit_code": 0,
+    "stdout": "zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok\nprobe_case(one_for_one,0,normal).\none_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_all,0,normal).\none_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(rest_for_one,0,normal).\nrest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,2,normal).\none_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,policies).\none_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,cleanup_error).\none_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok\nexhaustion cleanup preserves additional child monitors and unrelated queued messages: ok\nruntime abort control remains a control transfer: ok\nSupervisor restart-intensity exhaustion cleanup: all regressions passed\n",
+    "stderr": "",
+    "seconds": 0.59
+  },
+  {
+    "engine": "unmodified",
+    "trial": 4,
+    "exit_code": 0,
+    "stdout": "zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok\nprobe_case(one_for_one,0,normal).\none_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_all,0,normal).\none_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(rest_for_one,0,normal).\nrest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,2,normal).\none_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,policies).\none_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,cleanup_error).\none_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok\nexhaustion cleanup preserves additional child monitors and unrelated queued messages: ok\nruntime abort control remains a control transfer: ok\nSupervisor restart-intensity exhaustion cleanup: all regressions passed\n",
+    "stderr": "",
+    "seconds": 0.599
+  },
+  {
+    "engine": "unmodified",
+    "trial": 5,
+    "exit_code": 0,
+    "stdout": "zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok\nprobe_case(one_for_one,0,normal).\none_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_all,0,normal).\none_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(rest_for_one,0,normal).\nrest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,2,normal).\none_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,policies).\none_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok\nprobe_case(one_for_one,0,cleanup_error).\none_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok\nexhaustion cleanup preserves additional child monitors and unrelated queued messages: ok\nruntime abort control remains a control transfer: ok\nSupervisor restart-intensity exhaustion cleanup: all regressions passed\n",
+    "stderr": "",
+    "seconds": 0.594
+  }
+]

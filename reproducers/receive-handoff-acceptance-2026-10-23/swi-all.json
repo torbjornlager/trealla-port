@@ -1,0 +1,10 @@
+{
+  "label": "swi-all",
+  "command": [
+    "bash",
+    "tools/test.sh"
+  ],
+  "cwd": "/Users/torbjorn.lager/Documents/GitHub/trinity-demonstrator",
+  "exit_code": 1,
+  "seconds": 110.359
+}

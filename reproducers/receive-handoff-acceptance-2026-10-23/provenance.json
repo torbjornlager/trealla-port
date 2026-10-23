@@ -1,0 +1,81 @@
+{
+  "scope": "Acceptance only; no installation, production runtime edits or live N3/N5 restart",
+  "sources": {
+    "conformance": {
+      "revision": "01ebc389cab224b36ba153edc3ca40a4a9ae4614",
+      "dirty": [
+        "?? reports/2026-10-23-receive-handoff-acceptance/"
+      ]
+    },
+    "swi": {
+      "revision": "f218370328131f172fc9e997579466a84e0b20d5",
+      "dirty": []
+    },
+    "trealla": {
+      "revision": "cf26bd007b94890ee4b76b8b467c44a2e8b722ce",
+      "dirty": [
+        "?? reproducers/receive-handoff-acceptance-2026-10-23/"
+      ]
+    }
+  },
+  "candidate_binaries": {
+    "swi": {
+      "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299/build/src/swipl",
+      "sha256_before": "75b882a9acd6d4914483c533e6352317d14f3ee4397d6f4c2ada48a779dccc75",
+      "sha256_after": "75b882a9acd6d4914483c533e6352317d14f3ee4397d6f4c2ada48a779dccc75"
+    },
+    "trealla": {
+      "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "sha256_before": "fcd3641b5df3c79880c6f0234c3cfbf7ff401bd560c87945825a95cd3ad097d6",
+      "sha256_after": "fcd3641b5df3c79880c6f0234c3cfbf7ff401bd560c87945825a95cd3ad097d6"
+    }
+  },
+  "runtime_files_unchanged": true,
+  "installed": {
+    "swi_app": {
+      "path": "/Applications/swipl-win.app/Contents/MacOS/swipl",
+      "sha256": "def8dda8fa520840d3bab90a7e429b8672ab9fce183ad3d8b19194c6ddf3470b",
+      "matches_prior_verification": true
+    },
+    "swi_framework": {
+      "path": "/Library/Frameworks/swipl.framework/Versions/A/swipl",
+      "sha256": "1a2c01caed7b839d7e44250b514ff481df99bc96585c848f6d607face3a91179",
+      "matches_prior_verification": true
+    },
+    "trealla": {
+      "path": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+      "matches_prior_verification": true
+    }
+  },
+  "completed_at": "2026-10-23T15:05:51Z",
+  "build_limits": {
+    "trealla": "v3.14.8 plus saved-message candidate patch, NOSSL=1 NOFFI=1, adjacent library",
+    "swi": "09b6299 build: ssl/crypto load; pcre unavailable (installed package provides it)"
+  },
+  "ui_cleanup": [
+    {
+      "name": "trealla-ui-node",
+      "pid": 19162,
+      "result": "TERM sent to temporary process group"
+    },
+    {
+      "name": "swi-ui-node",
+      "pid": 19163,
+      "result": "TERM sent to temporary process group"
+    },
+    {
+      "name": "trealla-ui-proxy",
+      "pid": 19164,
+      "result": "TERM sent to temporary process group"
+    },
+    {
+      "name": "swi-ui-proxy",
+      "pid": 19165,
+      "result": "TERM sent to temporary process group"
+    }
+  ],
+  "live_local_listeners": "COMMAND     PID           USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nrapportd  15813 torbjorn.lager   10u  IPv4 0x3579951fd1c026b5      0t0  TCP *:51854 (LISTEN)\nrapportd  15813 torbjorn.lager   11u  IPv6 0xa0f76879bce7b53f      0t0  TCP *:51854 (LISTEN)\nControlCe 15848 torbjorn.lager    9u  IPv4 0x423779774f8f257c      0t0  TCP *:7000 (LISTEN)\nControlCe 15848 torbjorn.lager   10u  IPv6 0x95ab682e4a171503      0t0  TCP *:7000 (LISTEN)\nControlCe 15848 torbjorn.lager   11u  IPv4 0xc2505361ce4a4c11      0t0  TCP *:5000 (LISTEN)\nControlCe 15848 torbjorn.lager   12u  IPv6 0x2c5b2aa2ba310642      0t0  TCP *:5000 (LISTEN)\nEEventMan 15909 torbjorn.lager    4u  IPv4 0x9eed8758d43d585b      0t0  TCP *:2968 (LISTEN)\nGitHub    16080 torbjorn.lager   26u  IPv4 0xc61551f70d1c9c1c      0t0  TCP 127.0.0.1:51860 (LISTEN)\ntpl       30612 torbjorn.lager    5u  IPv4 0x769fb67d1c485d6b      0t0  TCP 127.0.0.1:3061 (LISTEN)\nPython    42134 torbjorn.lager    3u  IPv4 0x9a9982719e0d49ec      0t0  TCP 127.0.0.1:3060 (LISTEN)\nswipl     55051 torbjorn.lager    3u  IPv4 0xedecd56a05e08be7      0t0  TCP 127.0.0.1:3053 (LISTEN)\ntpl       69596 torbjorn.lager    5u  IPv4 0x23e6cd39781327d4      0t0  TCP 127.0.0.1:3062 (LISTEN)\n",
+  "final_candidate_hashes_match": true,
+  "ui_ports_no_longer_listening": true
+}

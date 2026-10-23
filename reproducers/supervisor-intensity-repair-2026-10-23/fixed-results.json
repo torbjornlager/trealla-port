@@ -1,0 +1,2602 @@
+[
+  {
+    "label": "fixed-candidate-001",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-candidate-001.log",
+    "engine": "candidate",
+    "trial": 1
+  },
+  {
+    "label": "fixed-unmodified-001",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617,
+    "log": "fixed-unmodified-001.log",
+    "engine": "unmodified",
+    "trial": 1
+  },
+  {
+    "label": "fixed-candidate-002",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-candidate-002.log",
+    "engine": "candidate",
+    "trial": 2
+  },
+  {
+    "label": "fixed-unmodified-002",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-unmodified-002.log",
+    "engine": "unmodified",
+    "trial": 2
+  },
+  {
+    "label": "fixed-candidate-003",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-candidate-003.log",
+    "engine": "candidate",
+    "trial": 3
+  },
+  {
+    "label": "fixed-unmodified-003",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.612,
+    "log": "fixed-unmodified-003.log",
+    "engine": "unmodified",
+    "trial": 3
+  },
+  {
+    "label": "fixed-candidate-004",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-candidate-004.log",
+    "engine": "candidate",
+    "trial": 4
+  },
+  {
+    "label": "fixed-unmodified-004",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-unmodified-004.log",
+    "engine": "unmodified",
+    "trial": 4
+  },
+  {
+    "label": "fixed-candidate-005",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-005.log",
+    "engine": "candidate",
+    "trial": 5
+  },
+  {
+    "label": "fixed-unmodified-005",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-unmodified-005.log",
+    "engine": "unmodified",
+    "trial": 5
+  },
+  {
+    "label": "fixed-candidate-006",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-006.log",
+    "engine": "candidate",
+    "trial": 6
+  },
+  {
+    "label": "fixed-unmodified-006",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.666,
+    "log": "fixed-unmodified-006.log",
+    "engine": "unmodified",
+    "trial": 6
+  },
+  {
+    "label": "fixed-candidate-007",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.666,
+    "log": "fixed-candidate-007.log",
+    "engine": "candidate",
+    "trial": 7
+  },
+  {
+    "label": "fixed-unmodified-007",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-unmodified-007.log",
+    "engine": "unmodified",
+    "trial": 7
+  },
+  {
+    "label": "fixed-candidate-008",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.664,
+    "log": "fixed-candidate-008.log",
+    "engine": "candidate",
+    "trial": 8
+  },
+  {
+    "label": "fixed-unmodified-008",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-unmodified-008.log",
+    "engine": "unmodified",
+    "trial": 8
+  },
+  {
+    "label": "fixed-candidate-009",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-candidate-009.log",
+    "engine": "candidate",
+    "trial": 9
+  },
+  {
+    "label": "fixed-unmodified-009",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-unmodified-009.log",
+    "engine": "unmodified",
+    "trial": 9
+  },
+  {
+    "label": "fixed-candidate-010",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-candidate-010.log",
+    "engine": "candidate",
+    "trial": 10
+  },
+  {
+    "label": "fixed-unmodified-010",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.663,
+    "log": "fixed-unmodified-010.log",
+    "engine": "unmodified",
+    "trial": 10
+  },
+  {
+    "label": "fixed-candidate-011",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.614,
+    "log": "fixed-candidate-011.log",
+    "engine": "candidate",
+    "trial": 11
+  },
+  {
+    "label": "fixed-unmodified-011",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.613,
+    "log": "fixed-unmodified-011.log",
+    "engine": "unmodified",
+    "trial": 11
+  },
+  {
+    "label": "fixed-candidate-012",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-candidate-012.log",
+    "engine": "candidate",
+    "trial": 12
+  },
+  {
+    "label": "fixed-unmodified-012",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-unmodified-012.log",
+    "engine": "unmodified",
+    "trial": 12
+  },
+  {
+    "label": "fixed-candidate-013",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-013.log",
+    "engine": "candidate",
+    "trial": 13
+  },
+  {
+    "label": "fixed-unmodified-013",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-unmodified-013.log",
+    "engine": "unmodified",
+    "trial": 13
+  },
+  {
+    "label": "fixed-candidate-014",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.624,
+    "log": "fixed-candidate-014.log",
+    "engine": "candidate",
+    "trial": 14
+  },
+  {
+    "label": "fixed-unmodified-014",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.624,
+    "log": "fixed-unmodified-014.log",
+    "engine": "unmodified",
+    "trial": 14
+  },
+  {
+    "label": "fixed-candidate-015",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-candidate-015.log",
+    "engine": "candidate",
+    "trial": 15
+  },
+  {
+    "label": "fixed-unmodified-015",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-unmodified-015.log",
+    "engine": "unmodified",
+    "trial": 15
+  },
+  {
+    "label": "fixed-candidate-016",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.664,
+    "log": "fixed-candidate-016.log",
+    "engine": "candidate",
+    "trial": 16
+  },
+  {
+    "label": "fixed-unmodified-016",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.624,
+    "log": "fixed-unmodified-016.log",
+    "engine": "unmodified",
+    "trial": 16
+  },
+  {
+    "label": "fixed-candidate-017",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.667,
+    "log": "fixed-candidate-017.log",
+    "engine": "candidate",
+    "trial": 17
+  },
+  {
+    "label": "fixed-unmodified-017",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.613,
+    "log": "fixed-unmodified-017.log",
+    "engine": "unmodified",
+    "trial": 17
+  },
+  {
+    "label": "fixed-candidate-018",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619,
+    "log": "fixed-candidate-018.log",
+    "engine": "candidate",
+    "trial": 18
+  },
+  {
+    "label": "fixed-unmodified-018",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-unmodified-018.log",
+    "engine": "unmodified",
+    "trial": 18
+  },
+  {
+    "label": "fixed-candidate-019",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.666,
+    "log": "fixed-candidate-019.log",
+    "engine": "candidate",
+    "trial": 19
+  },
+  {
+    "label": "fixed-unmodified-019",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-unmodified-019.log",
+    "engine": "unmodified",
+    "trial": 19
+  },
+  {
+    "label": "fixed-candidate-020",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-candidate-020.log",
+    "engine": "candidate",
+    "trial": 20
+  },
+  {
+    "label": "fixed-unmodified-020",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-unmodified-020.log",
+    "engine": "unmodified",
+    "trial": 20
+  },
+  {
+    "label": "fixed-candidate-021",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.613,
+    "log": "fixed-candidate-021.log",
+    "engine": "candidate",
+    "trial": 21
+  },
+  {
+    "label": "fixed-unmodified-021",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-unmodified-021.log",
+    "engine": "unmodified",
+    "trial": 21
+  },
+  {
+    "label": "fixed-candidate-022",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-candidate-022.log",
+    "engine": "candidate",
+    "trial": 22
+  },
+  {
+    "label": "fixed-unmodified-022",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-unmodified-022.log",
+    "engine": "unmodified",
+    "trial": 22
+  },
+  {
+    "label": "fixed-candidate-023",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-023.log",
+    "engine": "candidate",
+    "trial": 23
+  },
+  {
+    "label": "fixed-unmodified-023",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.624,
+    "log": "fixed-unmodified-023.log",
+    "engine": "unmodified",
+    "trial": 23
+  },
+  {
+    "label": "fixed-candidate-024",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-024.log",
+    "engine": "candidate",
+    "trial": 24
+  },
+  {
+    "label": "fixed-unmodified-024",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.613,
+    "log": "fixed-unmodified-024.log",
+    "engine": "unmodified",
+    "trial": 24
+  },
+  {
+    "label": "fixed-candidate-025",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.672,
+    "log": "fixed-candidate-025.log",
+    "engine": "candidate",
+    "trial": 25
+  },
+  {
+    "label": "fixed-unmodified-025",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-unmodified-025.log",
+    "engine": "unmodified",
+    "trial": 25
+  },
+  {
+    "label": "fixed-candidate-026",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-026.log",
+    "engine": "candidate",
+    "trial": 26
+  },
+  {
+    "label": "fixed-unmodified-026",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-unmodified-026.log",
+    "engine": "unmodified",
+    "trial": 26
+  },
+  {
+    "label": "fixed-candidate-027",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.626,
+    "log": "fixed-candidate-027.log",
+    "engine": "candidate",
+    "trial": 27
+  },
+  {
+    "label": "fixed-unmodified-027",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-unmodified-027.log",
+    "engine": "unmodified",
+    "trial": 27
+  },
+  {
+    "label": "fixed-candidate-028",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.612,
+    "log": "fixed-candidate-028.log",
+    "engine": "candidate",
+    "trial": 28
+  },
+  {
+    "label": "fixed-unmodified-028",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617,
+    "log": "fixed-unmodified-028.log",
+    "engine": "unmodified",
+    "trial": 28
+  },
+  {
+    "label": "fixed-candidate-029",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.612,
+    "log": "fixed-candidate-029.log",
+    "engine": "candidate",
+    "trial": 29
+  },
+  {
+    "label": "fixed-unmodified-029",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.624,
+    "log": "fixed-unmodified-029.log",
+    "engine": "unmodified",
+    "trial": 29
+  },
+  {
+    "label": "fixed-candidate-030",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-candidate-030.log",
+    "engine": "candidate",
+    "trial": 30
+  },
+  {
+    "label": "fixed-unmodified-030",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.602,
+    "log": "fixed-unmodified-030.log",
+    "engine": "unmodified",
+    "trial": 30
+  },
+  {
+    "label": "fixed-candidate-031",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.604,
+    "log": "fixed-candidate-031.log",
+    "engine": "candidate",
+    "trial": 31
+  },
+  {
+    "label": "fixed-unmodified-031",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-unmodified-031.log",
+    "engine": "unmodified",
+    "trial": 31
+  },
+  {
+    "label": "fixed-candidate-032",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-032.log",
+    "engine": "candidate",
+    "trial": 32
+  },
+  {
+    "label": "fixed-unmodified-032",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-unmodified-032.log",
+    "engine": "unmodified",
+    "trial": 32
+  },
+  {
+    "label": "fixed-candidate-033",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617,
+    "log": "fixed-candidate-033.log",
+    "engine": "candidate",
+    "trial": 33
+  },
+  {
+    "label": "fixed-unmodified-033",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.626,
+    "log": "fixed-unmodified-033.log",
+    "engine": "unmodified",
+    "trial": 33
+  },
+  {
+    "label": "fixed-candidate-034",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619,
+    "log": "fixed-candidate-034.log",
+    "engine": "candidate",
+    "trial": 34
+  },
+  {
+    "label": "fixed-unmodified-034",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.66,
+    "log": "fixed-unmodified-034.log",
+    "engine": "unmodified",
+    "trial": 34
+  },
+  {
+    "label": "fixed-candidate-035",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-035.log",
+    "engine": "candidate",
+    "trial": 35
+  },
+  {
+    "label": "fixed-unmodified-035",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.624,
+    "log": "fixed-unmodified-035.log",
+    "engine": "unmodified",
+    "trial": 35
+  },
+  {
+    "label": "fixed-candidate-036",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-036.log",
+    "engine": "candidate",
+    "trial": 36
+  },
+  {
+    "label": "fixed-unmodified-036",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.668,
+    "log": "fixed-unmodified-036.log",
+    "engine": "unmodified",
+    "trial": 36
+  },
+  {
+    "label": "fixed-candidate-037",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.614,
+    "log": "fixed-candidate-037.log",
+    "engine": "candidate",
+    "trial": 37
+  },
+  {
+    "label": "fixed-unmodified-037",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.612,
+    "log": "fixed-unmodified-037.log",
+    "engine": "unmodified",
+    "trial": 37
+  },
+  {
+    "label": "fixed-candidate-038",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617,
+    "log": "fixed-candidate-038.log",
+    "engine": "candidate",
+    "trial": 38
+  },
+  {
+    "label": "fixed-unmodified-038",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.673,
+    "log": "fixed-unmodified-038.log",
+    "engine": "unmodified",
+    "trial": 38
+  },
+  {
+    "label": "fixed-candidate-039",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.675,
+    "log": "fixed-candidate-039.log",
+    "engine": "candidate",
+    "trial": 39
+  },
+  {
+    "label": "fixed-unmodified-039",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.614,
+    "log": "fixed-unmodified-039.log",
+    "engine": "unmodified",
+    "trial": 39
+  },
+  {
+    "label": "fixed-candidate-040",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-candidate-040.log",
+    "engine": "candidate",
+    "trial": 40
+  },
+  {
+    "label": "fixed-unmodified-040",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-unmodified-040.log",
+    "engine": "unmodified",
+    "trial": 40
+  },
+  {
+    "label": "fixed-candidate-041",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.614,
+    "log": "fixed-candidate-041.log",
+    "engine": "candidate",
+    "trial": 41
+  },
+  {
+    "label": "fixed-unmodified-041",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.625,
+    "log": "fixed-unmodified-041.log",
+    "engine": "unmodified",
+    "trial": 41
+  },
+  {
+    "label": "fixed-candidate-042",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.669,
+    "log": "fixed-candidate-042.log",
+    "engine": "candidate",
+    "trial": 42
+  },
+  {
+    "label": "fixed-unmodified-042",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.675,
+    "log": "fixed-unmodified-042.log",
+    "engine": "unmodified",
+    "trial": 42
+  },
+  {
+    "label": "fixed-candidate-043",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-candidate-043.log",
+    "engine": "candidate",
+    "trial": 43
+  },
+  {
+    "label": "fixed-unmodified-043",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.671,
+    "log": "fixed-unmodified-043.log",
+    "engine": "unmodified",
+    "trial": 43
+  },
+  {
+    "label": "fixed-candidate-044",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-candidate-044.log",
+    "engine": "candidate",
+    "trial": 44
+  },
+  {
+    "label": "fixed-unmodified-044",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-unmodified-044.log",
+    "engine": "unmodified",
+    "trial": 44
+  },
+  {
+    "label": "fixed-candidate-045",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-045.log",
+    "engine": "candidate",
+    "trial": 45
+  },
+  {
+    "label": "fixed-unmodified-045",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-unmodified-045.log",
+    "engine": "unmodified",
+    "trial": 45
+  },
+  {
+    "label": "fixed-candidate-046",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.625,
+    "log": "fixed-candidate-046.log",
+    "engine": "candidate",
+    "trial": 46
+  },
+  {
+    "label": "fixed-unmodified-046",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-unmodified-046.log",
+    "engine": "unmodified",
+    "trial": 46
+  },
+  {
+    "label": "fixed-candidate-047",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.611,
+    "log": "fixed-candidate-047.log",
+    "engine": "candidate",
+    "trial": 47
+  },
+  {
+    "label": "fixed-unmodified-047",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-unmodified-047.log",
+    "engine": "unmodified",
+    "trial": 47
+  },
+  {
+    "label": "fixed-candidate-048",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-candidate-048.log",
+    "engine": "candidate",
+    "trial": 48
+  },
+  {
+    "label": "fixed-unmodified-048",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-unmodified-048.log",
+    "engine": "unmodified",
+    "trial": 48
+  },
+  {
+    "label": "fixed-candidate-049",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-candidate-049.log",
+    "engine": "candidate",
+    "trial": 49
+  },
+  {
+    "label": "fixed-unmodified-049",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619,
+    "log": "fixed-unmodified-049.log",
+    "engine": "unmodified",
+    "trial": 49
+  },
+  {
+    "label": "fixed-candidate-050",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.628,
+    "log": "fixed-candidate-050.log",
+    "engine": "candidate",
+    "trial": 50
+  },
+  {
+    "label": "fixed-unmodified-050",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619,
+    "log": "fixed-unmodified-050.log",
+    "engine": "unmodified",
+    "trial": 50
+  },
+  {
+    "label": "fixed-candidate-051",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-candidate-051.log",
+    "engine": "candidate",
+    "trial": 51
+  },
+  {
+    "label": "fixed-unmodified-051",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619,
+    "log": "fixed-unmodified-051.log",
+    "engine": "unmodified",
+    "trial": 51
+  },
+  {
+    "label": "fixed-candidate-052",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-candidate-052.log",
+    "engine": "candidate",
+    "trial": 52
+  },
+  {
+    "label": "fixed-unmodified-052",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.625,
+    "log": "fixed-unmodified-052.log",
+    "engine": "unmodified",
+    "trial": 52
+  },
+  {
+    "label": "fixed-candidate-053",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.674,
+    "log": "fixed-candidate-053.log",
+    "engine": "candidate",
+    "trial": 53
+  },
+  {
+    "label": "fixed-unmodified-053",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-unmodified-053.log",
+    "engine": "unmodified",
+    "trial": 53
+  },
+  {
+    "label": "fixed-candidate-054",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-candidate-054.log",
+    "engine": "candidate",
+    "trial": 54
+  },
+  {
+    "label": "fixed-unmodified-054",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-unmodified-054.log",
+    "engine": "unmodified",
+    "trial": 54
+  },
+  {
+    "label": "fixed-candidate-055",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.611,
+    "log": "fixed-candidate-055.log",
+    "engine": "candidate",
+    "trial": 55
+  },
+  {
+    "label": "fixed-unmodified-055",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.624,
+    "log": "fixed-unmodified-055.log",
+    "engine": "unmodified",
+    "trial": 55
+  },
+  {
+    "label": "fixed-candidate-056",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.625,
+    "log": "fixed-candidate-056.log",
+    "engine": "candidate",
+    "trial": 56
+  },
+  {
+    "label": "fixed-unmodified-056",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-unmodified-056.log",
+    "engine": "unmodified",
+    "trial": 56
+  },
+  {
+    "label": "fixed-candidate-057",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.613,
+    "log": "fixed-candidate-057.log",
+    "engine": "candidate",
+    "trial": 57
+  },
+  {
+    "label": "fixed-unmodified-057",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-unmodified-057.log",
+    "engine": "unmodified",
+    "trial": 57
+  },
+  {
+    "label": "fixed-candidate-058",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.609,
+    "log": "fixed-candidate-058.log",
+    "engine": "candidate",
+    "trial": 58
+  },
+  {
+    "label": "fixed-unmodified-058",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.613,
+    "log": "fixed-unmodified-058.log",
+    "engine": "unmodified",
+    "trial": 58
+  },
+  {
+    "label": "fixed-candidate-059",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.625,
+    "log": "fixed-candidate-059.log",
+    "engine": "candidate",
+    "trial": 59
+  },
+  {
+    "label": "fixed-unmodified-059",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-unmodified-059.log",
+    "engine": "unmodified",
+    "trial": 59
+  },
+  {
+    "label": "fixed-candidate-060",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-candidate-060.log",
+    "engine": "candidate",
+    "trial": 60
+  },
+  {
+    "label": "fixed-unmodified-060",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.607,
+    "log": "fixed-unmodified-060.log",
+    "engine": "unmodified",
+    "trial": 60
+  },
+  {
+    "label": "fixed-candidate-061",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.609,
+    "log": "fixed-candidate-061.log",
+    "engine": "candidate",
+    "trial": 61
+  },
+  {
+    "label": "fixed-unmodified-061",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-unmodified-061.log",
+    "engine": "unmodified",
+    "trial": 61
+  },
+  {
+    "label": "fixed-candidate-062",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.626,
+    "log": "fixed-candidate-062.log",
+    "engine": "candidate",
+    "trial": 62
+  },
+  {
+    "label": "fixed-unmodified-062",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619,
+    "log": "fixed-unmodified-062.log",
+    "engine": "unmodified",
+    "trial": 62
+  },
+  {
+    "label": "fixed-candidate-063",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.611,
+    "log": "fixed-candidate-063.log",
+    "engine": "candidate",
+    "trial": 63
+  },
+  {
+    "label": "fixed-unmodified-063",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-unmodified-063.log",
+    "engine": "unmodified",
+    "trial": 63
+  },
+  {
+    "label": "fixed-candidate-064",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.61,
+    "log": "fixed-candidate-064.log",
+    "engine": "candidate",
+    "trial": 64
+  },
+  {
+    "label": "fixed-unmodified-064",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-unmodified-064.log",
+    "engine": "unmodified",
+    "trial": 64
+  },
+  {
+    "label": "fixed-candidate-065",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-candidate-065.log",
+    "engine": "candidate",
+    "trial": 65
+  },
+  {
+    "label": "fixed-unmodified-065",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-unmodified-065.log",
+    "engine": "unmodified",
+    "trial": 65
+  },
+  {
+    "label": "fixed-candidate-066",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.609,
+    "log": "fixed-candidate-066.log",
+    "engine": "candidate",
+    "trial": 66
+  },
+  {
+    "label": "fixed-unmodified-066",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-unmodified-066.log",
+    "engine": "unmodified",
+    "trial": 66
+  },
+  {
+    "label": "fixed-candidate-067",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.61,
+    "log": "fixed-candidate-067.log",
+    "engine": "candidate",
+    "trial": 67
+  },
+  {
+    "label": "fixed-unmodified-067",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-unmodified-067.log",
+    "engine": "unmodified",
+    "trial": 67
+  },
+  {
+    "label": "fixed-candidate-068",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-candidate-068.log",
+    "engine": "candidate",
+    "trial": 68
+  },
+  {
+    "label": "fixed-unmodified-068",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-unmodified-068.log",
+    "engine": "unmodified",
+    "trial": 68
+  },
+  {
+    "label": "fixed-candidate-069",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-candidate-069.log",
+    "engine": "candidate",
+    "trial": 69
+  },
+  {
+    "label": "fixed-unmodified-069",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-unmodified-069.log",
+    "engine": "unmodified",
+    "trial": 69
+  },
+  {
+    "label": "fixed-candidate-070",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-candidate-070.log",
+    "engine": "candidate",
+    "trial": 70
+  },
+  {
+    "label": "fixed-unmodified-070",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-unmodified-070.log",
+    "engine": "unmodified",
+    "trial": 70
+  },
+  {
+    "label": "fixed-candidate-071",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.611,
+    "log": "fixed-candidate-071.log",
+    "engine": "candidate",
+    "trial": 71
+  },
+  {
+    "label": "fixed-unmodified-071",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-unmodified-071.log",
+    "engine": "unmodified",
+    "trial": 71
+  },
+  {
+    "label": "fixed-candidate-072",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-candidate-072.log",
+    "engine": "candidate",
+    "trial": 72
+  },
+  {
+    "label": "fixed-unmodified-072",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.61,
+    "log": "fixed-unmodified-072.log",
+    "engine": "unmodified",
+    "trial": 72
+  },
+  {
+    "label": "fixed-candidate-073",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-candidate-073.log",
+    "engine": "candidate",
+    "trial": 73
+  },
+  {
+    "label": "fixed-unmodified-073",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.667,
+    "log": "fixed-unmodified-073.log",
+    "engine": "unmodified",
+    "trial": 73
+  },
+  {
+    "label": "fixed-candidate-074",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.665,
+    "log": "fixed-candidate-074.log",
+    "engine": "candidate",
+    "trial": 74
+  },
+  {
+    "label": "fixed-unmodified-074",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.613,
+    "log": "fixed-unmodified-074.log",
+    "engine": "unmodified",
+    "trial": 74
+  },
+  {
+    "label": "fixed-candidate-075",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617,
+    "log": "fixed-candidate-075.log",
+    "engine": "candidate",
+    "trial": 75
+  },
+  {
+    "label": "fixed-unmodified-075",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-unmodified-075.log",
+    "engine": "unmodified",
+    "trial": 75
+  },
+  {
+    "label": "fixed-candidate-076",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.613,
+    "log": "fixed-candidate-076.log",
+    "engine": "candidate",
+    "trial": 76
+  },
+  {
+    "label": "fixed-unmodified-076",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-unmodified-076.log",
+    "engine": "unmodified",
+    "trial": 76
+  },
+  {
+    "label": "fixed-candidate-077",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.614,
+    "log": "fixed-candidate-077.log",
+    "engine": "candidate",
+    "trial": 77
+  },
+  {
+    "label": "fixed-unmodified-077",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-unmodified-077.log",
+    "engine": "unmodified",
+    "trial": 77
+  },
+  {
+    "label": "fixed-candidate-078",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.625,
+    "log": "fixed-candidate-078.log",
+    "engine": "candidate",
+    "trial": 78
+  },
+  {
+    "label": "fixed-unmodified-078",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617,
+    "log": "fixed-unmodified-078.log",
+    "engine": "unmodified",
+    "trial": 78
+  },
+  {
+    "label": "fixed-candidate-079",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619,
+    "log": "fixed-candidate-079.log",
+    "engine": "candidate",
+    "trial": 79
+  },
+  {
+    "label": "fixed-unmodified-079",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.607,
+    "log": "fixed-unmodified-079.log",
+    "engine": "unmodified",
+    "trial": 79
+  },
+  {
+    "label": "fixed-candidate-080",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.664,
+    "log": "fixed-candidate-080.log",
+    "engine": "candidate",
+    "trial": 80
+  },
+  {
+    "label": "fixed-unmodified-080",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.612,
+    "log": "fixed-unmodified-080.log",
+    "engine": "unmodified",
+    "trial": 80
+  },
+  {
+    "label": "fixed-candidate-081",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-candidate-081.log",
+    "engine": "candidate",
+    "trial": 81
+  },
+  {
+    "label": "fixed-unmodified-081",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.613,
+    "log": "fixed-unmodified-081.log",
+    "engine": "unmodified",
+    "trial": 81
+  },
+  {
+    "label": "fixed-candidate-082",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.625,
+    "log": "fixed-candidate-082.log",
+    "engine": "candidate",
+    "trial": 82
+  },
+  {
+    "label": "fixed-unmodified-082",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-unmodified-082.log",
+    "engine": "unmodified",
+    "trial": 82
+  },
+  {
+    "label": "fixed-candidate-083",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621,
+    "log": "fixed-candidate-083.log",
+    "engine": "candidate",
+    "trial": 83
+  },
+  {
+    "label": "fixed-unmodified-083",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.626,
+    "log": "fixed-unmodified-083.log",
+    "engine": "unmodified",
+    "trial": 83
+  },
+  {
+    "label": "fixed-candidate-084",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.625,
+    "log": "fixed-candidate-084.log",
+    "engine": "candidate",
+    "trial": 84
+  },
+  {
+    "label": "fixed-unmodified-084",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-unmodified-084.log",
+    "engine": "unmodified",
+    "trial": 84
+  },
+  {
+    "label": "fixed-candidate-085",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619,
+    "log": "fixed-candidate-085.log",
+    "engine": "candidate",
+    "trial": 85
+  },
+  {
+    "label": "fixed-unmodified-085",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.609,
+    "log": "fixed-unmodified-085.log",
+    "engine": "unmodified",
+    "trial": 85
+  },
+  {
+    "label": "fixed-candidate-086",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618,
+    "log": "fixed-candidate-086.log",
+    "engine": "candidate",
+    "trial": 86
+  },
+  {
+    "label": "fixed-unmodified-086",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-unmodified-086.log",
+    "engine": "unmodified",
+    "trial": 86
+  },
+  {
+    "label": "fixed-candidate-087",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-candidate-087.log",
+    "engine": "candidate",
+    "trial": 87
+  },
+  {
+    "label": "fixed-unmodified-087",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.627,
+    "log": "fixed-unmodified-087.log",
+    "engine": "unmodified",
+    "trial": 87
+  },
+  {
+    "label": "fixed-candidate-088",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.627,
+    "log": "fixed-candidate-088.log",
+    "engine": "candidate",
+    "trial": 88
+  },
+  {
+    "label": "fixed-unmodified-088",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-unmodified-088.log",
+    "engine": "unmodified",
+    "trial": 88
+  },
+  {
+    "label": "fixed-candidate-089",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-candidate-089.log",
+    "engine": "candidate",
+    "trial": 89
+  },
+  {
+    "label": "fixed-unmodified-089",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-unmodified-089.log",
+    "engine": "unmodified",
+    "trial": 89
+  },
+  {
+    "label": "fixed-candidate-090",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62,
+    "log": "fixed-candidate-090.log",
+    "engine": "candidate",
+    "trial": 90
+  },
+  {
+    "label": "fixed-unmodified-090",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.614,
+    "log": "fixed-unmodified-090.log",
+    "engine": "unmodified",
+    "trial": 90
+  },
+  {
+    "label": "fixed-candidate-091",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-candidate-091.log",
+    "engine": "candidate",
+    "trial": 91
+  },
+  {
+    "label": "fixed-unmodified-091",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.614,
+    "log": "fixed-unmodified-091.log",
+    "engine": "unmodified",
+    "trial": 91
+  },
+  {
+    "label": "fixed-candidate-092",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-candidate-092.log",
+    "engine": "candidate",
+    "trial": 92
+  },
+  {
+    "label": "fixed-unmodified-092",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.615,
+    "log": "fixed-unmodified-092.log",
+    "engine": "unmodified",
+    "trial": 92
+  },
+  {
+    "label": "fixed-candidate-093",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622,
+    "log": "fixed-candidate-093.log",
+    "engine": "candidate",
+    "trial": 93
+  },
+  {
+    "label": "fixed-unmodified-093",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.67,
+    "log": "fixed-unmodified-093.log",
+    "engine": "unmodified",
+    "trial": 93
+  },
+  {
+    "label": "fixed-candidate-094",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.678,
+    "log": "fixed-candidate-094.log",
+    "engine": "candidate",
+    "trial": 94
+  },
+  {
+    "label": "fixed-unmodified-094",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.68,
+    "log": "fixed-unmodified-094.log",
+    "engine": "unmodified",
+    "trial": 94
+  },
+  {
+    "label": "fixed-candidate-095",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.657,
+    "log": "fixed-candidate-095.log",
+    "engine": "candidate",
+    "trial": 95
+  },
+  {
+    "label": "fixed-unmodified-095",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616,
+    "log": "fixed-unmodified-095.log",
+    "engine": "unmodified",
+    "trial": 95
+  },
+  {
+    "label": "fixed-candidate-096",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623,
+    "log": "fixed-candidate-096.log",
+    "engine": "candidate",
+    "trial": 96
+  },
+  {
+    "label": "fixed-unmodified-096",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.669,
+    "log": "fixed-unmodified-096.log",
+    "engine": "unmodified",
+    "trial": 96
+  },
+  {
+    "label": "fixed-candidate-097",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619,
+    "log": "fixed-candidate-097.log",
+    "engine": "candidate",
+    "trial": 97
+  },
+  {
+    "label": "fixed-unmodified-097",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.679,
+    "log": "fixed-unmodified-097.log",
+    "engine": "unmodified",
+    "trial": 97
+  },
+  {
+    "label": "fixed-candidate-098",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617,
+    "log": "fixed-candidate-098.log",
+    "engine": "candidate",
+    "trial": 98
+  },
+  {
+    "label": "fixed-unmodified-098",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.612,
+    "log": "fixed-unmodified-098.log",
+    "engine": "unmodified",
+    "trial": 98
+  },
+  {
+    "label": "fixed-candidate-099",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.612,
+    "log": "fixed-candidate-099.log",
+    "engine": "candidate",
+    "trial": 99
+  },
+  {
+    "label": "fixed-unmodified-099",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.663,
+    "log": "fixed-unmodified-099.log",
+    "engine": "unmodified",
+    "trial": 99
+  },
+  {
+    "label": "fixed-candidate-100",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.659,
+    "log": "fixed-candidate-100.log",
+    "engine": "candidate",
+    "trial": 100
+  },
+  {
+    "label": "fixed-unmodified-100",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/supervisor_intensity_tests.pl'),(catch(supervisor_intensity_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619,
+    "log": "fixed-unmodified-100.log",
+    "engine": "unmodified",
+    "trial": 100
+  }
+]

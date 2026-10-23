@@ -1,0 +1,10 @@
+zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok
+one_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok
+one_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok
+rest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok
+one_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok
+one_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok
+one_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
