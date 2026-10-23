@@ -102,3 +102,13 @@ The tested executable is
 `/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl`.
 The installed v3.13.10 binary retains SHA256
 `34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563`.
+
+## Authorized closure follow-up
+
+On 23 October 2026, posted the above focused verification and closed #1176 as
+completed, as authorized by the user. The [published comment](https://github.com/trealla-prolog/trealla-prolog/issues/1176#issuecomment-6362359597)
+links to committed results at `64d99f2`, preserves the test boundaries, and
+explicitly leaves #1177 for separate verification. See
+[the exact comment](upstream-verification-comment.md),
+[API confirmation](upstream-closure.json) and [screenshot](issue-1176-closed.png).
+The earlier no-closure statements describe the original verification batch.

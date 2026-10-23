@@ -447,3 +447,23 @@ table preservation, promise correctness and selected loader regressions on
 unmodified upstream v3.14.8 (`42ebc21`). No installed engine changed. #1176 has
 not been closed or commented on by this batch; #1177 still needs separate
 verification.
+
+## 23 October 2026: #1176 closure and #1177 verification follow-up
+
+[#1176 is closed as completed](https://github.com/trealla-prolog/trealla-prolog/issues/1176#issuecomment-6362359597)
+with the focused unmodified-upstream results and qualifications, as authorized.
+The earlier open-status statements are historical.
+
+The [separate #1177 verification](reproducers/upstream-1177-verification-2026-10-23/REPORT.md)
+passes all 120 standalone invocations, three original thread-import checks and
+25 engine regression invocations on unmodified v3.14.8 (`42ebc21`). Both formerly
+crashing new-module paths pass 20/20. #1177 remains open pending an authorized
+verification update/closure. No installed runtime changed.
+
+## 23 October 2026: #1177 closure
+
+[#1177 is closed as completed](https://github.com/trealla-prolog/trealla-prolog/issues/1177#issuecomment-6362440376),
+with the 148 passing focused unmodified-upstream checks and their qualifications.
+The [verification and closure record](reproducers/upstream-1177-verification-2026-10-23/REPORT.md)
+retains exact outputs, provenance, the published comment and API confirmation.
+Earlier open-status statements are historical. The installed runtime is unchanged.
