@@ -1,0 +1,301 @@
+diff --git a/src/bif_threads.c b/src/bif_threads.c
+index 88e46af..a76bd6c 100644
+--- a/src/bif_threads.c
++++ b/src/bif_threads.c
+@@ -1225,7 +1225,6 @@ static void *start_routine_thread_create(thread *t)
+ 	unshare_cells(t->goal, t->goal->num_cells);
+ 	TPL_free(t->goal);
+ 	t->goal = NULL;
+-	t->is_finished = true;
+ 
+ 	// The ball is already a detached image - find_exception_handler rebased it from 0 - so keep it flat, a plain copy that join can import like a thread message. dup_cells_by_ref reattached its variables to a frame the joiner never had.
+ 
+@@ -1248,6 +1247,7 @@ static void *start_routine_thread_create(thread *t)
+ 	// or threw.
+ 
+ 	t->is_failed = !t->q->halt && !t->is_exception;
++	t->is_finished = true;				// last, so whoever sees it finished sees how it ended
+ 
+ 	if (t->at_exit_goal) {
+ 		execute(t->q, t->at_exit_goal, t->at_exit_goal_num_vars);
+@@ -1970,6 +1970,83 @@ static bool bif_thread_exit_1(query *q)
+ 	return true;
+ }
+ 
++// Detached cleanup frees ball/exit_code under t->guard. Take an owned
++// status image under that same guard, before allocating in the reader's heap.
++static cell *snapshot_thread_status(query *q, thread *t, int chan, bool *retired)
++{
++	*retired = false;
++	acquire_lock(&t->guard);
++	cell *tmp = NULL;
++
++	if (!t->is_active || t->chan != chan) {
++		*retired = true;
++		goto done;
++	}
++
++	// Detached cleanup clears t->q in the same guarded block that frees
++	// ball and exit_code, before retire_thread() clears is_active. Past
++	// that point the thread is gone: without this, a cancelled thread
++	// read as status(true) once its exited(cancelled) had been freed.
++	if (t->is_finished && !t->q) {
++		*retired = true;
++		goto done;
++	}
++
++	if (!t->is_finished) {
++		tmp = TPL_calloc(2, sizeof(cell));
++		if (!tmp) goto done;
++		make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, 1);
++		make_atom(tmp+1, new_atom(q->pl, "running"));
++	} else if (t->is_exception) {
++		if (!t->ball) { // detached cleanup has already taken it
++			*retired = true;
++			goto done;
++		}
++		tmp = TPL_calloc(2+t->ball->num_cells, sizeof(cell));
++		if (!tmp) goto done;
++		make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, 1+t->ball->num_cells);
++		make_instr(tmp+1, new_atom(q->pl, "exception"), NULL, 1, t->ball->num_cells);
++		dup_cells(tmp+2, t->ball, t->ball->num_cells);
++	} else if (t->exit_code) {
++		tmp = TPL_calloc(1+t->exit_code->num_cells, sizeof(cell));
++		if (!tmp) goto done;
++		make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, t->exit_code->num_cells);
++		dup_cells(tmp+1, t->exit_code, t->exit_code->num_cells);
++	} else {
++		tmp = TPL_calloc(2, sizeof(cell));
++		if (!tmp) goto done;
++		make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, 1);
++		make_atom(tmp+1, t->is_failed?g_false_s:g_true_s);
++	}
++done:
++	release_lock(&t->guard);
++	return tmp;
++}
++
++static bool unify_thread_status(query *q, thread *t, int chan)
++{
++	bool retired;
++	cell *snapshot = snapshot_thread_status(q, t, chan, &retired);
++	if (!snapshot) {
++		if (!retired)
++			return throw_error(q, q->st.instr, q->st.cur_ctx, "resource_error", "memory");
++		GET_FIRST_ARG(p1,nonvar);
++		return throw_error(q, p1, p1_ctx, "existence_error", "thread_object");
++	}
++	cell *tmp = alloc_heap(q, snapshot->num_cells);
++	if (!tmp) {
++		unshare_cells(snapshot, snapshot->num_cells);
++		TPL_free(snapshot);
++		return throw_error(q, q->st.instr, q->st.cur_ctx, "resource_error", "memory");
++	}
++	dup_cells(tmp, snapshot, snapshot->num_cells);
++	unshare_cells(snapshot, snapshot->num_cells);
++	TPL_free(snapshot);
++	GET_FIRST_ARG(p1,nonvar);
++	GET_NEXT_ARG(p2,any);
++	return unify(q, p2, p2_ctx, tmp, q->st.cur_ctx);
++}
++
+ static bool do_thread_property_pin_both(query *q)
+ {
+ 	GET_FIRST_ARG(p1,nonvar);
+@@ -1982,6 +2059,8 @@ static bool do_thread_property_pin_both(query *q)
+ 	}
+ 
+ 	thread *t = find_thread_by_id(q->pl, n);
++	if (!t)
++		return throw_error(q, p1, p1_ctx, "existence_error", "thread_object");
+ 
+ 	if (get_arity(p2) != 1)
+ 		return throw_error(q, p2, p2_ctx, "domain_error", "thread_property");
+@@ -2009,37 +2088,7 @@ static bool do_thread_property_pin_both(query *q)
+ 		make_atom(tmp+1, t->is_detached?g_true_s:g_false_s);
+ 		return unify(q, c, c_ctx, tmp, q->st.cur_ctx);
+ 	} else if (!CMP_STRING_TO_CSTR(q, p2, "status")) {
+-		if (t->is_exception) {
+-			cell *tmp = alloc_heap(q, 2+t->ball->num_cells);
+-			make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, 1+t->ball->num_cells);
+-			make_instr(tmp+1, new_atom(q->pl, "exception"), NULL, 1, t->ball->num_cells);
+-			dup_cells(tmp+2, t->ball, t->ball->num_cells);
+-			return unify(q, c, c_ctx, tmp, q->st.cur_ctx);
+-		}
+-
+-		if (!t->is_finished) {
+-			cell *tmp = alloc_heap(q, 2);
+-			make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, 1);
+-			make_atom(tmp+1, new_atom(q->pl, "running"));
+-			return unify(q, c, c_ctx, tmp, q->st.cur_ctx);
+-		}
+-
+-		// thread_exit/1 stores its argument already wrapped as
+-		// exited/1, so hand that back whole - this reported a bare
+-		// `false` for it. And a goal that merely failed is is_failed,
+-		// not exit_code, which made it report `true`; thread_join/2 has
+-		// always read the right flag, so the two disagreed.
+-		if (t->exit_code) {
+-			cell *tmp = alloc_heap(q, 1+t->exit_code->num_cells);
+-			make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, t->exit_code->num_cells);
+-			dup_cells(tmp+1, t->exit_code, t->exit_code->num_cells);
+-			return unify(q, c, c_ctx, tmp, q->st.cur_ctx);
+-		}
+-
+-		cell *tmp = alloc_heap(q, 2);
+-		make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, 1);
+-		make_atom(tmp+1, t->is_failed?g_false_s:g_true_s);
+-		return unify(q, c, c_ctx, tmp, q->st.cur_ctx);
++		return unify_thread_status(q, t, n);
+ 	} else
+ 		return throw_error(q, p2, p2_ctx, "domain_error", "thread_property");
+ 
+@@ -2087,6 +2136,8 @@ static bool do_thread_property_pin_id(query *q)
+ 	}
+ 
+ 	thread *t = find_thread_by_id(q->pl, n);
++	if (!t)
++		return throw_error(q, p1, p1_ctx, "existence_error", "thread_object");
+ 	unsigned i = 0;
+ 
+ 	if (q->retry)
+@@ -2121,37 +2172,7 @@ static bool do_thread_property_pin_id(query *q)
+ 		make_atom(tmp+1, t->is_detached?g_true_s:g_false_s);
+ 		return unify(q, p2, p2_ctx, tmp, q->st.cur_ctx);
+ 	} else {
+-		if (t->is_exception) {
+-			cell *tmp = alloc_heap(q, 2+t->ball->num_cells);
+-			make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, 1+t->ball->num_cells);
+-			make_instr(tmp+1, new_atom(q->pl, "exception"), NULL, 1, t->ball->num_cells);
+-			dup_cells(tmp+2, t->ball, t->ball->num_cells);
+-			return unify(q, p2, p2_ctx, tmp, q->st.cur_ctx);
+-		}
+-
+-		if (!t->is_finished) {
+-			cell *tmp = alloc_heap(q, 2);
+-			make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, 1);
+-			make_atom(tmp+1, new_atom(q->pl, "running"));
+-			return unify(q, p2, p2_ctx, tmp, q->st.cur_ctx);
+-		}
+-
+-		// thread_exit/1 stores its argument already wrapped as
+-		// exited/1, so hand that back whole - this reported a bare
+-		// `false` for it. And a goal that merely failed is is_failed,
+-		// not exit_code, which made it report `true`; thread_join/2 has
+-		// always read the right flag, so the two disagreed.
+-		if (t->exit_code) {
+-			cell *tmp = alloc_heap(q, 1+t->exit_code->num_cells);
+-			make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, t->exit_code->num_cells);
+-			dup_cells(tmp+1, t->exit_code, t->exit_code->num_cells);
+-			return unify(q, p2, p2_ctx, tmp, q->st.cur_ctx);
+-		}
+-
+-		cell *tmp = alloc_heap(q, 2);
+-		make_instr(tmp, new_atom(q->pl, "status"), NULL, 1, 1);
+-		make_atom(tmp+1, t->is_failed?g_false_s:g_true_s);
+-		return unify(q, p2, p2_ctx, tmp, q->st.cur_ctx);
++		return unify_thread_status(q, t, n);
+ 	}
+ }
+ 
+diff --git a/tests/sundry/thread_cancel_status_retirement.expected b/tests/sundry/thread_cancel_status_retirement.expected
+new file mode 100644
+index 0000000..af0b16b
+--- /dev/null
++++ b/tests/sundry/thread_cancel_status_retirement.expected
+@@ -0,0 +1 @@
++all regressions passed
+diff --git a/tests/sundry/thread_cancel_status_retirement.pl b/tests/sundry/thread_cancel_status_retirement.pl
+new file mode 100644
+index 0000000..b8dc9d7
+--- /dev/null
++++ b/tests/sundry/thread_cancel_status_retirement.pl
+@@ -0,0 +1,26 @@
++% SPDX-License-Identifier: MIT
++% Polling a cancelled detached thread's status must survive its cleanup
++% freeing exited(cancelled), and must never report a status it did not end with.
++missing(error(existence_error(thread_object,_),_)).
++% Existing dispatch may report this if retirement races its kind lookup.
++missing(error(uninstantiation_error(_),_)).
++valid_status(running).
++valid_status(exited(cancelled)).
++waiter(Q) :- (thread_get_message(Q,_,[timeout(0.05)]) -> true ; waiter(Q)).
++poll(_,0) :- throw(poll_exhausted).
++poll(T,N) :-
++    catch((thread_property(T,status(S)) -> Again=true ; Again=false),E,
++          (missing(E) -> Again=false ; throw(E))),
++    (Again==true ->
++        (valid_status(S) -> true ; throw(unexpected_status(S))),
++        Next is N-1,poll(T,Next)
++    ; true).
++once_cancelled :-
++    message_queue_create(Q),
++    thread_create(waiter(Q),T,[detached(true)]),
++    thread_cancel(T),poll(T,100000),
++    message_queue_destroy(Q).
++run :-
++    forall(between(1,300,_),once_cancelled),
++    writeln('all regressions passed').
++:- initialization((catch(run,E,(writeq(E),nl,halt(1)))->halt;halt(1))).
+diff --git a/tests/sundry/thread_status_retirement.expected b/tests/sundry/thread_status_retirement.expected
+new file mode 100644
+index 0000000..8978d7b
+--- /dev/null
++++ b/tests/sundry/thread_status_retirement.expected
+@@ -0,0 +1,6 @@
++join_status_preserved
++passed(bound)
++passed(properties)
++passed(threads)
++passed(all)
++all regressions passed
+diff --git a/tests/sundry/thread_status_retirement.pl b/tests/sundry/thread_status_retirement.pl
+new file mode 100644
+index 0000000..b0aa0de
+--- /dev/null
++++ b/tests/sundry/thread_status_retirement.pl
+@@ -0,0 +1,44 @@
++% SPDX-License-Identifier: MIT
++% An owned exception snapshot must outlive detached-thread cleanup.
++require(Label,Goal) :- (call(Goal)->true;throw(failed(Label))).
++worker(success).
++worker(failure) :- fail.
++worker(exception) :- throw(probe([a,b],pair(1,2))).
++worker(exit) :- thread_exit(done).
++expected(success,true).
++expected(failure,false).
++expected(exception,exception(probe([a,b],pair(1,2)))).
++expected(exit,exited(done)).
++joinable(Kind) :-
++    thread_create(worker(Kind),T,[]),
++    expected(Kind,E),await_status(T,E,1000),
++    thread_join(T,S),require(join_status,S==E).
++await_status(T,E,N) :-
++    thread_property(T,status(S)),
++    (S==E -> true
++    ; N>0 -> sleep(0.001),Next is N-1,await_status(T,E,Next)
++    ; throw(status_wait_exhausted(T,E,S))).
++missing(error(existence_error(thread_object,_),_)).
++% Existing dispatch may report this if retirement races its kind lookup.
++missing(error(uninstantiation_error(_),_)).
++read_property(T,bound) :- thread_property(T,status(S)),valid_status(S).
++read_property(T,properties) :- findall(P,thread_property(T,P),Ps),member(status(S),Ps),valid_status(S).
++read_property(T,threads) :- findall(Id-S,thread_property(Id,status(S)),Pairs),
++    member(T-S,Pairs),valid_status(S).
++read_property(T,all) :- findall(Id-P,thread_property(Id,P),Pairs),
++    member(T-status(S),Pairs),valid_status(S).
++valid_status(running).
++valid_status(exception(probe([a,b],pair(1,2)))).
++poll(_,_,0) :- throw(poll_exhausted).
++poll(T,Mode,N) :-
++    catch((read_property(T,Mode)->Again=true;Again=false),E,
++          (missing(E)->Again=false;throw(E))),
++    (Again==true -> Next is N-1,poll(T,Mode,Next);true).
++retire(Mode) :- thread_create(worker(exception),T,[detached(true)]),poll(T,Mode,10000).
++run :-
++    forall(member(K,[success,failure,exception,exit]),joinable(K)),
++    writeln(join_status_preserved),
++    forall(member(Mode,[bound,properties,threads,all]),
++        (forall(between(1,200,_),retire(Mode)),writeln(passed(Mode)))),
++    writeln('all regressions passed').
++:- initialization((catch(run,E,(writeq(E),nl,halt(1)))->halt;halt(1))).

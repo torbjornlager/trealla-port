@@ -1,0 +1,20 @@
+# ASan diagnostic build of pinned v3.13.10 (tag checkout, -fsanitize=address -O0 -g, NOSSL NOFFI, SDK 26.5)
+# standalone_cancel(concurrent,10), fresh-process run 5 of up to 60; first report. Frames only.
+==48959==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000004 (pc 0x00010104ab28 bp 0x00016f3c3450 sp 0x00016f3c24d0 T0)
+==48959==The signal is caused by a READ memory access.
+==48959==Hint: address points to the zero page.
+    #0 0x00010104ab28 in do_thread_property_pin_both bif_threads.c:2034
+    #1 0x0001010353f4 in bif_thread_property_2 bif_threads.c:2202
+    #2 0x0001012035c8 in start query.c:3484
+    #3 0x00010120b250 in execute query.c:3674
+    #4 0x000101133520 in run parser.c:6166
+    #5 0x0001011bf55c in pl_eval prolog.c:169
+    #6 0x000100a3ab14 in main tpl.c:359
+    #7 0x00018e3cc4e0 in start+0x1b4c (dyld:arm64e+0x204e0)
+
+SUMMARY: AddressSanitizer: SEGV bif_threads.c:2034 in do_thread_property_pin_both
+# Probe stdout tail:
+stage(leave(cancel('$thread'(33)),success))
+stage(enter(disturb('$thread'(33))))
+stage(leave(disturb('$thread'(33)),success))
+stage(enter(collector_retirement('$thread'(33))))
