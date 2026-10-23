@@ -39,23 +39,42 @@ start_test_threads(Ref,Delay,Expiry,resources(Q,W,T)) :-
 
 resources(Ref,resources(Q,W,T)) :-
     rpc:promise_transaction(rpc:promise_state(Ref,Q,W,T,_,_,_Owner)).
+% Record and queue retirement are one transaction. Inspect them together under
+% that mutex; detached worker/timer retirement is checked separately afterwards.
 assert_disposed(Ref,resources(Q,W,T)) :-
-    lifecycle_stage(disposal(Ref,state)),
-    \+ rpc:promise_state(Ref,_,_,_,_,_,_Owner),
-    lifecycle_stage(disposal(Ref,queue(Q))),\+ queue_exists(Q),
+    lifecycle_stage(disposal(Ref,record_and_queue)),
+    await(user:disposal_complete(Ref,Q),200),
     lifecycle_stage(disposal(Ref,worker(W))),await(user:thread_gone(W),200),
     lifecycle_stage(disposal(Ref,timer(T))),await(user:thread_gone(T),200),
     lifecycle_stage(disposal(Ref,done)).
+disposal_snapshot(Ref,Q,Snapshot) :-
+    rpc:promise_transaction(
+        ((rpc:promise_state(Ref,_,_,_,_,_,_) -> HasRecord=true ; HasRecord=false),
+         (queue_exists(Q) -> HasQueue=true ; HasQueue=false),
+         Snapshot=resources(HasRecord,HasQueue))).
+disposal_complete(Ref,Q) :-
+    disposal_snapshot(Ref,Q,Snapshot),
+    (Snapshot==resources(false,false) -> true
+    ; lifecycle_stage(disposal_pending(Ref,Snapshot)),fail).
 queue_exists(Q) :- catch(message_queue_property(Q,size(_)),_,fail).
 thread_gone(none) :- !.
 thread_gone(T) :-
     lifecycle_stage(property_begin(T)),
     (catch(thread_property(T,status(_)),_,fail) -> Present=true ; Present=false),
     lifecycle_stage(property_end(T,Present)),Present==false.
+
+% Commit to a completed wait: failure in a later assertion must not backtrack
+% through earlier polling attempts and fabricate a wait-exhaustion diagnostic.
 await(Goal,N) :-
+    get_time(Start),lifecycle_stage(wait_begin(Goal,N)),
+    once(await_poll(Goal,N,N,Start)),
+    get_time(End),Elapsed is End-Start,
+    lifecycle_stage(wait_complete(Goal,Elapsed)).
+await_poll(Goal,Left,Initial,Start) :-
     (call(Goal) -> true
-    ; N>0,sleep(0.005),Next is N-1,await(Goal,Next)
-    ; lifecycle_stage(wait_exhausted(Goal)),fail).
+    ; Left>0 -> sleep(0.005),Next is Left-1,await_poll(Goal,Next,Initial,Start)
+    ; get_time(End),Elapsed is End-Start,
+      throw(error(lifecycle_wait_timeout(Goal,Initial,Elapsed),rpc_lifecycle_tests/0))).
 
 lifecycle_collection :-
     start_test_promise(0.03,300,Ref,R),
@@ -78,7 +97,7 @@ lifecycle_retry :-
     rpc:deliver_promise_answer(Ref,success([ok],false)),
     yield(Ref,Answer),Answer==success([ok],false),assert_disposed(Ref,R),
     writeln('timeout releases the collector and preserves retry: ok').
-reference_gone(Ref) :- \+ rpc:promise_active(Ref).
+reference_gone(Ref) :- rpc:promise_transaction(\+ rpc:promise_active(Ref)).
 expect_gone(Ref) :-
     catch(yield(Ref,_),E,true),E=error(existence_error(promise,Ref),_).
 

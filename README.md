@@ -1842,6 +1842,11 @@ now reduces one lifecycle crash to detached exception-status copying during
 cleanup. The separate candidate is submitted as [#1178](https://github.com/trealla-prolog/trealla-prolog/issues/1178)
 and passes the final focused checks. Earlier expiry wait exhaustion and the
 different signal-delivery crash remain unresolved; the candidate is not installed.
+A [test-only expiry investigation](reproducers/expiry-diagnostics-2026-10-23/REPORT.md)
+reproduces misleading wait-exhaustion diagnostics caused by backtracking and
+unlocked disposal observations. Locked, bounded fixture checks pass 300 expiry
+cases on each engine; the full unmodified-upstream lifecycle batch passes 30/30.
+Other pinned-engine lifecycle failures remain separate and unresolved.
 `tools/test-http-timeout-enforcement.py` runs the focused fixture against an
 explicitly selected engine, retaining failed cleanup assertions rather than
 counting a timeout error alone as success. Destination-side timeout semantics

@@ -28,6 +28,12 @@ See the [report](reproducers/bug-030-thread-status-retirement.md),
 [patch](reproducers/bug-030-thread-status-retirement.patch) and
 [verification record](reproducers/lifecycle-crash-2026-10-23/REPORT.md).
 
+A later [test-only expiry investigation](reproducers/expiry-diagnostics-2026-10-23/REPORT.md)
+reproduces a fixture observation/backtracking race consistent with the earlier
+expiry-labelled failures. Revised bounded checks pass 300 expiries on each engine
+and 30/30 full lifecycle runs on unmodified upstream. Pinned-engine full lifecycle
+failures remain explicit. No new engine expiry defect or runtime fix is claimed.
+
 ## Submitted null-parser report
 
 ### BUG-029: Thread-time module creation dereferences a null parser

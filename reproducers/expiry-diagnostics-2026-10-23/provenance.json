@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-23",
+  "port_commit": "5b34c2ba3cf89b54ede877f499b3f32dfd2c203a",
+  "upstream_commit": "beed430deca9fa48adf028541ea4c3e2bd8d3641",
+  "upstream_clean": true,
+  "pinned_sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+  "upstream_sha256": "5cb6b4c9d4dcd88211443151660c0c2ecf79326b61612191d95a46c95a1d420e",
+  "runtime_source_sha256": "08ea2ed739e9f21d2d192156e908e7a2a93a14fb285d631a0cb62d782d7842f1",
+  "runtime_source_unchanged": true,
+  "fixture_sha256": "80691aa683e8772019f68d23d5bc0d1fdddb337c03e2ac85853ea5887d80e546",
+  "controls_sha256": "7728ec7b89fad5ee8ba99323c2e5b54eb74b7dc4c7868b88d6a42d72c7c7676b",
+  "installed_engine_changed": false,
+  "batches": {
+    "expiry_processes_per_engine": 30,
+    "expiry_cases_per_process": 10,
+    "full_lifecycle_processes_per_engine": 30,
+    "control_processes_per_engine": 5
+  },
+  "poll_interval_seconds": 0.005,
+  "poll_retries": 200,
+  "process_watchdog_seconds": 15
+}
