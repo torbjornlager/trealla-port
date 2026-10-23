@@ -204,9 +204,19 @@ libSystem, libedit and libffi as the installed binary.
 Files: `standalone-minimal-pinned-backport.json`,
 `standalone-concurrent-100-pinned-vs-backport.json`.
 
-The Web Prolog unit suite on the backport, with an unmodified-pinned
-baseline, was still running when this report was committed; its result is
-not recorded here.
+Web Prolog unit suite (`tools/test.sh unit` via a scratch copy that records
+a failure and continues; logs `wp-unit-backport.log`, `wp-unit-pinned.log`):
+
+| Engine | Groups | Failed |
+|---|---|---|
+| Backport | 72 | 1: "HTTP paging request cleanup", exit 1 |
+| Unmodified pinned | 72 | 0 |
+
+That group is intermittent on both engines. Rerun alone 20 times each, it
+failed 3/20 on the backport and 2/20 on pinned, in both cases right after
+its "interrupted skip" or "interrupted collect" case. This is a pre-existing
+flake, not a backport regression. The interop half (`tools/test.sh interop`)
+was not run: SWI-Prolog is not installed on this machine.
 
 ## Not addressed
 
