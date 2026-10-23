@@ -438,3 +438,12 @@ Reproducer, runner, candidate patch and detailed report:
 [`reproducers/bug-025-module-map-growth.md`](reproducers/bug-025-module-map-growth.md).
 This establishes a reduced engine failure independently of Web Prolog. It does
 not establish that every historical `match_head` crash had this cause.
+
+## 23 October 2026: #1176 upstream verification
+
+The [focused verification](reproducers/upstream-1176-verification-2026-10-23/REPORT.md)
+passes the original state-loss and callback cases, import variants, framework
+table preservation, promise correctness and selected loader regressions on
+unmodified upstream v3.14.8 (`42ebc21`). No installed engine changed. #1176 has
+not been closed or commented on by this batch; #1177 still needs separate
+verification.
