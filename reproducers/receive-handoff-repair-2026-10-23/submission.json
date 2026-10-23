@@ -1,0 +1,24 @@
+{
+  "issue": 1179,
+  "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1179",
+  "title": "Feature request: interruption-safe dequeue-and-save for selective receive",
+  "date": "2026-10-23",
+  "state": "open",
+  "body_file": "submitted-body.md",
+  "body_sha256": "53e33ea29acc3922f24902d38bb5f5d1b219cf08819f70cea35681fa21b74aa0",
+  "candidate_patch_sha256": "fc22903049270bcb3ff61c6519b6bae97b638dfd9dfd9ca679a140c51764b31f",
+  "duplicate_queries": [
+    "thread_get_message",
+    "thread_signal",
+    "handoff",
+    "sig_atomic",
+    "atomic"
+  ],
+  "related_issues": [
+    1026,
+    1178
+  ],
+  "recent_reports_reviewed": 25,
+  "submission_method": "Authenticated browser; GitHub connector cannot create issues in this repository",
+  "installed_engine_unchanged": true
+}

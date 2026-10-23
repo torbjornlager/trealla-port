@@ -71,6 +71,19 @@ of reason. Only the combinator's own monitor references are selected or drained;
 application monitors, including additional monitors on the same worker, remain
 available.
 
+Receive interruption safety has a separate candidate engine dependency. The
+adapter detects the private `$thread_get_message_saved/5` primitive and uses it
+for blocking, timed, and polling reads. It commits a copied deferred-message
+template before releasing native queue ownership, closing the dequeue-to-defer
+signal window. Selection, guards, and body execution retain their existing
+semantics. Original engines keep the previous receive path; they **do not gain
+this guarantee** merely by updating the Prolog files. The installed engine has
+not been replaced. Separate pinned/upstream candidate builds, patches, exact
+hashes, and verification results are recorded in
+[`reproducers/receive-handoff-repair-2026-10-23/REPORT.md`](reproducers/receive-handoff-repair-2026-10-23/REPORT.md).
+The test runner explicitly skips the new interruption stress on engines without
+the primitive while still checking receive semantics.
+
 Both generics now own their local workers in a private scope spanning startup
 and collection. Each pid is recorded before its thread is created, closing the
 interruption gap during startup. Partial startup failure, exceptions, query

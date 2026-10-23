@@ -1,0 +1,14 @@
+{
+  "pinned": {
+    "exit_code": 0,
+    "stdout": "Standalone handoff: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  "upstream": {
+    "exit_code": 0,
+    "stdout": "Standalone handoff: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  }
+}

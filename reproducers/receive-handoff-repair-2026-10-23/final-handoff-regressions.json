@@ -1,0 +1,16 @@
+{
+  "pinned": {
+    "exit": 0,
+    "stdout": "Receive handoff: all regressions passed\n",
+    "stderr": "",
+    "passed": true,
+    "test_sha256": "63a62259bcfae578b51ab814540ae81aa8302a8beb1f3764aa8b61304db4cfa3"
+  },
+  "upstream": {
+    "exit": 0,
+    "stdout": "Receive handoff: all regressions passed\n",
+    "stderr": "",
+    "passed": true,
+    "test_sha256": "63a62259bcfae578b51ab814540ae81aa8302a8beb1f3764aa8b61304db4cfa3"
+  }
+}

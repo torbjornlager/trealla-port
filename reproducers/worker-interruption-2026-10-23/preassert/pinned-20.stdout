@@ -1,0 +1,10 @@
+parallel partial startup exception preserves error and reclaims worker: ok
+first partial startup exception preserves error and reclaims worker: ok
+tuned_first partial startup exception preserves error and reclaims worker: ok
+scope finalizers cover ordinary failure and cuts: ok
+parallel interruption during waiting cleans scope and preserves monitors: ok
+parallel interruption during reserved cleans scope and preserves monitors: ok
+first interruption during waiting cleans scope and preserves monitors: ok
+first interruption during reserved cleans scope and preserves monitors: ok
+scope_diag(tuned_first,waiting,assertion_failed(missing_unrelated),'$thread'(21),absent,[down(2712666914,1000000061,kill)],[3069502857,2712666914],absent,scope_state('$thread'(21),absent,[down(2712666914,1000000061,kill)],[3069502857,2712666914],absent))
+coordinator_failed(exception(missing_unrelated))

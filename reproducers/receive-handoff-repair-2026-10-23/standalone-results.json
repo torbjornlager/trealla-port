@@ -1,0 +1,22 @@
+{
+  "original-pinned": {
+    "exit_code": 1,
+    "stdout": "interruption(failed(missing_unrelated))\n",
+    "stderr": ""
+  },
+  "original-upstream": {
+    "exit_code": 1,
+    "stdout": "interruption(failed(missing_unrelated))\n",
+    "stderr": ""
+  },
+  "candidate-pinned": {
+    "exit_code": 0,
+    "stdout": "Standalone handoff: all regressions passed\n",
+    "stderr": ""
+  },
+  "candidate-upstream": {
+    "exit_code": 0,
+    "stdout": "Standalone handoff: all regressions passed\n",
+    "stderr": ""
+  }
+}

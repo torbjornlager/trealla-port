@@ -1,0 +1,35 @@
+{
+  "port_base": "41aa20ae942e5727d0644d2320317b115a978ee8",
+  "build_command": "make -j4 NOSSL=1 NOFFI=1 CC='clang -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk'",
+  "candidate_engines": {
+    "pinned": {
+      "source": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/pinned",
+      "base_revision": "36f512f595e407e330f6e1f6b4eb339da2b0675e",
+      "binary_sha256": "94305dd98bc96caff2dfcfb608bd5a6a3fe58805f202cd7a593eadbe5307b478",
+      "library": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/pinned/library",
+      "patch_sha256": "d71cd0531bda899acb17c8b6a2ee3ac8a2e28e00d8b588f04142288d7ceb529d"
+    },
+    "upstream": {
+      "source": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream",
+      "base_revision": "42ebc2127e3f900036c6bcb54cfc11bec4762eb7",
+      "binary_sha256": "fcd3641b5df3c79880c6f0234c3cfbf7ff401bd560c87945825a95cd3ad097d6",
+      "library": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/upstream/library",
+      "patch_sha256": "fc22903049270bcb3ff61c6519b6bae97b638dfd9dfd9ca679a140c51764b31f"
+    }
+  },
+  "sha256": {
+    "actors.pl": "752335a8a56c8aaedc363b0766687b47ac1fbdb61cc50ff16371afa3f94ae1af",
+    "receive_handoff_tests.pl": "63a62259bcfae578b51ab814540ae81aa8302a8beb1f3764aa8b61304db4cfa3",
+    "worker_scope_tests.pl": "907da5ffdce8670e74e0f1f5a1ecca2dd29c6d3d6fd3e3abf1c5b253828e6c34",
+    "tools/test.sh": "b842eeef8d5e3abf3aa6424046e54b19b243417d50bf725769f823ae1b2ac4f1",
+    "reproducers/receive-handoff-repair-2026-10-23/pinned-candidate.patch": "d71cd0531bda899acb17c8b6a2ee3ac8a2e28e00d8b588f04142288d7ceb529d",
+    "reproducers/receive-handoff-repair-2026-10-23/upstream-candidate.patch": "fc22903049270bcb3ff61c6519b6bae97b638dfd9dfd9ca679a140c51764b31f",
+    "reproducers/receive-handoff-repair-2026-10-23/primitive_tests.pl": "238e44787a7996849342c49e8f7dafd36bb768f5dd9b39ae760c2dc6de254188",
+    "reproducers/receive-handoff-repair-2026-10-23/standalone.pl": "f47df8c48601b5075cbc579927e002558d6b5b422d4afb722d13a76e323590fb",
+    "reproducers/receive-handoff-repair-2026-10-23/run.py": "54428b0565c225a2aa973726152ad3044995aaf39d60eaa9562bbbfcc1b9b719"
+  },
+  "original_engines": {
+    "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl": "a89f1f6c04d3e8637e0a8ee87cef03a18fac4dff29f25bb624534f47236fe441"
+  }
+}

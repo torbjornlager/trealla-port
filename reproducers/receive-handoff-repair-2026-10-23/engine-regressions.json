@@ -1,0 +1,38 @@
+{
+  "pinned-global_vars": {
+    "exit": 0,
+    "stdout": "t_undo: 1\nt_nested: 1\nt_nb_over_b: 3\nt_nb_copies: copied\nt_b_shares: f(1)\nt_missing: existence_error(variable,nokey)\nt_key: type_error(atom,f(x))\nt_attr: still_frozen\n",
+    "stderr": "",
+    "passed": true
+  },
+  "pinned-global_vars_threads": {
+    "exit": 0,
+    "stdout": "thread_sees(existence_error(variable,k))\nmain_sees(main)\n",
+    "stderr": "",
+    "passed": true
+  },
+  "pinned-receive_saved": {
+    "exit": 0,
+    "stdout": "Saved receive primitive: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  "upstream-global_vars": {
+    "exit": 0,
+    "stdout": "t_undo: 1\nt_nested: 1\nt_nb_over_b: 3\nt_nb_copies: copied\nt_b_shares: f(1)\nt_missing: existence_error(variable,nokey)\nt_key: type_error(atom,f(x))\nt_attr: still_frozen\n",
+    "stderr": "",
+    "passed": true
+  },
+  "upstream-global_vars_threads": {
+    "exit": 0,
+    "stdout": "thread_sees(existence_error(variable,k))\nmain_sees(main)\n",
+    "stderr": "",
+    "passed": true
+  },
+  "upstream-receive_saved": {
+    "exit": 0,
+    "stdout": "Saved receive primitive: all regressions passed\n",
+    "stderr": "",
+    "passed": true
+  }
+}

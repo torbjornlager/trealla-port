@@ -1,0 +1,20 @@
+{
+  "port_revision": "41aa20ae942e5727d0644d2320317b115a978ee8",
+  "runtime_sha256_before_after": {
+    "actors.pl": "b4c1e47e9acfb701b0808fc48e8cacac0a5f4d897f6d47a70914b5cd86ea2413",
+    "parallel.pl": "0c2e005c6ec4b9eebc2332e00ccae3cf63d99184dce339de3395dec36fd8881a",
+    "worker_cleanup.pl": "29a0909f828a690356e26cc750c8638580d876f6b5e495c093a8bed669531d77",
+    "isolation.pl": "7a72759fa7d70f94cc851e4cee4c5ad9558d86dcbcdefdf99b4e0d2963faa720"
+  },
+  "runtime_sources_unchanged": true,
+  "installed_runtime_changed": false,
+  "assertion_preserved_verbatim": true,
+  "test_versions": {
+    "original": "49e1753f8b4735fcbea7f1217db071f828b99493999560f5d8dac2b218e70a84",
+    "diagnosed": "14db43b8d43944faa019633c8de103f07d6eb80fbef2595be6b42ccf04dd54cf",
+    "failure-only": "abfb2a90830e99fd4913daa1a8a41df793cee915137c4f5f669c39dd17289709",
+    "preassert": "907da5ffdce8670e74e0f1f5a1ecca2dd29c6d3d6fd3e3abf1c5b253828e6c34"
+  },
+  "upstream_revision": "42ebc2127e3f900036c6bcb54cfc11bec4762eb7",
+  "upstream_clean": true
+}

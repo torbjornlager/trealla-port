@@ -1,0 +1,46 @@
+parallel partial startup exception preserves error and reclaims worker: ok
+first partial startup exception preserves error and reclaims worker: ok
+tuned_first partial startup exception preserves error and reclaims worker: ok
+scope finalizers cover ordinary failure and cuts: ok
+scope_diag(parallel,waiting,self_send_complete,'$thread'(11),present,[],[],not_recorded)
+scope_diag(parallel,waiting,observer_before_signal(2888694108),main,absent,[],[],not_recorded)
+scope_diag(parallel,waiting,after_unwind('$abort_goal'),'$thread'(11),absent,[down(unrelated,probe,killed),down(2375661900,1000000027,kill)],[1940609698,2375661900],absent)
+scope_diag(parallel,waiting,before_assertion,'$thread'(11),absent,[down(unrelated,probe,killed),down(2375661900,1000000027,kill)],[1940609698,2375661900],absent)
+scope_diag(parallel,waiting,assertion_passed,'$thread'(11),absent,[down(2375661900,1000000027,kill)],[1940609698,2375661900],absent)
+parallel interruption during waiting cleans scope and preserves monitors: ok
+scope_diag(parallel,reserved,self_send_complete,'$thread'(14),present,[],[],not_recorded)
+scope_diag(parallel,reserved,observer_before_signal(2326086849),main,absent,[],[],not_recorded)
+scope_diag(parallel,reserved,after_unwind('$abort_goal'),'$thread'(14),absent,[down(unrelated,probe,killed)],[1493771780,2391095867],absent)
+scope_diag(parallel,reserved,before_assertion,'$thread'(14),absent,[down(unrelated,probe,killed)],[1493771780,2391095867],absent)
+scope_diag(parallel,reserved,assertion_passed,'$thread'(14),absent,[],[1493771780,2391095867],absent)
+parallel interruption during reserved cleans scope and preserves monitors: ok
+scope_diag(first,waiting,self_send_complete,'$thread'(16),present,[],[],not_recorded)
+scope_diag(first,waiting,observer_before_signal(1956382577),main,absent,[],[],not_recorded)
+scope_diag(first,waiting,after_unwind('$abort_goal'),'$thread'(16),absent,[down(unrelated,probe,killed),down(2001331013,1000000044,kill)],[2688477599,2001331013],absent)
+scope_diag(first,waiting,before_assertion,'$thread'(16),absent,[down(unrelated,probe,killed),down(2001331013,1000000044,kill)],[2688477599,2001331013],absent)
+scope_diag(first,waiting,assertion_passed,'$thread'(16),absent,[down(2001331013,1000000044,kill)],[2688477599,2001331013],absent)
+first interruption during waiting cleans scope and preserves monitors: ok
+scope_diag(first,reserved,self_send_complete,'$thread'(19),present,[],[],not_recorded)
+scope_diag(first,reserved,observer_before_signal(1006873844),main,absent,[],[],not_recorded)
+scope_diag(first,reserved,after_unwind('$abort_goal'),'$thread'(19),absent,[down(unrelated,probe,killed)],[1650821637,1796448884],absent)
+scope_diag(first,reserved,before_assertion,'$thread'(19),absent,[down(unrelated,probe,killed)],[1650821637,1796448884],absent)
+scope_diag(first,reserved,assertion_passed,'$thread'(19),absent,[],[1650821637,1796448884],absent)
+first interruption during reserved cleans scope and preserves monitors: ok
+scope_diag(tuned_first,waiting,self_send_complete,'$thread'(21),present,[],[],not_recorded)
+scope_diag(tuned_first,waiting,observer_before_signal(2712062817),main,absent,[],[],not_recorded)
+scope_diag(tuned_first,waiting,after_unwind('$abort_goal'),'$thread'(21),absent,[down(unrelated,probe,killed),down(2048645120,1000000061,kill)],[1180240911,2048645120],absent)
+scope_diag(tuned_first,waiting,before_assertion,'$thread'(21),absent,[down(unrelated,probe,killed),down(2048645120,1000000061,kill)],[1180240911,2048645120],absent)
+scope_diag(tuned_first,waiting,assertion_passed,'$thread'(21),absent,[down(2048645120,1000000061,kill)],[1180240911,2048645120],absent)
+tuned_first interruption during waiting cleans scope and preserves monitors: ok
+scope_diag(tuned_first,reserved,self_send_complete,'$thread'(24),present,[],[],not_recorded)
+scope_diag(tuned_first,reserved,observer_before_signal(1506379166),main,absent,[],[],not_recorded)
+scope_diag(tuned_first,reserved,after_unwind('$abort_goal'),'$thread'(24),absent,[down(unrelated,probe,killed)],[2038332071,1016161199],absent)
+scope_diag(tuned_first,reserved,before_assertion,'$thread'(24),absent,[down(unrelated,probe,killed)],[2038332071,1016161199],absent)
+scope_diag(tuned_first,reserved,assertion_passed,'$thread'(24),absent,[],[2038332071,1016161199],absent)
+tuned_first interruption during reserved cleans scope and preserves monitors: ok
+parallel caller termination stops workers without waiting on dying mailbox: ok
+first caller termination stops workers without waiting on dying mailbox: ok
+tuned_first caller termination stops workers without waiting on dying mailbox: ok
+nested scopes, bindings, mismatch, policies and single-result semantics: ok
+worker ownership metadata remains private: ok
+Worker scopes: all regressions passed

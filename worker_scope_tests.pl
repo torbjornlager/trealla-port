@@ -77,11 +77,17 @@ coordinator(Kind,Stage,Observer) :-
     (Stage==reserved -> Mode=reserved_interrupt(Observer);Mode=pass),
     probe_start(Mode),self(Self),
     Self ! down(unrelated,probe,killed),
+    scope_diagnostic(Kind,Stage,self_send_complete),
     catch(invoke(Kind,[worker_scope_tests:blocked(Observer),worker_scope_tests:blocked(Observer)]),Error,true),
+    scope_diagnostic(Kind,Stage,after_unwind(Error)),
     nb_getval('$scope_test_pids',Pids),
     require(forall(member(P,Pids),\+actors:actor_thread(P,_)),workers_still_registered(Pids)),
     nb_getval('$scope_test_key',Key),require(\+nb_current(Key,_),scope_record_remains),
-    receive({down(unrelated,probe,killed) -> true},[timeout(0),on_timeout(throw(missing_unrelated))]),
+    scope_diagnostic(Kind,Stage,before_assertion),
+    catch(receive({down(unrelated,probe,killed) -> true},[timeout(0),on_timeout(throw(missing_unrelated))]),
+          AssertionError,
+          (scope_diagnostic(Kind,Stage,assertion_failed(AssertionError)),throw(AssertionError))),
+    scope_diagnostic(Kind,Stage,assertion_passed),
     no_worker_messages(Pids),
     (Stage==waiting ->
       nb_getval('$scope_extra_monitor',Worker-Ref),
@@ -107,12 +113,40 @@ interruption(Kind,Stage) :-
        ; % This hook deliberately holds the registry mutex. Native receive
          % avoids taking it through self/1 before the signal releases startup.
          thread_get_message(reserved(Caller,_,Thread))),
+       scope_diagnostic(Kind,Stage,observer_before_signal(Caller)),
        thread_signal(Thread,throw('$abort_goal')),
        (Stage==reserved -> receive({worker(_) -> true},[timeout(3),on_timeout(fail)]);true),
        receive({cleaned(Caller,'$abort_goal') -> true;down(Caller,Caller,Why) -> throw(coordinator_failed(Why))},[timeout(3),on_timeout(throw(missing_cleanup(Kind,Stage)))]),
        receive({down(Caller,Caller,true) -> true},[timeout(3),on_timeout(fail)])),
       exit(Caller,kill)),
     format('~w interruption during ~w cleans scope and preserves monitors: ok~n',[Kind,Stage]).
+
+% Opt-in test diagnostics only. Peeks and deferred snapshots do not consume
+% messages; the original zero-time assertion and failure term are unchanged.
+scope_diagnostic(Kind,Stage,Phase) :-
+    ( getenv('WORKER_SCOPE_DIAGNOSTICS',Enabled),
+      (Enabled == '1' ; Enabled == failure)
+    -> (Enabled == failure, Phase == before_assertion
+       -> scope_snapshot_state(State),nb_setval('$scope_diag_before_assert',State)
+       ; Enabled == failure, Phase \= assertion_failed(_)
+       -> true
+       ; scope_snapshot(Kind,Stage,Phase))
+    ; true ).
+
+scope_snapshot(Kind,Stage,Phase) :-
+       scope_snapshot_state(scope_state(Thread,Native,Deferred,Pids,Scope)),
+       (nb_current('$scope_diag_before_assert',Before) -> true;Before=not_recorded),
+       format(atom(Line),'~q~n',[scope_diag(Kind,Stage,Phase,Thread,Native,Deferred,Pids,Scope,Before)]),
+       write(Line),flush_output.
+
+scope_snapshot_state(scope_state(Thread,Native,Deferred,Pids,Scope)) :-
+       thread_self(Thread),
+       (thread_peek_message(Thread,down(unrelated,probe,killed)) -> Native=present;Native=absent),
+       (nb_current('$actor_deferred',Deferred) -> true;Deferred=[]),
+       (nb_current('$scope_test_pids',Pids) -> true;Pids=[]),
+       (nb_current('$scope_test_key',Key) ->
+           (nb_current(Key,_) -> Scope=present;Scope=absent)
+       ; Scope=not_recorded).
 
 terminating_coordinator(Kind,Observer) :-
     invoke(Kind,[worker_scope_tests:blocked(Observer),worker_scope_tests:blocked(Observer)]).

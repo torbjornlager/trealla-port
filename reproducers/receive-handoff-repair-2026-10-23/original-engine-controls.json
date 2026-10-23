@@ -1,0 +1,26 @@
+{
+  "pinned-semantics": {
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "purpose": "Original-engine compatibility"
+  },
+  "pinned-run": {
+    "exit_code": 1,
+    "stdout": "interrupted_receive(failed(missing_unrelated))\n",
+    "stderr": "",
+    "purpose": "Known-gap negative control; failure is diagnostic"
+  },
+  "upstream-semantics": {
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "purpose": "Original-engine compatibility"
+  },
+  "upstream-run": {
+    "exit_code": 1,
+    "stdout": "interrupted_receive(failed(missing_unrelated))\n",
+    "stderr": "",
+    "purpose": "Known-gap negative control; failure is diagnostic"
+  }
+}

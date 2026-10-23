@@ -1,0 +1,3028 @@
+{
+  "runs_per_engine": 100,
+  "diagnostics": false,
+  "failure_diagnostics": true,
+  "test_sha256": "abfb2a90830e99fd4913daa1a8a41df793cee915137c4f5f669c39dd17289709",
+  "runtime_sha256": {
+    "actors.pl": "b4c1e47e9acfb701b0808fc48e8cacac0a5f4d897f6d47a70914b5cd86ea2413",
+    "parallel.pl": "0c2e005c6ec4b9eebc2332e00ccae3cf63d99184dce339de3395dec36fd8881a",
+    "worker_cleanup.pl": "29a0909f828a690356e26cc750c8638580d876f6b5e495c093a8bed669531d77",
+    "isolation.pl": "7a72759fa7d70f94cc851e4cee4c5ad9558d86dcbcdefdf99b4e0d2963faa720"
+  },
+  "engines": {
+    "pinned": {
+      "executable": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563",
+      "library": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/library",
+      "results": [
+        {
+          "trial": 1,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "pinned-01.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 2,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.241,
+          "passed": true,
+          "stdout": "pinned-02.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 3,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.242,
+          "passed": true,
+          "stdout": "pinned-03.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 4,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-04.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 5,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.296,
+          "passed": true,
+          "stdout": "pinned-05.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 6,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.282,
+          "passed": true,
+          "stdout": "pinned-06.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 7,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.304,
+          "passed": true,
+          "stdout": "pinned-07.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 8,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.281,
+          "passed": true,
+          "stdout": "pinned-08.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 9,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.255,
+          "passed": true,
+          "stdout": "pinned-09.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 10,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.241,
+          "passed": true,
+          "stdout": "pinned-10.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 11,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.241,
+          "passed": true,
+          "stdout": "pinned-11.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 12,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.238,
+          "passed": true,
+          "stdout": "pinned-12.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 13,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.253,
+          "passed": true,
+          "stdout": "pinned-13.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 14,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.244,
+          "passed": true,
+          "stdout": "pinned-14.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 15,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.244,
+          "passed": true,
+          "stdout": "pinned-15.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 16,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.237,
+          "passed": true,
+          "stdout": "pinned-16.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 17,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.244,
+          "passed": true,
+          "stdout": "pinned-17.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 18,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "pinned-18.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 19,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.255,
+          "passed": true,
+          "stdout": "pinned-19.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 20,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "pinned-20.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 21,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "pinned-21.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 22,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.248,
+          "passed": true,
+          "stdout": "pinned-22.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 23,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.258,
+          "passed": true,
+          "stdout": "pinned-23.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 24,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.248,
+          "passed": true,
+          "stdout": "pinned-24.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 25,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "pinned-25.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 26,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.247,
+          "passed": true,
+          "stdout": "pinned-26.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 27,
+          "exit_code": 1,
+          "timeout": false,
+          "seconds": 0.17,
+          "passed": false,
+          "stdout": "pinned-27.stdout",
+          "missing_unrelated": true,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 28,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.256,
+          "passed": true,
+          "stdout": "pinned-28.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 29,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.246,
+          "passed": true,
+          "stdout": "pinned-29.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 30,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.246,
+          "passed": true,
+          "stdout": "pinned-30.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 31,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.247,
+          "passed": true,
+          "stdout": "pinned-31.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 32,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.248,
+          "passed": true,
+          "stdout": "pinned-32.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 33,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.245,
+          "passed": true,
+          "stdout": "pinned-33.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 34,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.241,
+          "passed": true,
+          "stdout": "pinned-34.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 35,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.244,
+          "passed": true,
+          "stdout": "pinned-35.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 36,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.239,
+          "passed": true,
+          "stdout": "pinned-36.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 37,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "pinned-37.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 38,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "pinned-38.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 39,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.247,
+          "passed": true,
+          "stdout": "pinned-39.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 40,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.244,
+          "passed": true,
+          "stdout": "pinned-40.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 41,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.242,
+          "passed": true,
+          "stdout": "pinned-41.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 42,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.254,
+          "passed": true,
+          "stdout": "pinned-42.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 43,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.245,
+          "passed": true,
+          "stdout": "pinned-43.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 44,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.244,
+          "passed": true,
+          "stdout": "pinned-44.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 45,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.242,
+          "passed": true,
+          "stdout": "pinned-45.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 46,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.245,
+          "passed": true,
+          "stdout": "pinned-46.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 47,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.255,
+          "passed": true,
+          "stdout": "pinned-47.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 48,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.245,
+          "passed": true,
+          "stdout": "pinned-48.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 49,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.24,
+          "passed": true,
+          "stdout": "pinned-49.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 50,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.245,
+          "passed": true,
+          "stdout": "pinned-50.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 51,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-51.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 52,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "pinned-52.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 53,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-53.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 54,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.247,
+          "passed": true,
+          "stdout": "pinned-54.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 55,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.242,
+          "passed": true,
+          "stdout": "pinned-55.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 56,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-56.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 57,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.248,
+          "passed": true,
+          "stdout": "pinned-57.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 58,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "pinned-58.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 59,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.24,
+          "passed": true,
+          "stdout": "pinned-59.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 60,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-60.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 61,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.239,
+          "passed": true,
+          "stdout": "pinned-61.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 62,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "pinned-62.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 63,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.245,
+          "passed": true,
+          "stdout": "pinned-63.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 64,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.245,
+          "passed": true,
+          "stdout": "pinned-64.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 65,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.238,
+          "passed": true,
+          "stdout": "pinned-65.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 66,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-66.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 67,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "pinned-67.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 68,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.246,
+          "passed": true,
+          "stdout": "pinned-68.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 69,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.32,
+          "passed": true,
+          "stdout": "pinned-69.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 70,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.246,
+          "passed": true,
+          "stdout": "pinned-70.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 71,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.245,
+          "passed": true,
+          "stdout": "pinned-71.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 72,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.252,
+          "passed": true,
+          "stdout": "pinned-72.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 73,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.242,
+          "passed": true,
+          "stdout": "pinned-73.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 74,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.244,
+          "passed": true,
+          "stdout": "pinned-74.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 75,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.24,
+          "passed": true,
+          "stdout": "pinned-75.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 76,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.252,
+          "passed": true,
+          "stdout": "pinned-76.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 77,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.245,
+          "passed": true,
+          "stdout": "pinned-77.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 78,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.242,
+          "passed": true,
+          "stdout": "pinned-78.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 79,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.24,
+          "passed": true,
+          "stdout": "pinned-79.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 80,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.244,
+          "passed": true,
+          "stdout": "pinned-80.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 81,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "pinned-81.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 82,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.248,
+          "passed": true,
+          "stdout": "pinned-82.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 83,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.245,
+          "passed": true,
+          "stdout": "pinned-83.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 84,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-84.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 85,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-85.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 86,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "pinned-86.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 87,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-87.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 88,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.242,
+          "passed": true,
+          "stdout": "pinned-88.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 89,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.238,
+          "passed": true,
+          "stdout": "pinned-89.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 90,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.244,
+          "passed": true,
+          "stdout": "pinned-90.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 91,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.247,
+          "passed": true,
+          "stdout": "pinned-91.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 92,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.247,
+          "passed": true,
+          "stdout": "pinned-92.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 93,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.237,
+          "passed": true,
+          "stdout": "pinned-93.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 94,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-94.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 95,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.241,
+          "passed": true,
+          "stdout": "pinned-95.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 96,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.247,
+          "passed": true,
+          "stdout": "pinned-96.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 97,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-97.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 98,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-98.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 99,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-99.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 100,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.243,
+          "passed": true,
+          "stdout": "pinned-100.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        }
+      ]
+    },
+    "upstream": {
+      "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+      "sha256": "a89f1f6c04d3e8637e0a8ee87cef03a18fac4dff29f25bb624534f47236fe441",
+      "library": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/library",
+      "results": [
+        {
+          "trial": 1,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.258,
+          "passed": true,
+          "stdout": "upstream-01.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 2,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.254,
+          "passed": true,
+          "stdout": "upstream-02.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 3,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-03.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 4,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-04.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 5,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.247,
+          "passed": true,
+          "stdout": "upstream-05.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 6,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.261,
+          "passed": true,
+          "stdout": "upstream-06.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 7,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-07.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 8,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-08.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 9,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.246,
+          "passed": true,
+          "stdout": "upstream-09.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 10,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.259,
+          "passed": true,
+          "stdout": "upstream-10.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 11,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.253,
+          "passed": true,
+          "stdout": "upstream-11.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 12,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-12.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 13,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.252,
+          "passed": true,
+          "stdout": "upstream-13.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 14,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.258,
+          "passed": true,
+          "stdout": "upstream-14.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 15,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.268,
+          "passed": true,
+          "stdout": "upstream-15.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 16,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.26,
+          "passed": true,
+          "stdout": "upstream-16.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 17,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-17.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 18,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.259,
+          "passed": true,
+          "stdout": "upstream-18.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 19,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.262,
+          "passed": true,
+          "stdout": "upstream-19.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 20,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.253,
+          "passed": true,
+          "stdout": "upstream-20.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 21,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.247,
+          "passed": true,
+          "stdout": "upstream-21.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 22,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-22.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 23,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.259,
+          "passed": true,
+          "stdout": "upstream-23.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 24,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.253,
+          "passed": true,
+          "stdout": "upstream-24.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 25,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.246,
+          "passed": true,
+          "stdout": "upstream-25.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 26,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-26.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 27,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.248,
+          "passed": true,
+          "stdout": "upstream-27.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 28,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.261,
+          "passed": true,
+          "stdout": "upstream-28.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 29,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-29.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 30,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.252,
+          "passed": true,
+          "stdout": "upstream-30.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 31,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-31.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 32,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-32.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 33,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.258,
+          "passed": true,
+          "stdout": "upstream-33.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 34,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.253,
+          "passed": true,
+          "stdout": "upstream-34.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 35,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.248,
+          "passed": true,
+          "stdout": "upstream-35.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 36,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.248,
+          "passed": true,
+          "stdout": "upstream-36.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 37,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.257,
+          "passed": true,
+          "stdout": "upstream-37.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 38,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.253,
+          "passed": true,
+          "stdout": "upstream-38.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 39,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-39.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 40,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-40.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 41,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-41.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 42,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.26,
+          "passed": true,
+          "stdout": "upstream-42.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 43,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-43.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 44,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-44.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 45,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-45.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 46,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.26,
+          "passed": true,
+          "stdout": "upstream-46.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 47,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.255,
+          "passed": true,
+          "stdout": "upstream-47.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 48,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-48.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 49,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.248,
+          "passed": true,
+          "stdout": "upstream-49.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 50,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.254,
+          "passed": true,
+          "stdout": "upstream-50.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 51,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.258,
+          "passed": true,
+          "stdout": "upstream-51.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 52,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-52.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 53,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.253,
+          "passed": true,
+          "stdout": "upstream-53.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 54,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.253,
+          "passed": true,
+          "stdout": "upstream-54.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 55,
+          "exit_code": 1,
+          "timeout": false,
+          "seconds": 0.174,
+          "passed": false,
+          "stdout": "upstream-55.stdout",
+          "missing_unrelated": true,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 56,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.258,
+          "passed": true,
+          "stdout": "upstream-56.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 57,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-57.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 58,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-58.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 59,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.253,
+          "passed": true,
+          "stdout": "upstream-59.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 60,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.261,
+          "passed": true,
+          "stdout": "upstream-60.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 61,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.253,
+          "passed": true,
+          "stdout": "upstream-61.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 62,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-62.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 63,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-63.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 64,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.26,
+          "passed": true,
+          "stdout": "upstream-64.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 65,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.254,
+          "passed": true,
+          "stdout": "upstream-65.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 66,
+          "exit_code": 1,
+          "timeout": false,
+          "seconds": 0.17,
+          "passed": false,
+          "stdout": "upstream-66.stdout",
+          "missing_unrelated": true,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 67,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.254,
+          "passed": true,
+          "stdout": "upstream-67.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 68,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-68.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 69,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.254,
+          "passed": true,
+          "stdout": "upstream-69.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 70,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.26,
+          "passed": true,
+          "stdout": "upstream-70.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 71,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-71.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 72,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-72.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 73,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-73.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 74,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.263,
+          "passed": true,
+          "stdout": "upstream-74.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 75,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-75.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 76,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-76.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 77,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-77.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 78,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.26,
+          "passed": true,
+          "stdout": "upstream-78.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 79,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.255,
+          "passed": true,
+          "stdout": "upstream-79.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 80,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-80.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 81,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-81.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 82,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-82.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 83,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.259,
+          "passed": true,
+          "stdout": "upstream-83.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 84,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-84.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 85,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-85.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 86,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.254,
+          "passed": true,
+          "stdout": "upstream-86.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 87,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.26,
+          "passed": true,
+          "stdout": "upstream-87.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 88,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-88.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 89,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-89.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 90,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.251,
+          "passed": true,
+          "stdout": "upstream-90.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 91,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-91.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 92,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.257,
+          "passed": true,
+          "stdout": "upstream-92.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 93,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.254,
+          "passed": true,
+          "stdout": "upstream-93.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 94,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.249,
+          "passed": true,
+          "stdout": "upstream-94.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 95,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-95.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 96,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.255,
+          "passed": true,
+          "stdout": "upstream-96.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 97,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.252,
+          "passed": true,
+          "stdout": "upstream-97.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 98,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.25,
+          "passed": true,
+          "stdout": "upstream-98.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 99,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.252,
+          "passed": true,
+          "stdout": "upstream-99.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        },
+        {
+          "trial": 100,
+          "exit_code": 0,
+          "timeout": false,
+          "seconds": 0.248,
+          "passed": true,
+          "stdout": "upstream-100.stdout",
+          "missing_unrelated": false,
+          "command": [
+            "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+            "-g",
+            "(catch((consult('worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+          ],
+          "stderr_text": ""
+        }
+      ]
+    }
+  }
+}

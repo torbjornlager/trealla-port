@@ -1,0 +1,275 @@
+diff --git a/src/bif_bboard.c b/src/bif_bboard.c
+index 45e3ba4d..751b7853 100644
+--- a/src/bif_bboard.c
++++ b/src/bif_bboard.c
+@@ -753,17 +753,13 @@ static bool gvar_key(query *q, cell *p1, pl_ctx p1_ctx)
+ 
+ // '$gvar_put'(+Key, +'$bb'(Value), +Backtrackable)
+ 
+-static bool bif_sys_gvar_put_3(query *q)
++// Also used by the receive handoff before removing a queued message.
++bool gvar_put(query *q, cell *p1, pl_ctx p1_ctx, cell *p2, pl_ctx p2_ctx, bool backtrackable)
+ {
+-	GET_FIRST_ARG(p1,any);
+-	GET_NEXT_ARG(p2,any);
+-	GET_NEXT_ARG(p3,atom);
+-
+ 	if (!gvar_key(q, p1, p1_ctx))
+ 		return false;
+ 
+ 	thread *t = get_self_query(q);
+-	bool backtrackable = !CMP_STRING_TO_CSTR(q, p3, "true");
+ 
+ 	if (!t->gvars)
+ 		CHECKED(t->gvars = sl_create((void*)fake_strcmp, (void*)gvar_free, NULL));
+@@ -822,6 +818,15 @@ static bool bif_sys_gvar_put_3(query *q)
+ 	return true;
+ }
+ 
++static bool bif_sys_gvar_put_3(query *q)
++{
++	GET_FIRST_ARG(p1,any);
++	GET_NEXT_ARG(p2,any);
++	GET_NEXT_ARG(p3,atom);
++	return gvar_put(q, p1, p1_ctx, p2, p2_ctx,
++		!CMP_STRING_TO_CSTR(q, p3, "true"));
++}
++
+ // '$gvar_get'(+Key, ?'$bb'(Value))
+ 
+ static bool bif_sys_gvar_get_2(query *q)
+diff --git a/src/bif_threads.c b/src/bif_threads.c
+index dede0d41..16dc169f 100644
+--- a/src/bif_threads.c
++++ b/src/bif_threads.c
+@@ -990,7 +990,7 @@ static enum msg_wait do_wait_message(query *q, thread *t, uint64_t deadline)
+ 	return MSG_WAIT_AGAIN;
+ }
+ 
+-static bool do_match_message_(query *q, unsigned chan, bool is_peek, double timeout)
++static bool do_match_message_(query *q, unsigned chan, bool is_peek, double timeout, cell *save_key, pl_ctx key_ctx, cell *save_value, pl_ctx value_ctx)
+ {
+ 	GET_FIRST_ARG(pq,queue);
+ 	thread *t = find_thread_by_id(q->pl, chan);
+@@ -1049,6 +1049,17 @@ static bool do_match_message_(query *q, unsigned chan, bool is_peek, double time
+ 			if (unify(q, p2, p2_ctx, tmp, q->st.cur_ctx)) {
+ 				q->cur_chan = m->from_chan;
+ 
++				// Commit the bound template before native ownership is released.
++				// Both operations run in this builtin, without a signal checkpoint.
++				// On allocation failure the message remains in the native queue.
++				if (save_key) {
++					bool saved = gvar_put(q, save_key, key_ctx, save_value, value_ctx, false);
++					if (!saved || q->did_throw || q->error || q->oom) {
++						release_lock(&t->guard);
++						return false;
++					}
++				}
++
+ 				if (!is_peek)
+ 					list_remove(&t->queue, m);
+ 
+@@ -1091,9 +1102,9 @@ static bool do_match_message_(query *q, unsigned chan, bool is_peek, double time
+ // any other way out - matched, timed out, gave up - it has to come off,
+ // or the next send would promote a query that has long since moved on.
+ 
+-static bool do_match_message(query *q, unsigned chan, bool is_peek, double timeout)
++static bool do_match_message(query *q, unsigned chan, bool is_peek, double timeout, cell *save_key, pl_ctx key_ctx, cell *save_value, pl_ctx value_ctx)
+ {
+-	bool ok = do_match_message_(q, chan, is_peek, timeout);
++	bool ok = do_match_message_(q, chan, is_peek, timeout, save_key, key_ctx, save_value, value_ctx);
+ 
+ 	if (!q->yielded)
+ 		del_msg_waiter(q);
+@@ -1112,12 +1123,12 @@ static bool bif_thread_get_message_2(query *q)
+ 		return throw_error(q, p1, p1_ctx, "existence_error", "thread_object");
+ 	}
+ 
+-	bool ok = do_match_message(q, n, false, -1.0);
++	bool ok = do_match_message(q, n, false, -1.0, NULL, 0, NULL, 0);
+ 	THREAD_DEBUG DUMP_TERM(" - ", q->st.instr, q->st.cur_ctx, 1);
+ 	return ok;
+ }
+ 
+-static bool bif_thread_get_message_3(query *q)
++static bool thread_get_message_options(query *q, bool saved)
+ {
+ 	THREAD_DEBUG DUMP_TERM("*** ", q->st.instr, q->st.cur_ctx, 1);
+ 	GET_FIRST_ARG(p1,any);
+@@ -1131,6 +1142,16 @@ static bool bif_thread_get_message_3(query *q)
+ 	GET_NEXT_ARG(p2,any);
+ 	GET_NEXT_ARG(p3,list_or_nil);
+ 	PROLOG_LIST_HANDLER(p3);
++	cell *save_key = NULL, *save_value = NULL;
++	pl_ctx key_ctx = 0, value_ctx = 0;
++	if (saved) {
++		GET_NEXT_ARG(p4,atom);
++		GET_NEXT_ARG(p5,compound);
++		if (CMP_STRING_TO_CSTR(q, p5, "$bb") || (get_arity(p5) != 1))
++			return throw_error(q, p5, p5_ctx, "domain_error", "saved_message_template");
++		save_key = p4; key_ctx = p4_ctx;
++		save_value = p5; value_ctx = p5_ctx;
++	}
+ 	cell *p3_orig = p3;
+ 	pl_ctx p3_orig_ctx = p3_ctx;
+ 	double timeout = -1.0, deadline = 0.0;
+@@ -1198,11 +1219,23 @@ static bool bif_thread_get_message_3(query *q)
+ 			timeout = left;
+ 	}
+ 
+-	bool ok = do_match_message(q, n, false, timeout);
++	bool ok = do_match_message(q, n, false, timeout, save_key, key_ctx, save_value, value_ctx);
+ 	THREAD_DEBUG DUMP_TERM(" - ", q->st.instr, q->st.cur_ctx, 1);
+ 	return ok;
+ }
+ 
++static bool bif_thread_get_message_3(query *q)
++{
++	return thread_get_message_options(q, false);
++}
++
++// Private handoff: the last argument is the same '$bb'(Value) image accepted
++// by '$gvar_put'/3, and may share variables with Message.
++static bool bif_sys_thread_get_message_saved_5(query *q)
++{
++	return thread_get_message_options(q, true);
++}
++
+ static bool bif_thread_peek_message_2(query *q)
+ {
+ 	THREAD_DEBUG DUMP_TERM("*** ", q->st.instr, q->st.cur_ctx, 1);
+@@ -1214,7 +1247,7 @@ static bool bif_thread_peek_message_2(query *q)
+ 		return throw_error(q, p1, p1_ctx, "existence_error", "thread_object");
+ 	}
+ 
+-	bool ok = do_match_message(q, n, true, 0.0);
++	bool ok = do_match_message(q, n, true, 0.0, NULL, 0, NULL, 0);
+ 	THREAD_DEBUG DUMP_TERM(" - ", q->st.instr, q->st.cur_ctx, 1);
+ 	return ok;
+ }
+@@ -3104,6 +3137,7 @@ builtins g_threads_bifs[] =
+ 	// SWI-compatible...
+ 
+ 	{"thread_get_message", 3, bif_thread_get_message_3, "+queue,?term,+list", false, false, BLAH},
++	{"$thread_get_message_saved", 5, bif_sys_thread_get_message_saved_5, "+queue,?term,+list,+atom,+compound", false, false, BLAH},
+ 	{"is_thread", 1, bif_is_thread_1, "+term", false, false, BLAH},
+ 
+ #endif
+diff --git a/src/internal.h b/src/internal.h
+index a1b8db82..262a18fd 100644
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -1590,3 +1590,6 @@ inline static bool is_empty(const cell *c) {
+ #define CHECK_SENTINEL_(expr, err_sentinel, on_error, ...) do { if((expr) == err_sentinel){on_error;}} while (0)
+ 
+ #define check_error(expr, ...) CHECK_SENTINEL(expr, 0, __VA_ARGS__; return 0)
++
++// Copy a wrapped global value; false leaves a queued message unconsumed.
++bool gvar_put(query *q, cell *key, pl_ctx key_ctx, cell *value, pl_ctx value_ctx, bool backtrackable);
+diff --git a/tests/issues/receive_saved.expected b/tests/issues/receive_saved.expected
+new file mode 100644
+index 00000000..7923d345
+--- /dev/null
++++ b/tests/issues/receive_saved.expected
+@@ -0,0 +1 @@
++Saved receive primitive: all regressions passed
+diff --git a/tests/issues/receive_saved.pl b/tests/issues/receive_saved.pl
+new file mode 100644
+index 00000000..a0206234
+--- /dev/null
++++ b/tests/issues/receive_saved.pl
+@@ -0,0 +1,44 @@
++% Engine-only tests: no Web Prolog dependencies.
++:- module(receive_saved_primitive_tests,[run/0,interrupted/1]).
++run :-
++    thread_self(Self),
++    nb_setval(saved,old),
++    require(\+ '$thread_get_message_saved'(Self,_,[timeout(0)],saved,'$bb'(wrong)),timeout),
++    nb_getval(saved,Old),require(Old==old,timeout_changed_store),
++    thread_send_message(Self,untouched),
++    catch('$thread_get_message_saved'(Self,_,[],saved,invalid_template),Error,true),
++    require(nonvar(Error),invalid_template_accepted),
++    thread_get_message(Self,untouched),
++    thread_send_message(Self,first),thread_send_message(Self,second),
++    '$thread_get_message_saved'(Self,second,[],saved,'$bb'(second)),
++    nb_getval(saved,Second),require(Second==second,wrong_selected_value),
++    thread_get_message(Self,first),
++    thread_send_message(Self,pair(X,X)),
++    '$thread_get_message_saved'(Self,M,[],saved,'$bb'([prefix,M])),
++    nb_getval(saved,[prefix,pair(A,B)]),require(A==B,sharing_lost),
++    M=pair(bound,bound),require(var(A),copy_aliased),
++    forall(between(1,1000,_),one(Self)),
++    writeln('Saved receive primitive: all regressions passed').
++one(Parent) :-
++    thread_create(receive_saved_primitive_tests:interrupted(Parent),T,[]),
++    bounded(ready(T)),thread_signal(T,throw(stop)),
++    bounded(result(T,Result)),thread_join(T,Status),
++    require(Status==true,status(Status)),require(Result==ok,interruption(Result)).
++interrupted(Parent) :-
++    thread_self(Self),nb_setval(saved,[]),
++    thread_send_message(Self,down(unrelated,probe,killed)),
++    catch((thread_send_message(Parent,ready(Self)),
++           '$thread_get_message_saved'(Self,M,[],saved,'$bb'([M])),
++           thread_get_message(Self,never)),Error,true),
++    catch((require(Error==stop,wrong_exception(Error)),nb_getval(saved,Saved),
++           (Saved==[down(unrelated,probe,killed)] ->
++              require(\+thread_peek_message(Self,_),duplicate_native)
++           ;Saved==[] ->
++              require(thread_get_message(Self,down(unrelated,probe,killed),[timeout(0)]),missing_unrelated)
++           ;throw(bad_store(Saved))),Result=ok),Failure,Result=failed(Failure)),
++    thread_send_message(Parent,result(Self,Result)).
++bounded(M) :- thread_self(Self),get_time(Now),D is Now+5,
++    (thread_get_message(Self,M,[deadline(D)]) -> true;throw(wait_timeout(M))).
++require(G,E) :- (call(G) -> true;throw(E)).
++
++:- initialization(run).
+diff --git a/tests/issues/receive_saved_controlled.expected b/tests/issues/receive_saved_controlled.expected
+new file mode 100644
+index 00000000..ce528aae
+--- /dev/null
++++ b/tests/issues/receive_saved_controlled.expected
+@@ -0,0 +1 @@
++Standalone handoff: all regressions passed
+diff --git a/tests/issues/receive_saved_controlled.pl b/tests/issues/receive_saved_controlled.pl
+new file mode 100644
+index 00000000..e65fc90d
+--- /dev/null
++++ b/tests/issues/receive_saved_controlled.pl
+@@ -0,0 +1,37 @@
++% No Web Prolog code. Original engines demonstrate the non-atomic handoff;
++% candidate engines use the private atomic dequeue-and-save primitive.
++:- module(receive_handoff_standalone,[run/0,interrupted/1]).
++run :- thread_self(Self),forall(between(1,1000,_),one(Self)),
++       writeln('Standalone handoff: all regressions passed').
++acquire(Self,M,Parent) :-
++    (predicate_property('$thread_get_message_saved'(_,_,_,_,_),built_in) ->
++       '$thread_get_message_saved'(Self,M,[],saved,'$bb'([M]))
++    ;thread_get_message(Self,M)),
++    % Deliberately expose the legal interruption point before a Prolog commit.
++    % On candidate engines the snapshot is already durable at this point.
++    thread_send_message(Parent,acquired(Self)),
++    thread_get_message(Self,continue),
++    nb_setval(saved,[M]).
++one(Parent) :-
++    thread_create(receive_handoff_standalone:interrupted(Parent),T,[]),
++    bounded(ready(T)),bounded(acquired(T)),thread_signal(T,throw(stop)),
++    bounded(result(T,Result)),thread_join(T,Status),
++    require(Status==true,status(Status)),require(Result==ok,interruption(Result)).
++interrupted(Parent) :-
++    thread_self(Self),nb_setval(saved,[]),
++    thread_send_message(Self,down(unrelated,probe,killed)),
++    catch((thread_send_message(Parent,ready(Self)),
++           acquire(Self,_M,Parent),
++           thread_get_message(Self,never)),Error,true),
++    catch((require(Error==stop,wrong_exception(Error)),nb_getval(saved,Saved),
++           (Saved==[down(unrelated,probe,killed)] ->
++              require(\+thread_peek_message(Self,_),duplicate_native)
++           ;Saved==[] ->
++              require(thread_get_message(Self,down(unrelated,probe,killed),[timeout(0)]),missing_unrelated)
++           ;throw(bad_store(Saved))),Result=ok),Failure,Result=failed(Failure)),
++    thread_send_message(Parent,result(Self,Result)).
++bounded(M) :- thread_self(Self),get_time(Now),D is Now+5,
++    (thread_get_message(Self,M,[deadline(D)]) -> true;throw(wait_timeout(M))).
++require(G,E) :- (call(G) -> true;throw(E)).
++
++:- initialization(run).

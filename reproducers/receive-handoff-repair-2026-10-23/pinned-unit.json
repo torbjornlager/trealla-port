@@ -1,0 +1,14 @@
+{
+  "label": "pinned-unit",
+  "command": [
+    "env",
+    "PATH=/tmp/trinity-acceptance-bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "TPL=/Users/torbjorn.lager/.local/share/trinity-runtime-tests/receive-handoff-2026-10-23/pinned/tpl",
+    "SWIPL=/Applications/swipl-win.app/Contents/MacOS/swipl",
+    "./tools/test.sh",
+    "unit"
+  ],
+  "cwd": "/Users/torbjorn.lager/Documents/GitHub/trealla-port",
+  "exit_code": 0,
+  "seconds": 96.46
+}

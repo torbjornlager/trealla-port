@@ -1,0 +1,16 @@
+parallel partial startup exception preserves error and reclaims worker: ok
+first partial startup exception preserves error and reclaims worker: ok
+tuned_first partial startup exception preserves error and reclaims worker: ok
+scope finalizers cover ordinary failure and cuts: ok
+parallel interruption during waiting cleans scope and preserves monitors: ok
+parallel interruption during reserved cleans scope and preserves monitors: ok
+first interruption during waiting cleans scope and preserves monitors: ok
+first interruption during reserved cleans scope and preserves monitors: ok
+tuned_first interruption during waiting cleans scope and preserves monitors: ok
+tuned_first interruption during reserved cleans scope and preserves monitors: ok
+parallel caller termination stops workers without waiting on dying mailbox: ok
+first caller termination stops workers without waiting on dying mailbox: ok
+tuned_first caller termination stops workers without waiting on dying mailbox: ok
+nested scopes, bindings, mismatch, policies and single-result semantics: ok
+worker ownership metadata remains private: ok
+Worker scopes: all regressions passed

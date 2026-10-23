@@ -1,0 +1,3 @@
+finding(0,0,12,failed(missing_unrelated,'$abort_goal',absent,absent),true)
+finding(0,0,15,failed(missing_unrelated,'$abort_goal',absent,absent),true)
+probe_complete

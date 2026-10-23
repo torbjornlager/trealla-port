@@ -1,0 +1,12 @@
+{
+  "base_commit": "41aa20ae942e5727d0644d2320317b115a978ee8",
+  "upstream_revision": "42ebc2127e3f900036c6bcb54cfc11bec4762eb7",
+  "sha256": {
+    "actors.pl": "b4c1e47e9acfb701b0808fc48e8cacac0a5f4d897f6d47a70914b5cd86ea2413",
+    "parallel.pl": "0c2e005c6ec4b9eebc2332e00ccae3cf63d99184dce339de3395dec36fd8881a",
+    "worker_cleanup.pl": "29a0909f828a690356e26cc750c8638580d876f6b5e495c093a8bed669531d77",
+    "isolation.pl": "7a72759fa7d70f94cc851e4cee4c5ad9558d86dcbcdefdf99b4e0d2963faa720",
+    "reproducers/receive-interruption-2026-10-23/probe.pl": "cb2e203545f47d0bf03c4ab1841cee2ad360f0d3104295b2fdf4c98c7479942e",
+    "reproducers/receive-interruption-2026-10-23/run.py": "6355c65918aa3c104b74ae1f4cf8f6a986859fc4cd18418087b144e03e11e216"
+  }
+}

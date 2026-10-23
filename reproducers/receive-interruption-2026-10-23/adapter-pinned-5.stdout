@@ -1,0 +1,2 @@
+finding(1000,0.0001,1,failed(missing_unrelated,'$abort_goal',absent,absent),true)
+probe_complete

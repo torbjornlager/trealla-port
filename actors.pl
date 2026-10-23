@@ -1201,7 +1201,7 @@ receive_loop_timeout(T, _, _, _, _) :-
 
 receive_loop_poll(Mailbox, Clauses, Options, Deferred) :-
     (   thread_peek_message(Mailbox, _)
-    ->  thread_get_message(Mailbox, Msg),
+    ->  receive_message(Mailbox, Msg, [], Deferred),
         handle_incoming(Mailbox, Clauses, Options, Deferred, Msg)
     ;   deferred_put(Deferred),
         option(on_timeout(Goal), Options, true),
@@ -1213,8 +1213,22 @@ receive_loop_poll(Mailbox, Clauses, Options, Deferred) :-
 %   No timeout: block on thread_get_message/2 until a message arrives.
 
 receive_loop_blocking(Mailbox, Clauses, Options, Deferred) :-
-    thread_get_message(Mailbox, Msg),
+    receive_message(Mailbox, Msg, [], Deferred),
     handle_incoming(Mailbox, Clauses, Options, Deferred, Msg).
+
+% The engine handoff copies the bound template into this thread's global
+% store before removing the native message, without a signal checkpoint in
+% between. An interruption can therefore leave the message in either queue,
+% never in neither. Build Pending before waiting; a timeout leaves it unused.
+% The private wrapper is the engine's existing non-backtrackable value image.
+% Older engines retain the previous path until explicitly upgraded.
+receive_message(Mailbox, Msg, Options, Deferred) :-
+    (   predicate_property('$thread_get_message_saved'(_,_,_,_,_), built_in)
+    ->  append(Deferred, [Msg], Pending),
+        '$thread_get_message_saved'(Mailbox, Msg, Options,
+                                    '$actor_deferred', '$bb'(Pending))
+    ;   thread_get_message(Mailbox, Msg, Options)
+    ).
 
 %!  receive_loop_timed(+Mailbox, +Clauses, +Options, +Deferred, +T) is semidet.
 %
@@ -1228,7 +1242,7 @@ receive_loop_timed(Mailbox, Clauses, Options, Deferred, T) :-
     receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline).
 
 receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline) :-
-    (   thread_get_message(Mailbox, Msg, [deadline(Deadline)])
+    (   receive_message(Mailbox, Msg, [deadline(Deadline)], Deferred)
     ->  copy_term(Msg, SavedMsg),
         (   catch(select_body(Clauses, Msg, Body), Error,
                   preserve_control_exception(Deferred, SavedMsg, Error))

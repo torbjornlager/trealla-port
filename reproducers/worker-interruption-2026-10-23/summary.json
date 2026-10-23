@@ -1,0 +1,58 @@
+{
+  "original": {
+    "pinned": {
+      "pass": 29,
+      "fail": 1,
+      "missing_unrelated": 1,
+      "timeout": 0
+    },
+    "upstream": {
+      "pass": 30,
+      "fail": 0,
+      "missing_unrelated": 0,
+      "timeout": 0
+    }
+  },
+  "diagnosed": {
+    "pinned": {
+      "pass": 30,
+      "fail": 0,
+      "missing_unrelated": 0,
+      "timeout": 0
+    },
+    "upstream": {
+      "pass": 30,
+      "fail": 0,
+      "missing_unrelated": 0,
+      "timeout": 0
+    }
+  },
+  "failure-only": {
+    "pinned": {
+      "pass": 99,
+      "fail": 1,
+      "missing_unrelated": 1,
+      "timeout": 0
+    },
+    "upstream": {
+      "pass": 98,
+      "fail": 2,
+      "missing_unrelated": 2,
+      "timeout": 0
+    }
+  },
+  "preassert": {
+    "pinned": {
+      "pass": 99,
+      "fail": 1,
+      "missing_unrelated": 1,
+      "timeout": 0
+    },
+    "upstream": {
+      "pass": 100,
+      "fail": 0,
+      "missing_unrelated": 0,
+      "timeout": 0
+    }
+  }
+}
