@@ -305,8 +305,13 @@ below 1 in 10,000. This establishes `do_unlock_all()` as the cause of the
 delivery-race mutex errors and stalls on v3.13.10, although the precise
 interleaving was still not observed directly.
 
-The `do_unlock_all` build has not yet been run through the engine
-`tests/run.sh` or the Web Prolog unit suite.
+Suites on the `do_unlock_all` build: engine `tests/run.sh` 533/533 passed,
+including both new thread-status tests; Web Prolog unit suite
+(continue-on-failure runner copy, log `wp-unit-unlock-all.log`) 72/72 groups
+passed, the same group list as the unmodified-pinned baseline. That run
+included the intermittent "HTTP paging request cleanup" group, which passed;
+one pass does not show that its flake is gone. The interop half was not run
+(SWI-Prolog is not installed here).
 
 ## Not addressed
 
