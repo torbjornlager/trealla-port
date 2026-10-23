@@ -1837,6 +1837,11 @@ now fixes the reduced thread-time module-creation crash in focused checks;
 its report and tested patch are submitted as [#1177](https://github.com/trealla-prolog/trealla-prolog/issues/1177), but not installed. This guard
 candidate does not include the module-import repair or resolve the intermittent
 lifecycle diagnostic.
+A [focused exceptional-termination investigation](reproducers/lifecycle-crash-2026-10-23/REPORT.md)
+now reduces one lifecycle crash to detached exception-status copying during
+cleanup. The separate candidate is submitted as [#1178](https://github.com/trealla-prolog/trealla-prolog/issues/1178)
+and passes the final focused checks. Earlier expiry wait exhaustion and the
+different signal-delivery crash remain unresolved; the candidate is not installed.
 `tools/test-http-timeout-enforcement.py` runs the focused fixture against an
 explicitly selected engine, retaining failed cleanup assertions rather than
 counting a timeout error alone as success. Destination-side timeout semantics

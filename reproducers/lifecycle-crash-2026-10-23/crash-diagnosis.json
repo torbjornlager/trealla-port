@@ -1,0 +1,472 @@
+[
+  {
+    "file": "tpl-2026-10-23-093138.ips",
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000000000004",
+      "rawCodes": [
+        1,
+        4
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000004"
+    },
+    "frames": [
+      {
+        "symbol": "do_thread_property_pin_both",
+        "symbolLocation": 2124
+      },
+      {
+        "symbol": "bif_thread_property_2",
+        "symbolLocation": 3068
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 2400
+      },
+      {
+        "symbol": "execute",
+        "symbolLocation": 180
+      },
+      {
+        "symbol": "run",
+        "symbolLocation": 1044
+      },
+      {
+        "symbol": "pl_eval",
+        "symbolLocation": 160
+      },
+      {
+        "symbol": "main",
+        "symbolLocation": 2564
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 6992
+      }
+    ]
+  },
+  {
+    "file": "tpl-2026-10-23-093150.ips",
+    "exception": {
+      "codes": "0x0000000000000001, 0x00000000000002d8",
+      "rawCodes": [
+        1,
+        728
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x00000000000002d8"
+    },
+    "frames": [
+      {
+        "symbol": "do_signal",
+        "symbolLocation": 80
+      },
+      {
+        "symbol": "do_match_message",
+        "symbolLocation": 868
+      },
+      {
+        "symbol": "bif_thread_get_message_3",
+        "symbolLocation": 2712
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 2196
+      },
+      {
+        "symbol": "execute",
+        "symbolLocation": 164
+      },
+      {
+        "symbol": "run",
+        "symbolLocation": 1092
+      },
+      {
+        "symbol": "pl_eval",
+        "symbolLocation": 180
+      },
+      {
+        "symbol": "main",
+        "symbolLocation": 2564
+      }
+    ]
+  },
+  {
+    "file": "tpl-2026-10-23-093155.ips",
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000000000004",
+      "rawCodes": [
+        1,
+        4
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000004"
+    },
+    "frames": [
+      {
+        "symbol": "do_thread_property_pin_both",
+        "symbolLocation": 2068
+      },
+      {
+        "symbol": "bif_thread_property_2",
+        "symbolLocation": 3080
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 2196
+      },
+      {
+        "symbol": "execute",
+        "symbolLocation": 164
+      },
+      {
+        "symbol": "run",
+        "symbolLocation": 1092
+      },
+      {
+        "symbol": "pl_eval",
+        "symbolLocation": 180
+      },
+      {
+        "symbol": "main",
+        "symbolLocation": 2564
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 6992
+      }
+    ]
+  },
+  {
+    "file": "tpl-2026-10-23-093353.0003.ips",
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000000000004",
+      "rawCodes": [
+        1,
+        4
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000004"
+    },
+    "frames": [
+      {
+        "symbol": "do_thread_property_pin_both",
+        "symbolLocation": 2212
+      },
+      {
+        "symbol": "bif_thread_property_2",
+        "symbolLocation": 3068
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 2400
+      },
+      {
+        "symbol": "execute",
+        "symbolLocation": 180
+      },
+      {
+        "symbol": "run",
+        "symbolLocation": 1044
+      },
+      {
+        "symbol": "pl_eval",
+        "symbolLocation": 160
+      },
+      {
+        "symbol": "main",
+        "symbolLocation": 2564
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 6992
+      }
+    ]
+  },
+  {
+    "file": "tpl-2026-10-23-093354.000.ips",
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000000000004",
+      "rawCodes": [
+        1,
+        4
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000004"
+    },
+    "frames": [
+      {
+        "symbol": "do_thread_property_pin_both",
+        "symbolLocation": 2168
+      },
+      {
+        "symbol": "bif_thread_property_2",
+        "symbolLocation": 3068
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 2400
+      },
+      {
+        "symbol": "execute",
+        "symbolLocation": 180
+      },
+      {
+        "symbol": "run",
+        "symbolLocation": 1044
+      },
+      {
+        "symbol": "pl_eval",
+        "symbolLocation": 160
+      },
+      {
+        "symbol": "main",
+        "symbolLocation": 2564
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 6992
+      }
+    ]
+  },
+  {
+    "file": "tpl-2026-10-23-093354.00012.ips",
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000000000004",
+      "rawCodes": [
+        1,
+        4
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000004"
+    },
+    "frames": [
+      {
+        "symbol": "do_thread_property_pin_both",
+        "symbolLocation": 2156
+      },
+      {
+        "symbol": "bif_thread_property_2",
+        "symbolLocation": 3080
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 2196
+      },
+      {
+        "symbol": "execute",
+        "symbolLocation": 164
+      },
+      {
+        "symbol": "run",
+        "symbolLocation": 1092
+      },
+      {
+        "symbol": "pl_eval",
+        "symbolLocation": 180
+      },
+      {
+        "symbol": "main",
+        "symbolLocation": 2564
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 6992
+      }
+    ]
+  },
+  {
+    "file": "tpl-2026-10-23-093354.00014.ips",
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000000000004",
+      "rawCodes": [
+        1,
+        4
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000004"
+    },
+    "frames": [
+      {
+        "symbol": "do_thread_property_pin_both",
+        "symbolLocation": 2156
+      },
+      {
+        "symbol": "bif_thread_property_2",
+        "symbolLocation": 3080
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 2196
+      },
+      {
+        "symbol": "execute",
+        "symbolLocation": 164
+      },
+      {
+        "symbol": "run",
+        "symbolLocation": 1092
+      },
+      {
+        "symbol": "pl_eval",
+        "symbolLocation": 180
+      },
+      {
+        "symbol": "main",
+        "symbolLocation": 2564
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 6992
+      }
+    ]
+  },
+  {
+    "file": "tpl-2026-10-23-093354.0005.ips",
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000000000004",
+      "rawCodes": [
+        1,
+        4
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000004"
+    },
+    "frames": [
+      {
+        "symbol": "do_thread_property_pin_both",
+        "symbolLocation": 2212
+      },
+      {
+        "symbol": "bif_thread_property_2",
+        "symbolLocation": 3068
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 2400
+      },
+      {
+        "symbol": "execute",
+        "symbolLocation": 180
+      },
+      {
+        "symbol": "run",
+        "symbolLocation": 1044
+      },
+      {
+        "symbol": "pl_eval",
+        "symbolLocation": 160
+      },
+      {
+        "symbol": "main",
+        "symbolLocation": 2564
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 6992
+      }
+    ]
+  },
+  {
+    "file": "tpl-2026-10-23-093354.0008.ips",
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000000000004",
+      "rawCodes": [
+        1,
+        4
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000004"
+    },
+    "frames": [
+      {
+        "symbol": "do_thread_property_pin_both",
+        "symbolLocation": 2156
+      },
+      {
+        "symbol": "bif_thread_property_2",
+        "symbolLocation": 3080
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 2196
+      },
+      {
+        "symbol": "execute",
+        "symbolLocation": 164
+      },
+      {
+        "symbol": "run",
+        "symbolLocation": 1092
+      },
+      {
+        "symbol": "pl_eval",
+        "symbolLocation": 180
+      },
+      {
+        "symbol": "main",
+        "symbolLocation": 2564
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 6992
+      }
+    ]
+  },
+  {
+    "file": "tpl-2026-10-23-093354.0009.ips",
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000000000004",
+      "rawCodes": [
+        1,
+        4
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000004"
+    },
+    "frames": [
+      {
+        "symbol": "do_thread_property_pin_both",
+        "symbolLocation": 2068
+      },
+      {
+        "symbol": "bif_thread_property_2",
+        "symbolLocation": 3080
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 2196
+      },
+      {
+        "symbol": "execute",
+        "symbolLocation": 164
+      },
+      {
+        "symbol": "run",
+        "symbolLocation": 1092
+      },
+      {
+        "symbol": "pl_eval",
+        "symbolLocation": 180
+      },
+      {
+        "symbol": "main",
+        "symbolLocation": 2564
+      },
+      {
+        "symbol": "start",
+        "symbolLocation": 6992
+      }
+    ]
+  }
+]

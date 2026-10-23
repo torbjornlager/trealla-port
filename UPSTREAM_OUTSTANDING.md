@@ -14,6 +14,20 @@ made for this port. The module-context report is ready to send upstream; the
 HTTP read-timeout report was submitted as #1172. The term-construction report still needs a
 current-build retest before filing.
 
+## Submitted exceptional-termination report
+
+### BUG-030: Detached exception-status copying races cleanup
+
+Submitted as [#1178](https://github.com/trealla-prolog/trealla-prolog/issues/1178). The standalone reproducer
+crashes 20/20 on pinned v3.13.10 and unmodified v3.14.5; a separate guarded-status
+snapshot candidate passes 20/20 (20,000 iterations), the final lifecycle batch
+30/30, the new engine regression 5/5, and eight existing thread regression groups.
+The earlier expiry wait failure, a different signal-delivery crash and incomplete
+baseline runs remain separate diagnostics. No installed runtime was changed.
+See the [report](reproducers/bug-030-thread-status-retirement.md),
+[patch](reproducers/bug-030-thread-status-retirement.patch) and
+[verification record](reproducers/lifecycle-crash-2026-10-23/REPORT.md).
+
 ## Submitted null-parser report
 
 ### BUG-029: Thread-time module creation dereferences a null parser

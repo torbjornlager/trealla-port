@@ -1,6 +1,19 @@
 % SPDX-License-Identifier: MIT
 :- use_module(rpc).
 :- use_module(actors,[make_ref/1]).
+:- dynamic lifecycle_diagnostics/0.
+
+% Opt-in investigation trace; ordinary regression output stays unchanged.
+lifecycle_stage(Stage) :-
+    (lifecycle_diagnostics -> writeq(stage(Stage)),nl,flush_output ; true).
+
+lifecycle_diagnostic_tests :-
+    assertz(lifecycle_diagnostics),
+    forall(member(Case,[lifecycle_collection,lifecycle_expiry,lifecycle_cleanup,
+        lifecycle_retry,lifecycle_collector_interruption,lifecycle_waiting_disposal,
+        lifecycle_hard_cancel_cleanup,lifecycle_startup_rollback,lifecycle_delivery_race]),
+        (lifecycle_stage(begin(Case)),call(Case),lifecycle_stage(end(Case)))),
+    writeln('Promise lifecycle: all regressions passed').
 
 rpc_lifecycle_tests :-
     lifecycle_collection,
@@ -27,15 +40,22 @@ start_test_threads(Ref,Delay,Expiry,resources(Q,W,T)) :-
 resources(Ref,resources(Q,W,T)) :-
     rpc:promise_transaction(rpc:promise_state(Ref,Q,W,T,_,_,_Owner)).
 assert_disposed(Ref,resources(Q,W,T)) :-
+    lifecycle_stage(disposal(Ref,state)),
     \+ rpc:promise_state(Ref,_,_,_,_,_,_Owner),
-    \+ queue_exists(Q),
-    await(user:thread_gone(W),200),await(user:thread_gone(T),200).
+    lifecycle_stage(disposal(Ref,queue(Q))),\+ queue_exists(Q),
+    lifecycle_stage(disposal(Ref,worker(W))),await(user:thread_gone(W),200),
+    lifecycle_stage(disposal(Ref,timer(T))),await(user:thread_gone(T),200),
+    lifecycle_stage(disposal(Ref,done)).
 queue_exists(Q) :- catch(message_queue_property(Q,size(_)),_,fail).
 thread_gone(none) :- !.
-thread_gone(T) :- \+ catch(thread_property(T,status(_)),_,fail).
+thread_gone(T) :-
+    lifecycle_stage(property_begin(T)),
+    (catch(thread_property(T,status(_)),_,fail) -> Present=true ; Present=false),
+    lifecycle_stage(property_end(T,Present)),Present==false.
 await(Goal,N) :-
     (call(Goal) -> true
-    ; N>0,sleep(0.005),Next is N-1,await(Goal,Next)).
+    ; N>0,sleep(0.005),Next is N-1,await(Goal,Next)
+    ; lifecycle_stage(wait_exhausted(Goal)),fail).
 
 lifecycle_collection :-
     start_test_promise(0.03,300,Ref,R),
@@ -75,7 +95,7 @@ lifecycle_collector_interruption :-
     rpc:deliver_promise_answer(Ref,success([retained],false)),
     % Simulate the interruption boundary after dequeueing a wakeup: the
     % stored answer, rather than the token, determines readiness.
-    once(rpc:promise_state(Ref,Q,_,_,_,_,_Owner)),thread_get_message(Q,ready),
+    once(rpc:promise_state(Ref,Q,_,_,_,_,_Owner)),thread_get_message(Q,ready,[timeout(2)]),
     yield(Ref,A),A==success([retained],false),\+ queue_exists(Q),
     writeln('collector exclusion, interruption and answer retention: ok').
 has_collector(Ref) :- rpc:promise_state(Ref,_,_,_,C,_,_Owner),C\==none.
@@ -121,12 +141,13 @@ partial_start(Ref,Finish) :-
     call(Finish).
 
 lifecycle_delivery_race :-
-    forall(between(1,30,_),user:delivery_cleanup_once),
+    forall(between(1,30,I),(lifecycle_stage(race_iteration(I)),user:delivery_cleanup_once)),
     writeln('late delivery and cleanup races leave no resources: ok').
 delivery_cleanup_once :-
-    start_test_promise(0,300,Ref,R),
-    promise_cleanup(Ref),rpc:deliver_promise_answer(Ref,success([late],false)),
-    assert_disposed(Ref,R).
+    lifecycle_stage(race_start),start_test_promise(0,300,Ref,R),
+    lifecycle_stage(race_started(Ref,R)),promise_cleanup(Ref),
+    lifecycle_stage(race_cleaned(Ref)),rpc:deliver_promise_answer(Ref,success([late],false)),
+    lifecycle_stage(race_delivered(Ref)),assert_disposed(Ref,R).
 
 rpc_lifecycle_live_test(Port) :-
     format(atom(URI),'http://localhost:~w',[Port]),

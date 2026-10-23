@@ -1,0 +1,82 @@
+[
+  {
+    "engine": "baseline",
+    "trial": 1,
+    "exit_code": -11,
+    "stdout": "join_status_preserved\n",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "engine": "baseline",
+    "trial": 2,
+    "exit_code": -11,
+    "stdout": "join_status_preserved\n",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "engine": "baseline",
+    "trial": 3,
+    "exit_code": -11,
+    "stdout": "join_status_preserved\n",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "engine": "baseline",
+    "trial": 4,
+    "exit_code": -11,
+    "stdout": "join_status_preserved\n",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "engine": "baseline",
+    "trial": 5,
+    "exit_code": -11,
+    "stdout": "join_status_preserved\n",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "engine": "candidate",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "join_status_preserved\npassed(bound)\npassed(properties)\npassed(threads)\npassed(all)\nall regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "trial": 2,
+    "exit_code": 0,
+    "stdout": "join_status_preserved\npassed(bound)\npassed(properties)\npassed(threads)\npassed(all)\nall regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "trial": 3,
+    "exit_code": 0,
+    "stdout": "join_status_preserved\npassed(bound)\npassed(properties)\npassed(threads)\npassed(all)\nall regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "trial": 4,
+    "exit_code": 0,
+    "stdout": "join_status_preserved\npassed(bound)\npassed(properties)\npassed(threads)\npassed(all)\nall regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "trial": 5,
+    "exit_code": 0,
+    "stdout": "join_status_preserved\npassed(bound)\npassed(properties)\npassed(threads)\npassed(all)\nall regressions passed\n",
+    "stderr": "",
+    "passed": true
+  }
+]

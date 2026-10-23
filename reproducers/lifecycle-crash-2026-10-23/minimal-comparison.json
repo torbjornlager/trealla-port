@@ -1,0 +1,82 @@
+[
+  {
+    "engine": "unmodified",
+    "trial": 1,
+    "exit_code": -11,
+    "stdout": "",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "engine": "unmodified",
+    "trial": 2,
+    "exit_code": -11,
+    "stdout": "",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "engine": "unmodified",
+    "trial": 3,
+    "exit_code": -11,
+    "stdout": "",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "engine": "unmodified",
+    "trial": 4,
+    "exit_code": -11,
+    "stdout": "",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "engine": "unmodified",
+    "trial": 5,
+    "exit_code": -11,
+    "stdout": "",
+    "stderr": "",
+    "passed": false
+  },
+  {
+    "engine": "candidate",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "trial": 2,
+    "exit_code": 0,
+    "stdout": "passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "trial": 3,
+    "exit_code": 0,
+    "stdout": "passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "trial": 4,
+    "exit_code": 0,
+    "stdout": "passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "engine": "candidate",
+    "trial": 5,
+    "exit_code": 0,
+    "stdout": "passed\n",
+    "stderr": "",
+    "passed": true
+  }
+]

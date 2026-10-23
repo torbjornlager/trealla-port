@@ -1,0 +1,106 @@
+[
+  {
+    "test": "new",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "join_status_preserved\npassed(bound)\npassed(properties)\npassed(threads)\npassed(all)\nall regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "new",
+    "trial": 2,
+    "exit_code": 0,
+    "stdout": "join_status_preserved\npassed(bound)\npassed(properties)\npassed(threads)\npassed(all)\nall regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "new",
+    "trial": 3,
+    "exit_code": 0,
+    "stdout": "join_status_preserved\npassed(bound)\npassed(properties)\npassed(threads)\npassed(all)\nall regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "new",
+    "trial": 4,
+    "exit_code": 0,
+    "stdout": "join_status_preserved\npassed(bound)\npassed(properties)\npassed(threads)\npassed(all)\nall regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "new",
+    "trial": 5,
+    "exit_code": 0,
+    "stdout": "join_status_preserved\npassed(bound)\npassed(properties)\npassed(threads)\npassed(all)\nall regressions passed\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "thread_join_exception",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "error_term ok\nground_term ok\nshared_vars ok\nvar_usable ok\nindependent ok\nplain_fail ok\nplain_true ok\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "thread_detach_joining",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "joined(true)\ndetach_refused\nexistence_error(thread_object,'$thread'(2))\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "thread_signal_delivery",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "t_spin: delivered\nt_no_skip: true/100000\nt_sleep: exception(stop)\nt_cancel: hook_ran\nt_cancel_joined: exited(cancelled)\nt_exit_in_catch: exited(x)\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "thread_signal_blocked",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "pipe_read_thrown: exception(stop)\nsignal_ran\nsignal_ran_again\nread foo\njoined(true)\nat_exit_ran\npipe_read_cancelled: gone\nsignal_ran_in_accept\naccepted\njoined(true)\naccept_thrown: exception(stop)\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "thread_cancel_blocked",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "at_exit_ran\ngone\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "thread_exit_mutex",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "free\nunlocked\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "thread_option_errors",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "thread_unknown ok\nthread_alias_not_atom ok\nthread_alias_var ok\nthread_alias_taken ok\nqueue_alias_of_thread ok\nthread_at_exit_not_callable ok\nthread_detached_not_boolean ok\nqueue_unknown ok\nqueue_alias_not_atom ok\nqueue_alias_taken ok\nmutex_unknown ok\nmutex_alias_not_atom ok\nmutex_alias_taken ok\nthread_valid ok\n",
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "test": "thread_mailbox",
+    "trial": 1,
+    "exit_code": 0,
+    "stdout": "fifo_order: ok\nselective_receive_preserves_order: ok\nno_match_leaves_queue_intact: ok\npeek_does_not_consume: ok\npeek_empty_fails: ok\ntimeout_expires: ok\nhandshake: ok\nsend_before_receive: ok\njoin_status_true: ok\njoin_status_fail: ok\njoin_status_throw: ok\njoin_status_exit: ok\nmutex_is_recursive: ok\nmutex_trylock_succeeds_for_holder: ok\nunaliased_queue_properties: ok\nunaliased_mutex_properties: ok\nunaliased_thread_properties: ok\naliased_queue_properties: ok\nqueue_property_enumerates_queues: ok\ntask_receive_yields_to_siblings: ok\nparked_task_still_receives: ok\nconcurrent_task_drain: ok\n",
+    "stderr": "",
+    "passed": true
+  }
+]

@@ -1,0 +1,117 @@
+{
+  "runs": 5,
+  "timeout_seconds": 20.0,
+  "goal": "consult('reproducers/lifecycle-crash-2026-10-23/thread_property_race.pl'),(run_property_race(success,1000)->halt;halt(1))",
+  "engines": {
+    "pinned": {
+      "path": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "sha256": "34cbf9796d4c4310b2f6bb122d2e820fc446089173b2ab39e5a6faa48ef56563"
+    },
+    "upstream": {
+      "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-2026-10-22/tpl",
+      "sha256": "5cb6b4c9d4dcd88211443151660c0c2ecf79326b61612191d95a46c95a1d420e"
+    }
+  },
+  "results": [
+    {
+      "engine": "pinned",
+      "trial": 1,
+      "exit_code": 0,
+      "stdout": "stage(iteration(success,1))\nstage(iteration(success,2))\nstage(iteration(success,3))\nstage(iteration(success,4))\nstage(iteration(success,5))\nstage(iteration(success,6))\nstage(iteration(success,7))\nstage(iteration(success,8))\nstage(iteration(success,9))\nstage(iteration(success,10))\nstage(iteration(success,11))\n   error(uninstantiation_error('$thread'(11)),thread_property/2).\n",
+      "stderr": "",
+      "passed": false,
+      "seconds": 0.022,
+      "last_stage": "stage(iteration(success,11))"
+    },
+    {
+      "engine": "pinned",
+      "trial": 2,
+      "exit_code": 0,
+      "stdout": "stage(iteration(success,1))\nstage(iteration(success,2))\nstage(iteration(success,3))\nstage(iteration(success,4))\nstage(iteration(success,5))\nstage(iteration(success,6))\nstage(iteration(success,7))\nstage(iteration(success,8))\nstage(iteration(success,9))\nstage(iteration(success,10))\nstage(iteration(success,11))\nstage(iteration(success,12))\nstage(iteration(success,13))\nstage(iteration(success,14))\nstage(iteration(success,15))\n   error(uninstantiation_error('$thread'(15)),thread_property/2).\n",
+      "stderr": "",
+      "passed": false,
+      "seconds": 0.02,
+      "last_stage": "stage(iteration(success,15))"
+    },
+    {
+      "engine": "pinned",
+      "trial": 3,
+      "exit_code": 0,
+      "stdout": "stage(iteration(success,1))\nstage(iteration(success,2))\nstage(iteration(success,3))\nstage(iteration(success,4))\nstage(iteration(success,5))\nstage(iteration(success,6))\nstage(iteration(success,7))\nstage(iteration(success,8))\nstage(iteration(success,9))\nstage(iteration(success,10))\nstage(iteration(success,11))\n   error(uninstantiation_error('$thread'(11)),thread_property/2).\n",
+      "stderr": "",
+      "passed": false,
+      "seconds": 0.02,
+      "last_stage": "stage(iteration(success,11))"
+    },
+    {
+      "engine": "pinned",
+      "trial": 4,
+      "exit_code": 0,
+      "stdout": "stage(iteration(success,1))\nstage(iteration(success,2))\nstage(iteration(success,3))\nstage(iteration(success,4))\nstage(iteration(success,5))\nstage(iteration(success,6))\nstage(iteration(success,7))\nstage(iteration(success,8))\nstage(iteration(success,9))\nstage(iteration(success,10))\nstage(iteration(success,11))\nstage(iteration(success,12))\nstage(iteration(success,13))\nstage(iteration(success,14))\nstage(iteration(success,15))\nstage(iteration(success,16))\nstage(iteration(success,17))\nstage(iteration(success,18))\nstage(iteration(success,19))\nstage(iteration(success,20))\n   error(uninstantiation_error('$thread'(20)),thread_property/2).\n",
+      "stderr": "",
+      "passed": false,
+      "seconds": 0.02,
+      "last_stage": "stage(iteration(success,20))"
+    },
+    {
+      "engine": "pinned",
+      "trial": 5,
+      "exit_code": 0,
+      "stdout": "stage(iteration(success,1))\nstage(iteration(success,2))\nstage(iteration(success,3))\nstage(iteration(success,4))\nstage(iteration(success,5))\nstage(iteration(success,6))\nstage(iteration(success,7))\nstage(iteration(success,8))\nstage(iteration(success,9))\nstage(iteration(success,10))\nstage(iteration(success,11))\nstage(iteration(success,12))\nstage(iteration(success,13))\n   error(uninstantiation_error('$thread'(13)),thread_property/2).\n",
+      "stderr": "",
+      "passed": false,
+      "seconds": 0.022,
+      "last_stage": "stage(iteration(success,13))"
+    },
+    {
+      "engine": "upstream",
+      "trial": 1,
+      "exit_code": 0,
+      "stdout": "stage(iteration(success,1))\nstage(iteration(success,2))\nstage(iteration(success,3))\nstage(iteration(success,4))\nstage(iteration(success,5))\nstage(iteration(success,6))\nstage(iteration(success,7))\nstage(iteration(success,8))\nstage(iteration(success,9))\nstage(iteration(success,10))\nstage(iteration(success,11))\nstage(iteration(success,12))\nstage(iteration(success,13))\nstage(iteration(success,14))\nstage(iteration(success,15))\nstage(iteration(success,16))\nstage(iteration(success,17))\n   error(uninstantiation_error('$thread'(17)),thread_property/2).\n",
+      "stderr": "",
+      "passed": false,
+      "seconds": 0.023,
+      "last_stage": "stage(iteration(success,17))"
+    },
+    {
+      "engine": "upstream",
+      "trial": 2,
+      "exit_code": 0,
+      "stdout": "stage(iteration(success,1))\nstage(iteration(success,2))\nstage(iteration(success,3))\nstage(iteration(success,4))\nstage(iteration(success,5))\nstage(iteration(success,6))\nstage(iteration(success,7))\nstage(iteration(success,8))\nstage(iteration(success,9))\nstage(iteration(success,10))\nstage(iteration(success,11))\nstage(iteration(success,12))\nstage(iteration(success,13))\nstage(iteration(success,14))\n   error(uninstantiation_error('$thread'(14)),thread_property/2).\n",
+      "stderr": "",
+      "passed": false,
+      "seconds": 0.023,
+      "last_stage": "stage(iteration(success,14))"
+    },
+    {
+      "engine": "upstream",
+      "trial": 3,
+      "exit_code": 0,
+      "stdout": "stage(iteration(success,1))\nstage(iteration(success,2))\nstage(iteration(success,3))\nstage(iteration(success,4))\nstage(iteration(success,5))\nstage(iteration(success,6))\nstage(iteration(success,7))\nstage(iteration(success,8))\nstage(iteration(success,9))\nstage(iteration(success,10))\nstage(iteration(success,11))\nstage(iteration(success,12))\n   error(uninstantiation_error('$thread'(12)),thread_property/2).\n",
+      "stderr": "",
+      "passed": false,
+      "seconds": 0.022,
+      "last_stage": "stage(iteration(success,12))"
+    },
+    {
+      "engine": "upstream",
+      "trial": 4,
+      "exit_code": 0,
+      "stdout": "stage(iteration(success,1))\nstage(iteration(success,2))\nstage(iteration(success,3))\nstage(iteration(success,4))\nstage(iteration(success,5))\nstage(iteration(success,6))\n   error(uninstantiation_error('$thread'(6)),thread_property/2).\n",
+      "stderr": "",
+      "passed": false,
+      "seconds": 0.023,
+      "last_stage": "stage(iteration(success,6))"
+    },
+    {
+      "engine": "upstream",
+      "trial": 5,
+      "exit_code": 0,
+      "stdout": "stage(iteration(success,1))\nstage(iteration(success,2))\nstage(iteration(success,3))\nstage(iteration(success,4))\nstage(iteration(success,5))\nstage(iteration(success,6))\nstage(iteration(success,7))\nstage(iteration(success,8))\nstage(iteration(success,9))\n   error(uninstantiation_error('$thread'(9)),thread_property/2).\n",
+      "stderr": "",
+      "passed": false,
+      "seconds": 0.022,
+      "last_stage": "stage(iteration(success,9))"
+    }
+  ]
+}
