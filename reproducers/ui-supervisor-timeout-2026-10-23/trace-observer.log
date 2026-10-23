@@ -1,0 +1,7 @@
+spawn_request(toplevel_actors:session(_1,1096767979,true,300,300),['$entry_context'(caller),src_text('probe_marker.')])
+spawn_request(supervisor_actor:sup_init([spec(waiter,'$trealla_actor_1000000000':receive({stop->true}),temporary,5,worker)],sup(one_for_one,1,5,[],[])),['$entry_context'(caller),monitor(true)])
+spawn_request(supervisor_actor:child_entry(receive({stop->true})),['$entry_context'(caller),link(true),src_list([(receive(_319):-receive(_319,[]))])])
+threads([1096767979-main,1734302274-'$thread'(14),1837327476-'$thread'(15),1380431286-'$thread'(16)])
+modules([1734302274-'$trealla_actor_1000000000',1837327476-'$trealla_actor_1000000004',1380431286-'$trealla_actor_1000000010'])
+sources([1734302274-'$trealla_actor_1000000000'])
+answer(error(1734302274,supervisor_call_timeout(1837327476,count_children)))

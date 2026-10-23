@@ -1558,6 +1558,15 @@ does not replace the original startup/publication error. Unnamed spawning and
 successful monitor delivery retain their behavior. No wire protocol extension
 is required.
 
+Supervisor automatic child-source collection leaves framework entry predicates
+in their defining runtime modules; it does not copy their implementations as
+application clauses. User-defined helpers retain their existing source-copying
+and module context. In private source, a receive clause-set variable is preserved
+during loading and qualified in the receiving actor when its clauses are
+available, including private guard/body and timeout-callback context. Focused
+initial/dynamic-child and variable-receive regressions are in
+`supervisor_source_tests.pl`, included in the unit runner.
+
 Supervisor initial startup and dynamic additions now use a private startup
 journal. Each local child is recorded before thread creation and remains
 provisional until monitoring and child bookkeeping succeed. The journal is

@@ -426,10 +426,21 @@ child_source_module(Fallback, Plain, Extra, SourceModule, SourceOptions) :-
     ).
 
 local_predicate(Module, Name/Arity) :-
+    % Framework entries are supplied by the child's bootstrap, not user source.
+    % Test the defining module so a user's same-named helper remains copyable.
+    \+ framework_source_module(Module),
     functor(Head, Name, Arity),
     predicate_property(Module:Head, number_of_clauses(Count)),
     Count > 0,
     \+ predicate_property(Module:Head, imported_from(_)).
+
+framework_source_module(actors).
+framework_source_module(toplevel_actors).
+framework_source_module(server_actor).
+framework_source_module(supervisor_actor).
+framework_source_module(statechart_actor).
+framework_source_module(parallel).
+framework_source_module(rpc).
 
 predicate_definition_module(Module0, Plain, Extra, Module) :-
     callable_pi(Plain, Extra, Name/Arity),

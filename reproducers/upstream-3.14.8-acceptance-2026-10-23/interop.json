@@ -1,0 +1,11 @@
+{
+  "label": "interop",
+  "command": [
+    "sh",
+    "tools/test.sh",
+    "interop"
+  ],
+  "cwd": "/Users/torbjorn.lager/Documents/GitHub/trealla-port",
+  "exit_code": 0,
+  "seconds": 104.653
+}

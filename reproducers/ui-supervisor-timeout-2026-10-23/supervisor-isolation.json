@@ -1,0 +1,13 @@
+{
+  "label": "supervisor-and-isolation",
+  "command": [
+    "/tmp/trinity-acceptance-bin/timeout",
+    "60",
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl",
+    "-g",
+    "(catch((consult('supervisor_actor_tests.pl'),supervisor_actor_tests:run_supervisor_actor_tests,consult('tests.pl'),run_test_group(isolation)),E,(writeq(E),nl,fail))->halt;halt(1))"
+  ],
+  "cwd": "/Users/torbjorn.lager/Documents/GitHub/trealla-port",
+  "exit_code": 0,
+  "seconds": 4.145
+}

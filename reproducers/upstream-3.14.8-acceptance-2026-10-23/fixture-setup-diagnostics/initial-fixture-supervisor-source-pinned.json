@@ -1,0 +1,32 @@
+{
+  "engine": "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+  "results": [
+    {
+      "trial": 1,
+      "source": true,
+      "events": [],
+      "error": "ConformanceFailure(\"expected spawned, got {'type': 'error', 'data': 'error(syntax_error(invalid_quoted_character),read_term_from_atom/3)'}\")",
+      "passed": false,
+      "node_exit_before_cleanup": null,
+      "node_exit_after_cleanup": -15
+    },
+    {
+      "trial": 2,
+      "source": true,
+      "events": [],
+      "error": "ConformanceFailure(\"expected spawned, got {'type': 'error', 'data': 'error(syntax_error(invalid_quoted_character),read_term_from_atom/3)'}\")",
+      "passed": false,
+      "node_exit_before_cleanup": null,
+      "node_exit_after_cleanup": -15
+    },
+    {
+      "trial": 3,
+      "source": true,
+      "events": [],
+      "error": "ConformanceFailure(\"expected spawned, got {'type': 'error', 'data': 'error(syntax_error(invalid_quoted_character),read_term_from_atom/3)'}\")",
+      "passed": false,
+      "node_exit_before_cleanup": null,
+      "node_exit_after_cleanup": -15
+    }
+  ]
+}

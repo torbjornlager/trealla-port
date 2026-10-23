@@ -1,0 +1,5 @@
+framework entry excluded; real user helper remains copyable: ok
+inline_initial: ok
+inline_dynamic: ok
+private_helpers: ok
+case_failed(variable_receive,error(1896168485,missing_body))

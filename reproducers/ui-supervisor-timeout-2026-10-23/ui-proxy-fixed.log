@@ -1,0 +1,15 @@
+127.0.0.1 - - [23/Oct/2026 12:36:57] "GET /portal HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:36:57] "GET /editor_frame?id=editor&mode=none HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:36:57] "GET /swi_wasm_actor_worker.js?v=20261018-answer-terms-v27 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:36:57] "GET /manual HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:36:57] "GET /node_info HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:36:57] "GET /editor_frame?id=editor&mode=none HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:36:57] "GET /admin/config HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:36:57] "GET /version HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:36:57] "GET /examples_index HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:36:57] "GET /actor-profile-tutorial HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:36:57] "POST /interaction_log HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:37:05] "GET /examples/actors/06%20ping-pong.pl HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:37:05] "GET /examples_index HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:37:05] "POST /interaction_log HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:37:05] "GET /examples_index HTTP/1.1" 200 -

@@ -1,0 +1,5 @@
+Browser tab: 7, Title: "The Prolog Trinity demonstrator", URL: "http://localhost:44300/portal".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+~				113 button (disabled) Abort
+The focused UI element is 105 text entry area (settable) Clipboard textarea for jQuery Terminal, ID: f3ay5x, Value: self(Self), actors(Live), sort(Live,[Self]), statechart_spawn(C,[src_text('<statechart version="0.2" initial="s"><state id="s"/></statechart>'),trace(false),monitor(true)]), statechart_halt(C,Reply), receive({down(C,C,Reason)->true},[timeout(3),on_timeout(throw(missing_down))]), Reply==true, Reason==true.
+

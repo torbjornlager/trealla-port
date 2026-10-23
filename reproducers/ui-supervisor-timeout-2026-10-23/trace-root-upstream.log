@@ -1,0 +1,4 @@
+spawn_request(toplevel_actors:session(_0,2205824159,true,300,300),['$entry_context'(caller),src_text('probe_marker.')])
+spawn_request(supervisor_actor:sup_init([spec(waiter,'$trealla_actor_1000000000':receive({stop->true}),temporary,5,worker)],sup(one_for_one,1,5,[],[])),['$entry_context'(caller),monitor(true)])
+spawn_request(supervisor_actor:child_entry(receive({stop->true})),['$entry_context'(caller),link(true),src_list([(receive(_319):-receive(_319,[]))])])
+answer(error(1483463574,supervisor_call_timeout(2199152075,count_children)))

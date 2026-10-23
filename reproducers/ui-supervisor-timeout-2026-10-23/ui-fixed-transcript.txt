@@ -1,0 +1,3 @@
+Browser tab: 8, Title: "The Prolog Trinity demonstrator", URL: "http://localhost:44300/portal".
+There has been no change in the accessibility tree.
+The focused UI element is 0 AXWebArea The Prolog Trinity demonstrator, URL: localhost:44300/portal

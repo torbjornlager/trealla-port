@@ -1,0 +1,10 @@
+Running tests/slow/db-stress.sh ...
+Running tests/slow/index-race.pl ...
+Running tests/slow/test0360.pl ...
+
+============
+TEST SUMMARY
+============
+Failed: 0
+Succeeded: 3
+Time: 0m55s

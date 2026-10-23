@@ -1,0 +1,326 @@
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /portal HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /img/swi-logo.png HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/fonts/ibm-plex-mono.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/jquery.terminal.min.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/bootstrap.min.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /img/spider-agent.png HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /editor_frame?id=editor&mode=none HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/jquery.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/vue.global.prod.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /swi_wasm_actor_worker.js?v=20261018-answer-terms-v27 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/jquery.terminal.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /manual HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/codemirror.min.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/codemirror-xml.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/codemirror-placeholder.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/codemirror.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /editor_frame?id=editor&mode=none HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /node_info HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /examples_index HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /actor-profile-tutorial HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /admin/config HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /version HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "POST /interaction_log HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /img/spider-prolog-1024.png HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/fonts/-F63fjptAgt5VM-kVkqdyU8n1i8q131nj-o.woff2 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/tutorial-common.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /vendor/fonts/-F6qfjptAgt5VM-kVkqdyU8n3vAOwlBFgsAXHNk.woff2 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:11:59] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Oct/2026 12:12:04] "GET /examples_index HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:13:30] "GET /examples/statecharts/01%20pause-and-resume.xml HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:13:36] "GET /examples/statecharts/01%20pause-and-resume.xml HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:14:06] "GET /examples/actors/06%20ping-pong.pl HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:14:06] "POST /interaction_log HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:14:06] "GET /examples_index HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:15:39] "GET /portal HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:15:39] "GET /editor_frame?id=editor&mode=none HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:15:39] "GET /swi_wasm_actor_worker.js?v=20261018-answer-terms-v27 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:15:39] "GET /manual HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 65363)
+127.0.0.1 - - [23/Oct/2026 12:15:39] "GET /version HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:15:39] "GET /admin/config HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:15:39] "GET /editor_frame?id=editor&mode=none HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:15:39] "GET /examples_index HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:15:39] "GET /actor-profile-tutorial HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:15:39] "POST /interaction_log HTTP/1.1" 200 -
+Traceback (most recent call last):
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 683, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 747, in __init__
+    self.handle()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 422, in handle_one_request
+    method()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 4, in do_GET
+    def do_GET(self):self.forward()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 23, in forward
+    c.request(self.command,self.path,body,headers);r=c.getresponse();data=r.read();self.send_response(r.status)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1257, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1303, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1252, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1012, in _send_output
+    self.send(msg)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 952, in send
+    self.connect()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 923, in connect
+    self.sock = self._create_connection(
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 843, in create_connection
+    raise err
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 831, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 65349)
+Traceback (most recent call last):
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 683, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 747, in __init__
+    self.handle()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 422, in handle_one_request
+    method()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 4, in do_GET
+    def do_GET(self):self.forward()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 23, in forward
+    c.request(self.command,self.path,body,headers);r=c.getresponse();data=r.read();self.send_response(r.status)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1257, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1303, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1252, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1012, in _send_output
+    self.send(msg)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 952, in send
+    self.connect()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 923, in connect
+    self.sock = self._create_connection(
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 843, in create_connection
+    raise err
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 831, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 65354)
+Traceback (most recent call last):
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 683, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 747, in __init__
+    self.handle()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 422, in handle_one_request
+    method()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 4, in do_GET
+    def do_GET(self):self.forward()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 23, in forward
+    c.request(self.command,self.path,body,headers);r=c.getresponse();data=r.read();self.send_response(r.status)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1257, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1303, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1252, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1012, in _send_output
+    self.send(msg)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 952, in send
+    self.connect()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 923, in connect
+    self.sock = self._create_connection(
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 843, in create_connection
+    raise err
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 831, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 65353)
+Traceback (most recent call last):
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 683, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 747, in __init__
+    self.handle()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 422, in handle_one_request
+    method()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 4, in do_GET
+    def do_GET(self):self.forward()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 23, in forward
+    c.request(self.command,self.path,body,headers);r=c.getresponse();data=r.read();self.send_response(r.status)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1257, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1303, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1252, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1012, in _send_output
+    self.send(msg)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 952, in send
+    self.connect()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 923, in connect
+    self.sock = self._create_connection(
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 843, in create_connection
+    raise err
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 831, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 65344)
+Traceback (most recent call last):
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 683, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 747, in __init__
+    self.handle()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 422, in handle_one_request
+    method()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 4, in do_GET
+    def do_GET(self):self.forward()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 23, in forward
+    c.request(self.command,self.path,body,headers);r=c.getresponse();data=r.read();self.send_response(r.status)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1257, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1303, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1252, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1012, in _send_output
+    self.send(msg)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 952, in send
+    self.connect()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 923, in connect
+    self.sock = self._create_connection(
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 843, in create_connection
+    raise err
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 831, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 65351)
+Traceback (most recent call last):
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 683, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 747, in __init__
+    self.handle()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 436, in handle
+    self.handle_one_request()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 422, in handle_one_request
+    method()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 4, in do_GET
+    def do_GET(self):self.forward()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 23, in forward
+    c.request(self.command,self.path,body,headers);r=c.getresponse();data=r.read();self.send_response(r.status)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1257, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1303, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1252, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1012, in _send_output
+    self.send(msg)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 952, in send
+    self.connect()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 923, in connect
+    self.sock = self._create_connection(
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 843, in create_connection
+    raise err
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 831, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 49166)
+Traceback (most recent call last):
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 683, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 747, in __init__
+    self.handle()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 434, in handle
+    self.handle_one_request()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 422, in handle_one_request
+    method()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 4, in do_GET
+    def do_GET(self):self.forward()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 23, in forward
+    c.request(self.command,self.path,body,headers);r=c.getresponse();data=r.read();self.send_response(r.status)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1257, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1303, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1252, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 1012, in _send_output
+    self.send(msg)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 952, in send
+    self.connect()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/client.py", line 923, in connect
+    self.sock = self._create_connection(
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 843, in create_connection
+    raise err
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 831, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 49169)
+Traceback (most recent call last):
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 683, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 747, in __init__
+    self.handle()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 434, in handle
+    self.handle_one_request()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 422, in handle_one_request
+    method()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 4, in do_GET
+    def do_GET(self):self.forward()
+  File "/tmp/trinity-acceptance-ui-proxy.py", line 10, in forward
+    with socket.create_connection(('127.0.0.1',backend)) as s:
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 843, in create_connection
+    raise err
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socket.py", line 831, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+----------------------------------------
+127.0.0.1 - - [23/Oct/2026 12:18:38] code 400, message Bad request syntax ('\x88\x82ìbþiï\x8b')
+127.0.0.1 - - [23/Oct/2026 12:18:38] "ìbþiï" 400 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "GET /portal HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "GET /swi_wasm_actor_worker.js?v=20261018-answer-terms-v27 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "GET /editor_frame?id=editor&mode=none HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "GET /manual HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "GET /node_info HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "GET /editor_frame?id=editor&mode=none HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "GET /admin/config HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "GET /version HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "GET /actor-profile-tutorial HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "GET /examples_index HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:18] "POST /interaction_log HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 12:19:34] "GET /examples_index HTTP/1.1" 200 -

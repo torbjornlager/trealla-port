@@ -1,0 +1,316 @@
+Trealla: trealla(3,14,8,[]) (/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl)
+
+=== Canonical answer negotiation context ===
+Answer negotiation context, exceptional cleanup and thread isolation: ok
+
+=== Concurrent bootstrap and reply serialization ===
+Concurrent bootstrap and reply serialization: all regressions passed
+
+=== Owned remote demonitor acknowledgement and flush ===
+Remote demonitor: lock, acknowledgement, ownership, flush and writer failures: ok
+
+=== Independent termination notification references ===
+Termination relay: default, private, duplicate, removed and unrelated refs: ok
+
+=== General toplevel creation validation and local path ===
+General toplevel creation: validation and local path unchanged
+
+=== Public synchronous toplevel wrappers ===
+answers, next, sharing and output mismatch: ok
+routing validation and asynchronous replies retained: ok
+late answer cannot satisfy a later call: ok
+timeout callback context, bindings, failure and exception: ok
+stale replies retain original deadline and unrelated monitor/messages: ok
+termination fails fast and private monitors are removed: ok
+committed exit escapes query errors; user actor_exit and unrelated monitors kept: ok
+profile, query and computed callback admission: ok
+private actor callback source context: ok
+sandbox-prepared local queries in both source modes: ok
+Synchronous toplevel wrappers: all regressions passed
+
+=== Promise stream cleanup on malformed replies ===
+{"exit_code": 0, "stdout": "malformed reply: error answer; resources reclaimed; following request succeeds\nHTTP timeout case parse_error: passed\n", "stderr": "", "executable": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/tpl", "library": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-http-timeout/upstream-1178-42ebc21-2026-10-23/library", "case": "parse_error", "elapsed_seconds": 0.577, "scope": "Plain HTTP; delayed headers, body and partial line; no TLS", "passed": true}
+
+=== HTTP transport timeout option mapping ===
+% Started server at http://localhost:44848/
+HTTP timeout options: all regressions passed
+
+=== Host runtime properties ===
+Runtime properties: enumeration, matching, sandbox, toplevel and child checks passed
+
+=== HTTP server first-slice cleanup ===
+first slice and offset stop before side effects, exceptions or blocking alternatives: ok
+non-ground template/goal sharing is preserved: ok
+same-goal ordinary continuation retains its pid, offset and lookahead: ok
+producer is retired before return; application monitor and unrelated reply survive: ok
+failure, short slices, offsets past end, errors and output mismatch reclaim producers: ok
+collection and skipping retain the whole-page deadline and cleanup: ok
+Node listening on port 44847 (profile actor, sandbox blacklist, auth open)
+HTTP once Prolog/JSON, offset, failure/error and ordinary paging on http://127.0.0.1:44847: ok
+HTTP once validates every occurrence and preserves first-value precedence: ok
+HTTP server once: all regressions passed
+
+=== RPC first-slice once option ===
+% Started server at http://localhost:44846/
+whole first slice, request count, default and duplicate precedence: ok
+validation precedes I/O; non-ground answer sharing is preserved: ok
+failure and error delivery: ok
+promise forwards once/default/first duplicate, fetches one page and preserves peer More: ok
+promise validation precedes source/resources; sharing, offset, failure/error remain intact: ok
+promise timeout/default callback and retry preserve the single request and original answer: ok
+RPC once: all regressions passed
+
+=== first_solution continuation determinism ===
+select/3 leaves a choice point when removing a unique head pid: confirmed
+failure continue returns deterministically and preserves unrelated notifications: ok
+exception continue returns deterministically and preserves unrelated notifications: ok
+exit continue returns deterministically and preserves unrelated notifications: ok
+first_solution continuation determinism: all regressions passed
+
+=== source-less toplevel worker routing ===
+Worker preparation preserves native cut and conditional scopes: ok
+Source-less toplevel worker calls: all regressions passed
+Private-source worker predicates and sharing remain available: ok
+Public worker routing: all regressions passed
+
+=== retired deployment page cap ===
+
+=== caller-controlled page sizes ===
+retired max_solutions is rejected without changing policy; positive limits stay valid: ok
+PTCP call and next honour sizes above the old default cap and preserve ordering: ok
+PTCP omitted limit no longer silently splits at 1000: ok
+Node listening on port 44845 (profile actor, sandbox blacklist, auth open)
+HTTP honours requested sizes and omitted limits; short final pages resume correctly: ok
+Caller-controlled page sizes: all regressions passed
+
+=== server promise setup/send cleanup ===
+failed reference setup removes only the newly installed monitor: ok
+send exception retains its original term and flushes only its monitor: ok
+exception during reference setup removes the installed monitor: ok
+unrelated monitor and mailbox messages survive all failure paths: ok
+successful sends retain their monitor, reply sharing and yield cleanup: ok
+Server promise setup/send cleanup: all regressions passed
+
+=== HTTP paging offsets ===
+changing page sizes resumes the same producer at returned-answer offsets: ok
+Node listening on port 44844 (profile actor, sandbox blacklist, auth open)
+HTTP paging returns every answer and reuses one producer: ok
+short page at a nonzero offset advances by its actual length: ok
+HTTP paging offsets: all regressions passed
+
+=== connection-thread stack limits ===
+finite/unlimited stack policy preserves lifecycle thread options: ok
+small answers exhaust the collector stack; producer is reclaimed before reporting: ok
+Node listening on port 44843 (profile actor, sandbox blacklist, auth open)
+accepted HTTP worker reports normalized stack exhaustion: ok
+JSON stack errors retain the public error envelope: ok
+finite-limit accepted http connections preserve replies and retire their registrations: ok
+Connection-thread stack limits: all regressions passed
+
+=== finite-limit WebSocket connection ===
+Node listening on port 44843 (profile actor, sandbox blacklist, auth open)
+finite-limit accepted websocket connections preserve replies and retire their registrations: ok
+
+=== HTTP whole-page deadline ===
+deadline covers startup before the producer thread exists: ok
+many individually fast answers exceed one page budget; unrelated monitor/message retained: ok
+offset skipping shares the page deadline: ok
+lookahead shares the budget already spent collecting the page: ok
+cached pages get fresh budgets; idle time and unrelated continuations are preserved: ok
+expiry after cache publication does not reclaim the handed-off producer: ok
+success, failure and exceptions cancel the timer before later caller work: ok
+the request timer is cancelled before cleanup lasting longer than its budget: ok
+skipping, collection and lookahead select only their producer; unrelated replies remain: ok
+cleanup drains owned solution/end/error replies only, preserving application monitors: ok
+infinite owner time limit remains unbounded: ok
+HTTP whole-page deadline: all regressions passed
+
+=== HTTP continuation cache eviction cleanup ===
+real page overflow stops FIFO victim, retains paging and application monitor: ok
+one trim reclaims every excess producer in FIFO order: ok
+checkout before eviction keeps ownership; trimming skips the active request: ok
+concurrent checkout remains usable while eviction waits for termination: ok
+exception after removal reclaims every victim and preserves the original error: ok
+HTTP cache eviction: all regressions passed
+
+=== HTTP paging request cleanup ===
+startup exception before thread creation leaves no owned producer: ok
+interrupted skip reclaims producer before returning, application monitor retained: ok
+interrupted collect reclaims producer before returning, application monitor retained: ok
+interrupted lookahead reclaims producer before returning, application monitor retained: ok
+abandoned cache checkout reclaims producer; unrelated message and monitor preserved: ok
+published and rechecked-out continuations survive prior request cleanup: ok
+publication releases ownership before explicit cache removal: ok
+terminal success/failure, original query errors and output mismatch clean up: ok
+execution timeout keeps its resource error and reclaims the producer: ok
+HTTP paging cleanup: all regressions passed
+
+=== remote statechart construction and trace acknowledgements ===
+Remote chart entry shapes, shared preparation, sandbox/profile and source boundaries: ok
+
+=== remote statechart receiver boundary ===
+Remote server adapter validates source, callback and profile: ok
+
+=== discontiguous source declarations ===
+empty zero/unary predicates, negation and current_predicate via list: ok
+empty zero/unary predicates, negation and current_predicate via text: ok
+clause order, variable sharing and copied empty/mixed declarations: ok
+empty declarations execute under blacklist policy: ok
+empty declarations execute under whitelist policy: ok
+invalid and reserved declaration targets remain rejected: ok
+multifile sandbox rejection and trusted empty behavior unchanged: ok
+Discontiguous source declarations: all regressions passed
+
+=== empty dynamic declarations and boxshop ===
+empty zero/unary declarations, later assertions and existing clauses: ok
+boxshop fallback, eight-second timeout, slot collection and final order: ok
+Empty dynamic predicates and unchanged boxshop-2: all passed
+
+=== statechart local invocation ===
+actor child source, compound goal, output and monitor delivery: ok
+state exit, re-entry and halt retire unlinked children: ok
+toplevel child paging and ordinary asynchronous answers: ok
+nested chart source predicates resolve in parent datamodel: ok
+internal events precede invocation of stable states: ok
+partial invocation failure rolls back earlier unlinked children: ok
+aborted chart cleans unlinked invoked children: ok
+child cleanup preserves unrelated monitors: ok
+unsupported types, destinations, options and inherited sandbox policy: ok
+unchanged examples 13, 14 and 17 terminate and reclaim children: ok
+unchanged server and supervisor examples: ok
+behaviour inline source, parent callbacks and predicate copying: ok
+server and supervisor inherit sandbox policy and reject unsafe source: ok
+aborted chart reclaims unlinked supervisor and its worker: ok
+behaviour startup rollback, child validation and invalid-destination rejection: ok
+dynamic supervisor additions retain sandbox admission: ok
+Statechart local invocation regressions: all passed
+
+=== statechart execution ===
+pause/resume hierarchy and shallow history: ok
+concurrent chart isolation and halt: ok
+event/guard/action variable sharing: ok
+timed transitions: ok
+deferred-event re-offering: ok
+parallel regions and completion events: ok
+deep history: ok
+private supplemental sources and admission guards: ok
+datamodel isolation, dynamic declarations, ordering and sandbox: ok
+datamodel GCD, transitive closure and DCG expansion: ok
+datamodel shadows shared predicates without modifying shared data: ok
+timer cancellation, forced halt and monitor cleanup: ok
+source, unsupported features, sandbox and profile checks: ok
+Statechart execution regressions: all passed
+
+=== supervisor halt ordering ===
+Supervisor halt ordering, original deadline and private monitor cleanup: ok
+
+=== spawn reply correlation ===
+Spawn correlation, error isolation, legacy replies and connection loss: ok
+
+=== remote supervisor receiver and sandbox ===
+Narrow receiver supervisor adapter: ok
+Receiver sandbox/profile/fresh-state and nested-source regressions: ok
+
+=== atomic remote named startup ===
+caller-side publication/rollback and pre-I/O wrapper name conflicts: ok
+closed caller namespace rejects remote publication without erasing replacement: ok
+failure/loss releases handshake and rollback preserves unrelated monitors: ok
+Atomic remote named startup: all regressions passed
+
+=== receiver delegated lineage cleanup ===
+Creation-race diagnostics preserve messages and identify failed stages: ok
+creation_race_batch_started(after_prefix,20)
+authority, token, account and sandbox validation: ok
+descendants, names, promises, late admission and unrelated lineages: ok
+connection loss closes every delegated namespace: ok
+closure during unnamed preparation rejects activation and wakes creator: ok
+closure during named preparation rejects activation and wakes creator: ok
+creation_race_iterations_started
+creation_race_batch_passed(after_prefix,20)
+Receiver delegated lineage: all regressions passed
+
+=== WebSocket namespace promise disposal ===
+pending/ready resources reclaimed; survivors, callbacks, retry and other owners preserved: ok
+waiting collector wakes with missing reference and its actor survives caught error: ok
+all promises retired despite one cleanup error; active queue stays safe and retryable: ok
+Namespace promise disposal: all regressions passed
+
+=== WebSocket namespace teardown ===
+creator ownership, node-wide uniqueness, late admission and surviving actors: ok
+pending reservation retired and late startup publication rejected: ok
+disconnect during child source preparation prevents late publication/goal execution: ok
+WebSocket registration namespace teardown: all regressions passed
+
+=== remote alias cleanup ===
+transparent, explicit, synchronous and owner down paths preserve delivery: ok
+lost close removes known aliases only, preserving services/names/monitors: ok
+explicit close removes known aliases only, preserving services/names/monitors: ok
+Remote alias cleanup: all regressions passed
+
+=== stale local PID registration ===
+live actors/shell accepted, stale and absent local PIDs rejected: ok
+committed termination rejected before bookkeeping removal: ok
+retired self/1 native-thread mapping is insufficient for registration: ok
+qualified local aliases checked/cleaned; remote alias identity and precedence preserved: ok
+Stale local PID registration: all regressions passed
+
+=== atomic local named creation ===
+occupied names reject before source/actor work; scalar precedence preserved: ok
+supervisor name visible before its first child goal: ok
+failure/exception/preparation cleanup releases reservations; register respects them: ok
+immediate termination leaves no stale registration: ok
+publication conflict preserves one-name rule and releases reservation: ok
+Atomic local named creation: all regressions passed
+
+=== supervisor restart intensity exhaustion cleanup ===
+zero/positive limits, allowed restart count, period pruning and strict boundary preserved: ok
+one_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok
+one_for_all intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok
+rest_for_one intensity(0), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok
+one_for_one intensity(2), normal: no excess replacements, reverse policy cleanup and shutdown reason: ok
+one_for_one intensity(0), policies: no excess replacements, reverse policy cleanup and shutdown reason: ok
+one_for_one intensity(0), cleanup_error: no excess replacements, reverse policy cleanup and shutdown reason: ok
+exhaustion cleanup preserves additional child monitors and unrelated queued messages: ok
+runtime abort control remains a control transfer: ok
+Supervisor restart-intensity exhaustion cleanup: all regressions passed
+
+=== supervisor replacement startup failure cleanup ===
+explicit replacement exception rolls back, retains inactive spec and permits retry with ok(Pid): ok
+one_for_one replacement failure (normal): actual failed id, rollback, shutdown and extra monitors preserved: ok
+one_for_all replacement failure (normal): actual failed id, rollback, shutdown and extra monitors preserved: ok
+rest_for_one replacement failure (normal): actual failed id, rollback, shutdown and extra monitors preserved: ok
+one_for_one replacement failure (policies): actual failed id, rollback, shutdown and extra monitors preserved: ok
+one_for_one replacement failure (cleanup_error): actual failed id, rollback, shutdown and extra monitors preserved: ok
+ordinary replacement failure retains error(start_failed) and automatic failure classification: ok
+restart error wrapping preserves reserved runtime controls: ok
+cleanup propagates abort controls and preserves the application monitor: ok
+Supervisor restart failure cleanup: all regressions passed
+
+=== supervisor initial and dynamic startup cleanup ===
+initial source exception rolls back in reverse order and preserves original error: ok
+ordinary initial startup failure retains init_failed and rolls back: ok
+exception after creation but before admission reclaims child/name and preserves application monitors: ok
+rollback shutdown(0.1), blocked=false preserves reason true: ok
+rollback shutdown(infinity), blocked=false preserves reason true: ok
+rollback shutdown(brutal_kill), blocked=false preserves reason kill: ok
+rollback shutdown(0.02), blocked=true preserves reason shutdown: ok
+shutdown exception cannot replace startup error or skip remaining children: ok
+dynamic setup exception preserves state, replies with original error and allows id/name reuse: ok
+committed supervisor exit retains parent containment without waiting on dying mailbox: ok
+reserved runtime controls are rethrown rather than converted to addition replies: ok
+Supervisor startup cleanup: all regressions passed
+
+=== supervisor child specification validation ===
+malformed specifications, IDs, options and duplicate occurrences: ok
+recursive validation precedes source loading and all child startup: ok
+defaults, first-option precedence and shared goal/state variables: ok
+dynamic rejection preserves state and valid duplicate reply: ok
+Supervisor child specification validation: all regressions passed
+
+=== supervisor source selection and variable receive ===
+framework entry excluded; real user helper remains copyable: ok
+inline_initial: ok
+inline_dynamic: ok
+private_helpers: ok
+case_failed(variable_receive,error(1104915361,missing_body))
+ERROR: supervisor source selection and variable receive failed with exit status 1
