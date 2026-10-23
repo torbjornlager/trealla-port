@@ -1,0 +1,48 @@
+# TSan diagnostic build of pinned v3.13.10 (clean tag copy, -O1 -g -fsanitize=thread, NOSSL NOFFI, SDK 26.5).
+# focused_lifecycle(delivery,30), 10 fresh processes; reports involving exit-time do_unlock_all (inlined at bif_threads.c:1259).
+# Counts over all 10 runs:
+#   9  Read  start_routine_thread_create:1259 (do_unlock_all)  <->  Previous write bif_mutex_lock_1:2662   (t->locked_by = me->chan)
+#   4  Read  start_routine_thread_create:1259 (do_unlock_all)  <->  Previous write bif_mutex_unlock_1:2689 (t->locked_by = -1)
+#  10  Read  start_routine_thread_create:1259 (do_unlock_all)  <->  Previous write retire_thread:386
+# No report showed a write by do_unlock_all in these runs. One example follows, frames only.
+
+WARNING: ThreadSanitizer: data race (pid=68879)
+  Read of size 4 at 0x00010c252758 by thread T1:
+    #0 start_routine_thread_create bif_threads.c:1259
+  Previous write of size 4 at 0x00010c252758 by main thread (mutexes: write M0):
+    #0 bif_mutex_lock_1 bif_threads.c:2662
+    #1 start query.c:3484
+    #2 execute query.c:3674
+    #3 run parser.c:6166
+    #4 pl_eval prolog.c:169
+    #5 main tpl.c:359
+  Location is heap block of size 536 at 0x00010c252580 allocated by main thread:
+    #0 malloc <null>
+    #1 default_malloc allocator.c:33
+    #2 tpl_malloc allocator.c:278
+    #3 tpl_calloc allocator.c:302
+    #4 new_thread bif_threads.c:466
+    #5 bif_mutex_create_2 bif_threads.c:2560
+    #6 start query.c:3484
+    #7 execute query.c:3674
+    #8 directive_term parser.c:1480
+    #9 directive_term parser.c:1446
+    #10 process_term parser.c:5074
+    #11 tokenize parser.c:5405
+    #12 load_fp module.c:3319
+    #13 load_file module.c:3508
+    #14 do_use_module module.c:1498
+    #15 do_use_module module.c:1374
+    #16 directive_term parser.c:1845
+    #17 directive_term parser.c:1446
+    #18 process_term parser.c:5074
+    #19 tokenize parser.c:5405
+    #20 load_fp module.c:3319
+    #21 load_file module.c:3508
+    #22 do_load_file bif_streams.c:4956
+    #23 bif_load_files_2 bif_streams.c:5031
+    #24 start query.c:3484
+    #25 execute query.c:3674
+    #26 run parser.c:6166
+    #27 pl_eval prolog.c:169
+    #28 main tpl.c:359

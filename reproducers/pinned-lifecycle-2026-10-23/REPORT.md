@@ -218,11 +218,104 @@ its "interrupted skip" or "interrupted collect" case. This is a pre-existing
 flake, not a backport regression. The interop half (`tools/test.sh interop`)
 was not run: SWI-Prolog is not installed on this machine.
 
+## Delivery race
+
+Fixed fresh-process batches with the stage markers, 30 processes per engine.
+Delivery-only runs `delivery_cleanup_once/0` 30 times per process (12 s
+watchdog); full runs `lifecycle_diagnostic_tests/0` (20 s watchdog). Files:
+`delivery-batches.json`, `full-lifecycle-batches.json`, and the three
+`*-sample.txt` stall samples.
+
+| Engine | Delivery-only | Full lifecycle |
+|---|---|---|
+| Pinned v3.13.10 | 25 pass; 5 `mutex_unlock` errors | 25 pass; 4 `mutex_unlock` errors, 1 SIGSEGV |
+| Upstream v3.14.5 | 30 pass | 29 pass; 1 SIGSEGV |
+| Pinned backport | 24 pass; 4 `mutex_unlock` errors, 2 stalls | 27 pass; 2 `mutex_unlock` errors, 1 stall |
+
+**Mutex ownership errors.** Every non-crash failure on a v3.13.10 engine is
+the main thread raising
+`permission_error(mutex_unlock,not_locked_by_me,'$rpc_promise_lifecycle')`
+while leaving `with_mutex/2`: inside `promise_cleanup/1`, in the following
+`deliver_promise_answer/2`, or in `disposal_snapshot/3`. The thread that took
+the lifecycle mutex no longer appears as its owner when it unlocks.
+
+**Stalls.** All three samples show a single remaining thread, the main
+thread, blocked in `bif_mutex_lock_1` → `__psynch_mutexwait`: the
+lifecycle mutex is held, or left locked, by no live thread. The stalled traces
+end inside `promise_cleanup/1` or just after it.
+
+Together, the v3.13.10 engines fail in 9/60 (pinned) and 9/60 (backport)
+processes. The backport does not change the rate; only the split between
+errors and stalls differs.
+
+**SIGSEGV.** Both crashes come during `thread_gone/1` status polling, the
+class fixed by the backport, which had none.
+
+**Engine evidence.** In v3.13.10, `do_unlock_all()`, run by every finishing
+thread, scans all thread/mutex objects without `prolog_lock`, releases a held
+mutex **before** clearing `locked_by` and `num_locks`, and releases only once
+regardless of `num_locks`; these are recursive pthread mutexes. Upstream
+rewrote exactly this in `2024825a` "Fix TSan-found races in thread exit, join
+and status" (22 October 2026, in v3.14.0 onwards): it takes `prolog_lock`,
+clears ownership first, then releases once per recorded lock. Upstream v3.14.5
+passes all 30 delivery-only processes.
+
+A TSan build of pinned (`tsan-unlock-all-races.txt`), running the delivery
+fixture 10 times, reports exit-time `do_unlock_all` reading `locked_by` on the
+mutex object created by `mutex_create/2` (heap block from
+`bif_mutex_create_2`) concurrently with the main thread's
+`bif_mutex_lock_1`/`bif_mutex_unlock_1` writes: 9 and 4 reports respectively.
+
+**Not established.** The specific interleaving in which exit cleanup
+*writes* ownership after release (and so clobbers the main thread's
+ownership) was not observed: no TSan report shows a `do_unlock_all` write, and
+`unlock_all_probe.pl` (a thread exits holding a mutex while the main thread
+contends via `with_mutex/2`; `--case standalone_unlock_all`) passed
+600 cases on each of four engines in a first version without the 3 ms hold
+(that result file was overwritten and is not kept), then 3,000 cases with
+the hold on pinned and upstream (`unlock-all-batches.json`). Task-mode locking was
+considered and excluded: neither the fixture nor its libraries create tasks.
+So the cause is localised to engine mutex-ownership handling at thread exit,
+fixed upstream in `2024825a`, but the exact interleaving is unproven.
+
+**Causal check: upstream `do_unlock_all` on pinned (built on request, not
+installed).** `.../trealla-http-timeout/pinned-unlock-all-repair-2026-10-23/`
+is the pinned backport plus upstream `2024825a`'s `do_unlock_all()`, verified
+identical to upstream v3.14.5's function. Incremental patch:
+`pinned-v3.13.10-unlock-all-backport.patch`. Same build settings as the
+backport; log `.../pinned-unlock-all-repair-build-2026-10-23.log`. SHA256
+`bcc82045c106675aa5921aa565da1e4989bc5cddc835df599975b109f46f279a`,
+`trealla(3,13,10,[])`, same three system libraries.
+
+Run in the same session as the earlier backport as a control
+(`delivery-unlock-all-batches.json`, `full-lifecycle-unlock-all-batches.json`,
+samples `delivery-pinned_backport-18/25-sample.txt`,
+`full-pinned_backport-17-sample.txt`):
+
+| Engine | Delivery-only (30) | Full lifecycle (30) |
+|---|---|---|
+| Backport + `do_unlock_all` | 30 pass | 30 pass |
+| Backport (control) | 24 pass; 4 `mutex_unlock`, 2 stalls | 28 pass; 1 `mutex_unlock`, 1 stall |
+
+All new control stall samples again show only the main thread, in
+`bif_mutex_lock_1` → `__psynch_mutexwait`. Across both sessions the backport
+without the change failed 17/120 processes; with it, 0/60. At the control's
+rate (about 14%), 60 clean processes would occur by chance with probability
+below 1 in 10,000. This establishes `do_unlock_all()` as the cause of the
+delivery-race mutex errors and stalls on v3.13.10, although the precise
+interleaving was still not observed directly.
+
+The `do_unlock_all` build has not yet been run through the engine
+`tests/run.sh` or the Web Prolog unit suite.
+
 ## Not addressed
 
-- The delivery-race stall (original trial 12) and the clean exit without a
-  completion marker (trial 19, and the normal-output spot check) remain
-  separate and uninvestigated in this batch.
+- The original delivery-race stall (trial 12, inside `promise_cleanup/1`)
+  matches the stalls reproduced above, but it had no sample, so it is not
+  proven to be the same. The original clean exit without a completion marker
+  (trial 19, and the normal-output spot check) was not reproduced: every
+  failure in these batches exited 1 with an exception, was killed as a stall,
+  or crashed.
 - `bif_thread_cancel_1` and `bif_thread_signal_2` also use a looked-up
   `thread *` without rechecking it under the guard. No failure was observed
   there; this is not claimed as a bug.

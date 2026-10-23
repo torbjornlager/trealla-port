@@ -1,0 +1,32 @@
+--- a/src/bif_threads.c (pinned v3.13.10 + cancel-status backport)
++++ b/src/bif_threads.c (+ upstream 2024825a do_unlock_all)
+@@ -1181,20 +1181,28 @@
+ 	THREAD_DEBUG DUMP_TERM(" - ", q->st.instr, q->st.cur_ctx, 1);
+ 	return ok;
+ }
++
+ 
++// Release the mutexes me holds, each as often as taken and only once marked free, under the lock that guards the live list.
+ 
+ static void do_unlock_all(thread *me)
+ {
+ 	prolog *pl = me->pl;
++	prolog_lock(pl);
+ 
+ 	for_each_thread(pl, t) {
+ 		if (t->locked_by != me->chan)
+ 			continue;
+ 
+-		release_lock(&t->guard);
++		unsigned n = t->num_locks;
+ 		t->locked_by = -1;
+ 		t->num_locks = 0;
++
++		while (n--)
++			release_lock(&t->guard);
+ 	}
++
++	prolog_unlock(pl);
+ }
+ 
+ // A goal ended by thread_exit/1 can leave choicepoints, such as a catch/3

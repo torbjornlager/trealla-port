@@ -3,8 +3,12 @@
 import argparse,hashlib,json,os,subprocess,time
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('--engine',action='append',required=True);p.add_argument('--case',required=True);p.add_argument('--iterations',type=int,default=10);p.add_argument('--runs',type=int,default=30);p.add_argument('--timeout',type=float,default=12);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
-assert a.case in ['hard_cancel','delivery','full','standalone_minimal','standalone_concurrent']
-if a.case.startswith('standalone_'):
+assert a.case in ['hard_cancel','delivery','full','standalone_minimal','standalone_concurrent','standalone_unlock_all']
+if a.case=='standalone_unlock_all':
+ # Exit-time mutex release under contention; primitives only.
+ goal="consult('reproducers/pinned-lifecycle-2026-10-23/unlock_all_probe.pl'),"
+ call=f"unlock_all_probe({a.iterations})"
+elif a.case.startswith('standalone_'):
  # No Web Prolog source: only the primitives-only probe is consulted.
  goal="consult('reproducers/pinned-lifecycle-2026-10-23/standalone_cancel_probe.pl'),"
  call=f"standalone_cancel({a.case.split('_',1)[1]},{a.iterations})"
