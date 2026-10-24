@@ -1,0 +1,26 @@
+{
+  "groups": [
+    {
+      "label": "nonbinding-final",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "consult('supervisor_admission_tests.pl'),(catch((supervisor_admission_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.958,
+      "log": "nonbinding-final.log"
+    },
+    {
+      "label": "supervisor-behaviour-final",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "consult('supervisor_actor_tests.pl'),(catch((supervisor_actor_tests:run_supervisor_actor_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 6.285,
+      "log": "supervisor-behaviour-final.log"
+    }
+  ]
+}

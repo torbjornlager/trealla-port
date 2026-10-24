@@ -1,0 +1,5 @@
+malformed specifications, IDs, options and duplicate occurrences: ok
+recursive validation precedes source loading and all child startup: ok
+defaults, first-option precedence and shared goal/state variables: ok
+dynamic rejection preserves state and valid duplicate reply: ok
+Supervisor child specification validation: all regressions passed

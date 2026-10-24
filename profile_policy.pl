@@ -28,6 +28,7 @@ their own policy layers before a node can safely accept untrusted programs.
 */
 
 :- use_module(library(error)).
+:- use_module(supervisor_admission,[supervisor_spec_goals/2]).
 
 
                  /*******************************
@@ -205,22 +206,6 @@ meta_goal_arguments(supervisor_spawn(Specs, _, _), Goals) :-
     supervisor_spec_goals(Specs, Goals).
 meta_goal_arguments(supervisor_spawn_child(_, Spec, _), Goals) :-
     supervisor_spec_goals([Spec], Goals).
-
-supervisor_spec_goals(Specs, [Specs]) :- var(Specs), !.
-supervisor_spec_goals([], []).
-supervisor_spec_goals([child(_, Options)|Specs], Goals) :-
-    ( memberchk(start(Start), Options)
-    -> supervisor_start_goals(Start, Here)
-    ; Here = []
-    ),
-    supervisor_spec_goals(Specs, Rest),
-    append(Here, Rest, Goals).
-supervisor_spec_goals(_, []).
-
-supervisor_start_goals(server(_, _), []) :- !.
-supervisor_start_goals(start_sub_supervisor(Specs, _), Goals) :- !,
-    supervisor_spec_goals(Specs, Goals).
-supervisor_start_goals(Goal, [Goal]).
 
 ensure_goal_profile(Profile, Goal) :-
     ( goal_required_profile(Goal, Required),

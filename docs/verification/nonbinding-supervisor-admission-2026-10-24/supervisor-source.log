@@ -1,0 +1,9 @@
+framework entry excluded; real user helper remains copyable: ok
+inline_initial: ok
+inline_dynamic: ok
+private_helpers: ok
+variable_receive: ok
+variable_receive_options: ok
+unrelated_monitors: ok
+variable receive qualification preserves variable identity: ok
+Supervisor source selection and variable receive: all regressions passed

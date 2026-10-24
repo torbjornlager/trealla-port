@@ -321,7 +321,8 @@ private_source_body :-
 private_source_and_policy :-
     sandbox_prepare_goal(whitelist, actor, user,
                          supervisor_spawn([], _), Prepared),
-    Prepared = supervisor_spawn([], _),
+    Prepared = sandbox_policy:sandbox_supervisor_call(
+        whitelist,actor,user,[],supervisor_spawn([],_)),
     catch(sandbox_prepare_goal(whitelist, isotope, user,
                                supervisor_spawn([], _), _),
           Error, true),

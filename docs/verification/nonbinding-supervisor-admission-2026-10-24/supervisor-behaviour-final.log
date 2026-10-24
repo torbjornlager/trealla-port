@@ -1,0 +1,21 @@
+supervisor basic_startup ok
+supervisor one_for_one_restart ok
+supervisor temporary_not_restarted ok
+supervisor transient_normal_exit ok
+supervisor one_for_all ok
+supervisor rest_for_one ok
+supervisor dynamic_start_child ok
+supervisor dynamic_terminate_and_delete ok
+supervisor dynamic_restart_child ok
+supervisor server_child_timed_shutdown_is_graceful ok
+supervisor plain_child_timed_shutdown_uses_shutdown_signal ok
+supervisor server_child ok
+supervisor count_children ok
+supervisor restart_intensity ok
+supervisor nested_supervision ok
+supervisor server_halt_permanent ok
+supervisor server_halt_transient ok
+supervisor cascade_cleanup ok
+supervisor private_source_body ok
+supervisor private_source_and_policy ok
+All 20 supervisor behaviour tests passed.

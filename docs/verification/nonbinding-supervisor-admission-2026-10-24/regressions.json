@@ -1,0 +1,95 @@
+{
+  "engine": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+  "engine_sha256": "71f5ab7df3bde1a0a73cffccb2a762815895f6d2c2ef3f63ee52ef10baaeba1c",
+  "library": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/library",
+  "groups": [
+    {
+      "label": "nonbinding",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "consult('supervisor_admission_tests.pl'),(catch((supervisor_admission_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.514,
+      "log": "nonbinding.log"
+    },
+    {
+      "label": "child-specs",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "consult('child_spec_tests.pl'),(catch((child_spec_tests:child_spec_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.312,
+      "log": "child-specs.log"
+    },
+    {
+      "label": "supervisor-source",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "consult('supervisor_source_tests.pl'),(catch((supervisor_source_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.97,
+      "log": "supervisor-source.log"
+    },
+    {
+      "label": "supervisor-behaviour",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "consult('supervisor_actor_tests.pl'),(catch((supervisor_actor_tests:run_supervisor_actor_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 6.267,
+      "log": "supervisor-behaviour.log"
+    },
+    {
+      "label": "remote-supervisor-policy",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "consult('remote_supervisor_tests.pl'),(catch((remote_supervisor_tests:remote_supervisor_tests,remote_supervisor_tests:remote_supervisor_policy_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.326,
+      "log": "remote-supervisor-policy.log"
+    },
+    {
+      "label": "profiles",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "consult('tests.pl'),(catch((run_test_group(profiles)),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.193,
+      "log": "profiles.log"
+    },
+    {
+      "label": "sandbox",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "consult('tests.pl'),(catch((run_test_group(sandbox)),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.337,
+      "log": "sandbox.log"
+    },
+    {
+      "label": "isolation",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "consult('tests.pl'),(catch((run_test_group(isolation)),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.169,
+      "log": "isolation.log"
+    }
+  ]
+}

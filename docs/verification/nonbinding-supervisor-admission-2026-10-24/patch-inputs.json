@@ -1,0 +1,13 @@
+{
+  "base_revision": "d4e96a3846577f0ebd4660aac4e81505702356e1",
+  "files": {
+    "supervisor_admission.pl": "c760cecfcff628037e30afc8a5621ab09ae7322fb0487f70c6e78f22e16fa4d3",
+    "supervisor_admission_tests.pl": "e986c78857471ec2d9ff672f638efc8bf3abef39605b3b20f0c646dea5f51c9e",
+    "profile_policy.pl": "4bec4c447b3a585dbdb199e6999cd7ee464b569f6840895c8e8ed66c3cc1bb71",
+    "sandbox_policy.pl": "22c82c752870240125626fff2802ec861d8723495c2158af6a9dee24e0c658c7",
+    "isolation.pl": "41f0218004f9e97c3f028c4c01c6b9af813feb5cd10d56be04871de7ed0918b2",
+    "supervisor_actor_tests.pl": "bd385b32802999dc8295a2f952197bf36f5bbef567af99e265cd2196af82c925",
+    "tools/test.sh": "3ed24849cd5393e93e0ecf86b3cca3610f9bb916bc0b73306eb8354eb4774ede",
+    "README.md": "537e5a0a8a1f15681dd0644bc38f702864f821c28c341bb19d71e23669e2eb92"
+  }
+}

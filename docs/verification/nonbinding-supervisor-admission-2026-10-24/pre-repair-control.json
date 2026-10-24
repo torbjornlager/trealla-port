@@ -1,0 +1,13 @@
+{
+  "source_revision": "d4e96a3846577f0ebd4660aac4e81505702356e1",
+  "command": [
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+    "-g",
+    "use_module(profile_policy),profile_policy:profile_check_goal(actor,supervisor_spawn_child(1,Spec,Reply)),writeq(Spec),nl,(var(Spec)->halt;halt(1))"
+  ],
+  "exit_code": 1,
+  "expected_exit_code": 1,
+  "engine": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+  "engine_sha256": "71f5ab7df3bde1a0a73cffccb2a762815895f6d2c2ef3f63ee52ef10baaeba1c",
+  "method": "temporary git archive of pre-repair sources; deleted after probe"
+}

@@ -2525,3 +2525,29 @@ this README record Trealla implementation evidence. The book agenda identifies
 portable contracts and production requirements; it does not assume that native
 SWI implementation status applies to Trealla. Remaining differences are also
 explicit in the shared language manual.
+
+### Nonbinding supervisor admission
+
+Supervisor child-specification inspection is shared by the profile checker and
+sandbox checker. Admission reads existing child, option and start structures
+without binding application variables or constructing an implicit `server/2`
+start. Known ordinary and nested starts are still checked. Opaque terms retain
+their existing conservative whitelist rejection; blacklist admission can leave
+them for execution-time validation.
+
+Sandbox-prepared supervisor creation and dynamic child additions also recheck the
+supplied child goals under the original profile, sandbox mode and source context
+before dispatch. Thus receiving a specification later does not remove the check
+on its actual goal. Public specification validation, first-option precedence and
+variable sharing are retained. Source copying strips the internal guard back to
+its public constructor so a copied helper is checked in its receiving context.
+No public predicate, wire protocol or lifecycle policy is added. Blacklist mode
+remains a prototype policy rather than a complete security boundary.
+
+`supervisor_admission_tests.pl` covers variable-bearing and partial structures,
+shared variables, ordinary/server/nested starts, whitelist rejection of opaque
+terms, forbidden starts, runtime-supplied unsafe goals, private source and copied
+constructor helpers. It is included in `tools/test.sh unit`. Verification and
+remaining cross-runtime qualifications are recorded under
+[`docs/verification/nonbinding-supervisor-admission-2026-10-24`](docs/verification/nonbinding-supervisor-admission-2026-10-24/REPORT.md).
+Installed runtimes and n3/n5 were not updated or restarted for this repair.

@@ -15,6 +15,7 @@
          sandbox_call/11,
          sandbox_call/12,
          sandbox_spawn/7,
+         sandbox_supervisor_call/5,
          sandbox_toplevel_call/7,
          sandbox_toplevel_synch/9,
          sandbox_yield/7,
@@ -54,6 +55,7 @@ still required for an internet-facing node.
 */
 
 :- use_module(library(error)).
+:- use_module(supervisor_admission,[supervisor_spec_goals/2]).
 :- use_module(library(sandbox), []).
 :- use_module(profile_policy).
 :- use_module(isolation).
@@ -264,22 +266,6 @@ meta_goal_parts(supervisor_spawn(Specs,_,_), Goals) :-
     supervisor_spec_goals(Specs, Goals).
 meta_goal_parts(supervisor_spawn_child(_,Spec,_), Goals) :-
     supervisor_spec_goals([Spec], Goals).
-
-supervisor_spec_goals(Specs, [Specs]) :- var(Specs), !.
-supervisor_spec_goals([], []).
-supervisor_spec_goals([child(_,Options)|Specs], Goals) :-
-    ( memberchk(start(Start), Options)
-    -> supervisor_start_goals(Start, Here)
-    ; Here = []
-    ),
-    supervisor_spec_goals(Specs, Rest),
-    append(Here, Rest, Goals).
-supervisor_spec_goals(_, []).
-
-supervisor_start_goals(server(_,_), []) :- !.
-supervisor_start_goals(start_sub_supervisor(Specs,_), Goals) :- !,
-    supervisor_spec_goals(Specs, Goals).
-supervisor_start_goals(Goal, [Goal]).
 
 check_nested_spawn(whitelist, _Profile, _Module, _AppPIs, _Goal, Options) :-
     var(Options), !,
@@ -558,6 +544,7 @@ reserved_source_name(supervisor_halt).
 reserved_source_name(supervisor_stop).
 reserved_source_name(sandbox_call).
 reserved_source_name(sandbox_spawn).
+reserved_source_name(sandbox_supervisor_call).
 reserved_source_name(sandbox_toplevel_call).
 reserved_source_name(sandbox_toplevel_synch).
 reserved_source_name(sandbox_yield).
@@ -671,6 +658,14 @@ rewrite_goal_(M,P,C,A,receive(Q0,O0),receive(Q,O)) :- rewrite_receive(M,P,C,A,Q0
 rewrite_goal_(M,P,C,A,spawn(X),sandbox_policy:sandbox_spawn(M,P,C,A,X,_,[])).
 rewrite_goal_(M,P,C,A,spawn(X,Pid),sandbox_policy:sandbox_spawn(M,P,C,A,X,Pid,[])).
 rewrite_goal_(M,P,C,A,spawn(X,Pid,O),sandbox_policy:sandbox_spawn(M,P,C,A,X,Pid,O)).
+% Recheck runtime-bound child data before dispatch. Static inspection may
+% deliberately leave opaque specifications untouched in blacklist mode.
+rewrite_goal_(M,P,C,A,supervisor_spawn(Specs,Pid),
+              sandbox_policy:sandbox_supervisor_call(M,P,C,A,supervisor_spawn(Specs,Pid))).
+rewrite_goal_(M,P,C,A,supervisor_spawn(Specs,Pid,Options),
+              sandbox_policy:sandbox_supervisor_call(M,P,C,A,supervisor_spawn(Specs,Pid,Options))).
+rewrite_goal_(M,P,C,A,supervisor_spawn_child(Sup,Spec,Reply),
+              sandbox_policy:sandbox_supervisor_call(M,P,C,A,supervisor_spawn_child(Sup,Spec,Reply))).
 rewrite_goal_(M,P,C,A,toplevel_call_synch(Pid,X,R),sandbox_policy:sandbox_toplevel_synch(M,P,C,A,call,Pid,X,R,[])).
 rewrite_goal_(M,P,C,A,toplevel_call_synch(Pid,X,R,O),sandbox_policy:sandbox_toplevel_synch(M,P,C,A,call,Pid,X,R,O)).
 rewrite_goal_(M,P,C,A,toplevel_next_synch(Pid,R),sandbox_policy:sandbox_toplevel_synch(M,P,C,A,next,Pid,true,R,[])).
@@ -797,6 +792,11 @@ sandbox_abolish(_Mode, _Profile, Module, _AppPIs, PI) :-
 sandbox_abolish(_Mode, _Profile, Module, _AppPIs, Name, Arity) :-
     check_mutable_pi(Name/Arity), context_module(Module, RuntimeModule),
     call(RuntimeModule:abolish(Name/Arity)).
+
+sandbox_supervisor_call(Mode,Profile,Module,AppPIs,Goal) :-
+    profile_check_goal(Profile,Goal),
+    sandbox_check_goal_(Mode,Profile,Module,AppPIs,Goal),
+    call_in_context(Module,Goal).
 
 sandbox_spawn(Mode, Profile, Module, _AppPIs, Goal0, Pid, Options0) :-
     actors:validate_spawn_options(Options0,public),
