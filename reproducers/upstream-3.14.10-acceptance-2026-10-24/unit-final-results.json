@@ -1,0 +1,317 @@
+{
+  "command": [
+    "sh",
+    "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/upstream-3.14.10-acceptance-2026-10-24/test-unit-final.sh",
+    "unit"
+  ],
+  "cwd": "/Users/torbjorn.lager/Documents/GitHub/trealla-port",
+  "exit_code": 0,
+  "seconds": 150.034,
+  "groups": [
+    {
+      "label": "Canonical answer negotiation context",
+      "exit_code": 0
+    },
+    {
+      "label": "Concurrent bootstrap and reply serialization",
+      "exit_code": 0
+    },
+    {
+      "label": "Owned remote demonitor acknowledgement and flush",
+      "exit_code": 0
+    },
+    {
+      "label": "Independent termination notification references",
+      "exit_code": 0
+    },
+    {
+      "label": "General toplevel creation validation and local path",
+      "exit_code": 0
+    },
+    {
+      "label": "Public synchronous toplevel wrappers",
+      "exit_code": 0
+    },
+    {
+      "label": "Promise stream cleanup on malformed replies",
+      "exit_code": 0
+    },
+    {
+      "label": "HTTP transport timeout option mapping",
+      "exit_code": 0
+    },
+    {
+      "label": "Host runtime properties",
+      "exit_code": 0
+    },
+    {
+      "label": "HTTP server first-slice cleanup",
+      "exit_code": 0
+    },
+    {
+      "label": "RPC first-slice once option",
+      "exit_code": 0
+    },
+    {
+      "label": "first_solution continuation determinism",
+      "exit_code": 0
+    },
+    {
+      "label": "source-less toplevel worker routing",
+      "exit_code": 0
+    },
+    {
+      "label": "retired deployment page cap",
+      "exit_code": 0
+    },
+    {
+      "label": "caller-controlled page sizes",
+      "exit_code": 0
+    },
+    {
+      "label": "server promise setup/send cleanup",
+      "exit_code": 0
+    },
+    {
+      "label": "HTTP paging offsets",
+      "exit_code": 0
+    },
+    {
+      "label": "connection-thread stack limits",
+      "exit_code": 0
+    },
+    {
+      "label": "finite-limit WebSocket connection",
+      "exit_code": 0
+    },
+    {
+      "label": "HTTP whole-page deadline",
+      "exit_code": 0
+    },
+    {
+      "label": "HTTP continuation cache eviction cleanup",
+      "exit_code": 0
+    },
+    {
+      "label": "HTTP paging request cleanup",
+      "exit_code": 0
+    },
+    {
+      "label": "remote statechart construction and trace acknowledgements",
+      "exit_code": 0
+    },
+    {
+      "label": "remote statechart receiver boundary",
+      "exit_code": 0
+    },
+    {
+      "label": "discontiguous source declarations",
+      "exit_code": 0
+    },
+    {
+      "label": "empty dynamic declarations and boxshop",
+      "exit_code": 0
+    },
+    {
+      "label": "statechart local invocation",
+      "exit_code": 0
+    },
+    {
+      "label": "statechart execution",
+      "exit_code": 0
+    },
+    {
+      "label": "supervisor halt ordering",
+      "exit_code": 0
+    },
+    {
+      "label": "spawn reply correlation",
+      "exit_code": 0
+    },
+    {
+      "label": "remote supervisor receiver and sandbox",
+      "exit_code": 0
+    },
+    {
+      "label": "atomic remote named startup",
+      "exit_code": 0
+    },
+    {
+      "label": "receiver delegated lineage cleanup",
+      "exit_code": 0
+    },
+    {
+      "label": "WebSocket namespace promise disposal",
+      "exit_code": 0
+    },
+    {
+      "label": "WebSocket namespace teardown",
+      "exit_code": 0
+    },
+    {
+      "label": "remote alias cleanup",
+      "exit_code": 0
+    },
+    {
+      "label": "stale local PID registration",
+      "exit_code": 0
+    },
+    {
+      "label": "atomic local named creation",
+      "exit_code": 0
+    },
+    {
+      "label": "supervisor restart intensity exhaustion cleanup",
+      "exit_code": 0
+    },
+    {
+      "label": "supervisor replacement startup failure cleanup",
+      "exit_code": 0
+    },
+    {
+      "label": "supervisor initial and dynamic startup cleanup",
+      "exit_code": 0
+    },
+    {
+      "label": "supervisor child specification validation",
+      "exit_code": 0
+    },
+    {
+      "label": "supervisor source selection and variable receive",
+      "exit_code": 0
+    },
+    {
+      "label": "specialized wrapper option validation",
+      "exit_code": 0
+    },
+    {
+      "label": "spawn option validation",
+      "exit_code": 0
+    },
+    {
+      "label": "RPC client option validation",
+      "exit_code": 0
+    },
+    {
+      "label": "HTTP client execution context",
+      "exit_code": 0
+    },
+    {
+      "label": "promise ownership",
+      "exit_code": 0
+    },
+    {
+      "label": "promise lifecycle",
+      "exit_code": 0
+    },
+    {
+      "label": "promise/yield correctness",
+      "exit_code": 0
+    },
+    {
+      "label": "outbound synchronous vectors",
+      "exit_code": 0
+    },
+    {
+      "label": "toplevel correlation vectors",
+      "exit_code": 0
+    },
+    {
+      "label": "outbound canonical answer vectors",
+      "exit_code": 0
+    },
+    {
+      "label": "actors",
+      "exit_code": 0
+    },
+    {
+      "label": "toplevel actors",
+      "exit_code": 0
+    },
+    {
+      "label": "parallel behaviours",
+      "exit_code": 0
+    },
+    {
+      "label": "receive handoff semantics and interruption",
+      "exit_code": 0
+    },
+    {
+      "label": "signal-atomic receive deadlines and returning handlers",
+      "exit_code": 0
+    },
+    {
+      "label": "worker scope startup and interruption cleanup",
+      "exit_code": 0
+    },
+    {
+      "label": "unexpected parallel worker exits",
+      "exit_code": 0
+    },
+    {
+      "label": "generic server behaviour",
+      "exit_code": 0
+    },
+    {
+      "label": "supervisor behaviour",
+      "exit_code": 0
+    },
+    {
+      "label": "SXML parser and validator",
+      "exit_code": 0
+    },
+    {
+      "label": "private source isolation",
+      "exit_code": 0
+    },
+    {
+      "label": "execution profile policy",
+      "exit_code": 0
+    },
+    {
+      "label": "sandbox and public source policy",
+      "exit_code": 0
+    },
+    {
+      "label": "resource governance",
+      "exit_code": 0
+    },
+    {
+      "label": "authentication and origin policy",
+      "exit_code": 0
+    },
+    {
+      "label": "per-principal governance",
+      "exit_code": 0
+    },
+    {
+      "label": "audit and metrics observability",
+      "exit_code": 0
+    },
+    {
+      "label": "persistent bearer-token lifecycle",
+      "exit_code": 0
+    },
+    {
+      "label": "controlled source URI policy",
+      "exit_code": 0
+    },
+    {
+      "label": "IP/CIDR and trusted-proxy policy",
+      "exit_code": 0
+    },
+    {
+      "label": "node lifecycle",
+      "exit_code": 0
+    },
+    {
+      "label": "WebSocket and protocol vectors",
+      "exit_code": 0
+    }
+  ],
+  "total": 75,
+  "passed": 75,
+  "failed": [],
+  "timeouts": [],
+  "skips": []
+}

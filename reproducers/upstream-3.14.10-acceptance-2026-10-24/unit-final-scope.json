@@ -1,0 +1,6 @@
+{
+  "original_runner_sha256": "de69b8e0ee9440d9d311ed7695f0fe5463b3e737ea5785324904fb72c479237d",
+  "test_commands_and_suite_body_byte_identical": true,
+  "test_timeout_seconds": 30,
+  "watchdog_term_then_kill_delay_seconds": 2
+}

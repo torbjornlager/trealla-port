@@ -1,0 +1,27 @@
+Trealla: trealla(3,14,10,[]) (/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl)
+SWI-Prolog: SWI-Prolog version 10.1.18 for arm64-darwin
+
+=== Trealla client -> SWI WebSocket ===
+Trealla client interoperability test: ok
+
+=== SWI client -> Trealla WebSocket ===
+SWI client interoperability test: ok
+Trealla server interoperability test: ok
+
+=== Trealla client -> SWI protocol fixture ===
+Trealla Web Prolog protocol client test: ok
+
+=== Trealla outbound client -> legacy fixture ===
+
+=== unsupported synchronous peer remains asynchronous ===
+Unsupported synchronous peer preserves asynchronous access: ok
+
+=== synchronous peer disconnect ===
+Synchronous peer disconnect wakes and cleans the wait: ok
+
+=== SWI client -> Trealla protocol node ===
+Node listening on port 45764 (profile workbench, sandbox blacklist, auth open)
+SWI Web Prolog protocol client test: ok
+
+=== SWI client -> Trealla connection thread parity ===
+ERROR: SWI client -> Trealla connection thread parity failed with exit status 1

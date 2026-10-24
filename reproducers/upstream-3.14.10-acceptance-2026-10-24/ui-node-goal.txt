@@ -1,0 +1,1 @@
+use_module(web_prolog),use_module(distribution),web_prolog:web_prolog_node(45801,[bind_address('127.0.0.1'),node_url('http://127.0.0.1:45800'),profile(actor),sandbox(blacklist),auth(open)]),thread_get_message(stop)

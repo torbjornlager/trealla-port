@@ -1,0 +1,1 @@
+control(normal,'$thread'(2),normal,unlocked,[setup_acquired,body_entered,cleanup_entered])

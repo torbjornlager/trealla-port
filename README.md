@@ -71,18 +71,25 @@ of reason. Only the combinator's own monitor references are selected or drained;
 application monitors, including additional monitors on the same worker, remain
 available.
 
-Receive interruption safety has a separate candidate engine dependency. The
-adapter detects the private `$thread_get_message_saved/5` primitive and uses it
-for blocking, timed, and polling reads. It commits a copied deferred-message
-template before releasing native queue ownership, closing the dequeue-to-defer
-signal window. Selection, guards, and body execution retain their existing
-semantics. Original engines keep the previous receive path; they **do not gain
-this guarantee** merely by updating the Prolog files. The installed engine has
-not been replaced. Separate pinned/upstream candidate builds, patches, exact
-hashes, and verification results are recorded in
-[`reproducers/receive-handoff-repair-2026-10-23/REPORT.md`](reproducers/receive-handoff-repair-2026-10-23/REPORT.md).
-The test runner explicitly skips the new interruption stress on engines without
-the primitive while still checking receive semantics.
+On Trealla v3.14.10, receive interruption safety uses the public `sig_atomic/1`
+primitive. Each native dequeue and its durable deferred copy form one protected
+operation. Empty blocking waits use at most 100 ms slices, allowing thread signals
+and external time limits to take effect between slices. Timed receives retain
+one original absolute deadline, so slices and nonmatching messages cannot restart
+the timeout. Polling remains nonblocking. Each successful slice reads the current
+deferred store inside the protected region, preserving changes made by returning
+signal handlers between slices. Selection, guards and bodies keep their existing
+semantics. Native `abort/0` is not deferred by `sig_atomic/1`.
+
+Older candidate engines can still use `$thread_get_message_saved/5`; engines with
+neither facility retain the compatibility path and **do not gain the interruption
+guarantee** from the Prolog changes alone. Capability detection uses
+`predicate_property/2`, including autoloaded `sig_atomic/1`. The test runner skips
+interruption stress when neither facility is available and checks ordinary receive
+semantics independently. Installed engines have not been replaced. Exact release,
+build configuration, regressions, UI checks and remaining acceptance diagnostics
+are recorded in
+[`reproducers/upstream-3.14.10-acceptance-2026-10-24/REPORT.md`](reproducers/upstream-3.14.10-acceptance-2026-10-24/REPORT.md).
 
 Both generics now own their local workers in a private scope spanning startup
 and collection. Each pid is recorded before its thread is created, closing the

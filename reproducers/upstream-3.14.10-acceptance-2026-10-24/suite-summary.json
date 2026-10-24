@@ -1,0 +1,590 @@
+{
+  "port-unit": {
+    "pass": 74,
+    "fail": 1,
+    "groups": [
+      {
+        "group": "Canonical answer negotiation context",
+        "exit_code": 0
+      },
+      {
+        "group": "Concurrent bootstrap and reply serialization",
+        "exit_code": 0
+      },
+      {
+        "group": "Owned remote demonitor acknowledgement and flush",
+        "exit_code": 0
+      },
+      {
+        "group": "Independent termination notification references",
+        "exit_code": 0
+      },
+      {
+        "group": "General toplevel creation validation and local path",
+        "exit_code": 0
+      },
+      {
+        "group": "Public synchronous toplevel wrappers",
+        "exit_code": 0
+      },
+      {
+        "group": "Promise stream cleanup on malformed replies",
+        "exit_code": 0
+      },
+      {
+        "group": "HTTP transport timeout option mapping",
+        "exit_code": 0
+      },
+      {
+        "group": "Host runtime properties",
+        "exit_code": 0
+      },
+      {
+        "group": "HTTP server first-slice cleanup",
+        "exit_code": 0
+      },
+      {
+        "group": "RPC first-slice once option",
+        "exit_code": 0
+      },
+      {
+        "group": "first_solution continuation determinism",
+        "exit_code": 0
+      },
+      {
+        "group": "source-less toplevel worker routing",
+        "exit_code": 0
+      },
+      {
+        "group": "retired deployment page cap",
+        "exit_code": 0
+      },
+      {
+        "group": "caller-controlled page sizes",
+        "exit_code": 0
+      },
+      {
+        "group": "server promise setup/send cleanup",
+        "exit_code": 0
+      },
+      {
+        "group": "HTTP paging offsets",
+        "exit_code": 0
+      },
+      {
+        "group": "connection-thread stack limits",
+        "exit_code": 0
+      },
+      {
+        "group": "finite-limit WebSocket connection",
+        "exit_code": 0
+      },
+      {
+        "group": "HTTP whole-page deadline",
+        "exit_code": 0
+      },
+      {
+        "group": "HTTP continuation cache eviction cleanup",
+        "exit_code": 0
+      },
+      {
+        "group": "HTTP paging request cleanup",
+        "exit_code": 0
+      },
+      {
+        "group": "remote statechart construction and trace acknowledgements",
+        "exit_code": 0
+      },
+      {
+        "group": "remote statechart receiver boundary",
+        "exit_code": 0
+      },
+      {
+        "group": "discontiguous source declarations",
+        "exit_code": 0
+      },
+      {
+        "group": "empty dynamic declarations and boxshop",
+        "exit_code": 0
+      },
+      {
+        "group": "statechart local invocation",
+        "exit_code": 1
+      },
+      {
+        "group": "statechart execution",
+        "exit_code": 0
+      },
+      {
+        "group": "supervisor halt ordering",
+        "exit_code": 0
+      },
+      {
+        "group": "spawn reply correlation",
+        "exit_code": 0
+      },
+      {
+        "group": "remote supervisor receiver and sandbox",
+        "exit_code": 0
+      },
+      {
+        "group": "atomic remote named startup",
+        "exit_code": 0
+      },
+      {
+        "group": "receiver delegated lineage cleanup",
+        "exit_code": 0
+      },
+      {
+        "group": "WebSocket namespace promise disposal",
+        "exit_code": 0
+      },
+      {
+        "group": "WebSocket namespace teardown",
+        "exit_code": 0
+      },
+      {
+        "group": "remote alias cleanup",
+        "exit_code": 0
+      },
+      {
+        "group": "stale local PID registration",
+        "exit_code": 0
+      },
+      {
+        "group": "atomic local named creation",
+        "exit_code": 0
+      },
+      {
+        "group": "supervisor restart intensity exhaustion cleanup",
+        "exit_code": 0
+      },
+      {
+        "group": "supervisor replacement startup failure cleanup",
+        "exit_code": 0
+      },
+      {
+        "group": "supervisor initial and dynamic startup cleanup",
+        "exit_code": 0
+      },
+      {
+        "group": "supervisor child specification validation",
+        "exit_code": 0
+      },
+      {
+        "group": "supervisor source selection and variable receive",
+        "exit_code": 0
+      },
+      {
+        "group": "specialized wrapper option validation",
+        "exit_code": 0
+      },
+      {
+        "group": "spawn option validation",
+        "exit_code": 0
+      },
+      {
+        "group": "RPC client option validation",
+        "exit_code": 0
+      },
+      {
+        "group": "HTTP client execution context",
+        "exit_code": 0
+      },
+      {
+        "group": "promise ownership",
+        "exit_code": 0
+      },
+      {
+        "group": "promise lifecycle",
+        "exit_code": 0
+      },
+      {
+        "group": "promise/yield correctness",
+        "exit_code": 0
+      },
+      {
+        "group": "outbound synchronous vectors",
+        "exit_code": 0
+      },
+      {
+        "group": "toplevel correlation vectors",
+        "exit_code": 0
+      },
+      {
+        "group": "outbound canonical answer vectors",
+        "exit_code": 0
+      },
+      {
+        "group": "actors",
+        "exit_code": 0
+      },
+      {
+        "group": "toplevel actors",
+        "exit_code": 0
+      },
+      {
+        "group": "parallel behaviours",
+        "exit_code": 0
+      },
+      {
+        "group": "receive handoff semantics and interruption",
+        "exit_code": 0
+      },
+      {
+        "group": "signal-atomic receive deadlines and returning handlers",
+        "exit_code": 0
+      },
+      {
+        "group": "worker scope startup and interruption cleanup",
+        "exit_code": 0
+      },
+      {
+        "group": "unexpected parallel worker exits",
+        "exit_code": 0
+      },
+      {
+        "group": "generic server behaviour",
+        "exit_code": 0
+      },
+      {
+        "group": "supervisor behaviour",
+        "exit_code": 0
+      },
+      {
+        "group": "SXML parser and validator",
+        "exit_code": 0
+      },
+      {
+        "group": "private source isolation",
+        "exit_code": 0
+      },
+      {
+        "group": "execution profile policy",
+        "exit_code": 0
+      },
+      {
+        "group": "sandbox and public source policy",
+        "exit_code": 0
+      },
+      {
+        "group": "resource governance",
+        "exit_code": 0
+      },
+      {
+        "group": "authentication and origin policy",
+        "exit_code": 0
+      },
+      {
+        "group": "per-principal governance",
+        "exit_code": 0
+      },
+      {
+        "group": "audit and metrics observability",
+        "exit_code": 0
+      },
+      {
+        "group": "persistent bearer-token lifecycle",
+        "exit_code": 0
+      },
+      {
+        "group": "controlled source URI policy",
+        "exit_code": 0
+      },
+      {
+        "group": "IP/CIDR and trusted-proxy policy",
+        "exit_code": 0
+      },
+      {
+        "group": "node lifecycle",
+        "exit_code": 0
+      },
+      {
+        "group": "WebSocket and protocol vectors",
+        "exit_code": 0
+      }
+    ]
+  },
+  "native-interop": {
+    "pass": 68,
+    "fail": 1,
+    "groups": [
+      {
+        "group": "Trealla client -> SWI WebSocket",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI client -> Trealla WebSocket",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla client -> SWI protocol fixture",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla outbound client -> legacy fixture",
+        "exit_code": 0
+      },
+      {
+        "group": "unsupported synchronous peer remains asynchronous",
+        "exit_code": 0
+      },
+      {
+        "group": "synchronous peer disconnect",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI client -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI client -> Trealla connection thread parity",
+        "exit_code": 1
+      },
+      {
+        "group": "SWI client -> Trealla reconstructed asynchronous queries",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI client -> Trealla canonical and legacy asynchronous answers",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI client -> Trealla header answer negotiation and isolation",
+        "exit_code": 0
+      },
+      {
+        "group": "browser caller correlation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI client -> Trealla allowlisted source URI",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI statechart execution -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI browser terminal -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI nested toplevel binding -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI promise/yield -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "group": "Unicode remote answers: Trealla -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Unicode remote answers: SWI -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Public remote demonitor -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Termination notifications -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Explicit termination notifications -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "General remote toplevel creation -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Public synchronous wrappers -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Public runtime properties (swi_native)",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla first-slice RPC -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "HTTP first-slice responses -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla remote statechart text/URI -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla statechart invocation -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla -> SWI actor semantic contracts",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI -> Trealla actor semantic contracts",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla canonical outbound -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla atomic remote named startup -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla supervisor halt -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla remote alias cleanup -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla synchronous outbound -> SWI",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI synchronous calls -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Public remote demonitor -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Termination notifications -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Explicit termination notifications -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "General remote toplevel creation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Native SWI first-slice RPC -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Unicode remote answers: SWI -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Unicode remote answers: Trealla -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Native SWI statechart constructor -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla remote statechart text/URI -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla statechart invocation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI public local statechart invocation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla distributed source isolation",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla validated remote toplevel wrapper",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla explicit and transparent spawn validation",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla validated RPC and promise HTTP options",
+        "exit_code": 0
+      },
+      {
+        "group": "Public synchronous wrappers -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Public runtime properties (trealla_native)",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla first-slice RPC -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "HTTP first-slice responses -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla promise ownership over WebSocket and HTTP",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla WebSocket promise disposal and client isolation",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla WebSocket namespace teardown",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla remote supervisor receiver",
+        "exit_code": 0
+      },
+      {
+        "group": "Native SWI delegated lineage -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Native SWI supervisor constructor -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla atomic remote named startup -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla remote alias cleanup -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla canonical outbound -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "Trealla synchronous outbound -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI browser terminal -> remote Trealla actor",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI auth and ownership -> private Trealla node",
+        "exit_code": 0
+      },
+      {
+        "group": "SWI client -> Trealla IP gate and auto-ban",
+        "exit_code": 0
+      }
+    ]
+  }
+}

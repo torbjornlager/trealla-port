@@ -223,7 +223,9 @@ run_unit() {
     run_tpl_goal "toplevel actors" "run_test_group(toplevel)"
     run_tpl_goal "parallel behaviours" "run_test_group(parallel)"
     run_with_timeout "receive handoff semantics and interruption" \
-        "$TPL" -g "(catch((consult('$ROOT/receive_handoff_tests.pl'),(predicate_property('\$thread_get_message_saved'(_,_,_,_,_),built_in)->receive_handoff_tests:run;(receive_handoff_tests:semantics,writeln('SKIP: receive interruption stress requires the saved-message engine primitive')))),E,(writeq(E),nl,fail))->halt;halt(1))"
+        "$TPL" -g "(catch((consult('$ROOT/receive_handoff_tests.pl'),((predicate_property(sig_atomic(_), defined);predicate_property('\$thread_get_message_saved'(_,_,_,_,_),built_in))->receive_handoff_tests:run;(receive_handoff_tests:semantics,writeln('SKIP: receive interruption stress requires sig_atomic/1 or the saved-message engine primitive')))),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "signal-atomic receive deadlines and returning handlers" \
+        "$TPL" -g "(catch((consult('$ROOT/receive_atomic_tests.pl'),(predicate_property(sig_atomic(_),defined)->receive_atomic_tests:run;writeln('SKIP: atomic receive deadline tests require public sig_atomic/1'))),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "worker scope startup and interruption cleanup" \
         "$TPL" -g "(catch((consult('$ROOT/worker_scope_tests.pl'),worker_scope_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "unexpected parallel worker exits" \

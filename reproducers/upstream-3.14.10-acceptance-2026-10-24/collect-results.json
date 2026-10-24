@@ -1,0 +1,24 @@
+[
+  {
+    "label": "port-unit-collect-all",
+    "command": [
+      "sh",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/upstream-3.14.10-acceptance-2026-10-24/test-collect-all.sh",
+      "unit"
+    ],
+    "cwd": "/Users/torbjorn.lager/Documents/GitHub/trealla-port",
+    "exit_code": 1,
+    "seconds": 154.908
+  },
+  {
+    "label": "native-interop-collect-all",
+    "command": [
+      "sh",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/upstream-3.14.10-acceptance-2026-10-24/test-collect-all.sh",
+      "interop"
+    ],
+    "cwd": "/Users/torbjorn.lager/Documents/GitHub/trealla-port",
+    "exit_code": 1,
+    "seconds": 113.375
+  }
+]

@@ -1196,39 +1196,68 @@ receive_loop_timeout(T, _, _, _, _) :-
 
 %!  receive_loop_poll(+Mailbox, +Clauses, +Options, +Deferred) is semidet.
 %
-%   timeout(0): peek the mailbox; if non-empty, get one message and
-%   try to match it.  If empty, run on_timeout immediately.
+%   timeout(0): poll for one message and try to match it. If empty,
+%   run on_timeout immediately.
 
-receive_loop_poll(Mailbox, Clauses, Options, Deferred) :-
-    (   thread_peek_message(Mailbox, _)
-    ->  receive_message(Mailbox, Msg, [], Deferred),
+receive_loop_poll(Mailbox, Clauses, Options, _Deferred0) :-
+    (   receive_message(Mailbox, Msg, [timeout(0)], Deferred)
+    ->
         handle_incoming(Mailbox, Clauses, Options, Deferred, Msg)
-    ;   deferred_put(Deferred),
-        option(on_timeout(Goal), Options, true),
+    ;   option(on_timeout(Goal), Options, true),
         call(Goal)
     ).
 
 %!  receive_loop_blocking(+Mailbox, +Clauses, +Options, +Deferred) is semidet.
 %
-%   No timeout: block on thread_get_message/2 until a message arrives.
+%   No timeout: wait until a message arrives; protected waits use bounded
+%   native slices so thread signals remain interruptible.
 
-receive_loop_blocking(Mailbox, Clauses, Options, Deferred) :-
+receive_loop_blocking(Mailbox, Clauses, Options, _Deferred0) :-
     receive_message(Mailbox, Msg, [], Deferred),
     handle_incoming(Mailbox, Clauses, Options, Deferred, Msg).
 
-% The engine handoff copies the bound template into this thread's global
-% store before removing the native message, without a signal checkpoint in
-% between. An interruption can therefore leave the message in either queue,
-% never in neither. Build Pending before waiting; a timeout leaves it unused.
-% The private wrapper is the engine's existing non-backtrackable value image.
-% Older engines retain the previous path until explicitly upgraded.
+% A receive and its durable deferred copy form one signal-atomic operation.
+% Waits use at most 100ms slices so cancellation remains interruptible. Read the
+% current deferred store inside each successful slice: returning signal handlers
+% may update it between slices. Deferred is the pre-message snapshot returned to
+% guard/consumption processing, rather than a stale pre-wait argument.
+% Older private candidate engines retain their saved-message primitive; original
+% engines without either facility keep the compatibility receive path.
 receive_message(Mailbox, Msg, Options, Deferred) :-
-    (   predicate_property('$thread_get_message_saved'(_,_,_,_,_), built_in)
-    ->  append(Deferred, [Msg], Pending),
-        '$thread_get_message_saved'(Mailbox, Msg, Options,
-                                    '$actor_deferred', '$bb'(Pending))
-    ;   thread_get_message(Mailbox, Msg, Options)
+    (   predicate_property(sig_atomic(_), defined)
+    ->  receive_message_atomic(Mailbox, Msg, Options, Deferred)
+    ;   deferred_list(Deferred),
+        (   predicate_property('$thread_get_message_saved'(_,_,_,_,_), built_in)
+        ->  append(Deferred, [Msg], Pending),
+            '$thread_get_message_saved'(Mailbox, Msg, Options,
+                                        '$actor_deferred', '$bb'(Pending))
+        ;   thread_get_message(Mailbox, Msg, Options)
+        )
     ).
+
+receive_message_atomic(Mailbox, Msg, [timeout(0)], Deferred) :-
+    !,
+    receive_message_slice(Mailbox, Msg, [timeout(0)], Deferred).
+receive_message_atomic(Mailbox, Msg, [deadline(Deadline)], Deferred) :-
+    !,
+    repeat,
+    get_time(Now),
+    SliceDeadline is min(Deadline, Now + 0.1),
+    (   receive_message_slice(Mailbox, Msg, [deadline(SliceDeadline)], Deferred)
+    ->  !
+    ;   get_time(After),
+        ( After >= Deadline -> !, fail ; fail )
+    ).
+receive_message_atomic(Mailbox, Msg, [], Deferred) :-
+    repeat,
+    receive_message_slice(Mailbox, Msg, [timeout(0.1)], Deferred),
+    !.
+
+receive_message_slice(Mailbox, Msg, Options, Deferred) :-
+    sig_atomic((thread_get_message(Mailbox, Msg, Options),
+                deferred_list(Deferred),
+                append(Deferred, [Msg], Pending),
+                deferred_put(Pending))).
 
 %!  receive_loop_timed(+Mailbox, +Clauses, +Options, +Deferred, +T) is semidet.
 %
@@ -1241,7 +1270,7 @@ receive_loop_timed(Mailbox, Clauses, Options, Deferred, T) :-
     Deadline is T0 + T,
     receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline).
 
-receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline) :-
+receive_loop_timed_(Mailbox, Clauses, Options, _Deferred0, Deadline) :-
     (   receive_message(Mailbox, Msg, [deadline(Deadline)], Deferred)
     ->  copy_term(Msg, SavedMsg),
         (   catch(select_body(Clauses, Msg, Body), Error,
@@ -1251,8 +1280,7 @@ receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline) :-
         ;   remember_incoming(Deferred, SavedMsg, Pending),
             receive_loop_timed_(Mailbox, Clauses, Options, Pending, Deadline)
         )
-    ;   % timeout fired
-        deferred_put(Deferred),
+    ;   % Only the original deadline, not an individual slice, fires timeout.
         option(on_timeout(Goal), Options, true),
         call(Goal)
     ).
