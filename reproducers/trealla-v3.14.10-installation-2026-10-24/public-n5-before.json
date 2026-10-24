@@ -1,0 +1,37 @@
+{
+  "process": "69596 /Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl -g consult('/tmp/web-prolog-local-ui/start_trealla_n5.pl'),main\n",
+  "node_info": {
+    "self_url": "http://localhost:3060",
+    "profile": "actor",
+    "auth": "open",
+    "sandbox": "blacklist",
+    "protocol_version": 1,
+    "auth_boundary": "trusted_headers",
+    "trusted_identity_headers": [
+      "X-Web-Prolog-User",
+      "X-Web-Prolog-Principal",
+      "X-Authenticated-User"
+    ],
+    "trusted_capability_headers": [
+      "X-Web-Prolog-Capabilities",
+      "X-Web-Prolog-Caps"
+    ],
+    "internal_transport_principal_prefix": "node:",
+    "principal_id": "anonymous",
+    "principal_execution": true,
+    "maintenance": false,
+    "services": [],
+    "provides": [],
+    "self_contained": true,
+    "ws_allowed_origins": [
+      "http://localhost:3053",
+      "http://localhost:3060",
+      "http://127.0.0.1:3053",
+      "http://127.0.0.1:3060"
+    ],
+    "tutorial_sections": [
+      "all"
+    ]
+  },
+  "auxiliary_new_pid": 97669
+}

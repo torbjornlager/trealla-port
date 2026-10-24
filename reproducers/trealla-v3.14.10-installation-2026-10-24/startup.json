@@ -1,0 +1,8 @@
+{
+  "pid": 97669,
+  "launcher": "/Users/torbjorn.lager/.local/share/trinity-local-nodes/n5/start.sh",
+  "log": "/Users/torbjorn.lager/.local/share/trinity-local-nodes/n5/n5.log",
+  "goal": "use_module(web_prolog),use_module(distribution),web_prolog:web_prolog_node(3061,[bind_address('127.0.0.1'),node_url('http://localhost:3061'),profile(actor),sandbox(blacklist),auth(open),ws_allowed_origins(['http://localhost:3053','http://localhost:3061'])]),thread_get_message(stop)",
+  "protected_processes_unchanged": true,
+  "n5_process": "97669 /Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-current/tpl -g use_module(web_prolog),use_module(distribution),web_prolog:web_prolog_node(3061,[bind_address('127.0.0.1'),node_url('http://localhost:3061'),profile(actor),sandbox(blacklist),auth(open),ws_allowed_origins(['http://localhost:3053','http://localhost:3061'])]),thread_get_message(stop)\n"
+}

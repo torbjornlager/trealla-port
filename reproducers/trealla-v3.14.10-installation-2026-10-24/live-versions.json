@@ -1,0 +1,17 @@
+{
+  "3060": {
+    "web_prolog": "trealla-port",
+    "trealla": "3.14.10",
+    "protocol": 1
+  },
+  "3061": {
+    "web_prolog": "trealla-port",
+    "trealla": "3.14.10",
+    "protocol": 1
+  },
+  "3062": {
+    "web_prolog": "trealla-port",
+    "trealla": "3.14.10",
+    "protocol": 1
+  }
+}

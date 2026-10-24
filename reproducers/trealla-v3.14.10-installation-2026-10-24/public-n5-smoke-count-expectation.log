@@ -1,0 +1,9 @@
+Promise once live forwarding, full slices, offset, sharing and failure/error on http://localhost:3060: passed
+RPC once live checks on http://localhost:3060: passed
+public HTTP paging, once, promise retry, sharing and shared database: ok
+spawned(2527564402@'http://localhost:3060')
+first_answer(success(2527564402@'http://localhost:3060',[a,b],true))
+next_answer(success(2527564402@'http://localhost:3060',[c],false))
+timeout_answer(success(2527564402@'http://localhost:3060',[waiting],false))
+worker_answer(success(2527564402@'http://localhost:3060',[fast],false))
+supervisor_answer(success(2527564402@'http://localhost:3060',[[specs-0,active-0,supervisors-0,workers-0]],false))

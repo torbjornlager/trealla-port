@@ -1,0 +1,12 @@
+[
+  {
+    "name": "public-n5-smoke",
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.14.10/tpl",
+      "-g",
+      "consult('/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/trealla-v3.14.10-installation-2026-10-24/public-smoke.pl'),(catch(public_update_smoke:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 1,
+    "seconds": 4.994
+  }
+]

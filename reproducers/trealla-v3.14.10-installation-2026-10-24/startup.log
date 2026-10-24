@@ -1,0 +1,5 @@
+Node listening on port 3061 (profile actor, sandbox blacklist, auth open)
+node: error handling request: error(unexpected_eof,node_http_request/5)
+Error: syntax error, near '!', operator expected, Deployment/shared_db_actor_common.pl:14
+Node listening on port 3062 (profile actor, sandbox blacklist, auth open)
+Node listening on port 3062 (profile actor, sandbox blacklist, auth open)

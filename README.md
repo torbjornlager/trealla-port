@@ -2,8 +2,8 @@
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
-(currently tested on v3.13.10; earlier actor/RPC work was also tested on
-v2.99.12, v2.99.6, and v2.97.13).
+(currently tested on v3.14.10; earlier actor/RPC work was also tested on
+v3.13.10, v2.99.12, v2.99.6, and v2.97.13).
 
 The [Web Prolog language manual](https://github.com/torbjornlager/trinity-demonstrator/blob/main/web/manual.html)
 is the single shared API reference for all nodes. This README is the Trealla
