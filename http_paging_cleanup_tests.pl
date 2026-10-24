@@ -14,13 +14,26 @@ actors:hook_spawn_reserved(Pid,_) :-
     assertz(http_paging_cleanup_tests:produced(Pid)).
 
 run :-
+    page_stage(startup_failure_begin),
     startup_failure,
+    page_stage(startup_failure_end),
     forall(member(Stage,[skip,collect,lookahead]),interruption(Stage)),
+    page_stage(cached_interruption_begin),
     cached_interruption,
+    page_stage(cached_interruption_end),
+    page_stage(handoff_begin),
     handoff,
+    page_stage(handoff_end),
+    page_stage(eviction_policy_begin),
     eviction_policy,
+    page_stage(eviction_policy_end),
+    page_stage(terminal_answers_begin),
     terminal_answers,
+    page_stage(terminal_answers_end),
+    page_stage(execution_timeout_begin),
     execution_timeout,
+    page_stage(execution_timeout_end),
+    page_stage(final_cleanup_begin),
     forall(produced(Pid),\+actors:actor_thread(Pid,_)),
     \+node:http_page_claim(_,_),
     writeln('HTTP paging cleanup: all regressions passed').
@@ -35,6 +48,7 @@ startup_failure :-
 % Block the actual producer at different points in the paging protocol, then
 % interrupt its request thread. No sleeps or simulated collector are used.
 interruption(Stage) :-
+    page_stage(interruption_begin(Stage)),
     self(Parent),
     spawn_runtime(http_paging_cleanup_tests:request(Parent,Stage),Request,
       [monitor(true),link(false),'$entry_context'(caller)]),
@@ -50,13 +64,19 @@ interruption(Stage) :-
     page_expect(request_terminated,(receive({down(Request,Request,true) -> true},[timeout(3),on_timeout(fail)]))),
     format('interrupted ~w reclaims producer before returning, application monitor retained: ok~n',[Stage]).
 request(Parent,Stage) :-
+    page_stage(request_enter(Stage)),
     (Stage==skip -> Offset=1;Offset=0),
     catch(node:compute_answer(http_paging_cleanup_tests:solutions(Parent,Stage,X),X,Offset,1,_),
-      Error,send(Parent,request_error(Error))).
+      Error,(page_stage(request_caught(Stage,Error)),
+             send(Parent,request_error(Error)),
+             page_stage(request_error_sent(Stage,Error)))),
+    page_stage(request_returned(Stage)).
 solutions(Parent,lookahead,X) :- !,
     (X=first;blocked(Parent),X=second).
 solutions(Parent,_,X) :- blocked(Parent),X=first.
-blocked(Parent) :- self(Pid),send(Parent,page_started(Pid)),receive({continue -> true}).
+blocked(Parent) :- self(Pid),page_stage(producer_started(Pid)),
+    send(Parent,page_started(Pid)),page_stage(producer_wait_begin(Pid)),
+    receive({continue -> true}),page_stage(producer_wait_end(Pid)).
 
 cached_interruption :-
     Goal=member(X,[cache_a,cache_b,cache_c]),
@@ -122,11 +142,13 @@ eviction_policy :-
 % stage instead of returning an unlabelled failure to the test runner.
 :- meta_predicate page_expect(+,0).
 page_expect(Check,Goal) :-
+    page_stage(check_begin(Check)),
     ( catch(call(Goal),Error,
         (page_failure_snapshot(exception(Check,Error)),throw(Error))) -> true
     ; page_failure_snapshot(failed(Check)),
       throw(page_assertion_failed(Check))
-    ).
+    ),
+    page_stage(check_end(Check)).
 
 page_failure_snapshot(Check) :-
     nb_getval('$paging_test_case',Case),
@@ -153,3 +175,8 @@ page_failure_snapshot(Check) :-
     writeq(cache_snapshot(CacheState)),nl,flush_output,
     page_probe_step(done).
 page_probe_step(Step) :- writeq(snapshot_step(Step)),nl,flush_output.
+
+% Test-only timestamped stages. No extra messages, waits or runtime hooks.
+page_stage(Stage) :-
+    get_time(Time),thread_self(Thread),
+    writeq(paging_stage(Time,Thread,Stage)),nl,flush_output.

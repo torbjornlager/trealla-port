@@ -1,0 +1,6 @@
+{
+  "original_sha256": "21f779d7e12fb5845683927e93e513c85dccae8819d532e00266aa21ce6b8e60",
+  "diagnostic_sha256": "9d33bf0035087bd247cf051afc48237d98e7caae2f0edc3681e39f7cd55dc0e0",
+  "reversing_diagnostic_edits_restores_original": true,
+  "assertions_and_timeouts_unchanged": true
+}
