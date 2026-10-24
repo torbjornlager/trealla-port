@@ -1,0 +1,2620 @@
+[
+  {
+    "file": "001-c2s.bin",
+    "bytes": 1164,
+    "sha256": "809836fc240bfd5f0cae74accaded5073fa11c799a6663a17f864e81ee359aab",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 82,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "54305237f2c6800f64add12e921f5c3de3b21fc29654e8b0caaf94b89981a695",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_spawn"
+      },
+      {
+        "offset": 189,
+        "length": 149,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "f10213bdcceb3feac0de8d3a03b02934980d4909df7c69e47a603a672f898814",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_call"
+      },
+      {
+        "offset": 346,
+        "length": 135,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "b0b9aa0cae74c85d5ccc9dbc8ce5e52eacc37cc20f968deca79485167a1a1bf5",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_call"
+      },
+      {
+        "offset": 489,
+        "length": 44,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "906303e22d3d9c05b012ff9130ecde7efe4fba0c84b751388e1afec1339a89cd",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_next"
+      },
+      {
+        "offset": 539,
+        "length": 122,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "31bfee9be942405252e051365b13286738d129b851e42936629f00acb1e9451e",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_call"
+      },
+      {
+        "offset": 667,
+        "length": 87,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "60baf1dc1713417dad4eb9f379201a3a4076e5d75f6739e7d300c8a44aa4fbb0",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_call"
+      },
+      {
+        "offset": 760,
+        "length": 44,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "81c689e7ce0ee271ac279682d8f8e5e9d20c9b45c1b1e1d8fd00293b663ace87",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_halt"
+      },
+      {
+        "offset": 810,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "001-s2c.bin",
+    "bytes": 1187,
+    "sha256": "fe9b3b55d6ecdec13079aa0e878e72b0184d25936dd951e505872aa4cbabb748",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "b02148427b00967bddd1f054cc7eb9c6b64df026192d40b5054917ba9489da9b",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 174,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "c11b19b03e272b6615d595756555e896a1b4b7e4fc69b22d9e5524601ada0ae2",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 396,
+        "length": 130,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "8ee5ea1ccf5b5a2c43bd627c7b4935caa9078ecddccebdd8f08beb3685adba47",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 530,
+        "length": 108,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "fa4ca01f9e713517ff21a19270cb0dcd22928d78633c2123194eabf0331c6904",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 640,
+        "length": 162,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "95c008c60fe86df86745eb8d16e73c31140a606f2683533e7fe745374f41e91e",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "error"
+      },
+      {
+        "offset": 806,
+        "length": 35,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "0f35db996a89ec04d1ba41c9e13cf51cca1eff5944201f500df19cee33fcd65c",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "failure"
+      },
+      {
+        "offset": 843,
+        "length": 105,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "16a9c8e8774da34920557ac360d8a260c31cf7195982a57520d155ed65a9da46",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 950,
+        "length": 49,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "f9d4fd506b0fee7ee3f0d71db783b9b3dc34ca9afd595d7c857a1cc66eb7d687",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "halted"
+      },
+      {
+        "offset": 1001,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "002-c2s.bin",
+    "bytes": 1778,
+    "sha256": "03c067ead81a89c10974a36445c56f689e94744562bd4be7cba4a76ba5d8fba1",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "5a03f740df97003b1c9189b351e07721aa208c02918d7121d4cf823bda81eced",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 200,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "cfe1ff91a67bfa7f0e9b1c2234fc1ef7a4bda1a5f8dd7a9b1b8da1199987b3e8",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 260,
+        "length": 124,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "49d50420ba4c787a60fc99838f4cf96b3129cb0cdb503e6c1f29c31902b49e8e",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 390,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "b8461fc26f37ab2177dc255b4882688256550b33ff0dc74919809fb6fd043ba8",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 489,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "705de11fe7efc681bd0cbbd404d7335314ed90c9e1638bbed543ef8333e6a136",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 549,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "a8c9617ac133797e21a359bc062ed049b75750bfbf0e8938580ea28414b4beb6",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 648,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "f2f02700185d3edb3c27eeee14cd43c5bd191ba921dca57fbd55f97998cb7532",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 708,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "3de1e48c7c630cd5be931961305d9a93f022242b063e8ef5f70cb34e39b1a90f",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 807,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "f3090d86d2cc6ec750523f595b4048c6bddb0ed5baee5aa0427ca48670fbd6a9",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 867,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "f2177ff0e6f27a319c645d3582500977b4033a54ff65b650049addebcebc8edc",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 966,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "73a88a5fb11d5b37df25dd95bf305078dc5293f7a4b70d3ef799d267f0811f52",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 1026,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "3d87a89eb377e8e00f7bb5ab7d803e7e02fa1f7a3f16d214c9eba288857c8a91",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 1125,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "c4db3c24f73e04c67e794d902ad91ffbd3cb26f3be64732db36d3a9ac439b8cc",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 1185,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "00006daa9e63fa7fc0c5f8f7f93b6125b371f80e28464303cb8b91fee7792d24",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 1284,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "ea5f1340960dfa7f0af184ae687f215058f0853813e1febfd4faa1b372f8dcb2",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 1344,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "ba536d6dc8169794d0cba892c001c4a098f2cd886592c5241849ef84d30f34ab",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 1424,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "002-s2c.bin",
+    "bytes": 1532,
+    "sha256": "b6552d4e5278a9afc30d88db8e1a3985cf7626735f82ce2828b39d957e8b2a29",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "ca423c7bb97d310ea02aa30f8384126932af1dd03b64811bec6b0dedea7e8e60",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "a8f754148bb97e83f31efeca98f82fb069bc7946c814a6ab9551b52b2fe76243",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 285,
+        "length": 147,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "d895629235ecb7a94de1b2ef5595a03126ee493fdfe2ddd805954ece6bd43b46",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "error"
+      },
+      {
+        "offset": 436,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "a21f0462715155c824f29653a48e1e0368b79857a73e43c9af6a0bf093cbdb75",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 499,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "e3a2a51dbea71c608434580facfe81f0387ae2721e690a060aa03fb31ee59397",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 566,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "c19e8d604c06d6fca433ad5f5f643321f9d82b6201eeb1c3e168c507492ee970",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 629,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "74b70dff4f88191501d123582f57f57d2a2ff5a344236c98f33468c4b461f7aa",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 696,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "07608564aacf9cf8c75e238555f55442f76e8b4055abb8ebce691dff2c357835",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 759,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "7441bb54df05fbdaf9440650e5b912a8ea2e6db43706860022b4db29eec7f272",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 826,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "4d846d67b8f2581d88b2d51bc68b8758cdbbf52a02b2fd207ce5b084e0bdf18c",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 889,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "9a0de99717e404df86614d8aae2eb39992829b94e597e9680639d6e4fdbf1a57",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 956,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "c5e83fa6b9d836b02d2f3aed357ef56bc2772b04a9465a141be9cbe83efc3950",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 1019,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "c19e127c076a4b0d225e56f71f6ffc521b6d3166ba96c6a835a6238e610c23a7",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 1086,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "432d4b6d58ee00500d7ceb6062e819269248014dbf5543033e0b66fc776636c2",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 1149,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "0d8824750b6b82bc625cf32bbf832045d352635af52df8bba5a53e5cfc1ec5ab",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 1216,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "a170129f9c844fa1eab13e61ed1632513af3cf07104e11af93efb4de7515bdb4",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 1283,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "0355a47ebe0790ea444afe8c7344147f68ee778db107245f52ec37ddcf75e5d0",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 1346,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "003-c2s.bin",
+    "bytes": 1445,
+    "sha256": "736a5c05772e219beff348b3beb70f92310915174fa88acb2a5b4208db69ad58",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 109,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "0d2d61be2afab39076f147a585897a06460f67cfbc90be5cf852aa3fe3932558",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 216,
+        "length": 102,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "336456f86a1238de658f62dfc6f48ac82069bb4f5f6d85111b5515e73afe0650",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 324,
+        "length": 92,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "0d063d914fd6ef887c96e2bb4ed56d752b36eeb7369956d36b08822c8500d714",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 422,
+        "length": 188,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "aea6c6dbd5bb511200895023e9c4d6c79299d96b0cb3a9365dc880d12fdd6d78",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 618,
+        "length": 102,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "471eb6fe3bcf343a13392ea73e3482c19f02e5e926dae59935055426406e3fbd",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 726,
+        "length": 102,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "c8d0db67d605e24017e604a7f304a7a0e27796e24c81fa01a68515fdc553402a",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 834,
+        "length": 92,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "43e8041ce254e52109265159d1fa1fb0636b95a213c9e2f20ffdde0d8dc49898",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 932,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "e9dadd2b01fc793ab594a0557b4c5fa7f584ac6fac1b82e965623e8dbbc372b8",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 1031,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "543ef1183873949bd4b1c25b69ff461d464e572e0c7003a420aa73eafc650ceb",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 1091,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "003-s2c.bin",
+    "bytes": 1505,
+    "sha256": "a038ea43d8c284820f8b048a54d9c4007193c2cc9aa09ca46adb2dd2ec672a44",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "74a5942e481a3e149bede294041a684ca1d340c74c47c53c9e44152d964edae4",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 147,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "6ee15e7d3681ec334bb5b29bb63e770e23eef2d3bc4a53e2c9bc0bbd955ccb57",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "actor_message"
+      },
+      {
+        "offset": 369,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "9f2908390319fa99ab71a5320e18f66247b49b8e130b58d05c5fe19c61800b44",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "actor_message"
+      },
+      {
+        "offset": 466,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "189244db7bfe119b81703f77717957eacb220df768def380f78e5f9cc0fda7a5",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 533,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "930ee0f5ea16d87e025d71175919310aa019553048e2f38be2db42168956d50f",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 596,
+        "length": 163,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "6745945ab3f87fd346a448c77bd6a97dda49822577df2f9a6cfc638c8faf28af",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "actor_message"
+      },
+      {
+        "offset": 763,
+        "length": 147,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "01057778d26721ada2cf90b377cb90b51645348f28271a137fc28e87f89f0bf1",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "actor_message"
+      },
+      {
+        "offset": 914,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "33d46b61c1a48b1fa0ad74fed511f039bdc560d15e5b15ff7a7580c8628ea7be",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "actor_message"
+      },
+      {
+        "offset": 1011,
+        "length": 109,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "aa133139a30aa569a8b2df9f1d5ca606a3356ae535a3145fd384991cdcb56f64",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 1122,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "a817b514e68bef985802690bb52ff4290098d6ed9cf8a5d2feef96cca1b30067",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 1189,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "157524f988b6602b728f51f751cdff5988f3bd2a1c7a7c86485574849029d688",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 1252,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "f571010ae7414552cd37369f0c19bd34dbfe7c9f985e9adb08bfbef545fd2a24",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 1319,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "004-c2s.bin",
+    "bytes": 713,
+    "sha256": "9175e6031b8e8db5a78b88d3d715a87aea5aeaa2a3134e378f3ecec4f62a55b0",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "47bcaac2fb84d020459cd0f7437fc7739edcef2369e73f8930505c9a995d5613",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 200,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "4ebd0e10eaa4eee9c84ef96449879fa9ebbaf2d99671b912186b845ee280cf00",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 260,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "afd0a6f9c67b0b832e4b5662c9465d4cb4766e832c86fcdc83201f0aee23b0b6",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 359,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "004-s2c.bin",
+    "bytes": 534,
+    "sha256": "052a1c50d43457510af7d75fd1de22dbd85e027322b738dfa202a77f63c9462d",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "bac3a1776bec196310c31bcf71aa284e0edd2591f256832ec646b3447205f6a6",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "c319388fc0d5751a00c445a6962364dfd7c0e8d08d0f91cbc2fc8e3d4f3b6e46",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 285,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "4efc0a8f6ae32a27b205b8e1d642cd703d1d844a37bf51013fbbd9585664d792",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 348,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "005-c2s.bin",
+    "bytes": 677,
+    "sha256": "6b90d34db3462cb744c947f54aee186be1535bf307167e637b1ac7b589a15911",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "b8461fc26f37ab2177dc255b4882688256550b33ff0dc74919809fb6fd043ba8",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 200,
+        "length": 57,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "6e6bf45f66f6f55b3a75e5e32cbd054e63580f69be63426133c6027755f185eb",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 263,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "5e58263d0e48b80b11f1656fbe6286c1bc740973f58636b60aab701fb3e5b6e0",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 323,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "005-s2c.bin",
+    "bytes": 538,
+    "sha256": "a8494d5e077f9507a8083831dde98a645b4a4bfa1c10e414b6796b9b16e76ed9",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "0909181ad6287de645a153658146b843dd17429438629bd3b91bfe76c0188200",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "1556df92e7540395b6c10309beaf1b776e4b6d4d01e1908acd5404b1ff1dadc6",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 285,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "5e418460f644514fc5935f85b74dfbb25b26f969a2ea28194d861ed3eb81a62b",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 352,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "006-c2s.bin",
+    "bytes": 4875,
+    "sha256": "b5b0520c371487b8aad7c748ffb773c2e32ef96442256d119e5bca91bbb97971",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 82,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "54305237f2c6800f64add12e921f5c3de3b21fc29654e8b0caaf94b89981a695",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_spawn"
+      },
+      {
+        "offset": 189,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "f413bd8e16de49139ce59501f5e2427df844d4fefe2214289c26b6cf7532f494",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 269,
+        "length": 146,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "bce4541307711cfb787ec1a496732152b883033df42a223de261eba9a3c2f2ce",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 423,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "3299eca57f08a0d4fd4810e77eef1a91641e3e362f66ba516ca0ae05fd63404f",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 505,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "11d73328bd18aaa36389e8620c5296f7ca3a2bb21de85f6ed75a90eee6358f14",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 585,
+        "length": 128,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "674f7d2f162695bf5fcfe998a98b65389ebd5d48491719f23b7c76da2e0dba58",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 721,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d789a50bfb9d61f66259047b2b57bba2cf338f52dde00c06abfc106af0bae7ab",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 803,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "16dfe1cbaad43af4cc8342d60b3263b88f99df892f411fce74689bbd2d55cfc6",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 883,
+        "length": 85,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "4c6f97b9f9a7abc9c12bcaa63e1821f2423f62757bcd51618da17a54c92b6fe2",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 974,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "4c5dc8d4e2a7f5fff194ceb2702f3e5f997db237ef40d1cd8cfeec7ee98c0da8",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 1056,
+        "length": 44,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "ee80496a53f7716b72cf7754d820c4eff674cf69c75d34c4dab2c97af57ec1a6",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_next"
+      },
+      {
+        "offset": 1106,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "4d5a81ef79286b3a8622b81e8ad51679b58d39e0052dd5cbf0a3d658e7681c82",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 1186,
+        "length": 90,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "73ab07aa48c70c2f29085054fe1342785251f04a5ccd1c5d1fba5340f1a62ad2",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 1282,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "90c7b45dea950d7edef49f50fcfee149d2e0921421e15dcb0459ad202269d1d4",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 1364,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "f5a8ba2983c3de31461965a3c96a0b647f3ec45cf77930ec680d67af680a50db",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 1444,
+        "length": 98,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "3b2183b6c9ed28faa0ba73550b757c2b9842604ce78ca506b6ee78c08f92c17e",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 1548,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "99badc81bd6cb0f2a278e9b0e209c2efde9e526629ffabbbf0703236274828ac",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 1630,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "ca5652abf539e3763e0b4fb402bf349207711fa623e7f8e6b5b092420c636b24",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 1710,
+        "length": 121,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "20ba1d9723bfe62314994bd3f6f598ad751c01b377dc39c7ba51778a434a1808",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 1837,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "6863d39d6a41f9f1dedba6251bd30e174751350243ce6ded15a2e40e84073d3b",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 1919,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "540adcd0d374d184d4ca29dc6c9748f0cbafe7fd6d28d75f4bdd896ea33f6ce1",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 1999,
+        "length": 109,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "dbfc3834c21d0c0098be39f24ea2d7b558695339d0ccccb9148cac18ec2a419d",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 2114,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "4b3e82113c8e8613cde0e4574cf931b3c632099f69a1fc1cfd000b87bc2ed919",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 2196,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "4a29db3bd989581863f2ecbccb64254de93322b2c7588fa8c44adbfab51aa107",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 2276,
+        "length": 97,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "85c3cf863c3a400eabdc4f7ddcc920da698d9d9fa0f0bb51e361fa9683c4cd08",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 2379,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "57cfb27ef18a7e2ba3310f6d7beb31ca5f991503212e7aa14c3f757cbceb86c1",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 2461,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "898437f530085a2b9c75d091fe01c13cae2a0610b1f9d2d85723666b0f2e8f26",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 2541,
+        "length": 97,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "a0d862be675f690be9f4856987609057370f1e6f21ac8f613894d0dbce864f5e",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 2644,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "93665ce1948647ac8d6fd218f5db1def6f8068c756504dc8141bd45071db8a2d",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 2726,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "7b6979692ce7703f1728572b959ba9f6f82e4d57450fe344d7477c85e4e1327b",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 2806,
+        "length": 90,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "e3dbbff586bda77c642d5a81acc4977cd19d9160c922e9ce78bf269d9359e407",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 2902,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "5cbb888bcfe7cab68513961152d96ae39e21717e3ec1a034c1ff799e75b2fef7",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 2984,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "cade9fc24c48936ec3e1c468e07e6f8b13c3fa87d911e77d17fb93b05434f744",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 3064,
+        "length": 103,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "41f33520482d315c3c1bb1b7f13b12259af6577a6e0ffb7c34461b4fcf5a3e2a",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 3173,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "3c1438a98ee84eb5272165890bc85bfcca60b051f892812b1b50caebde8d076a",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 3255,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d993a52a06dcead8ec3bd90a47a4c1b0a3e634d9131aa40d0bfb47a3445cbad9",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 3354,
+        "length": 57,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "07c4b2917f03a0e3f044e40dedbcc601fd6b35f56dfceb61713d556d32761e03",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 3417,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "39554f847cf0a007fba0a65999c214e928a08be9b23e7225fc6e9eb42ce7ed48",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 3497,
+        "length": 90,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "fa5919f0538518306dde594675632db94d5d30a5ec49c322017c3189bd8d90ac",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 3593,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "0ae98944d8309c029031e437ae9d29ad0dacfb2f4ec5be43358c3358128830dc",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 3675,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "df81e12380e17968aa072f5bb8c144ab0798a5e509f237d59660748f6e363a3a",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 3735,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "99ac3de26aeb645f3a7112c3923d3f8713e97337957fda772eb9c177f6d380fc",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 3815,
+        "length": 107,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "aaeaf45c59d4f55d68994b6e8af0303a53b9ecd13ece6cd540980ec76a8b1913",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 3928,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "6315c2fbe820d3052b7b92f8a28745978b4211f8082940f351b00ce7880c8593",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 4010,
+        "length": 82,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "a86160d4741bca1b1092c9d2fc57fb353eba3c1d5cd3e693fd40265197f686ad",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_spawn"
+      },
+      {
+        "offset": 4098,
+        "length": 57,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "a3a62801d8f78550328c10255fe021815e3f344e970cd50853b17ba9dfff6df5",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 4161,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "9b7d3c7244a8763f0a96f8a82af17ca1b26bc5f3b38d0f7dcaa3c9119cdc4d72",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 4241,
+        "length": 85,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "e9862a6445710a120a702509427e514dfb6803b5c744ebbb87a8be6df6c4e060",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 4332,
+        "length": 51,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "6a4aebf212f1362e1e775dc9c06e94d78b77f2b31e077ad8904bbd8a9db13b8a",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "exit"
+      },
+      {
+        "offset": 4389,
+        "length": 76,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "ac3f722c90fef3ff52859e56298bea6ae4b27ec4fdf63d24a417a5c3a983014f",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "demonitor"
+      },
+      {
+        "offset": 4471,
+        "length": 44,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "9ce1ed909febd6b38b6e7d6aa8e71567571e7e1db7f1731a3d9d98539b846589",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_halt"
+      },
+      {
+        "offset": 4521,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "006-s2c.bin",
+    "bytes": 3018,
+    "sha256": "18089d311f3712339ead47103be30a4e94dec3801024cd38b36d53bd39616441",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "5ff66eac72ba67480850e9394812b9df411855174e02b3a1dcdf2cd7e244e8a5",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 201,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "0d8ad739b8d736a8617feeced21183a8872b360aa36efe763a3d05e487c3e9da",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 423,
+        "length": 130,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "b117fd50053da0ef82d0d8b6ec3a5e02267b766d610e95d3e856c0e0ad6b7e62",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 557,
+        "length": 130,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "b40c85a25112c8b5c29c29b82167c7894d8c54f1069c330aed32d89b4b632b80",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 691,
+        "length": 92,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "aeaeba045403006ed5cd7f2b53f90f158f16594cf41ac5d1c8a42a2642719ffb",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 785,
+        "length": 81,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "460db3ca721a2d0798a1edddc9414815ef6831823404b9c5c457a1c061f58740",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "failure"
+      },
+      {
+        "offset": 868,
+        "length": 153,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "1735f7e9f816972a6d26fc6466cd88757d0fab567ead86b285e5b9ad7ea1d475",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "error"
+      },
+      {
+        "offset": 1025,
+        "length": 135,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "18b008f123d580a59acc7021e99c855125862cb93c9a8f3903c48ae552b79e05",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 1164,
+        "length": 139,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "8dd2f418f6d33814b937592ed6d18273f91aeb9f0103691be342380fbfd34621",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 1307,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "502f7bb3772c9319263cf073d1edba2645a45fecd34f17b236a4171a22c491f2",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 1462,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "3b39afbb7bd652163c47c812ba5c27b33a95d2b65ac1648eaa759e5c3879c043",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 1617,
+        "length": 137,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "7689b76950a3a53e18dd0c8490df284acd32abf163a3f34b91d5cb3e9bb6537a",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 1758,
+        "length": 133,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "0ca4b6f630bf30b5234592684d90bbcaf22a6aacd12ef3dcb9803d254e1f9a4b",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 1895,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "f005a3865ba0b5518197e8c156ad9d01517ca0c5bd0d33954d182773a352f28f",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 1958,
+        "length": 137,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "2e1f5f746e82225f8e84547430ea33d158586d9d340ffa81842744039a5b0199",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 2099,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "3e1bca8959b1a8fc85d6eb353b6641d81dd5d51d2fae55e1e00f378800d227b9",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 2166,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "e67e93675b98216518ce6201942d6505d424198827a351869930ec8237e39ac4",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 2233,
+        "length": 141,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "58127a7d25f4ec14ec4f1005c27a047ed5d2d9f204617ac024e1d5a470543268",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "success"
+      },
+      {
+        "offset": 2378,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "35a0c48af63583ea524787ceb0ef7c3952bf134af336fe066af52d0b67a4aeea",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 2441,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "f9de1a19e26d5cee3486410e556cacd3c61e6ddcaba5ff01bd0003e17f48efa9",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 2508,
+        "length": 97,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "249347235c60bf2b1b766283ac722ecaf78db5b8567f6a207903fcd925b79ea4",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 2607,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "ed9268ae89d948c700c1c5136aaab8075f3ad84da2335587146aac6e6bd64f3c",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 2674,
+        "length": 105,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "c32ed7e3df38c1e5823f418847578c12e6ef8b8df254ab91fcace981e2a72ee6",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 2781,
+        "length": 49,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "1c9ddaf06a23e036e062423edb3e3eaa9448f3cc7ec9b20462fdf9a4309cdebf",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "halted"
+      },
+      {
+        "offset": 2832,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "007-c2s.bin",
+    "bytes": 677,
+    "sha256": "23a82eafee9c9f29b9680e16c93cd46aec0e069317dbaa7c3332f321ddc0eed5",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 93,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "43002121ef4d1c9e7af0c13d0cf2f9a701c2edc2531533e0afe3ce030d9b3565",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawn"
+      },
+      {
+        "offset": 200,
+        "length": 57,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "bad56df4eadb9a4529fd23d9a5ea9b66b295bafa87990ec048b4930003445710",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 263,
+        "length": 54,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "7904fa82c9a248bf2310a30196f2b9c62110fa03b8d43ebdc011e90b45750de5",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 323,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "007-s2c.bin",
+    "bytes": 538,
+    "sha256": "81753889a028df5f23df960fb70013de60863b99a86ca43e5376844bf02dc85a",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "0952bad3ddf90c67d7aa8cacf02f4efc954e1e6ff13bddbc5bae7738c9e4d45d",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "0bfaf59027f190bd5592eca8b8f079238c73cb317ff70998e5c8065c998cd09b",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 285,
+        "length": 65,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "493286a4132170ff2f0846f6bce2313cbdc2467cc2abc326e31795480148106c",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "down"
+      },
+      {
+        "offset": 352,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "008-c2s.bin",
+    "bytes": 714,
+    "sha256": "d36b8ee368d5e62f41380750cb3453668dc4e5d6ba02a475ecbb1422418a7cc8",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 82,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "b575dc55a41e6613be4db2282bf50607a163a9362fdca900ba265b6f355e07dc",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_spawn"
+      },
+      {
+        "offset": 189,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "e14c668b2f77fef66c67022ac1b7b215370778f01bd1713d9bf91cb5eae985a7",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 269,
+        "length": 85,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "ade7768e8ab60300daed6bd644b602044b0989f316bf84dda41c67f705cea558",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 360,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "008-s2c.bin",
+    "bytes": 404,
+    "sha256": "2e2bbc890da97c62c5e6842281a256299d0e62b6efe5d86e03a77a5b71edd64b",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "31427fd7537c2905a5719200692f56a012cb4b2e843fe5a30cf3f296bbdb4f85",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "009-c2s.bin",
+    "bytes": 714,
+    "sha256": "120ec0c86bc6605e2a73e4ad00a11331aa9db5fcf34aade1ccd8355c16d81ef7",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 82,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "93f55b2d5fd3dca0285c8f0c5141f40dccffe49b58ce2859218a3c1d9d5ffd19",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_spawn"
+      },
+      {
+        "offset": 189,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "ddab83bfe3813764b50c3b5690367a069382bdd6ded9f1562fcef0b7983c7fcd",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 269,
+        "length": 85,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "474fd712db07589d7debc07327683aa9eb82ceecbfd2fba3ab11dba3499968db",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 360,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "009-s2c.bin",
+    "bytes": 404,
+    "sha256": "f498ca4f8fea43d6ea837e92b1a6ce1b3a11de8bed732db57fb9dd3ee0f6009e",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "ce064d2f5f75663898f26d031870e07177983c265f3ebbcf8f1929dbc60f236d",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "010-c2s.bin",
+    "bytes": 714,
+    "sha256": "b3d014f3e55a2325151375ffea3b625b86a7af9fec58fa4b7beae584947753cc",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 82,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "76d6cb1af9391186b4d4d696d72bafd77e0ae62a6645cc29eebeb4ddb34c4bdf",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_spawn"
+      },
+      {
+        "offset": 189,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "5c226187d65ea6076b9fbf956d0cd226ba8f1e5d37975fe743e9c09db820608c",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 269,
+        "length": 85,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "70bfd5e1335062b1bcf37c6c37cf81e65ebf871b9c39e4001f24cbac1cf94752",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 360,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "010-s2c.bin",
+    "bytes": 404,
+    "sha256": "c09a3242f99b977680effd120e85372ecbade70f930d9b51a80757b4e0873023",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "cdc38a99c3a981487e8d3d0d4be93d67d1286e07639b566b076915399830d414",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "011-c2s.bin",
+    "bytes": 714,
+    "sha256": "beb835f9c428f2b1c11474632994018e9f28d77ded818b244c26fcf39f291bcb",
+    "first_line": "GET /ws HTTP/1.1",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 95,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "d36a81e5fe20cf773e1ef87c59ad36cc3184972be1418d211e1e258b153a0354",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_hello"
+      },
+      {
+        "offset": 101,
+        "length": 82,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "3b7c9cd85c5b6b82b801739f4282c6178e710f16d66a17fa0b95a42ed7ee85c5",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "toplevel_spawn"
+      },
+      {
+        "offset": 189,
+        "length": 74,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "ebe9b2ac9490a66ab2a53e4be418b3a3371a37a646bade06f1fb35cfdfbb803e",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "monitor"
+      },
+      {
+        "offset": 269,
+        "length": 85,
+        "opcode": 1,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "7e043591188b8ce367f9189c7263705edab7c536c25a8a4eb3edc2a854feae09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "send"
+      },
+      {
+        "offset": 360,
+        "length": 8,
+        "opcode": 8,
+        "fin": true,
+        "masked": true,
+        "payload_sha256": "450a3eaec69342d255dcf12e9b6fb3c9ed10cf4bcb68875ac414f7fad417da1c"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  },
+  {
+    "file": "011-s2c.bin",
+    "bytes": 404,
+    "sha256": "003f1925dde52d9d85f43b33bf7b584b6ba38be1a796aa29fea426cd4189e69a",
+    "first_line": "HTTP/1.1 101 Switching Protocols",
+    "classification": "websocket",
+    "frames": [
+      {
+        "offset": 0,
+        "length": 151,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "dfe431548b558ddf7a835f45dda6d0d69e5259cd13ad3968273175c5c1903e09",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "transport_welcome"
+      },
+      {
+        "offset": 155,
+        "length": 61,
+        "opcode": 1,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "fea0fe00a327a40f81a097a0c203ded0b5ceff6b2d0984a3ccbd1702a05f56ec",
+        "utf8": "valid",
+        "json": "valid",
+        "command_or_type": "spawned"
+      },
+      {
+        "offset": 218,
+        "length": 5,
+        "opcode": 8,
+        "fin": true,
+        "masked": false,
+        "payload_sha256": "54f181888b66103f729f5a260a49e958ad3f7a2bf8a8fae2dccbae711fa4619a"
+      }
+    ],
+    "errors": [],
+    "tail": null
+  }
+]

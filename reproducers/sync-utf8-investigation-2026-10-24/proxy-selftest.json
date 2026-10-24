@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "bytes_each_direction": 5120,
+  "includes_all_byte_values": true,
+  "half_close_preserved": true,
+  "client_sha256": "4345361085c730756d843f13849c50a996fe2f1fac3a7ac05fb063bb743a423e",
+  "server_sha256": "8ce3289e0b90d755322687abf7798a73354dbf8a1e67288797ffc14c2c13dca9"
+}

@@ -1,0 +1,582 @@
+[
+  {
+    "label": "captured",
+    "command": [
+      "sh",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/sync-utf8-full-sequence-2026-10-24/captured.sh",
+      "interop"
+    ],
+    "port_base": 48760,
+    "exit_code": 0,
+    "seconds": 113.803,
+    "groups": [
+      {
+        "label": "Trealla client -> SWI WebSocket",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla WebSocket",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla client -> SWI protocol fixture",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla outbound client -> legacy fixture",
+        "exit_code": 0
+      },
+      {
+        "label": "unsupported synchronous peer remains asynchronous",
+        "exit_code": 0
+      },
+      {
+        "label": "synchronous peer disconnect",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla connection thread parity",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla reconstructed asynchronous queries",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla canonical and legacy asynchronous answers",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla header answer negotiation and isolation",
+        "exit_code": 0
+      },
+      {
+        "label": "browser caller correlation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla allowlisted source URI",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI statechart execution -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI browser terminal -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI nested toplevel binding -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI promise/yield -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "label": "Unicode remote answers: Trealla -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Unicode remote answers: SWI -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Public remote demonitor -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Termination notifications -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Explicit termination notifications -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "General remote toplevel creation -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Public synchronous wrappers -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Public runtime properties (swi_native)",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla first-slice RPC -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "HTTP first-slice responses -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla remote statechart text/URI -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla statechart invocation -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla -> SWI actor semantic contracts",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI -> Trealla actor semantic contracts",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla canonical outbound -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla atomic remote named startup -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla supervisor halt -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla remote alias cleanup -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla synchronous outbound -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI synchronous calls -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Public remote demonitor -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Termination notifications -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Explicit termination notifications -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "General remote toplevel creation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Native SWI first-slice RPC -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Unicode remote answers: SWI -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Unicode remote answers: Trealla -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Native SWI statechart constructor -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla remote statechart text/URI -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla statechart invocation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI public local statechart invocation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla distributed source isolation",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla validated remote toplevel wrapper",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla explicit and transparent spawn validation",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla validated RPC and promise HTTP options",
+        "exit_code": 0
+      },
+      {
+        "label": "Public synchronous wrappers -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Public runtime properties (trealla_native)",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla first-slice RPC -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "HTTP first-slice responses -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla promise ownership over WebSocket and HTTP",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla WebSocket promise disposal and client isolation",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla WebSocket namespace teardown",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla remote supervisor receiver",
+        "exit_code": 0
+      },
+      {
+        "label": "Native SWI delegated lineage -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Native SWI supervisor constructor -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla atomic remote named startup -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla remote alias cleanup -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla canonical outbound -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla synchronous outbound -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI browser terminal -> remote Trealla actor",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI auth and ownership -> private Trealla node",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla IP gate and auto-ban",
+        "exit_code": 0
+      }
+    ],
+    "utf8_warnings": []
+  },
+  {
+    "label": "direct",
+    "command": [
+      "sh",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/sync-utf8-full-sequence-2026-10-24/direct.sh",
+      "interop"
+    ],
+    "port_base": 49760,
+    "exit_code": 0,
+    "seconds": 112.573,
+    "groups": [
+      {
+        "label": "Trealla client -> SWI WebSocket",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla WebSocket",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla client -> SWI protocol fixture",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla outbound client -> legacy fixture",
+        "exit_code": 0
+      },
+      {
+        "label": "unsupported synchronous peer remains asynchronous",
+        "exit_code": 0
+      },
+      {
+        "label": "synchronous peer disconnect",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla connection thread parity",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla reconstructed asynchronous queries",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla canonical and legacy asynchronous answers",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla header answer negotiation and isolation",
+        "exit_code": 0
+      },
+      {
+        "label": "browser caller correlation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla allowlisted source URI",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI statechart execution -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI browser terminal -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI nested toplevel binding -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI promise/yield -> Trealla protocol node",
+        "exit_code": 0
+      },
+      {
+        "label": "Unicode remote answers: Trealla -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Unicode remote answers: SWI -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Public remote demonitor -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Termination notifications -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Explicit termination notifications -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "General remote toplevel creation -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Public synchronous wrappers -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Public runtime properties (swi_native)",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla first-slice RPC -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "HTTP first-slice responses -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla remote statechart text/URI -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla statechart invocation -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla -> SWI actor semantic contracts",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI -> Trealla actor semantic contracts",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla canonical outbound -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla atomic remote named startup -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla supervisor halt -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla remote alias cleanup -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla synchronous outbound -> SWI",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI synchronous calls -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Public remote demonitor -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Termination notifications -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Explicit termination notifications -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "General remote toplevel creation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Native SWI first-slice RPC -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Unicode remote answers: SWI -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Unicode remote answers: Trealla -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Native SWI statechart constructor -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla remote statechart text/URI -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla statechart invocation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI public local statechart invocation -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla distributed source isolation",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla validated remote toplevel wrapper",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla explicit and transparent spawn validation",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla validated RPC and promise HTTP options",
+        "exit_code": 0
+      },
+      {
+        "label": "Public synchronous wrappers -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Public runtime properties (trealla_native)",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla first-slice RPC -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "HTTP first-slice responses -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla promise ownership over WebSocket and HTTP",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla WebSocket promise disposal and client isolation",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla WebSocket namespace teardown",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla remote supervisor receiver",
+        "exit_code": 0
+      },
+      {
+        "label": "Native SWI delegated lineage -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Native SWI supervisor constructor -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla atomic remote named startup -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla remote alias cleanup -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla canonical outbound -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "Trealla synchronous outbound -> Trealla",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI browser terminal -> remote Trealla actor",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI auth and ownership -> private Trealla node",
+        "exit_code": 0
+      },
+      {
+        "label": "SWI client -> Trealla IP gate and auto-ban",
+        "exit_code": 0
+      }
+    ],
+    "utf8_warnings": []
+  }
+]

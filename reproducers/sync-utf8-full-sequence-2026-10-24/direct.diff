@@ -1,0 +1,33 @@
+--- tools/test.sh
++++ direct.sh
+@@ -16,7 +16,8 @@
+ 
+ set -u
+ 
+-ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
++ROOT=/Users/torbjorn.lager/Documents/GitHub/trealla-port
++SUITE_FAILURE=0
+ TPL=${TPL:-tpl}
+ SWIPL=${SWIPL:-swipl}
+ TEST_TIMEOUT=${TEST_TIMEOUT:-30}
+@@ -92,11 +93,12 @@
+     wait "$watchdog_pid" 2>/dev/null || true
+ 
+     if [ "$command_exit" -eq 137 ] || [ "$command_exit" -eq 143 ]; then
+-        fail "$test_label timed out after ${TEST_TIMEOUT}s"
++        printf 'ACCEPTANCE_TIMEOUT|%s|%s\n' "$test_label" "$command_exit"; SUITE_FAILURE=1
+     fi
+     if [ "$command_exit" -ne 0 ]; then
+-        fail "$test_label failed with exit status $command_exit"
++        printf 'ACCEPTANCE_FAILURE|%s|%s\n' "$test_label" "$command_exit"; SUITE_FAILURE=1
+     fi
++    printf 'ACCEPTANCE_RESULT|%s|%s\n' "$test_label" "$command_exit"
+ }
+ 
+ run_tpl_goal() {
+@@ -549,3 +551,5 @@
+ esac
+ 
+ printf '\nALL %s TESTS PASSED\n' "$MODE"
++
++exit "$SUITE_FAILURE"

@@ -1,0 +1,3802 @@
+[
+  {
+    "label": "pinned-isolated-01",
+    "trial": 1,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 53692,
+    "proxy_port": 53693,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53693),sync_explicit_close_test(53693)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826103.016222,
+      "ended_at": 1792826106.224279
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-01",
+    "trial": 1,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 53713,
+    "proxy_port": 53714,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53714),sync_explicit_close_test(53714)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826106.531102,
+      "ended_at": 1792826109.7431831
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-01",
+    "trial": 1,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 53734,
+    "proxy_port": 53735,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(53735)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826110.0440052,
+        "ended_at": 1792826112.396076,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(53735)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826112.396394,
+        "ended_at": 1792826114.8654022,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(53735)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826114.865791,
+        "ended_at": 1792826117.324702,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(53735)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826117.3249888,
+        "ended_at": 1792826119.7256918,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53735),sync_explicit_close_test(53735)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826119.726007,
+      "ended_at": 1792826122.893792
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-01",
+    "trial": 1,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 53768,
+    "proxy_port": 53769,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(53769)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826123.199511,
+        "ended_at": 1792826125.6019661,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(53769)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826125.6025548,
+        "ended_at": 1792826128.098529,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(53769)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826128.0990531,
+        "ended_at": 1792826130.6372821,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(53769)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826130.637882,
+        "ended_at": 1792826133.095668,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53769),sync_explicit_close_test(53769)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826133.0962949,
+      "ended_at": 1792826136.315923
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-02",
+    "trial": 2,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 53801,
+    "proxy_port": 53802,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53802),sync_explicit_close_test(53802)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826136.626027,
+      "ended_at": 1792826139.8154361
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-02",
+    "trial": 2,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 53821,
+    "proxy_port": 53822,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53822),sync_explicit_close_test(53822)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826140.115991,
+      "ended_at": 1792826143.3128462
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-02",
+    "trial": 2,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 53840,
+    "proxy_port": 53841,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(53841)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826143.6179478,
+        "ended_at": 1792826145.967829,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(53841)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826145.968145,
+        "ended_at": 1792826148.416826,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(53841)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826148.4171772,
+        "ended_at": 1792826150.906582,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(53841)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826150.90691,
+        "ended_at": 1792826153.323731,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53841),sync_explicit_close_test(53841)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826153.324078,
+      "ended_at": 1792826156.5409632
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-02",
+    "trial": 2,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 53876,
+    "proxy_port": 53877,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(53877)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826156.849445,
+        "ended_at": 1792826159.21344,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(53877)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826159.2137449,
+        "ended_at": 1792826161.704445,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(53877)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826161.7048,
+        "ended_at": 1792826164.206938,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(53877)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826164.207288,
+        "ended_at": 1792826166.604948,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53877),sync_explicit_close_test(53877)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826166.605321,
+      "ended_at": 1792826169.8196359
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-03",
+    "trial": 3,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 53909,
+    "proxy_port": 53910,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53910),sync_explicit_close_test(53910)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826170.128513,
+      "ended_at": 1792826173.3407202
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-03",
+    "trial": 3,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 53928,
+    "proxy_port": 53929,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53929),sync_explicit_close_test(53929)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826173.645298,
+      "ended_at": 1792826176.857452
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-03",
+    "trial": 3,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 53947,
+    "proxy_port": 53948,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(53948)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826177.1653771,
+        "ended_at": 1792826179.566889,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(53948)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826179.567627,
+        "ended_at": 1792826182.044151,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(53948)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826182.044497,
+        "ended_at": 1792826184.5070238,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(53948)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826184.50738,
+        "ended_at": 1792826186.916162,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53948),sync_explicit_close_test(53948)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826186.91648,
+      "ended_at": 1792826190.112702
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-03",
+    "trial": 3,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 53980,
+    "proxy_port": 53981,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(53981)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826190.419044,
+        "ended_at": 1792826192.773558,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(53981)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826192.773879,
+        "ended_at": 1792826195.2379541,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(53981)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826195.2383108,
+        "ended_at": 1792826197.7498848,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(53981)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826197.750582,
+        "ended_at": 1792826200.206871,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(53981),sync_explicit_close_test(53981)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826200.207218,
+      "ended_at": 1792826203.43342
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-04",
+    "trial": 4,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 54016,
+    "proxy_port": 54017,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54017),sync_explicit_close_test(54017)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826203.813793,
+      "ended_at": 1792826206.9824991
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-04",
+    "trial": 4,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 54037,
+    "proxy_port": 54038,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54038),sync_explicit_close_test(54038)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826207.289427,
+      "ended_at": 1792826210.514751
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-04",
+    "trial": 4,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 54056,
+    "proxy_port": 54057,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54057)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826210.818675,
+        "ended_at": 1792826213.175352,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54057)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826213.175761,
+        "ended_at": 1792826215.650733,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54057)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826215.651131,
+        "ended_at": 1792826218.157258,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54057)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826218.157608,
+        "ended_at": 1792826220.559399,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54057),sync_explicit_close_test(54057)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826220.5597508,
+      "ended_at": 1792826223.738461
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-04",
+    "trial": 4,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 54090,
+    "proxy_port": 54091,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54091)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826224.0476968,
+        "ended_at": 1792826226.446513,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54091)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826226.447082,
+        "ended_at": 1792826228.967285,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54091)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826228.967693,
+        "ended_at": 1792826231.485065,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54091)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826231.4852831,
+        "ended_at": 1792826233.895618,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54091),sync_explicit_close_test(54091)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826233.895966,
+      "ended_at": 1792826237.1126761
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-05",
+    "trial": 5,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 54128,
+    "proxy_port": 54129,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54129),sync_explicit_close_test(54129)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826237.472241,
+      "ended_at": 1792826240.6668239
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-05",
+    "trial": 5,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 54148,
+    "proxy_port": 54149,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54149),sync_explicit_close_test(54149)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826240.961359,
+      "ended_at": 1792826244.1624708
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-05",
+    "trial": 5,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 54167,
+    "proxy_port": 54168,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54168)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826244.4656541,
+        "ended_at": 1792826246.816437,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54168)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826246.816746,
+        "ended_at": 1792826249.307404,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54168)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826249.3077152,
+        "ended_at": 1792826251.778317,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54168)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826251.778545,
+        "ended_at": 1792826254.184116,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54168),sync_explicit_close_test(54168)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826254.1847968,
+      "ended_at": 1792826257.382517
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-05",
+    "trial": 5,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 54201,
+    "proxy_port": 54202,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54202)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826257.690324,
+        "ended_at": 1792826260.052516,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54202)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826260.052885,
+        "ended_at": 1792826262.5168588,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54202)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826262.517461,
+        "ended_at": 1792826264.99984,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54202)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826265.000722,
+        "ended_at": 1792826267.455418,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54202),sync_explicit_close_test(54202)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826267.4614432,
+      "ended_at": 1792826270.677185
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-06",
+    "trial": 6,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 54235,
+    "proxy_port": 54236,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54236),sync_explicit_close_test(54236)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826270.9849138,
+      "ended_at": 1792826274.15697
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-06",
+    "trial": 6,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 54254,
+    "proxy_port": 54255,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54255),sync_explicit_close_test(54255)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826274.4620411,
+      "ended_at": 1792826277.673942
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-06",
+    "trial": 6,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 54273,
+    "proxy_port": 54274,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54274)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826277.9781618,
+        "ended_at": 1792826280.380457,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54274)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826280.381078,
+        "ended_at": 1792826282.84741,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54274)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826282.847643,
+        "ended_at": 1792826285.2963488,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54274)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826285.2966862,
+        "ended_at": 1792826287.733828,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54274),sync_explicit_close_test(54274)->halt;halt(1))"
+      ],
+      "exit_code": -11,
+      "started_at": 1792826287.7341802,
+      "ended_at": 1792826288.5690172
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": false
+  },
+  {
+    "label": "v3.14.10-prefixed-06",
+    "trial": 6,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 54300,
+    "proxy_port": 54301,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54301)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826288.862147,
+        "ended_at": 1792826291.254369,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54301)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826291.2547562,
+        "ended_at": 1792826293.756763,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54301)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826293.757152,
+        "ended_at": 1792826296.25692,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54301)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826296.2572958,
+        "ended_at": 1792826298.663959,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54301),sync_explicit_close_test(54301)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826298.664584,
+      "ended_at": 1792826301.872869
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-07",
+    "trial": 7,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 54333,
+    "proxy_port": 54334,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54334),sync_explicit_close_test(54334)->halt;halt(1))"
+      ],
+      "exit_code": -11,
+      "started_at": 1792826302.182184,
+      "ended_at": 1792826302.91545
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": false
+  },
+  {
+    "label": "v3.14.10-isolated-07",
+    "trial": 7,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 54346,
+    "proxy_port": 54347,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54347),sync_explicit_close_test(54347)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826303.203265,
+      "ended_at": 1792826306.4164999
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-07",
+    "trial": 7,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 54365,
+    "proxy_port": 54366,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54366)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826306.718168,
+        "ended_at": 1792826309.11713,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54366)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826309.117772,
+        "ended_at": 1792826311.574054,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54366)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826311.57435,
+        "ended_at": 1792826314.046895,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54366)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826314.047604,
+        "ended_at": 1792826316.454141,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54366),sync_explicit_close_test(54366)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826316.454504,
+      "ended_at": 1792826319.6526148
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-07",
+    "trial": 7,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 54399,
+    "proxy_port": 54400,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54400)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826320.029858,
+        "ended_at": 1792826322.419822,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54400)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826322.420228,
+        "ended_at": 1792826324.882425,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54400)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826324.882834,
+        "ended_at": 1792826327.359964,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54400)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826327.360356,
+        "ended_at": 1792826329.7612119,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54400),sync_explicit_close_test(54400)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826329.761438,
+      "ended_at": 1792826333.0256371
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-08",
+    "trial": 8,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 54435,
+    "proxy_port": 54436,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54436),sync_explicit_close_test(54436)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826333.409034,
+      "ended_at": 1792826336.615843
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-08",
+    "trial": 8,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 54455,
+    "proxy_port": 54456,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54456),sync_explicit_close_test(54456)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826336.923441,
+      "ended_at": 1792826340.13044
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-08",
+    "trial": 8,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 54474,
+    "proxy_port": 54475,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54475)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826340.439874,
+        "ended_at": 1792826342.790111,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54475)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826342.790452,
+        "ended_at": 1792826345.2794912,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54475)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826345.280137,
+        "ended_at": 1792826347.7633631,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54475)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826347.7638881,
+        "ended_at": 1792826350.1787689,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54475),sync_explicit_close_test(54475)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826350.179046,
+      "ended_at": 1792826353.39384
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-08",
+    "trial": 8,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 54507,
+    "proxy_port": 54508,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54508)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826353.698699,
+        "ended_at": 1792826356.1017652,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54508)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826356.102114,
+        "ended_at": 1792826358.566817,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54508)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826358.567335,
+        "ended_at": 1792826361.0977511,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54508)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826361.098346,
+        "ended_at": 1792826363.559461,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54508),sync_explicit_close_test(54508)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826363.560031,
+      "ended_at": 1792826366.820975
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-09",
+    "trial": 9,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 54541,
+    "proxy_port": 54542,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54542),sync_explicit_close_test(54542)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826367.1775832,
+      "ended_at": 1792826370.536392
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-09",
+    "trial": 9,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 54560,
+    "proxy_port": 54561,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54561),sync_explicit_close_test(54561)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826370.876139,
+      "ended_at": 1792826374.155155
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-09",
+    "trial": 9,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 54579,
+    "proxy_port": 54580,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54580)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826374.495877,
+        "ended_at": 1792826376.8864799,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54580)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826376.8870752,
+        "ended_at": 1792826379.4007099,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54580)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826379.401472,
+        "ended_at": 1792826381.864407,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54580)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826381.864825,
+        "ended_at": 1792826384.30749,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54580),sync_explicit_close_test(54580)->halt;halt(1))"
+      ],
+      "exit_code": -11,
+      "started_at": 1792826384.3082502,
+      "ended_at": 1792826385.149417
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": false
+  },
+  {
+    "label": "v3.14.10-prefixed-09",
+    "trial": 9,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 54606,
+    "proxy_port": 54607,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54607)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826385.461344,
+        "ended_at": 1792826387.864898,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54607)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826387.865128,
+        "ended_at": 1792826390.331361,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54607)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826390.331886,
+        "ended_at": 1792826392.859136,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54607)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826392.859814,
+        "ended_at": 1792826395.3062038,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54607),sync_explicit_close_test(54607)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826395.306688,
+      "ended_at": 1792826398.5647302
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-10",
+    "trial": 10,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 54641,
+    "proxy_port": 54642,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54642),sync_explicit_close_test(54642)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826398.9084108,
+      "ended_at": 1792826402.251667
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-10",
+    "trial": 10,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 54660,
+    "proxy_port": 54661,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54661),sync_explicit_close_test(54661)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826402.592584,
+      "ended_at": 1792826405.876804
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-10",
+    "trial": 10,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 54679,
+    "proxy_port": 54680,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54680)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826406.2051048,
+        "ended_at": 1792826408.604639,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54680)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826408.60539,
+        "ended_at": 1792826411.1146371,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54680)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826411.115246,
+        "ended_at": 1792826413.614878,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54680)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826413.615603,
+        "ended_at": 1792826416.039683,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54680),sync_explicit_close_test(54680)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826416.040395,
+      "ended_at": 1792826419.373999
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-10",
+    "trial": 10,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 54712,
+    "proxy_port": 54713,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54713)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826419.712328,
+        "ended_at": 1792826422.114732,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54713)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826422.115384,
+        "ended_at": 1792826424.6319098,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54713)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826424.6322508,
+        "ended_at": 1792826427.147946,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54713)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826427.148632,
+        "ended_at": 1792826429.618387,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54713),sync_explicit_close_test(54713)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826429.619049,
+      "ended_at": 1792826432.940305
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-11",
+    "trial": 11,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 54747,
+    "proxy_port": 54748,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54748),sync_explicit_close_test(54748)->halt;halt(1))"
+      ],
+      "exit_code": -11,
+      "started_at": 1792826433.283054,
+      "ended_at": 1792826434.0601768
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": false
+  },
+  {
+    "label": "v3.14.10-isolated-11",
+    "trial": 11,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 54760,
+    "proxy_port": 54761,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54761),sync_explicit_close_test(54761)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826434.363756,
+      "ended_at": 1792826437.6262872
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-11",
+    "trial": 11,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 54779,
+    "proxy_port": 54780,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54780)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826437.954782,
+        "ended_at": 1792826440.338007,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54780)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826440.3388531,
+        "ended_at": 1792826442.799256,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54780)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826442.799862,
+        "ended_at": 1792826445.2596228,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54780)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826445.259997,
+        "ended_at": 1792826447.701129,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54780),sync_explicit_close_test(54780)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826447.7018151,
+      "ended_at": 1792826451.0046642
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-11",
+    "trial": 11,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 54812,
+    "proxy_port": 54813,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54813)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826451.343471,
+        "ended_at": 1792826453.716804,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54813)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826453.717109,
+        "ended_at": 1792826456.174492,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54813)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826456.1748888,
+        "ended_at": 1792826458.6400928,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54813)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826458.640428,
+        "ended_at": 1792826461.073857,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54813),sync_explicit_close_test(54813)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826461.074534,
+      "ended_at": 1792826464.374466
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-12",
+    "trial": 12,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 54847,
+    "proxy_port": 54848,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54848),sync_explicit_close_test(54848)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826464.7156951,
+      "ended_at": 1792826467.9910982
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-12",
+    "trial": 12,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 54866,
+    "proxy_port": 54867,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54867),sync_explicit_close_test(54867)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826468.3337731,
+      "ended_at": 1792826471.6275358
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-12",
+    "trial": 12,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 54885,
+    "proxy_port": 54886,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54886)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826471.966967,
+        "ended_at": 1792826474.3654048,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54886)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826474.365553,
+        "ended_at": 1792826476.8205209,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54886)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826476.821451,
+        "ended_at": 1792826479.339299,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54886)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826479.339912,
+        "ended_at": 1792826481.7926881,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54886),sync_explicit_close_test(54886)->halt;halt(1))"
+      ],
+      "exit_code": -11,
+      "started_at": 1792826481.7929752,
+      "ended_at": 1792826482.586467
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": false
+  },
+  {
+    "label": "v3.14.10-prefixed-12",
+    "trial": 12,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 54913,
+    "proxy_port": 54914,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54914)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826482.902494,
+        "ended_at": 1792826485.307737,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54914)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826485.308057,
+        "ended_at": 1792826487.759647,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54914)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826487.759988,
+        "ended_at": 1792826490.21772,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54914)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826490.218092,
+        "ended_at": 1792826492.6790369,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54914),sync_explicit_close_test(54914)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826492.679731,
+      "ended_at": 1792826495.940949
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-13",
+    "trial": 13,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 54948,
+    "proxy_port": 54949,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54949),sync_explicit_close_test(54949)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826496.2847,
+      "ended_at": 1792826499.5138052
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-13",
+    "trial": 13,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 54967,
+    "proxy_port": 54968,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54968),sync_explicit_close_test(54968)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826499.8574421,
+      "ended_at": 1792826503.097066
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-13",
+    "trial": 13,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 54987,
+    "proxy_port": 54988,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(54988)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826503.440604,
+        "ended_at": 1792826505.8001988,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(54988)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826505.8010938,
+        "ended_at": 1792826508.2719848,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(54988)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826508.2723289,
+        "ended_at": 1792826510.7411032,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(54988)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826510.741485,
+        "ended_at": 1792826513.1960802,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(54988),sync_explicit_close_test(54988)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826513.196769,
+      "ended_at": 1792826516.4982378
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-13",
+    "trial": 13,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 55020,
+    "proxy_port": 55021,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55021)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826516.827486,
+        "ended_at": 1792826519.2027578,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55021)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826519.2031438,
+        "ended_at": 1792826521.680367,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55021)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826521.680722,
+        "ended_at": 1792826524.169287,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55021)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826524.17002,
+        "ended_at": 1792826526.582304,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55021),sync_explicit_close_test(55021)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826526.5826318,
+      "ended_at": 1792826529.907794
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-14",
+    "trial": 14,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 55054,
+    "proxy_port": 55055,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55055),sync_explicit_close_test(55055)->halt;halt(1))"
+      ],
+      "exit_code": -11,
+      "started_at": 1792826530.244865,
+      "ended_at": 1792826530.977062
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": false
+  },
+  {
+    "label": "v3.14.10-isolated-14",
+    "trial": 14,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 55067,
+    "proxy_port": 55068,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55068),sync_explicit_close_test(55068)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826531.29881,
+      "ended_at": 1792826534.5412369
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-14",
+    "trial": 14,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 55086,
+    "proxy_port": 55087,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55087)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826534.883898,
+        "ended_at": 1792826537.257797,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55087)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826537.258281,
+        "ended_at": 1792826539.7121542,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55087)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826539.712714,
+        "ended_at": 1792826542.2325408,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55087)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826542.2332501,
+        "ended_at": 1792826544.655303,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55087),sync_explicit_close_test(55087)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826544.655652,
+      "ended_at": 1792826548.014869
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-14",
+    "trial": 14,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 55120,
+    "proxy_port": 55121,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55121)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826548.360684,
+        "ended_at": 1792826550.764933,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55121)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826550.765611,
+        "ended_at": 1792826553.27403,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55121)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826553.274592,
+        "ended_at": 1792826555.774267,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55121)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826555.77494,
+        "ended_at": 1792826558.19931,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55121),sync_explicit_close_test(55121)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826558.19961,
+      "ended_at": 1792826561.441238
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-15",
+    "trial": 15,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 55154,
+    "proxy_port": 55155,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55155),sync_explicit_close_test(55155)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826561.777904,
+      "ended_at": 1792826565.0051498
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-15",
+    "trial": 15,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 55173,
+    "proxy_port": 55174,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55174),sync_explicit_close_test(55174)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826565.349612,
+      "ended_at": 1792826568.580524
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-15",
+    "trial": 15,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 55192,
+    "proxy_port": 55193,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55193)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826568.9242759,
+        "ended_at": 1792826571.32185,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55193)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826571.32217,
+        "ended_at": 1792826573.79442,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55193)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826573.7947469,
+        "ended_at": 1792826576.307656,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55193)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826576.308487,
+        "ended_at": 1792826578.702647,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55193),sync_explicit_close_test(55193)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826578.702924,
+      "ended_at": 1792826581.985878
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-15",
+    "trial": 15,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 55227,
+    "proxy_port": 55228,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55228)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826582.327873,
+        "ended_at": 1792826584.715807,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55228)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826584.716446,
+        "ended_at": 1792826587.1862242,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55228)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826587.18659,
+        "ended_at": 1792826589.699608,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55228)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826589.7002618,
+        "ended_at": 1792826592.130392,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55228),sync_explicit_close_test(55228)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826592.1310349,
+      "ended_at": 1792826595.4001122
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-16",
+    "trial": 16,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 55260,
+    "proxy_port": 55261,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55261),sync_explicit_close_test(55261)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826595.7481868,
+      "ended_at": 1792826598.9553978
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-16",
+    "trial": 16,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 55279,
+    "proxy_port": 55280,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55280),sync_explicit_close_test(55280)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826599.299829,
+      "ended_at": 1792826602.6177542
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-16",
+    "trial": 16,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 55298,
+    "proxy_port": 55299,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55299)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826602.954581,
+        "ended_at": 1792826605.318913,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55299)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826605.319359,
+        "ended_at": 1792826607.82227,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55299)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826607.822894,
+        "ended_at": 1792826610.3153799,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55299)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826610.3160808,
+        "ended_at": 1792826612.786297,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55299),sync_explicit_close_test(55299)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826612.786606,
+      "ended_at": 1792826616.071669
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-16",
+    "trial": 16,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 55334,
+    "proxy_port": 55335,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55335)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826616.435236,
+        "ended_at": 1792826618.797726,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55335)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826618.798063,
+        "ended_at": 1792826621.2753558,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55335)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826621.276167,
+        "ended_at": 1792826623.778504,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55335)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826623.7792158,
+        "ended_at": 1792826626.232279,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55335),sync_explicit_close_test(55335)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826626.232948,
+      "ended_at": 1792826629.480014
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-17",
+    "trial": 17,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 55367,
+    "proxy_port": 55368,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55368),sync_explicit_close_test(55368)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826629.827029,
+      "ended_at": 1792826633.0688581
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-17",
+    "trial": 17,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 55387,
+    "proxy_port": 55388,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55388),sync_explicit_close_test(55388)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826633.398954,
+      "ended_at": 1792826636.6392052
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-17",
+    "trial": 17,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 55406,
+    "proxy_port": 55407,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55407)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826636.9789069,
+        "ended_at": 1792826639.37275,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55407)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826639.3734348,
+        "ended_at": 1792826641.856524,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55407)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826641.8619032,
+        "ended_at": 1792826644.325936,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55407)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826644.326468,
+        "ended_at": 1792826646.776757,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55407),sync_explicit_close_test(55407)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826646.7774222,
+      "ended_at": 1792826650.1209059
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-17",
+    "trial": 17,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 55441,
+    "proxy_port": 55442,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55442)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826650.4455411,
+        "ended_at": 1792826652.813374,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55442)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826652.8140118,
+        "ended_at": 1792826655.296745,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55442)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826655.297367,
+        "ended_at": 1792826657.813715,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55442)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826657.8142002,
+        "ended_at": 1792826660.255083,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55442),sync_explicit_close_test(55442)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826660.255711,
+      "ended_at": 1792826663.488123
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-18",
+    "trial": 18,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 55474,
+    "proxy_port": 55475,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55475),sync_explicit_close_test(55475)->halt;halt(1))"
+      ],
+      "exit_code": -11,
+      "started_at": 1792826663.832843,
+      "ended_at": 1792826664.563821
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": false
+  },
+  {
+    "label": "v3.14.10-isolated-18",
+    "trial": 18,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 55487,
+    "proxy_port": 55488,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55488),sync_explicit_close_test(55488)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826664.88541,
+      "ended_at": 1792826668.136611
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-18",
+    "trial": 18,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 55506,
+    "proxy_port": 55507,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55507)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826668.449773,
+        "ended_at": 1792826670.802154,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55507)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826670.802604,
+        "ended_at": 1792826673.248333,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55507)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826673.2486742,
+        "ended_at": 1792826675.712362,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55507)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826675.713043,
+        "ended_at": 1792826678.1629398,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55507),sync_explicit_close_test(55507)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826678.163064,
+      "ended_at": 1792826681.445408
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-18",
+    "trial": 18,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 55540,
+    "proxy_port": 55541,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55541)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826681.781162,
+        "ended_at": 1792826684.1711848,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55541)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826684.171503,
+        "ended_at": 1792826686.662847,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55541)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826686.663191,
+        "ended_at": 1792826689.132682,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55541)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826689.133019,
+        "ended_at": 1792826691.5626109,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55541),sync_explicit_close_test(55541)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826691.562927,
+      "ended_at": 1792826694.7733061
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-19",
+    "trial": 19,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 55574,
+    "proxy_port": 55575,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55575),sync_explicit_close_test(55575)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826695.102557,
+      "ended_at": 1792826698.294564
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-19",
+    "trial": 19,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 55593,
+    "proxy_port": 55594,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55594),sync_explicit_close_test(55594)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826698.6184692,
+      "ended_at": 1792826701.936013
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-19",
+    "trial": 19,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 55612,
+    "proxy_port": 55613,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55613)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826702.2419379,
+        "ended_at": 1792826704.6377332,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55613)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826704.6380942,
+        "ended_at": 1792826707.09901,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55613)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826707.0993412,
+        "ended_at": 1792826709.579401,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55613)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826709.5797682,
+        "ended_at": 1792826711.995826,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55613),sync_explicit_close_test(55613)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826711.996136,
+      "ended_at": 1792826715.180726
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-19",
+    "trial": 19,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 55646,
+    "proxy_port": 55647,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55647)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826715.568298,
+        "ended_at": 1792826717.954339,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55647)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826717.954551,
+        "ended_at": 1792826720.405239,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55647)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826720.4055219,
+        "ended_at": 1792826722.867475,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55647)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826722.867795,
+        "ended_at": 1792826725.269953,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55647),sync_explicit_close_test(55647)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826725.2701561,
+      "ended_at": 1792826728.529595
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-isolated-20",
+    "trial": 20,
+    "engine": "pinned",
+    "prefixed": false,
+    "backend_port": 55680,
+    "proxy_port": 55681,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55681),sync_explicit_close_test(55681)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826728.874701,
+      "ended_at": 1792826732.064528
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-isolated-20",
+    "trial": 20,
+    "engine": "v3.14.10",
+    "prefixed": false,
+    "backend_port": 55699,
+    "proxy_port": 55700,
+    "prefixes": [],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55700),sync_explicit_close_test(55700)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826732.376756,
+      "ended_at": 1792826735.6292899
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "pinned-prefixed-20",
+    "trial": 20,
+    "engine": "pinned",
+    "prefixed": true,
+    "backend_port": 55718,
+    "proxy_port": 55719,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55719)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826735.961152,
+        "ended_at": 1792826738.357326,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55719)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826738.357555,
+        "ended_at": 1792826740.8087192,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55719)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826740.809062,
+        "ended_at": 1792826743.265053,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55719)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826743.2656,
+        "ended_at": 1792826745.662552,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55719),sync_explicit_close_test(55719)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826745.662894,
+      "ended_at": 1792826748.882804
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  },
+  {
+    "label": "v3.14.10-prefixed-20",
+    "trial": 20,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "backend_port": 55751,
+    "proxy_port": 55752,
+    "prefixes": [
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(distribution_tests),canonical_outbound_test(55752)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826749.209583,
+        "ended_at": 1792826751.5776331,
+        "prefix": "canonical"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_named_tests),remote_named_tests:remote_named_live_test(55752)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826751.577845,
+        "ended_at": 1792826754.0407271,
+        "prefix": "named"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_supervisor_tests),remote_supervisor_tests:remote_supervisor_live_test(55752)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826754.0410712,
+        "ended_at": 1792826756.5183659,
+        "prefix": "supervisor"
+      },
+      {
+        "command": [
+          "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+          "-g",
+          "(consult(remote_alias_tests),remote_alias_tests:remote_alias_live_test(55752)->halt;halt(1))"
+        ],
+        "exit_code": 0,
+        "started_at": 1792826756.518721,
+        "ended_at": 1792826758.969894,
+        "prefix": "alias"
+      }
+    ],
+    "target": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(consult(distribution_tests),sync_outbound_test(55752),sync_explicit_close_test(55752)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792826758.970221,
+      "ended_at": 1792826762.195831
+    },
+    "node_exit_before_cleanup": null,
+    "wire_errors": [],
+    "incomplete_tails": [],
+    "utf8_warning": false,
+    "outbound_success_marker": true,
+    "close_success_marker": true
+  }
+]

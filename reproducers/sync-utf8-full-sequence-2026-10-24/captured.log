@@ -1,0 +1,424 @@
+Trealla: trealla(3,14,10,[]) (/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl)
+SWI-Prolog: SWI-Prolog version 10.1.18 for arm64-darwin
+
+=== Trealla client -> SWI WebSocket ===
+Trealla client interoperability test: ok
+ACCEPTANCE_RESULT|Trealla client -> SWI WebSocket|0
+
+=== SWI client -> Trealla WebSocket ===
+Trealla server interoperability test: ok
+SWI client interoperability test: ok
+ACCEPTANCE_RESULT|SWI client -> Trealla WebSocket|0
+
+=== Trealla client -> SWI protocol fixture ===
+Trealla Web Prolog protocol client test: ok
+ACCEPTANCE_RESULT|Trealla client -> SWI protocol fixture|0
+
+=== Trealla outbound client -> legacy fixture ===
+ACCEPTANCE_RESULT|Trealla outbound client -> legacy fixture|0
+
+=== unsupported synchronous peer remains asynchronous ===
+Unsupported synchronous peer preserves asynchronous access: ok
+ACCEPTANCE_RESULT|unsupported synchronous peer remains asynchronous|0
+
+=== synchronous peer disconnect ===
+Synchronous peer disconnect wakes and cleans the wait: ok
+ACCEPTANCE_RESULT|synchronous peer disconnect|0
+
+=== SWI client -> Trealla protocol node ===
+Node listening on port 48764 (profile workbench, sandbox blacklist, auth open)
+protocol_child_cleanup_started(2970782544)
+protocol_child_cleanup_complete(2970782544)
+SWI Web Prolog protocol client test: ok
+ACCEPTANCE_RESULT|SWI client -> Trealla protocol node|0
+
+=== SWI client -> Trealla connection thread parity ===
+parity_stage(first,1220856858)
+parity_reply(1220856858,#{data:[#{'Actors':"[1220856858@'http://127.0.0.1:48764']",'Live':"2",'Visible':"1"}],more:false,pid:1220856858,type:"success"})
+parity_stage_passed(first,1220856858)
+parity_stage(second,1100167000)
+parity_reply(1100167000,#{data:[#{'Actors':"[1100167000@'http://127.0.0.1:48764']",'Live':"2",'Visible':"1"}],more:false,pid:1100167000,type:"success"})
+parity_stage_passed(second,1100167000)
+SWI client -> Trealla connection thread parity test: ok
+ACCEPTANCE_RESULT|SWI client -> Trealla connection thread parity|0
+
+=== SWI client -> Trealla reconstructed asynchronous queries ===
+SWI -> Trealla reconstructed asynchronous queries: ok
+ACCEPTANCE_RESULT|SWI client -> Trealla reconstructed asynchronous queries|0
+
+=== SWI client -> Trealla canonical and legacy asynchronous answers ===
+SWI -> Trealla canonical and legacy asynchronous answers: ok
+ACCEPTANCE_RESULT|SWI client -> Trealla canonical and legacy asynchronous answers|0
+
+=== SWI client -> Trealla header answer negotiation and isolation ===
+Header opt-in, legacy isolation and transport_hello overrides: ok
+ACCEPTANCE_RESULT|SWI client -> Trealla header answer negotiation and isolation|0
+
+=== browser caller correlation -> Trealla ===
+Browser caller correlation and mixed asynchronous paging: ok
+ACCEPTANCE_RESULT|browser caller correlation -> Trealla|0
+
+=== SWI client -> Trealla allowlisted source URI ===
+SWI client -> Trealla allowlisted src_uri test: ok
+ACCEPTANCE_RESULT|SWI client -> Trealla allowlisted source URI|0
+
+=== SWI statechart execution -> Trealla ===
+Public statechart text/URI startup, trace, halt, monitors and fetch restrictions: ok
+ACCEPTANCE_RESULT|SWI statechart execution -> Trealla|0
+
+=== SWI browser terminal -> Trealla protocol node ===
+SWI browser terminal acknowledgement test: ok
+ACCEPTANCE_RESULT|SWI browser terminal -> Trealla protocol node|0
+
+=== SWI nested toplevel binding -> Trealla protocol node ===
+SWI nested toplevel receive binding test: ok
+ACCEPTANCE_RESULT|SWI nested toplevel binding -> Trealla protocol node|0
+
+=== SWI promise/yield -> Trealla protocol node ===
+SWI promise/yield -> Trealla protocol node test: ok
+ACCEPTANCE_RESULT|SWI promise/yield -> Trealla protocol node|0
+{"ready": true, "port": 48769}
+
+=== Unicode remote answers: Trealla -> SWI ===
+Unicode answers, errors, paging and sharing on http://localhost:48769: passed
+ACCEPTANCE_RESULT|Unicode remote answers: Trealla -> SWI|0
+
+=== Unicode remote answers: SWI -> SWI ===
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0x87bbc4e00,0x87bbc4f00)
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0x87bbc4e00,0x87bbc4f00)
+Warning: [Thread 13] Ambiguous operation on stream pair <stream>(0xae0bc5100,0xae0bc5200)
+Warning: [Thread 13] Ambiguous operation on stream pair <stream>(0xae0bc5100,0xae0bc5200)
+Unicode answers, errors, paging and sharing on http://localhost:48769: passed
+ACCEPTANCE_RESULT|Unicode remote answers: SWI -> SWI|0
+
+=== Public remote demonitor -> SWI ===
+Public remote demonitor contracts on http://localhost:48769: passed
+ACCEPTANCE_RESULT|Public remote demonitor -> SWI|0
+
+=== Termination notifications -> SWI ===
+one-shot answer and independent spawn notification, exactly once: ok
+one-shot answer and independent spawn notification, exactly once: ok
+spawn/additional refs survive private cleanup; unrelated monitor preserved: ok
+Termination notification contracts on http://localhost:48769: passed
+ACCEPTANCE_RESULT|Termination notifications -> SWI|0
+
+=== Explicit termination notifications -> SWI ===
+explicit protocol retains default/kept refs, removes demonitor ref and filters private refs: ok
+ACCEPTANCE_RESULT|Explicit termination notifications -> SWI|0
+
+=== General remote toplevel creation -> SWI ===
+text/list/copied/URI sources, sharing, paging and monitor cleanup: ok
+spawn/call targets, caller-owned monitors and unrelated monitor: ok
+default remote link retains parent-termination propagation: ok
+session, computation and idle limits retain first-option precedence: ok
+ordinary remote actor spawning unchanged: ok
+General remote toplevel creation on http://localhost:48769: passed
+ACCEPTANCE_RESULT|General remote toplevel creation -> SWI|0
+
+=== Public synchronous wrappers -> SWI ===
+answers, next, sharing and output mismatch: ok
+routing validation and asynchronous replies retained: ok
+late answer cannot satisfy a later call: ok
+Public remote synchronous wrappers: passed
+ACCEPTANCE_RESULT|Public synchronous wrappers -> SWI|0
+
+=== Public runtime properties (swi_native) ===
+Public runtime properties on swi_native: passed
+ACCEPTANCE_RESULT|Public runtime properties (swi_native)|0
+
+=== Trealla first-slice RPC -> SWI ===
+Promise once live forwarding, full slices, offset, sharing and failure/error on http://127.0.0.1:48769: passed
+RPC once live checks on http://127.0.0.1:48769: passed
+ACCEPTANCE_RESULT|Trealla first-slice RPC -> SWI|0
+
+=== HTTP first-slice responses -> SWI ===
+HTTP once Prolog/JSON, offset, failure/error and ordinary paging on http://127.0.0.1:48769: ok
+ACCEPTANCE_RESULT|HTTP first-slice responses -> SWI|0
+
+=== Trealla remote statechart text/URI -> SWI ===
+text_and_private_data_ok
+uri_ok
+invocation_cleanup_ok
+admission_ok
+Remote statechart text/URI, invocation, private data, halt, monitors and rejection on 48769: ok
+ACCEPTANCE_RESULT|Trealla remote statechart text/URI -> SWI|0
+
+=== Trealla statechart invocation -> SWI ===
+actor replies, complete monitor references and state-exit cleanup: ok
+toplevel replies, complete monitor references and state-exit cleanup: ok
+server replies, complete monitor references and state-exit cleanup: ok
+supervisor replies, complete monitor references and state-exit cleanup: ok
+remote toplevel spawn/call targets and template sharing: ok
+name conflict, sender/peer sandbox checks, rollback and unrelated monitor: ok
+Remote chart invocation actor/toplevel/server/supervisor on 48769: ok
+ACCEPTANCE_RESULT|Trealla statechart invocation -> SWI|0
+
+=== Trealla -> SWI actor semantic contracts ===
+Trealla -> remote actor semantic contracts: ok
+ACCEPTANCE_RESULT|Trealla -> SWI actor semantic contracts|0
+
+=== SWI -> Trealla actor semantic contracts ===
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0x9d1bc1000,0x9d1bc1100)
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0x9d1bc1000,0x9d1bc1100)
+SWI -> Trealla actor semantic contracts: ok
+ACCEPTANCE_RESULT|SWI -> Trealla actor semantic contracts|0
+
+=== Trealla canonical outbound -> SWI ===
+Trealla canonical outbound answers on 48769: ok
+ACCEPTANCE_RESULT|Trealla canonical outbound -> SWI|0
+
+=== Trealla atomic remote named startup -> SWI ===
+Live atomic remote named startup on 48769: ok
+ACCEPTANCE_RESULT|Trealla atomic remote named startup -> SWI|0
+
+=== Trealla supervisor halt -> SWI ===
+Live remote supervisor entry and control on 48769: ok
+ACCEPTANCE_RESULT|Trealla supervisor halt -> SWI|0
+
+=== Trealla remote alias cleanup -> SWI ===
+Live remote alias cleanup on 48769: ok
+ACCEPTANCE_RESULT|Trealla remote alias cleanup -> SWI|0
+
+=== Trealla synchronous outbound -> SWI ===
+sync_stage(1792827162.762434,main,outbound_start(48769))
+sync_stage(1792827162.796793,main,rich_answer(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827162.800509,main,first_page(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827162.803529,main,second_page(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827162.806556,main,asynchronous_next(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827162.808261,main,failure_answer(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827162.811008,main,error_answer(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827162.814032,main,timeout_then_fresh(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827162.922934,main,failing_timeout_callback(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827162.925152,main,throwing_timeout_callback(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827162.927102,main,output_mismatch(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.05781,main,unrelated_monitor(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.086525,main,shared_client(5769946067@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.094426,main,remote_termination(5769946067@'ws://127.0.0.1:48769/ws'))
+Trealla synchronous outbound on 48769: ok
+sync_stage(1792827163.198751,main,explicit_close_start(48769))
+sync_stage(1792827163.22656,main,close_iteration_start('ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.251681,main,close_pending_next(6589475480@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.320265,main,close_wait_returned(6589475480@'ws://127.0.0.1:48769/ws',toplevel_down(connection_closed)))
+sync_stage(1792827163.334526,main,close_threads_retired(2790222688,2983657188))
+sync_stage(1792827163.334839,main,close_iteration_start('ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.36392,main,close_pending_next(6393721114@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.435226,main,close_wait_returned(6393721114@'ws://127.0.0.1:48769/ws',toplevel_down(connection_closed)))
+sync_stage(1792827163.449534,main,close_threads_retired(3076828094,2424283308))
+sync_stage(1792827163.449747,main,close_iteration_start('ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.481485,main,close_pending_next(7609780300@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.550075,main,close_wait_returned(7609780300@'ws://127.0.0.1:48769/ws',toplevel_down(connection_closed)))
+sync_stage(1792827163.564367,main,close_threads_retired(1237440295,2800338075))
+sync_stage(1792827163.564597,main,close_iteration_start('ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.596227,main,close_pending_next(6962712109@'ws://127.0.0.1:48769/ws'))
+sync_stage(1792827163.665964,main,close_wait_returned(6962712109@'ws://127.0.0.1:48769/ws',toplevel_down(connection_closed)))
+sync_stage(1792827163.680322,main,close_threads_retired(2300427485,1473221418))
+Explicit concurrent close and unrelated monitor on 48769: ok
+ACCEPTANCE_RESULT|Trealla synchronous outbound -> SWI|0
+
+=== SWI synchronous calls -> Trealla ===
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0x9326f7900,0x9326f7a00)
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0x9326f7900,0x9326f7a00)
+SWI -> Trealla synchronous correlation: ok
+ACCEPTANCE_RESULT|SWI synchronous calls -> Trealla|0
+
+=== Public remote demonitor -> Trealla ===
+Node listening on port 48765 (profile workbench, sandbox blacklist, auth open)
+Public remote demonitor contracts on http://localhost:48765: passed
+ACCEPTANCE_RESULT|Public remote demonitor -> Trealla|0
+
+=== Termination notifications -> Trealla ===
+one-shot answer and independent spawn notification, exactly once: ok
+one-shot answer and independent spawn notification, exactly once: ok
+spawn/additional refs survive private cleanup; unrelated monitor preserved: ok
+Termination notification contracts on http://localhost:48765: passed
+ACCEPTANCE_RESULT|Termination notifications -> Trealla|0
+
+=== Explicit termination notifications -> Trealla ===
+explicit protocol retains default/kept refs, removes demonitor ref and filters private refs: ok
+ACCEPTANCE_RESULT|Explicit termination notifications -> Trealla|0
+
+=== General remote toplevel creation -> Trealla ===
+text/list/copied/URI sources, sharing, paging and monitor cleanup: ok
+spawn/call targets, caller-owned monitors and unrelated monitor: ok
+default remote link retains parent-termination propagation: ok
+session, computation and idle limits retain first-option precedence: ok
+ordinary remote actor spawning unchanged: ok
+General remote toplevel creation on http://localhost:48765: passed
+ACCEPTANCE_RESULT|General remote toplevel creation -> Trealla|0
+
+=== Native SWI first-slice RPC -> Trealla ===
+ACCEPTANCE_RESULT|Native SWI first-slice RPC -> Trealla|0
+
+=== Unicode remote answers: SWI -> Trealla ===
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0x74bbbd000,0x74bbbd100)
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0x74bbbd000,0x74bbbd100)
+Unicode answers, errors, paging and sharing on http://localhost:48765: passed
+ACCEPTANCE_RESULT|Unicode remote answers: SWI -> Trealla|0
+
+=== Unicode remote answers: Trealla -> Trealla ===
+Unicode answers, errors, paging and sharing on http://localhost:48765: passed
+ACCEPTANCE_RESULT|Unicode remote answers: Trealla -> Trealla|0
+
+=== Native SWI statechart constructor -> Trealla ===
+Warning: [Thread 9] Ambiguous operation on stream pair <stream>(0x832427600,0x832427700)
+Warning: [Thread 9] Ambiguous operation on stream pair <stream>(0x832427600,0x832427700)
+Native SWI constructor -> Trealla text/URI, sources, halt and monitors: ok
+ACCEPTANCE_RESULT|Native SWI statechart constructor -> Trealla|0
+
+=== Trealla remote statechart text/URI -> Trealla ===
+text_and_private_data_ok
+uri_ok
+invocation_cleanup_ok
+admission_ok
+Remote statechart text/URI, invocation, private data, halt, monitors and rejection on 48765: ok
+ACCEPTANCE_RESULT|Trealla remote statechart text/URI -> Trealla|0
+
+=== Trealla statechart invocation -> Trealla ===
+actor replies, complete monitor references and state-exit cleanup: ok
+toplevel replies, complete monitor references and state-exit cleanup: ok
+server replies, complete monitor references and state-exit cleanup: ok
+supervisor replies, complete monitor references and state-exit cleanup: ok
+remote toplevel spawn/call targets and template sharing: ok
+name conflict, sender/peer sandbox checks, rollback and unrelated monitor: ok
+Remote chart invocation actor/toplevel/server/supervisor on 48765: ok
+ACCEPTANCE_RESULT|Trealla statechart invocation -> Trealla|0
+
+=== SWI public local statechart invocation -> Trealla ===
+Public local actor/toplevel/nested-chart invocation, ping-pong cleanup and monitors: ok
+ACCEPTANCE_RESULT|SWI public local statechart invocation -> Trealla|0
+
+=== Trealla distributed source isolation ===
+Distributed source isolation test: ok
+ACCEPTANCE_RESULT|Trealla distributed source isolation|0
+
+=== Trealla validated remote toplevel wrapper ===
+Live validated toplevel wrapper on 48765: ok
+ACCEPTANCE_RESULT|Trealla validated remote toplevel wrapper|0
+
+=== Trealla explicit and transparent spawn validation ===
+Live explicit and transparent validated spawning on 48765: ok
+ACCEPTANCE_RESULT|Trealla explicit and transparent spawn validation|0
+
+=== Trealla validated RPC and promise HTTP options ===
+Live validated RPC paging and promise collection on 48765: ok
+ACCEPTANCE_RESULT|Trealla validated RPC and promise HTTP options|0
+
+=== Public synchronous wrappers -> Trealla ===
+answers, next, sharing and output mismatch: ok
+routing validation and asynchronous replies retained: ok
+late answer cannot satisfy a later call: ok
+Public remote synchronous wrappers: passed
+ACCEPTANCE_RESULT|Public synchronous wrappers -> Trealla|0
+
+=== Public runtime properties (trealla_native) ===
+Public runtime properties on trealla_native: passed
+ACCEPTANCE_RESULT|Public runtime properties (trealla_native)|0
+
+=== Trealla first-slice RPC -> Trealla ===
+Promise once live forwarding, full slices, offset, sharing and failure/error on http://127.0.0.1:48765: passed
+RPC once live checks on http://127.0.0.1:48765: passed
+ACCEPTANCE_RESULT|Trealla first-slice RPC -> Trealla|0
+
+=== HTTP first-slice responses -> Trealla ===
+HTTP once Prolog/JSON, offset, failure/error and ordinary paging on http://127.0.0.1:48765: ok
+ACCEPTANCE_RESULT|HTTP first-slice responses -> Trealla|0
+
+=== Trealla promise ownership over WebSocket and HTTP ===
+Live WebSocket promise ownership on 48765: ok
+ACCEPTANCE_RESULT|Trealla promise ownership over WebSocket and HTTP|0
+
+=== Trealla WebSocket promise disposal and client isolation ===
+Live WebSocket promise disposal on 48765: ok
+ACCEPTANCE_RESULT|Trealla WebSocket promise disposal and client isolation|0
+
+=== Trealla WebSocket namespace teardown ===
+Live WebSocket namespace teardown on 48765: ok
+ACCEPTANCE_RESULT|Trealla WebSocket namespace teardown|0
+
+=== Trealla remote supervisor receiver ===
+Live remote supervisor entry and control on 48765: ok
+Source-backed remote supervisor child: ok
+Nested/source/server supervisors and dynamic admission: ok
+ACCEPTANCE_RESULT|Trealla remote supervisor receiver|0
+
+=== Native SWI delegated lineage -> Trealla ===
+Wire authority, multiplexing, late admission, legacy and monitor isolation: ok
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0x7aa7a5c00,0x7aa7a5d00)
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0x7aa7a5c00,0x7aa7a5d00)
+Native distribution encoding, spawn-time monitor and lineage_close: ok
+Native SWI -> Trealla delegated lineage compatibility: all checks passed
+ACCEPTANCE_RESULT|Native SWI delegated lineage -> Trealla|0
+
+=== Native SWI supervisor constructor -> Trealla ===
+Spawn success/admission/startup errors, legacy replies and monitors: ok
+Warning: [Thread 9] Ambiguous operation on stream pair <stream>(0x9d000c700,0x9d000c800)
+Warning: [Thread 9] Ambiguous operation on stream pair <stream>(0x9d000c700,0x9d000c800)
+Native SWI named creation, duplicate rejection, failed-start reuse and monitors: ok
+Native SWI remote supervisor constructor -> Trealla: ok
+ACCEPTANCE_RESULT|Native SWI supervisor constructor -> Trealla|0
+
+=== Trealla atomic remote named startup -> Trealla ===
+Live atomic remote named startup on 48765: ok
+ACCEPTANCE_RESULT|Trealla atomic remote named startup -> Trealla|0
+
+=== Trealla remote alias cleanup -> Trealla ===
+Live remote alias cleanup on 48765: ok
+ACCEPTANCE_RESULT|Trealla remote alias cleanup -> Trealla|0
+
+=== Trealla canonical outbound -> Trealla ===
+Trealla canonical outbound answers on 48765: ok
+ACCEPTANCE_RESULT|Trealla canonical outbound -> Trealla|0
+
+=== Trealla synchronous outbound -> Trealla ===
+sync_stage(1792827223.687044,main,outbound_start(48765))
+sync_stage(1792827223.718566,main,rich_answer(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.723383,main,first_page(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.727158,main,second_page(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.730627,main,asynchronous_next(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.732536,main,failure_answer(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.735856,main,error_answer(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.739304,main,timeout_then_fresh(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.846328,main,failing_timeout_callback(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.847967,main,throwing_timeout_callback(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.84952,main,output_mismatch(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.962762,main,unrelated_monitor(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.97815,main,shared_client(2154492981@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827223.98635,main,remote_termination(2154492981@'ws://127.0.0.1:48765/ws'))
+Trealla synchronous outbound on 48765: ok
+sync_stage(1792827224.227244,main,explicit_close_start(48765))
+sync_stage(1792827224.256113,main,close_iteration_start('ws://127.0.0.1:48765/ws'))
+sync_stage(1792827224.280316,main,close_pending_next(1078974886@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827224.348786,main,close_wait_returned(1078974886@'ws://127.0.0.1:48765/ws',toplevel_down(connection_closed)))
+sync_stage(1792827224.361993,main,close_threads_retired(1531082207,1162175750))
+sync_stage(1792827224.362236,main,close_iteration_start('ws://127.0.0.1:48765/ws'))
+sync_stage(1792827224.387945,main,close_pending_next(1237165226@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827224.456444,main,close_wait_returned(1237165226@'ws://127.0.0.1:48765/ws',toplevel_down(connection_closed)))
+sync_stage(1792827224.47072,main,close_threads_retired(1284078437,2784496977))
+sync_stage(1792827224.470966,main,close_iteration_start('ws://127.0.0.1:48765/ws'))
+sync_stage(1792827224.495703,main,close_pending_next(1058625343@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827224.565874,main,close_wait_returned(1058625343@'ws://127.0.0.1:48765/ws',toplevel_down(connection_closed)))
+sync_stage(1792827224.580248,main,close_threads_retired(2971489735,1562958110))
+sync_stage(1792827224.58045,main,close_iteration_start('ws://127.0.0.1:48765/ws'))
+sync_stage(1792827224.607025,main,close_pending_next(2947450088@'ws://127.0.0.1:48765/ws'))
+sync_stage(1792827224.675127,main,close_wait_returned(2947450088@'ws://127.0.0.1:48765/ws',toplevel_down(connection_closed)))
+sync_stage(1792827224.689323,main,close_threads_retired(1899528663,1190818862))
+Explicit concurrent close and unrelated monitor on 48765: ok
+ACCEPTANCE_RESULT|Trealla synchronous outbound -> Trealla|0
+
+=== SWI browser terminal -> remote Trealla actor ===
+SWI browser-to-remote-Trealla terminal test: ok
+ACCEPTANCE_RESULT|SWI browser terminal -> remote Trealla actor|0
+Node listening on port 48766 (profile workbench, sandbox blacklist, auth private)
+node: error handling request: error(unexpected_eof,node_http_request/5)
+
+=== SWI auth and ownership -> private Trealla node ===
+SWI private authentication and connection ownership test: ok
+ACCEPTANCE_RESULT|SWI auth and ownership -> private Trealla node|0
+Node listening on port 48768 (profile workbench, sandbox blacklist, auth open)
+node: error handling request: error(unexpected_eof,node_http_request/5)
+
+=== SWI client -> Trealla IP gate and auto-ban ===
+SWI client -> Trealla IP gate and auto-ban test: ok
+ACCEPTANCE_RESULT|SWI client -> Trealla IP gate and auto-ban|0
+
+ALL interop TESTS PASSED

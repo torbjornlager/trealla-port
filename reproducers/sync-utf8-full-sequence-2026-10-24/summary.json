@@ -1,0 +1,39 @@
+{
+  "runs": [
+    {
+      "label": "captured",
+      "exit_code": 0,
+      "seconds": 113.803,
+      "groups": 69,
+      "passed": 69,
+      "failed": [],
+      "utf8_warnings": []
+    },
+    {
+      "label": "direct",
+      "exit_code": 0,
+      "seconds": 112.573,
+      "groups": 69,
+      "passed": 69,
+      "failed": [],
+      "utf8_warnings": []
+    }
+  ],
+  "wire": {
+    "connections": 64,
+    "directional_streams": 128,
+    "bytes": 96424,
+    "frames": 661,
+    "text_messages": 620,
+    "frame_or_utf8_errors": 0,
+    "incomplete_websocket_tails": 0,
+    "invalid_json": 0,
+    "empty_readiness_streams": 2,
+    "forwarding_differences": 0
+  },
+  "live_node_process_records_unchanged": true,
+  "preservation": {
+    "changed_files": [],
+    "original_runner_sha256": "de69b8e0ee9440d9d311ed7695f0fe5463b3e737ea5785324904fb72c479237d"
+  }
+}

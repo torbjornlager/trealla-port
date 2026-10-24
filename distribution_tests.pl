@@ -101,6 +101,7 @@ canonical_outbound_test(Port) :-
     format('Trealla canonical outbound answers on ~w: ok~n',[Port]).
 
 sync_outbound_test(Port) :-
+    sync_diagnostic_stage(outbound_start(Port)),
     distribution_url(Port,URL),remote_node_open(URL,Node),
     setup_call_cleanup(remote_toplevel_spawn(Node,P,[session(true)]),
         sync_outbound_session(Node,P),
@@ -115,32 +116,45 @@ sync_connection_loss_fixture_test(Port) :-
     writeln('Synchronous peer disconnect wakes and cleans the wait: ok').
 
 sync_outbound_session(Node,P) :-
+    sync_diagnostic_stage(rich_answer(P)),
     remote_toplevel_call_synch(Node,P,L='$VAR'(1),Rich,
         [template(row(pair(X,X),pair(Y,Z),L)),timeout(3)]),
     Rich=success(P,[row(pair(A,B),pair(C,D),Literal)],false),
     var(A),A==B,var(C),var(D),C\==D,A\==C,Literal=='$VAR'(1),var(X),var(Y),var(Z),var(L),
+    sync_diagnostic_stage(first_page(P)),
     remote_toplevel_call_synch(Node,P,member(V,[a,b,c]),First,[template(V),limit(1),timeout(3)]),
     First==success(P,[a],true),
+    sync_diagnostic_stage(second_page(P)),
     remote_toplevel_next_synch(Node,P,Second,[timeout(3)]),Second==success(P,[b],true),
+    sync_diagnostic_stage(asynchronous_next(P)),
     remote_toplevel_next(Node,P),
     receive({success(P,Rows,false)->Rows==[c]},[timeout(3),on_timeout(fail)]),
+    sync_diagnostic_stage(failure_answer(P)),
     remote_toplevel_call_synch(Node,P,fail,F,[timeout(3)]),F==failure(P),
+    sync_diagnostic_stage(error_answer(P)),
     remote_toplevel_call_synch(Node,P,throw(probe),E,[timeout(3)]),E==error(P,probe),
+    sync_diagnostic_stage(timeout_then_fresh(P)),
     remote_toplevel_call_synch(Node,P,(sleep(0.1),V=old),Early,
         [template(V),timeout(0),on_timeout(Early=waiting)]),Early==waiting,
     remote_toplevel_call_synch(Node,P,V=fresh,Fresh,[template(V),timeout(3)]),Fresh==success(P,[fresh],false),
+    sync_diagnostic_stage(failing_timeout_callback(P)),
     \+ remote_toplevel_call_synch(Node,P,sleep(0.05),_,[timeout(0),on_timeout(fail)]),
+    sync_diagnostic_stage(throwing_timeout_callback(P)),
     catch(remote_toplevel_call_synch(Node,P,sleep(0.05),_,[timeout(0),on_timeout(throw(callback_probe))]),CE,true),
     CE==callback_probe,
+    sync_diagnostic_stage(output_mismatch(P)),
     \+ remote_toplevel_call_synch(Node,P,true,wrong,[timeout(3)]),
     remote_toplevel_call_synch(Node,P,true,After,[template(ok),timeout(3)]),After==success(P,[ok],false),
+    sync_diagnostic_stage(unrelated_monitor(P)),
     remote_spawn(Node,receive({finish->true}),Unrelated,[]),remote_monitor(Node,Unrelated,Ref),
     remote_toplevel_call_synch(Node,P,true,_,[timeout(3)]),
     remote_send(Node,Unrelated,finish),
     receive({down(Unrelated,Ref,true)->true},[timeout(3),on_timeout(fail)]),
     self(Parent),
+    sync_diagnostic_stage(shared_client(P)),
     spawn(user:shared_sync_client(Node,P,Parent),Child,[link(false)]),
     receive({shared_sync_result(Child,Shared)->Shared==success(P,[shared],false)},[timeout(3),on_timeout(fail)]),
+    sync_diagnostic_stage(remote_termination(P)),
     remote_toplevel_spawn(Node,Doomed,[session(true)]),
     remote_monitor(Node,Doomed,ControlRef),
     spawn(user:kill_sync_remote(Node,Doomed),_,[link(false)]),
@@ -583,6 +597,7 @@ distributed_actor_caller(Port, Parent) :-
 % Exercise explicit close while a correlated next request is pending. The
 % second connection's public monitor must remain usable after teardown.
 sync_explicit_close_test(Port) :-
+    sync_diagnostic_stage(explicit_close_start(Port)),
     distribution_url(Port,URL),
     remote_node_open(URL,Other),
     remote_spawn(Other,receive({finish -> true}),Unrelated,[link(false)]),
@@ -594,14 +609,18 @@ sync_explicit_close_test(Port) :-
     format('Explicit concurrent close and unrelated monitor on ~w: ok~n',[Port]).
 
 sync_explicit_close_once(URL) :-
+    sync_diagnostic_stage(close_iteration_start(URL)),
     remote_node_open(URL,Node),
     Node=remote_node(_,Reader,Writer),
     remote_toplevel_spawn(Node,P,[session(true)]),
     self(Parent),
     spawn(user:sync_explicit_closer(Node,Parent),Closer,[link(false)]),
+    sync_diagnostic_stage(close_pending_next(P)),
     catch(remote_toplevel_next_synch(Node,P,Answer,[timeout(3)]),Error,true),
+    sync_diagnostic_stage(close_wait_returned(P,Error)),
     Error==toplevel_down(connection_closed),var(Answer),
     receive({explicit_close_done(Closer,Outcome) -> Outcome==ok},[timeout(3),on_timeout(fail)]),
+    sync_diagnostic_stage(close_threads_retired(Reader,Writer)),
     \+ actors:actor_thread(Reader,_),
     \+ actors:actor_thread(Writer,_),
     remote_node_close(Node).
@@ -610,3 +629,8 @@ sync_explicit_closer(Node,Parent) :-
     sleep(0.05),self(Me),
     catch((remote_node_close(Node),Outcome=ok),Error,Outcome=error(Error)),
     Parent ! explicit_close_done(Me,Outcome).
+
+% Test-only stage log: keep goal bindings, assertions and deadlines untouched.
+sync_diagnostic_stage(Stage) :-
+    get_time(Time),thread_self(Thread),
+    writeq(sync_stage(Time,Thread,Stage)),nl,flush_output.

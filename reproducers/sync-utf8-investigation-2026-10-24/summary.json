@@ -1,0 +1,104 @@
+{
+  "total": 80,
+  "groups": [
+    {
+      "engine": "pinned",
+      "prefixed": false,
+      "total": 20,
+      "pass": 16,
+      "signal11": 4,
+      "other_failure": 0
+    },
+    {
+      "engine": "pinned",
+      "prefixed": true,
+      "total": 20,
+      "pass": 17,
+      "signal11": 3,
+      "other_failure": 0
+    },
+    {
+      "engine": "v3.14.10",
+      "prefixed": false,
+      "total": 20,
+      "pass": 20,
+      "signal11": 0,
+      "other_failure": 0
+    },
+    {
+      "engine": "v3.14.10",
+      "prefixed": true,
+      "total": 20,
+      "pass": 20,
+      "signal11": 0,
+      "other_failure": 0
+    }
+  ],
+  "prefix_failures": [],
+  "target_failures": [
+    {
+      "trial": "pinned-prefixed-06",
+      "exit_code": -11,
+      "outbound_success_marker": true,
+      "last_stage": "sync_stage(1792826288.492693,main,close_iteration_start('ws://127.0.0.1:54274/ws'))"
+    },
+    {
+      "trial": "pinned-isolated-07",
+      "exit_code": -11,
+      "outbound_success_marker": true,
+      "last_stage": "sync_stage(1792826302.876613,main,close_iteration_start('ws://127.0.0.1:54334/ws'))"
+    },
+    {
+      "trial": "pinned-prefixed-09",
+      "exit_code": -11,
+      "outbound_success_marker": true,
+      "last_stage": "sync_stage(1792826385.096456,main,close_iteration_start('ws://127.0.0.1:54580/ws'))"
+    },
+    {
+      "trial": "pinned-isolated-11",
+      "exit_code": -11,
+      "outbound_success_marker": true,
+      "last_stage": "sync_stage(1792826434.005136,main,close_iteration_start('ws://127.0.0.1:54748/ws'))"
+    },
+    {
+      "trial": "pinned-prefixed-12",
+      "exit_code": -11,
+      "outbound_success_marker": true,
+      "last_stage": "sync_stage(1792826482.505659,main,close_iteration_start('ws://127.0.0.1:54886/ws'))"
+    },
+    {
+      "trial": "pinned-isolated-14",
+      "exit_code": -11,
+      "outbound_success_marker": true,
+      "last_stage": "sync_stage(1792826530.956577,main,close_iteration_start('ws://127.0.0.1:55055/ws'))"
+    },
+    {
+      "trial": "pinned-isolated-18",
+      "exit_code": -11,
+      "outbound_success_marker": true,
+      "last_stage": "sync_stage(1792826664.532005,main,close_iteration_start('ws://127.0.0.1:55475/ws'))"
+    }
+  ],
+  "utf8_warnings": [],
+  "wire_errors": [],
+  "incomplete_tails": [],
+  "frames": 13475,
+  "valid_utf8_messages": 12171,
+  "valid_json_messages": 12171,
+  "invalid_json": [],
+  "raw_streams": 1318,
+  "raw_bytes": 1500242,
+  "forwarding_differences": [],
+  "ordinary_outbound_passed": 80,
+  "all_prefixes_count": 160,
+  "preservation": {
+    "sources": true,
+    "binaries": true,
+    "live_processes": true
+  },
+  "repair_scope": {
+    "original_tests_preserved_outside_added_diagnostics": true,
+    "original_sha256": "6473a2ad0b63c19738af98a3e6604ebff3058b184f31101d9f2a9d616e69ba54",
+    "instrumented_sha256": "4a283f0c11e06509762291bb8ed8aac1db229c217989fccb651693a4b7c77bf3"
+  }
+}
