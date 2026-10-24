@@ -1,0 +1,3 @@
+PASS HC-001 
+PASS HC-002 
+{"pass": 2, "fail": 0, "unsupported": 0, "observed": 0, "diagnostic_error": 0}

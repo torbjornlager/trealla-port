@@ -1,0 +1,122 @@
+[
+  {
+    "label": "callback-context",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('promise_callback_context_tests.pl'),(catch((promise_callback_context_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 2.192,
+    "passed": true
+  },
+  {
+    "label": "promise-correctness",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('rpc_promise_tests.pl'),(catch((rpc_promise_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 0.184,
+    "passed": true
+  },
+  {
+    "label": "client-options",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('rpc_option_tests.pl'),(catch((rpc_option_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 0.078,
+    "passed": true
+  },
+  {
+    "label": "promise-lifecycle",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('rpc_lifecycle_tests.pl'),(catch((rpc_lifecycle_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 0.453,
+    "passed": true
+  },
+  {
+    "label": "promise-ownership",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('rpc_ownership_tests.pl'),(catch((rpc_ownership_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 2.454,
+    "passed": true
+  },
+  {
+    "label": "synchronous-waits",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('synchronous_toplevel_tests.pl'),(catch((synchronous_toplevel_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 5.86,
+    "passed": true
+  },
+  {
+    "label": "isolation",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('tests.pl'),(catch((run_test_group(isolation)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 1.102,
+    "passed": true
+  },
+  {
+    "label": "profiles",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('tests.pl'),(catch((run_test_group(profiles)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 0.242,
+    "passed": true
+  },
+  {
+    "label": "sandbox",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('tests.pl'),(catch((run_test_group(sandbox)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 1,
+    "expected": 0,
+    "seconds": 4.027,
+    "passed": false
+  },
+  {
+    "label": "original-negative-control",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('promise_callback_context_tests.pl'),(catch((promise_callback_context_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 1,
+    "expected": 1,
+    "seconds": 2.19,
+    "passed": true
+  }
+]

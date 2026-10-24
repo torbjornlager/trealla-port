@@ -1,0 +1,2 @@
+Node listening on port 50512 (profile actor, sandbox blacklist, auth open)
+node: error handling request: error(unexpected_eof,node_http_request/5)

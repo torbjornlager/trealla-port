@@ -17,6 +17,7 @@
          sandbox_spawn/7,
          sandbox_toplevel_call/7,
          sandbox_toplevel_synch/9,
+         sandbox_yield/7,
          sandbox_control_catch/4,
          sandbox_format/2,
          sandbox_time/2,
@@ -559,6 +560,7 @@ reserved_source_name(sandbox_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_toplevel_call).
 reserved_source_name(sandbox_toplevel_synch).
+reserved_source_name(sandbox_yield).
 reserved_source_name(sandbox_format).
 reserved_source_name(sandbox_time).
 reserved_source_name(sandbox_sleep).
@@ -608,6 +610,10 @@ rewrite_goal(_, _, _, _, Goal, Goal).
 
 rewrite_goal_(Mode, Profile, Module, AppPIs, Var,
               sandbox_policy:sandbox_call(Mode,Profile,Module,AppPIs,Var)) :- var(Var).
+% Options can be computed at runtime; check and prepare callback goals then,
+% using the same policy/context path as receive and synchronous waits.
+rewrite_goal_(M,P,C,A,yield(R,Answer,Options),
+              sandbox_policy:sandbox_yield(M,P,C,A,R,Answer,Options)) :- !.
 rewrite_goal_(_,_,_,_,statechart_halt(P,R),statechart_actor:statechart_halt(P,R)) :- !.
 rewrite_goal_(_,_,_,_,statechart_halt(P,R,T),statechart_actor:statechart_halt(P,R,T)) :- !.
 rewrite_goal_(_,_,_,_,raise(E),statechart_actor:raise(E)) :- !.
@@ -805,6 +811,17 @@ sandbox_spawn(Mode, Profile, Module, _AppPIs, Goal0, Pid, Options0) :-
     !.
 
 % Runtime checks cover computed callbacks/options as well as the query goal.
+sandbox_yield(Mode,Profile,Module,AppPIs,Reference,Answer,Options0) :-
+    must_be(integer,Reference),
+    strip_module(Options0,Explicit,RawOptions),
+    rpc:validate_client_options(yield,RawOptions),
+    check_receive_options(Mode,Profile,Module,AppPIs,RawOptions),
+    forall(member(on_timeout(Callback),RawOptions),profile_check_goal(Profile,Callback)),
+    rewrite_receive_options(Mode,Profile,Module,AppPIs,RawOptions,Options),
+    (nonvar(Explicit) -> Caller=Explicit ; context_module(Module,Caller)),
+    !,
+    rpc:yield(Reference,Answer,Caller:Options).
+
 sandbox_toplevel_synch(Mode,Profile,Module,AppPIs,Kind,Pid,Goal0,Answer,Options0) :-
     context_module(Module,RuntimeModule),
     toplevel_actors:synchronous_options(Kind,RuntimeModule:Options0,_,_,_),

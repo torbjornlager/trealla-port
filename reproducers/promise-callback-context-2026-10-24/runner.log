@@ -1,0 +1,10 @@
+callback-context 0
+promise-correctness 0
+client-options 0
+promise-lifecycle 0
+promise-ownership 0
+synchronous-waits 0
+isolation 0
+profiles 0
+sandbox 1
+original-negative-control 1

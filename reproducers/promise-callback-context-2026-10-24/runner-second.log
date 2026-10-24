@@ -1,0 +1,14 @@
+callback-context 0
+promise-correctness 0
+client-options 0
+promise-lifecycle 0
+promise-ownership 0
+synchronous-waits 0
+isolation 0
+profiles 0
+sandbox 0
+original-negative-control 0
+Traceback (most recent call last):
+  File "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/promise-callback-context-2026-10-24/run_checks.py", line 26, in <module>
+    if 'existence_error(procedure' not in text or '!' not in text:raise RuntimeError('negative control did not reproduce the callback error')
+RuntimeError: negative control did not reproduce the callback error

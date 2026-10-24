@@ -1,0 +1,10 @@
+collection and output mismatch reclaim queues and threads: ok
+expiry stops outstanding worker and reclaims resources: ok
+explicit cleanup reclaims resources and is idempotent: ok
+timeout releases the collector and preserves retry: ok
+collector exclusion, interruption and answer retention: ok
+cleanup and expiry wake waiting collectors before queue destruction: ok
+disposal recovers a concurrently hard-cancelled collector: ok
+partial startup failure and exception roll back resources: ok
+late delivery and cleanup races leave no resources: ok
+Promise lifecycle: all regressions passed

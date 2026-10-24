@@ -75,7 +75,7 @@ runtime_property(hard_termination(true)).
 :- use_module(library(http)).
 :- use_module(library(uri), [www_form_encode/2]).
 :- use_module(actors, [self/1,make_ref/1]).
-:- use_module(isolation, [actor_source_module/2,load_options_text/3]).
+:- use_module(isolation, [actor_source_module/2,actor_module/2,load_options_text/3]).
 
 % State is local to this process; client ownership is recorded explicitly.
 :- multifile hook_promise_owner/1.
@@ -630,7 +630,7 @@ yield(Reference, Answer, Options0) :-
     strip_module(Options0, Caller0, Options),
     validate_client_options(yield,Options),
     ( nonvar(Caller0) -> Caller = Caller0
-    ; rpc_source_module(Caller) ),
+    ; promise_callback_module(Caller) ),
     promise_owner_context(Owner),
     thread_self(CollectorThread),Claim=collector(CollectorThread),
     setup_call_cleanup(
@@ -644,6 +644,15 @@ yield(Reference, Answer, Options0) :-
     !,
     (Outcome = answer(Message) -> Answer = Message
     ; yield_timeout(Reference,Answer,Caller,Options)).
+
+% Callback execution also needs the actor's bootstrap module when there is no
+% supplied source. Keep source selection for outgoing RPCs independent of this.
+promise_callback_module(Module) :-
+    self(Pid),
+    ( actor_source_module(Pid, Module) -> true
+    ; actor_module(Pid, Module) -> true
+    ; Module = user
+    ).
 
 claim_promise(Ref, Claim, Queue, Ready,Owner) :-
     (promise_accessible(Ref,Owner) -> true ; missing_promise(Ref)),

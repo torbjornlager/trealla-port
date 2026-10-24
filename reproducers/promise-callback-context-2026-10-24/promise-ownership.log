@@ -1,0 +1,5 @@
+different client namespaces isolated; same namespace and descendants share: ok
+trusted standalone actors preserve local sharing: ok
+HTTP requests have fresh identities inherited by execution actors: ok
+missing public identity is rejected before resource creation: ok
+Promise ownership: all regressions passed

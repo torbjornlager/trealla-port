@@ -1,0 +1,264 @@
+{
+  "runs": [
+    {
+      "label": "swi-promise-yield-to-swi",
+      "exit_code": 0,
+      "report": "swi-promise-yield-to-swi.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "cases/promise-yield-0.1.json",
+        "--url",
+        "ws://127.0.0.1:50604/ws",
+        "--peer",
+        "http://127.0.0.1:50604",
+        "--candidate",
+        "swi",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/reports/2026-10-24-promise-callback-repair-final/swi-promise-yield-to-swi.json"
+      ]
+    },
+    {
+      "label": "swi-interop-http-to-swi",
+      "exit_code": 0,
+      "report": "swi-interop-http-to-swi.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "cases/interop-http-0.1.json",
+        "--url",
+        "http://127.0.0.1:50604",
+        "--peer",
+        "http://127.0.0.1:50604",
+        "--candidate",
+        "swi",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/reports/2026-10-24-promise-callback-repair-final/swi-interop-http-to-swi.json"
+      ]
+    },
+    {
+      "label": "swi-promise-yield-to-trealla",
+      "exit_code": 0,
+      "report": "swi-promise-yield-to-trealla.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "cases/promise-yield-0.1.json",
+        "--url",
+        "ws://127.0.0.1:50604/ws",
+        "--peer",
+        "http://127.0.0.1:50610",
+        "--candidate",
+        "swi",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/reports/2026-10-24-promise-callback-repair-final/swi-promise-yield-to-trealla.json"
+      ]
+    },
+    {
+      "label": "swi-interop-http-to-trealla",
+      "exit_code": 0,
+      "report": "swi-interop-http-to-trealla.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "cases/interop-http-0.1.json",
+        "--url",
+        "http://127.0.0.1:50604",
+        "--peer",
+        "http://127.0.0.1:50610",
+        "--candidate",
+        "swi",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/reports/2026-10-24-promise-callback-repair-final/swi-interop-http-to-trealla.json"
+      ]
+    },
+    {
+      "label": "trealla-promise-yield-to-swi",
+      "exit_code": 0,
+      "report": "trealla-promise-yield-to-swi.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "cases/promise-yield-0.1.json",
+        "--url",
+        "ws://127.0.0.1:50610/ws",
+        "--peer",
+        "http://127.0.0.1:50604",
+        "--candidate",
+        "trealla",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/reports/2026-10-24-promise-callback-repair-final/trealla-promise-yield-to-swi.json"
+      ]
+    },
+    {
+      "label": "trealla-interop-http-to-swi",
+      "exit_code": 0,
+      "report": "trealla-interop-http-to-swi.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "cases/interop-http-0.1.json",
+        "--url",
+        "http://127.0.0.1:50610",
+        "--peer",
+        "http://127.0.0.1:50604",
+        "--candidate",
+        "trealla",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/reports/2026-10-24-promise-callback-repair-final/trealla-interop-http-to-swi.json"
+      ]
+    },
+    {
+      "label": "trealla-promise-yield-to-trealla",
+      "exit_code": 0,
+      "report": "trealla-promise-yield-to-trealla.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "cases/promise-yield-0.1.json",
+        "--url",
+        "ws://127.0.0.1:50610/ws",
+        "--peer",
+        "http://127.0.0.1:50610",
+        "--candidate",
+        "trealla",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/reports/2026-10-24-promise-callback-repair-final/trealla-promise-yield-to-trealla.json"
+      ]
+    },
+    {
+      "label": "trealla-interop-http-to-trealla",
+      "exit_code": 0,
+      "report": "trealla-interop-http-to-trealla.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "cases/interop-http-0.1.json",
+        "--url",
+        "http://127.0.0.1:50610",
+        "--peer",
+        "http://127.0.0.1:50610",
+        "--candidate",
+        "trealla",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/reports/2026-10-24-promise-callback-repair-final/trealla-interop-http-to-trealla.json"
+      ]
+    }
+  ],
+  "sources": {
+    "conformance": {
+      "path": "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance",
+      "revision": "cc12adb2456559f4e7b0535bcec39423deaf20b0",
+      "status": "?? reports/2026-10-24-promise-callback-repair/\n?? reports/2026-10-24-trealla-v3.14.10-acceptance/"
+    },
+    "swi": {
+      "path": "/Users/torbjorn.lager/Documents/GitHub/swi-prolog-node",
+      "revision": "f316e65503bff863dfbd2e182f7487988c91480c",
+      "status": ""
+    },
+    "trealla": {
+      "path": "/Users/torbjorn.lager/Documents/GitHub/trealla-port",
+      "revision": "fe94735bd52794aaee83f411b8c0c18014c1e9cc",
+      "status": "M rpc.pl\n M sandbox_policy.pl\n M tools/test.sh\n?? promise_callback_context_tests.pl"
+    },
+    "demonstrator": {
+      "path": "/Users/torbjorn.lager/Documents/GitHub/trinity-demonstrator",
+      "revision": "5b2b9726faaf015a89cccfd8053ffc47033803a9",
+      "status": ""
+    }
+  },
+  "inputs": {
+    "cases/promise-yield-0.1.json": "883eaa720211ef3863595379f950c61cbaffd5b06f849f7e97277db162e4a8a4",
+    "cases/promise-diagnostics-0.1.json": "21cf3a50b2517b66b2391f97a66450768b3c38d22d65b18028c1344c23f2d1dc",
+    "profiles/promise-yield-0.1.md": "7ef9112be4cd4474e869799b00bd8719945490890e7b6394fb240480f3043454",
+    "cases/interop-http-0.1.json": "1cda53f3c9964fa0d4c11a3f2c339455ed194e20ebc39083ecaeb568b957a51f",
+    "runner/baseline.py": "0114d2e8d2ede18489995c138e14e6d9d69cb235386ff6289c25f341522a1100",
+    "runner/run.py": "b07bd6e0b900114ab799e67530cd517199b02b1842669e91621941222cd0f9d9",
+    "adapters/local_promises.py": "dfa68048a001d4059f271f3182a2bf967f8f47c2f1d99ab78a32cc5ab96ca1e9"
+  },
+  "versions": {
+    "swi": "SWI-Prolog version 10.1.18 for arm64-darwin",
+    "trealla": "trealla(3,14,10,[])"
+  },
+  "nodes": {
+    "swi": {
+      "url": "http://127.0.0.1:50604",
+      "pid": 16458,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swi-default-startup-2026-10-24/runtime/lib/swipl/bin/arm64-darwin/swipl",
+        "-f",
+        "none",
+        "-q",
+        "-g",
+        "use_module(library(sgml)),use_module(library(option)),consult('/Users/torbjorn.lager/Documents/GitHub/swi-prolog-node/load.pl'),set_setting(http:public_host,'127.0.0.1'),set_setting(http:public_port,50604),set_setting(http:public_scheme,http),use_module(library(socket)),tcp_socket(S),tcp_bind(S,ip(127,0,0,1):50604),tcp_listen(S,128),node:node(50604,[tcp_socket(S),profile(actor),sandbox(blacklist),auth(open)]),thread_get_message(stop)"
+      ],
+      "profile": "actor",
+      "sandbox": "blacklist",
+      "auth": "open, disposable loopback fixture"
+    },
+    "trealla": {
+      "url": "http://127.0.0.1:50610",
+      "pid": 16459,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "use_module(web_prolog),use_module(distribution),web_prolog:web_prolog_node(50610,[bind_address('127.0.0.1'),node_url('http://127.0.0.1:50610'),profile(actor),sandbox(blacklist),auth(open)]),thread_get_message(stop)"
+      ],
+      "profile": "actor",
+      "sandbox": "blacklist",
+      "auth": "open, disposable loopback fixture"
+    }
+  },
+  "temporary_nodes_stopped": true,
+  "engine_hashes": {
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swi-default-startup-2026-10-24/runtime/lib/swipl/bin/arm64-darwin/swipl": "915c4758b6aba3d01ade4fe4f46332b6f526ad6c70a8e2574dd05278c2b0ce9c",
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl": "71f5ab7df3bde1a0a73cffccb2a762815895f6d2c2ef3f63ee52ef10baaeba1c"
+  },
+  "preservation": {
+    "native_prolog": true,
+    "trealla_sources": true,
+    "engines": true,
+    "library": true,
+    "live": true
+  }
+}

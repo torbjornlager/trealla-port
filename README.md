@@ -1791,6 +1791,19 @@ lookup retains first-occurrence precedence. Repeated request headers and source
 options keep their existing behavior and order. Validation preserves template
 and callback variables.
 
+Yield timeout callbacks run in the yielding actor's execution context, including
+source-less sessions whose bootstrap imports the actor API. Explicit caller
+qualification is retained; private source helpers and callback/answer variable
+sharing remain available. This callback context is resolved separately from the
+source module used to assemble outgoing RPC source. Public sandboxed yield calls
+check and prepare callbacks at runtime, including computed option lists, using
+the same profile/policy path as receive callbacks. Forbidden callbacks are rejected
+before claiming a promise. Timeout, callback failure or callback exceptions leave
+the reference available for retry. Callback-context regression and conformance
+evidence is in
+[the repair record](reproducers/promise-callback-context-2026-10-24/REPORT.md).
+
+
 | API | Supported options |
 |---|---|
 | `rpc/3` | `limit/1`, boolean `once/1`, the four `src_*` options above, and the HTTP subset below |

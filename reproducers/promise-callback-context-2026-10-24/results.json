@@ -1,0 +1,122 @@
+[
+  {
+    "label": "callback-context",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('promise_callback_context_tests.pl'),(catch((promise_callback_context_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 2.235,
+    "passed": true
+  },
+  {
+    "label": "promise-correctness",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('rpc_promise_tests.pl'),(catch((rpc_promise_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 0.187,
+    "passed": true
+  },
+  {
+    "label": "client-options",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('rpc_option_tests.pl'),(catch((rpc_option_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 0.076,
+    "passed": true
+  },
+  {
+    "label": "promise-lifecycle",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('rpc_lifecycle_tests.pl'),(catch((rpc_lifecycle_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 0.511,
+    "passed": true
+  },
+  {
+    "label": "promise-ownership",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('rpc_ownership_tests.pl'),(catch((rpc_ownership_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 2.408,
+    "passed": true
+  },
+  {
+    "label": "synchronous-waits",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('synchronous_toplevel_tests.pl'),(catch((synchronous_toplevel_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 5.856,
+    "passed": true
+  },
+  {
+    "label": "isolation",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('tests.pl'),(catch((run_test_group(isolation)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 1.217,
+    "passed": true
+  },
+  {
+    "label": "profiles",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('tests.pl'),(catch((run_test_group(profiles)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "expected": 0,
+    "seconds": 0.241,
+    "passed": true
+  },
+  {
+    "label": "sandbox",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('tests.pl'),(catch((run_test_group(sandbox)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 1,
+    "expected": 0,
+    "seconds": 4.899,
+    "passed": false
+  },
+  {
+    "label": "original-negative-control",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult('web_prolog.pl'),(catch((use_module(distribution),actors:make_ref(R),rpc:promise_transaction(rpc:new_promise_state(R,_)),actors:self(S),catch(rpc:yield(R,A,[timeout(0),on_timeout(('!'(S,probe),A=waiting))]),Error,true),rpc:promise_cleanup(R),writeq(Error),nl,(nonvar(Error)->throw(Error);true)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 1,
+    "expected": 1,
+    "seconds": 0.292,
+    "passed": true
+  }
+]

@@ -1,0 +1,7 @@
+source-less context, sharing, one callback, unrelated data and retry: ok
+private callback helper and retry: ok
+explicit option and callback qualification: ok
+checking_forbidden
+checking_allowed
+computed forbidden callback rejected; permitted callback and retry preserved: ok
+Promise callback context: all regressions passed

@@ -1,0 +1,63 @@
+{
+  "advertised_profile": "actor",
+  "baseline": "0.1",
+  "candidate": "trealla",
+  "counts": {
+    "diagnostic_error": 0,
+    "fail": 6,
+    "observed": 0,
+    "pass": 0,
+    "unsupported": 0
+  },
+  "duration_ms": 1231,
+  "endpoint": "ws://127.0.0.1:50512/ws",
+  "peer": "http://127.0.0.1:50505",
+  "results": [
+    {
+      "detail": "ConformanceFailure: assertion left a continuation: {'type': 'success', 'pid': 2841748569, 'data': [{'X': 'X', 'R': '1000000077', 'Early': 'timeout', 'A': 'success([ok],false)', 'BaselineResult': 'passed'}], 'more': True}",
+      "duration_ms": 537,
+      "id": "PY-001",
+      "status": "fail",
+      "title": "Default timeout preserves the promise for retry"
+    },
+    {
+      "detail": "ConformanceFailure: assertion left a continuation: {'type': 'success', 'pid': 3051270922, 'data': [{'S': \"3051270922@'http://127.0.0.1:50512'\", 'X': 'X', 'R': '1000000086', 'Early': 'waiting', 'A': 'success([ok],false)', 'BaselineResult': 'passed'}], 'more': True}",
+      "duration_ms": 558,
+      "id": "PY-002",
+      "status": "fail",
+      "title": "Timeout callback runs once and preserves retry and unrelated data"
+    },
+    {
+      "detail": "ConformanceFailure: assertion left a continuation: {'type': 'success', 'pid': 2553671479, 'data': [{'X': 'X', 'R': '1000000095', 'A': 'success([a,b],false)', 'BaselineResult': 'passed'}], 'more': True}",
+      "duration_ms": 44,
+      "id": "PY-003",
+      "status": "fail",
+      "title": "Once returns the complete first slice without continuation"
+    },
+    {
+      "detail": "ConformanceFailure: assertion left a continuation: {'type': 'success', 'pid': 1166815673, 'data': [{'R': '1000000104', 'A': 'failure', 'R2': '1000000105', 'B': 'error(promise_probe_error)', 'BaselineResult': 'passed'}], 'more': True}",
+      "duration_ms": 40,
+      "id": "PY-004",
+      "status": "fail",
+      "title": "Logical failure and remote exceptions arrive as distinct answers"
+    },
+    {
+      "detail": "ConformanceFailure: assertion left a continuation: {'type': 'success', 'pid': 2265815736, 'data': [{'Missing': '1000000114', 'E': \"error(existence_error(promise,1000000114),context(rpc:yield/3,'unknown, consumed, or expired promise'))\", 'R': '1000000115', 'A': 'success([true],false)', 'E2': \"error(existence_error(promise,1000000115),context(rpc:yield/3,'unknown, consumed, or expired promise'))\", 'BaselineResult': 'passed'}], 'more': True}",
+      "duration_ms": 26,
+      "id": "PY-005",
+      "status": "fail",
+      "title": "Unknown and collected references raise the documented existence error"
+    },
+    {
+      "detail": "ConformanceFailure: assertion left a continuation: {'type': 'success', 'pid': 1855923263, 'data': [{'X': 'X', 'R': '1000000124', 'E': \"error(type_error(number,bad),context(rpc:yield/3,'invalid client option'))\", 'A': 'success([ok],false)', 'BaselineResult': 'passed'}], 'more': True}",
+      "duration_ms": 25,
+      "id": "PY-006",
+      "status": "fail",
+      "title": "Invalid wait options do not consume the promise"
+    }
+  ],
+  "schema_version": 2,
+  "scope": "required",
+  "started_at": "2026-10-24T16:14:46.754164+00:00",
+  "suite": "promise-yield-0.1"
+}

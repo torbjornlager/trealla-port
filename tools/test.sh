@@ -213,6 +213,8 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/rpc_lifecycle_tests.pl'),(rpc_lifecycle_tests->halt;halt(1))"
     run_with_timeout "promise/yield correctness" \
         "$TPL" -g "consult('$ROOT/rpc_promise_tests.pl'),(rpc_promise_tests->halt;halt(1))"
+    run_with_timeout "promise callback context" \
+        "$TPL" -g "consult('$ROOT/promise_callback_context_tests.pl'),(catch(promise_callback_context_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "outbound synchronous vectors" \
         "$TPL" -g "consult('$ROOT/distribution_sync_tests.pl'),(distribution_sync_tests->halt;halt(1))"
     run_with_timeout "toplevel correlation vectors" \
