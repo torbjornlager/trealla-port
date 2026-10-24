@@ -1,0 +1,20 @@
+[
+  {
+    "number": 1179,
+    "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1179",
+    "state": "closed",
+    "state_reason": "completed",
+    "closed_at": "2026-10-24T15:14:17Z",
+    "comment_url": "https://github.com/trealla-prolog/trealla-prolog/issues/1179#issuecomment-6385874073",
+    "comment_body": "Verified with the exact, unmodified v3.14.10 release (`4ef56e3bbbcc6ca44085a4aa5eae0e6848c70294`) and its matching libraries.\n\nWe adopted your recommended public `sig_atomic/1` approach rather than the proposed private dequeue-and-save builtin. Dequeue and saving the message now share a protected region; blocking waits use slices of at most 100 ms, retain the original deadline, and read the deferred list inside each protected slice.\n\nVerification passed:\n- 1,000 controlled standalone handoff trials, without Web Prolog.\n- The existing 1,000-interruption adapter regression.\n- Ten fresh-process atomic-receive regression runs covering deadlines, polling, timeout callbacks, returning signal handlers and external time limits.\n- 100 fresh-process worker-cleanup runs.\n- Final complete port unit checkpoint: 75/75 groups.\n\nWe retain the documented qualification that `abort/0` is not held. These results do not resolve the separate historical intermittent paging/UTF-8 diagnostics.\n\nThank you for the fixes and the detailed guidance on bounded waits, time limits and fresh deferred state. The public API provides the functionality we needed, so I am closing this request as completed."
+  },
+  {
+    "number": 1180,
+    "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1180",
+    "state": "closed",
+    "state_reason": "completed",
+    "closed_at": "2026-10-24T15:14:36Z",
+    "comment_url": "https://github.com/trealla-prolog/trealla-prolog/issues/1180#issuecomment-6385877361",
+    "comment_body": "Verified fixed with the exact, unmodified v3.14.10 release (`4ef56e3bbbcc6ca44085a4aa5eae0e6848c70294`) and its matching libraries.\n\nThe original mutex-retention probe now reports an unlocked mutex with cleanup entered. Positive mutex controls passed 60/60 fresh processes: 20 each for a signal during blocked Setup, ordinary completion, and interruption in the body. The upstream Setup-semantics control also passed, as did all 642 upstream engine tests and the final 75/75-group Web Prolog port unit checkpoint.\n\nThe original negative probe's nonzero exit was its expectation of the old retained-lock behaviour; the positive controls assert the corrected result. Separate historical intermittent paging diagnostics remain recorded independently and are not claimed resolved by these checks.\n\nThank you for fixing the cleanup-registration window and for the related signal/time-limit handling improvements. Closing this report as verified fixed."
+  }
+]
