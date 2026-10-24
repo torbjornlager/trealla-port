@@ -1,0 +1,6 @@
+{
+  "original_test_text_preserved_outside_added_cleanup": true,
+  "changed_existing_files_since_investigation": [
+    "swi_websocket_interop.pl"
+  ]
+}

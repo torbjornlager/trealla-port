@@ -1,0 +1,13 @@
+[
+  {
+    "label": "native-interop-collect-all",
+    "command": [
+      "sh",
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/connection-parity-fixture-cleanup-2026-10-24/test-collect-all.sh",
+      "interop"
+    ],
+    "cwd": "/Users/torbjorn.lager/Documents/GitHub/trealla-port",
+    "exit_code": 0,
+    "seconds": 112.462
+  }
+]

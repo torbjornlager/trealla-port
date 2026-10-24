@@ -1,0 +1,562 @@
+[
+  {
+    "trial": 1,
+    "engine": "pinned",
+    "prefixed": true,
+    "port": 51566,
+    "label": "pinned-prefixed-01",
+    "stages": [
+      {
+        "stage": "before_protocol",
+        "time": 1792822105.7939131
+      },
+      {
+        "stage": "after_protocol",
+        "time": 1792822105.934485
+      },
+      {
+        "stage": "before_parity",
+        "time": 1792822105.934488
+      },
+      {
+        "stage": "after_parity",
+        "time": 1792822106.4879758
+      },
+      {
+        "stage": "later",
+        "time": 1792822106.79807
+      }
+    ],
+    "prefix": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(protocol_client_test(51566)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822105.793951,
+      "ended_at": 1792822105.934457
+    },
+    "parity": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(connection_thread_parity_test(51566)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822105.934571,
+      "ended_at": 1792822106.487911
+    },
+    "observation_completed": true
+  },
+  {
+    "trial": 1,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "port": 51585,
+    "label": "v3.14.10-prefixed-01",
+    "stages": [
+      {
+        "stage": "before_protocol",
+        "time": 1792822109.45171
+      },
+      {
+        "stage": "after_protocol",
+        "time": 1792822109.691333
+      },
+      {
+        "stage": "before_parity",
+        "time": 1792822109.691339
+      },
+      {
+        "stage": "after_parity",
+        "time": 1792822110.2323682
+      },
+      {
+        "stage": "later",
+        "time": 1792822110.532942
+      }
+    ],
+    "prefix": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(protocol_client_test(51585)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822109.451772,
+      "ended_at": 1792822109.691254
+    },
+    "parity": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(connection_thread_parity_test(51585)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822109.6915,
+      "ended_at": 1792822110.232281
+    },
+    "observation_completed": true
+  },
+  {
+    "trial": 2,
+    "engine": "pinned",
+    "prefixed": true,
+    "port": 51605,
+    "label": "pinned-prefixed-02",
+    "stages": [
+      {
+        "stage": "before_protocol",
+        "time": 1792822113.182664
+      },
+      {
+        "stage": "after_protocol",
+        "time": 1792822113.3148239
+      },
+      {
+        "stage": "before_parity",
+        "time": 1792822113.314827
+      },
+      {
+        "stage": "after_parity",
+        "time": 1792822113.8345711
+      },
+      {
+        "stage": "later",
+        "time": 1792822114.1446881
+      }
+    ],
+    "prefix": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(protocol_client_test(51605)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822113.182733,
+      "ended_at": 1792822113.314792
+    },
+    "parity": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(connection_thread_parity_test(51605)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822113.3149052,
+      "ended_at": 1792822113.8344908
+    },
+    "observation_completed": true
+  },
+  {
+    "trial": 2,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "port": 51625,
+    "label": "v3.14.10-prefixed-02",
+    "stages": [
+      {
+        "stage": "before_protocol",
+        "time": 1792822116.7912068
+      },
+      {
+        "stage": "after_protocol",
+        "time": 1792822117.0423539
+      },
+      {
+        "stage": "before_parity",
+        "time": 1792822117.04236
+      },
+      {
+        "stage": "after_parity",
+        "time": 1792822117.5692549
+      },
+      {
+        "stage": "later",
+        "time": 1792822117.877007
+      }
+    ],
+    "prefix": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(protocol_client_test(51625)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822116.7912772,
+      "ended_at": 1792822117.0422962
+    },
+    "parity": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(connection_thread_parity_test(51625)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822117.042565,
+      "ended_at": 1792822117.569191
+    },
+    "observation_completed": true
+  },
+  {
+    "trial": 3,
+    "engine": "pinned",
+    "prefixed": true,
+    "port": 51645,
+    "label": "pinned-prefixed-03",
+    "stages": [
+      {
+        "stage": "before_protocol",
+        "time": 1792822120.5513961
+      },
+      {
+        "stage": "after_protocol",
+        "time": 1792822120.687686
+      },
+      {
+        "stage": "before_parity",
+        "time": 1792822120.687689
+      },
+      {
+        "stage": "after_parity",
+        "time": 1792822121.2238579
+      },
+      {
+        "stage": "later",
+        "time": 1792822121.526882
+      }
+    ],
+    "prefix": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(protocol_client_test(51645)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822120.551457,
+      "ended_at": 1792822120.6876569
+    },
+    "parity": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(connection_thread_parity_test(51645)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822120.687768,
+      "ended_at": 1792822121.223809
+    },
+    "observation_completed": true
+  },
+  {
+    "trial": 3,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "port": 51664,
+    "label": "v3.14.10-prefixed-03",
+    "stages": [
+      {
+        "stage": "before_protocol",
+        "time": 1792822124.1872241
+      },
+      {
+        "stage": "after_protocol",
+        "time": 1792822124.434377
+      },
+      {
+        "stage": "before_parity",
+        "time": 1792822124.43438
+      },
+      {
+        "stage": "after_parity",
+        "time": 1792822124.5165598
+      },
+      {
+        "stage": "later",
+        "time": 1792822124.824211
+      }
+    ],
+    "prefix": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(protocol_client_test(51664)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822124.187283,
+      "ended_at": 1792822124.434348
+    },
+    "parity": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(connection_thread_parity_test(51664)->halt;halt(1))"
+      ],
+      "exit_code": 1,
+      "started_at": 1792822124.434458,
+      "ended_at": 1792822124.516534
+    },
+    "observation_completed": true
+  },
+  {
+    "trial": 4,
+    "engine": "pinned",
+    "prefixed": true,
+    "port": 51697,
+    "label": "pinned-prefixed-04",
+    "stages": [
+      {
+        "stage": "before_protocol",
+        "time": 1792822127.924478
+      },
+      {
+        "stage": "after_protocol",
+        "time": 1792822128.067528
+      },
+      {
+        "stage": "before_parity",
+        "time": 1792822128.067531
+      },
+      {
+        "stage": "after_parity",
+        "time": 1792822128.590059
+      },
+      {
+        "stage": "later",
+        "time": 1792822128.894913
+      }
+    ],
+    "prefix": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(protocol_client_test(51697)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822127.924552,
+      "ended_at": 1792822128.067499
+    },
+    "parity": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(connection_thread_parity_test(51697)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822128.06762,
+      "ended_at": 1792822128.5899498
+    },
+    "observation_completed": true
+  },
+  {
+    "trial": 4,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "port": 51719,
+    "label": "v3.14.10-prefixed-04",
+    "stages": [
+      {
+        "stage": "before_protocol",
+        "time": 1792822131.557803
+      },
+      {
+        "stage": "after_protocol",
+        "time": 1792822131.796875
+      },
+      {
+        "stage": "before_parity",
+        "time": 1792822131.796881
+      },
+      {
+        "stage": "after_parity",
+        "time": 1792822131.8810701
+      },
+      {
+        "stage": "later",
+        "time": 1792822132.1866229
+      }
+    ],
+    "prefix": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(protocol_client_test(51719)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822131.557885,
+      "ended_at": 1792822131.796811
+    },
+    "parity": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(connection_thread_parity_test(51719)->halt;halt(1))"
+      ],
+      "exit_code": 1,
+      "started_at": 1792822131.797052,
+      "ended_at": 1792822131.8810408
+    },
+    "observation_completed": true
+  },
+  {
+    "trial": 5,
+    "engine": "pinned",
+    "prefixed": true,
+    "port": 51737,
+    "label": "pinned-prefixed-05",
+    "stages": [
+      {
+        "stage": "before_protocol",
+        "time": 1792822135.294227
+      },
+      {
+        "stage": "after_protocol",
+        "time": 1792822135.432557
+      },
+      {
+        "stage": "before_parity",
+        "time": 1792822135.4325602
+      },
+      {
+        "stage": "after_parity",
+        "time": 1792822135.968688
+      },
+      {
+        "stage": "later",
+        "time": 1792822136.275027
+      }
+    ],
+    "prefix": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(protocol_client_test(51737)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822135.2942889,
+      "ended_at": 1792822135.432527
+    },
+    "parity": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(connection_thread_parity_test(51737)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822135.432636,
+      "ended_at": 1792822135.968606
+    },
+    "observation_completed": true
+  },
+  {
+    "trial": 5,
+    "engine": "v3.14.10",
+    "prefixed": true,
+    "port": 51758,
+    "label": "v3.14.10-prefixed-05",
+    "stages": [
+      {
+        "stage": "before_protocol",
+        "time": 1792822138.942558
+      },
+      {
+        "stage": "after_protocol",
+        "time": 1792822139.204573
+      },
+      {
+        "stage": "before_parity",
+        "time": 1792822139.20458
+      },
+      {
+        "stage": "after_parity",
+        "time": 1792822139.755399
+      },
+      {
+        "stage": "later",
+        "time": 1792822140.062346
+      }
+    ],
+    "prefix": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(protocol_client_test(51758)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822138.942621,
+      "ended_at": 1792822139.204512
+    },
+    "parity": {
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swipl-09b6299-pcre-2026-10-23/build/src/swipl",
+        "-q",
+        "-s",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/swi_websocket_interop.pl",
+        "-g",
+        "(connection_thread_parity_test(51758)->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "started_at": 1792822139.204753,
+      "ended_at": 1792822139.755245
+    },
+    "observation_completed": true
+  }
+]

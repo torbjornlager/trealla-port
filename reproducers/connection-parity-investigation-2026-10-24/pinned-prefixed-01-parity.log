@@ -1,0 +1,7 @@
+parity_stage(first,2645422107)
+parity_reply(2645422107,#{data:[#{'Actors':"[2645422107@'http://127.0.0.1:51182']",'Live':"2",'Visible':"1"}],more:false,pid:2645422107,type:"success"})
+parity_stage_passed(first,2645422107)
+parity_stage(second,2645606984)
+parity_reply(2645606984,#{data:[#{'Actors':"[2645606984@'http://127.0.0.1:51182']",'Live':"2",'Visible':"1"}],more:false,pid:2645606984,type:"success"})
+parity_stage_passed(second,2645606984)
+SWI client -> Trealla connection thread parity test: ok

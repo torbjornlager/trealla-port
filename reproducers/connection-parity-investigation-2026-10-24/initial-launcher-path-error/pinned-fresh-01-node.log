@@ -1,0 +1,3 @@
+Warning: module file not found: ../../../distribution
+Info: created module 'web_prolog'
+   error(existence_error(procedure,web_prolog_node/2),web_prolog_node/2).

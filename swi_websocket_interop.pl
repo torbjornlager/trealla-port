@@ -290,6 +290,20 @@ protocol_client_test(Port) :-
     receive_type(WS, "success", MultilineSource),
     MultilineSource.data = [MultilineRow],
     get_dict('Value', MultilineRow, "ok"),
+    % The parent/close acknowledgement does not await linked descendants.
+    % Retire this fixture's persistent child before another connection asserts
+    % a node-wide actor count; retain its spawn-time monitor as the barrier.
+    local_pid_text(ChildText, ChildPid, Port),
+    format(string(ChildCleanup),
+           "toplevel_halt(~d),receive({down(~d,~d,true)->true},[timeout(2),on_timeout(throw(nested_fixture_cleanup_timeout(~d)))])",
+           [ChildPid, ChildPid, ChildPid, ChildPid]),
+    format('protocol_child_cleanup_started(~q)~n', [ChildPid]), flush_output,
+    send_json(WS, json{command:"toplevel_call", pid:Pid,
+                       goal:ChildCleanup, options:"[limit(1)]"}),
+    receive_type(WS, "success", ChildStopped),
+    ChildStopped.data = [_],
+    ChildStopped.more == false,
+    format('protocol_child_cleanup_complete(~q)~n', [ChildPid]), flush_output,
     send_json(WS, json{command:"toplevel_halt", pid:Pid}),
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
@@ -447,17 +461,24 @@ rebuilt_query_session(WS, Options) :-
 
 connection_thread_parity_test(Port) :-
     open_parity_shell(Port, First, FirstPid),
-    assert_parity_shape(First, FirstPid),
+    parity_assertion(first, First, FirstPid),
     % Closing the underlying WebSocket stream without a close frame models a
     % browser reload or network loss.  The Trealla node must reclaim both its
     % shell and relay before the replacement connection becomes observable.
     close(First, [force(true)]),
     sleep(0.2),
     open_parity_shell(Port, Second, SecondPid),
-    assert_parity_shape(Second, SecondPid),
+    parity_assertion(second, Second, SecondPid),
     close(Second, [force(true)]),
     sleep(0.2),
     format('SWI client -> Trealla connection thread parity test: ok~n').
+
+parity_assertion(Stage, WS, Pid) :-
+    format('parity_stage(~q,~q)~n', [Stage, Pid]), flush_output,
+    ( assert_parity_shape(WS, Pid) ->
+        format('parity_stage_passed(~q,~q)~n', [Stage, Pid]), flush_output
+    ; format('parity_stage_failed(~q,~q)~n', [Stage, Pid]), flush_output, fail
+    ).
 
 open_parity_shell(Port, WS, Pid) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
@@ -473,6 +494,7 @@ assert_parity_shape(WS, Pid) :-
                        goal:"actors(Actors),length(Actors,Visible),live_actor_count(Live)",
                        options:"[limit(1)]"}),
     receive_type(WS, "success", Success),
+    format('parity_reply(~q,~q)~n', [Pid, Success]), flush_output,
     Success.data = [Bindings],
     get_dict('Visible', Bindings, "1"),
     get_dict('Live', Bindings, "2").

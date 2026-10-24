@@ -1,0 +1,3 @@
+parity_stage(first,1241532993)
+parity_reply(1241532993,#{data:[#{'Actors':"[1241532993@'http://127.0.0.1:51230']",'Live':"3",'Visible':"1"}],more:false,pid:1241532993,type:"success"})
+parity_stage_failed(first,1241532993)

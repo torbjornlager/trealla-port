@@ -1,0 +1,99 @@
+{
+  "fixed": {
+    "groups": [
+      {
+        "engine": "pinned",
+        "prefixed": false,
+        "total": 20,
+        "passed": 20,
+        "failed": 0,
+        "errors": [],
+        "complete_node_history": 0
+      },
+      {
+        "engine": "pinned",
+        "prefixed": true,
+        "total": 20,
+        "passed": 20,
+        "failed": 0,
+        "errors": [],
+        "complete_node_history": 0
+      },
+      {
+        "engine": "v3.14.10",
+        "prefixed": false,
+        "total": 20,
+        "passed": 20,
+        "failed": 0,
+        "errors": [],
+        "complete_node_history": 0
+      },
+      {
+        "engine": "v3.14.10",
+        "prefixed": true,
+        "total": 20,
+        "passed": 19,
+        "failed": 1,
+        "errors": [],
+        "complete_node_history": 0
+      }
+    ],
+    "prefixes_passed": true,
+    "preservation": {
+      "tracked_sha256": true,
+      "binaries": true,
+      "live_processes": true
+    }
+  },
+  "snapshot_controls": {
+    "groups": [
+      {
+        "engine": "pinned",
+        "prefixed": true,
+        "total": 5,
+        "passed": 5,
+        "failed": 0,
+        "errors": [],
+        "complete_node_history": 5
+      },
+      {
+        "engine": "v3.14.10",
+        "prefixed": true,
+        "total": 5,
+        "passed": 3,
+        "failed": 2,
+        "errors": [],
+        "complete_node_history": 5
+      }
+    ],
+    "prefixes_passed": true,
+    "preservation": {
+      "tracked_sha256": true,
+      "binaries": true,
+      "live_processes": true
+    },
+    "empty_final_snapshots": 10
+  },
+  "failed_stages": {
+    "v3.14.10-prefixed-02-parity.log": {
+      "first_stage": true,
+      "visible_1": true,
+      "live_3": true
+    },
+    "snapshot-controls/v3.14.10-prefixed-03-parity.log": {
+      "first_stage": true,
+      "visible_1": true,
+      "live_3": true
+    },
+    "snapshot-controls/v3.14.10-prefixed-04-parity.log": {
+      "first_stage": true,
+      "visible_1": true,
+      "live_3": true
+    }
+  },
+  "original_parity_assertion_preserved": true,
+  "original_200ms_pauses_preserved": true,
+  "changed_existing_files_since_previous_batch": [
+    "swi_websocket_interop.pl"
+  ]
+}

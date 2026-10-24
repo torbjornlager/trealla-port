@@ -1,0 +1,149 @@
+Trealla: trealla(3,14,10,[]) (/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl)
+SWI-Prolog: SWI-Prolog version 10.1.18 for arm64-darwin
+
+=== Trealla client -> SWI WebSocket ===
+Trealla client interoperability test: ok
+
+=== SWI client -> Trealla WebSocket ===
+Trealla server interoperability test: ok
+SWI client interoperability test: ok
+
+=== Trealla client -> SWI protocol fixture ===
+Trealla Web Prolog protocol client test: ok
+
+=== Trealla outbound client -> legacy fixture ===
+
+=== unsupported synchronous peer remains asynchronous ===
+Unsupported synchronous peer preserves asynchronous access: ok
+
+=== synchronous peer disconnect ===
+Synchronous peer disconnect wakes and cleans the wait: ok
+
+=== SWI client -> Trealla protocol node ===
+Node listening on port 46964 (profile workbench, sandbox blacklist, auth open)
+protocol_child_cleanup_started(3012309607)
+protocol_child_cleanup_complete(3012309607)
+SWI Web Prolog protocol client test: ok
+
+=== SWI client -> Trealla connection thread parity ===
+parity_stage(first,2572469854)
+parity_reply(2572469854,#{data:[#{'Actors':"[2572469854@'http://127.0.0.1:46964']",'Live':"2",'Visible':"1"}],more:false,pid:2572469854,type:"success"})
+parity_stage_passed(first,2572469854)
+parity_stage(second,1680763836)
+parity_reply(1680763836,#{data:[#{'Actors':"[1680763836@'http://127.0.0.1:46964']",'Live':"2",'Visible':"1"}],more:false,pid:1680763836,type:"success"})
+parity_stage_passed(second,1680763836)
+SWI client -> Trealla connection thread parity test: ok
+
+=== SWI client -> Trealla reconstructed asynchronous queries ===
+SWI -> Trealla reconstructed asynchronous queries: ok
+
+=== SWI client -> Trealla canonical and legacy asynchronous answers ===
+SWI -> Trealla canonical and legacy asynchronous answers: ok
+
+=== SWI client -> Trealla header answer negotiation and isolation ===
+Header opt-in, legacy isolation and transport_hello overrides: ok
+
+=== browser caller correlation -> Trealla ===
+Browser caller correlation and mixed asynchronous paging: ok
+
+=== SWI client -> Trealla allowlisted source URI ===
+SWI client -> Trealla allowlisted src_uri test: ok
+
+=== SWI statechart execution -> Trealla ===
+Public statechart text/URI startup, trace, halt, monitors and fetch restrictions: ok
+
+=== SWI browser terminal -> Trealla protocol node ===
+SWI browser terminal acknowledgement test: ok
+
+=== SWI nested toplevel binding -> Trealla protocol node ===
+SWI nested toplevel receive binding test: ok
+
+=== SWI promise/yield -> Trealla protocol node ===
+SWI promise/yield -> Trealla protocol node test: ok
+
+=== Unicode remote answers: Trealla -> SWI ===
+Unicode answers, errors, paging and sharing on http://localhost:46969: passed
+
+=== Unicode remote answers: SWI -> SWI ===
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0xc46a4f700,0xc46a4f800)
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0xc46a4f700,0xc46a4f800)
+Warning: [Thread 13] Ambiguous operation on stream pair <stream>(0xbc263a100,0xbc263a200)
+Warning: [Thread 13] Ambiguous operation on stream pair <stream>(0xbc263a100,0xbc263a200)
+Unicode answers, errors, paging and sharing on http://localhost:46969: passed
+
+=== Public remote demonitor -> SWI ===
+Public remote demonitor contracts on http://localhost:46969: passed
+
+=== Termination notifications -> SWI ===
+one-shot answer and independent spawn notification, exactly once: ok
+one-shot answer and independent spawn notification, exactly once: ok
+spawn/additional refs survive private cleanup; unrelated monitor preserved: ok
+Termination notification contracts on http://localhost:46969: passed
+
+=== Explicit termination notifications -> SWI ===
+explicit protocol retains default/kept refs, removes demonitor ref and filters private refs: ok
+
+=== General remote toplevel creation -> SWI ===
+text/list/copied/URI sources, sharing, paging and monitor cleanup: ok
+spawn/call targets, caller-owned monitors and unrelated monitor: ok
+default remote link retains parent-termination propagation: ok
+session, computation and idle limits retain first-option precedence: ok
+ordinary remote actor spawning unchanged: ok
+General remote toplevel creation on http://localhost:46969: passed
+
+=== Public synchronous wrappers -> SWI ===
+answers, next, sharing and output mismatch: ok
+routing validation and asynchronous replies retained: ok
+late answer cannot satisfy a later call: ok
+Public remote synchronous wrappers: passed
+
+=== Public runtime properties (swi_native) ===
+Public runtime properties on swi_native: passed
+
+=== Trealla first-slice RPC -> SWI ===
+Promise once live forwarding, full slices, offset, sharing and failure/error on http://127.0.0.1:46969: passed
+RPC once live checks on http://127.0.0.1:46969: passed
+
+=== HTTP first-slice responses -> SWI ===
+HTTP once Prolog/JSON, offset, failure/error and ordinary paging on http://127.0.0.1:46969: ok
+
+=== Trealla remote statechart text/URI -> SWI ===
+text_and_private_data_ok
+uri_ok
+invocation_cleanup_ok
+admission_ok
+Remote statechart text/URI, invocation, private data, halt, monitors and rejection on 46969: ok
+
+=== Trealla statechart invocation -> SWI ===
+actor replies, complete monitor references and state-exit cleanup: ok
+toplevel replies, complete monitor references and state-exit cleanup: ok
+server replies, complete monitor references and state-exit cleanup: ok
+supervisor replies, complete monitor references and state-exit cleanup: ok
+remote toplevel spawn/call targets and template sharing: ok
+name conflict, sender/peer sandbox checks, rollback and unrelated monitor: ok
+Remote chart invocation actor/toplevel/server/supervisor on 46969: ok
+
+=== Trealla -> SWI actor semantic contracts ===
+Trealla -> remote actor semantic contracts: ok
+
+=== SWI -> Trealla actor semantic contracts ===
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0xadfbd1200,0xadfbd1300)
+Warning: [Thread main] Ambiguous operation on stream pair <stream>(0xadfbd1200,0xadfbd1300)
+SWI -> Trealla actor semantic contracts: ok
+
+=== Trealla canonical outbound -> SWI ===
+Trealla canonical outbound answers on 46969: ok
+
+=== Trealla atomic remote named startup -> SWI ===
+Live atomic remote named startup on 46969: ok
+
+=== Trealla supervisor halt -> SWI ===
+Live remote supervisor entry and control on 46969: ok
+
+=== Trealla remote alias cleanup -> SWI ===
+Live remote alias cleanup on 46969: ok
+
+=== Trealla synchronous outbound -> SWI ===
+Warning: [Thread 14] <stream>(0xbc2638d00):1:48: Illegal UTF-8 continuation
+Warning: [Thread 14] <stream>(0xbc2638d00):2:50: Illegal UTF-8 start
+ERROR: Trealla synchronous outbound -> SWI failed with exit status 1
