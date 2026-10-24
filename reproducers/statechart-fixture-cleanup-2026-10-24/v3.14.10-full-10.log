@@ -1,0 +1,19 @@
+actor child source, compound goal, output and monitor delivery: ok
+state exit, re-entry and halt retire unlinked children: ok
+toplevel child paging and ordinary asynchronous answers: ok
+nested chart source predicates resolve in parent datamodel: ok
+internal events precede invocation of stable states: ok
+partial invocation failure rolls back earlier unlinked children: ok
+aborted chart cleans unlinked invoked children: ok
+child cleanup preserves unrelated monitors: ok
+unsupported types, destinations, options and inherited sandbox policy: ok
+unchanged examples 13, 14 and 17 terminate and reclaim children: ok
+unchanged server and supervisor examples: ok
+behaviour inline source, parent callbacks and predicate copying: ok
+fixture_cleanup_wait(behaviour_policy(whitelist),counter_server,names([1439371261],[]))
+fixture_cleanup_complete(behaviour_policy(whitelist),counter_server)
+server and supervisor inherit sandbox policy and reject unsafe source: ok
+aborted chart reclaims unlinked supervisor and its worker: ok
+behaviour startup rollback, child validation and invalid-destination rejection: ok
+dynamic supervisor additions retain sandbox admission: ok
+Statechart local invocation regressions: all passed

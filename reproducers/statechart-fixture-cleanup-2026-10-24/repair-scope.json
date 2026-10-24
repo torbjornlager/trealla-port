@@ -1,0 +1,11 @@
+{
+  "original_test_text_preserved_outside_added_barrier": true,
+  "original_test_sha256": "88549420fdd299be18312066eebbc571f2137781ccca4d28921a6e351a6274cd",
+  "repaired_test_sha256": "cdcf7c1504e1cb5d593cfec401154e10fc91975ccf2a32655736d4b1bc848291",
+  "prior_acceptance_files_unchanged": {
+    "actors.pl": true,
+    "receive_atomic_tests.pl": true,
+    "tools/test.sh": true,
+    "README.md": true
+  }
+}

@@ -1,0 +1,1042 @@
+[
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 1,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.408,
+    "log": "pinned-policy-01.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 1,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.498,
+    "log": "v3.14.10-policy-01.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 1,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.007,
+    "log": "pinned-full-01.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 1,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.232,
+    "log": "v3.14.10-full-01.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 2,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.4,
+    "log": "pinned-policy-02.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 2,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.499,
+    "log": "v3.14.10-policy-02.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 2,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.003,
+    "log": "pinned-full-02.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 2,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.325,
+    "log": "v3.14.10-full-02.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 3,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.408,
+    "log": "pinned-policy-03.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 3,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.499,
+    "log": "v3.14.10-policy-03.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 3,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.018,
+    "log": "pinned-full-03.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 3,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.208,
+    "log": "v3.14.10-full-03.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 4,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.407,
+    "log": "pinned-policy-04.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 4,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.499,
+    "log": "v3.14.10-policy-04.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 4,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.023,
+    "log": "pinned-full-04.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 4,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.323,
+    "log": "v3.14.10-full-04.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 5,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.402,
+    "log": "pinned-policy-05.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 5,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.485,
+    "log": "v3.14.10-policy-05.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 5,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.011,
+    "log": "pinned-full-05.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 5,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.207,
+    "log": "v3.14.10-full-05.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 6,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.398,
+    "log": "pinned-policy-06.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 6,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.478,
+    "log": "v3.14.10-policy-06.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 6,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.043,
+    "log": "pinned-full-06.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 6,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.308,
+    "log": "v3.14.10-full-06.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 7,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.405,
+    "log": "pinned-policy-07.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 7,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.499,
+    "log": "v3.14.10-policy-07.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 7,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.984,
+    "log": "pinned-full-07.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 7,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.353,
+    "log": "v3.14.10-full-07.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 8,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.404,
+    "log": "pinned-policy-08.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 8,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.448,
+    "log": "v3.14.10-policy-08.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 8,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.008,
+    "log": "pinned-full-08.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 8,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.075,
+    "log": "v3.14.10-full-08.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 9,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.399,
+    "log": "pinned-policy-09.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 9,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.507,
+    "log": "v3.14.10-policy-09.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 9,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.002,
+    "log": "pinned-full-09.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 9,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.097,
+    "log": "v3.14.10-full-09.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 10,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.407,
+    "log": "pinned-policy-10.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 10,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.493,
+    "log": "v3.14.10-policy-10.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 10,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.985,
+    "log": "pinned-full-10.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 10,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.304,
+    "log": "v3.14.10-full-10.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 11,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.406,
+    "log": "pinned-policy-11.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 11,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.499,
+    "log": "v3.14.10-policy-11.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 11,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.002,
+    "log": "pinned-full-11.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 11,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.889,
+    "log": "v3.14.10-full-11.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 12,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.403,
+    "log": "pinned-policy-12.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 12,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.464,
+    "log": "v3.14.10-policy-12.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 12,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.002,
+    "log": "pinned-full-12.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 12,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.082,
+    "log": "v3.14.10-full-12.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 13,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.405,
+    "log": "pinned-policy-13.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 13,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.459,
+    "log": "v3.14.10-policy-13.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 13,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.006,
+    "log": "pinned-full-13.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 13,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.21,
+    "log": "v3.14.10-full-13.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 14,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.4,
+    "log": "pinned-policy-14.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 14,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.522,
+    "log": "v3.14.10-policy-14.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 14,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.001,
+    "log": "pinned-full-14.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 14,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.107,
+    "log": "v3.14.10-full-14.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 15,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.41,
+    "log": "pinned-policy-15.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 15,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.462,
+    "log": "v3.14.10-policy-15.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 15,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.019,
+    "log": "pinned-full-15.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 15,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.202,
+    "log": "v3.14.10-full-15.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 16,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.406,
+    "log": "pinned-policy-16.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 16,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.461,
+    "log": "v3.14.10-policy-16.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 16,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.998,
+    "log": "pinned-full-16.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 16,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.322,
+    "log": "v3.14.10-full-16.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 17,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.403,
+    "log": "pinned-policy-17.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 17,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.446,
+    "log": "v3.14.10-policy-17.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 17,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.997,
+    "log": "pinned-full-17.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 17,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.238,
+    "log": "v3.14.10-full-17.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 18,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.4,
+    "log": "pinned-policy-18.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 18,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.499,
+    "log": "v3.14.10-policy-18.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 18,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.999,
+    "log": "pinned-full-18.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 18,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.202,
+    "log": "v3.14.10-full-18.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 19,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.402,
+    "log": "pinned-policy-19.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 19,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.501,
+    "log": "v3.14.10-policy-19.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 19,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.997,
+    "log": "pinned-full-19.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 19,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.313,
+    "log": "v3.14.10-full-19.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "policy",
+    "trial": 20,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.405,
+    "log": "pinned-policy-20.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "policy",
+    "trial": 20,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:behaviour_policy,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.522,
+    "log": "v3.14.10-policy-20.log"
+  },
+  {
+    "engine": "pinned",
+    "suite": "full",
+    "trial": 20,
+    "command": [
+      "/Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-v3.13.10/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 3.008,
+    "log": "pinned-full-20.log"
+  },
+  {
+    "engine": "v3.14.10",
+    "suite": "full",
+    "trial": 20,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(statechart_invocation_tests),(catch(statechart_invocation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 4.19,
+    "log": "v3.14.10-full-20.log"
+  }
+]

@@ -87,6 +87,7 @@ missing_child_down(P) :-
  throw(missing_child_down(P,S,R)).
 
 behaviour_fixtures :-
+ wait_fixture_name(counter_server,behaviour_fixtures),
  fixture('15-spawn-server.xml',Server),chart(Server,S),
  receive({terminal_output(S,reply(1)) -> true;terminal_io_output(S,reply(1)) -> true},[timeout(3),on_timeout(fail)]),down(S),
  fixture('16-spawn-supervisor.xml',Supervisor),chart(Supervisor,U),
@@ -109,6 +110,7 @@ behaviour_policy :-
  forall(member(Mode,[blacklist,whitelist]),behaviour_policy_mode(Mode)),
  writeln('server and supervisor inherit sandbox policy and reject unsafe source: ok').
 behaviour_policy_mode(Mode) :-
+ wait_fixture_name(counter_server,behaviour_policy(Mode)),
  self(Self),fixture('15-spawn-server.xml',Server),
  sandbox_policy:sandbox_prepare_goal(Mode,actor,user,statechart_spawn(S,[src_text(Server),trace(false),monitor(true),link(false),io_target(Self)]),Safe),call(Safe),down(S),
  Unsafe='<statechart version="0.2" initial="s"><state id="s"><spawn type="server" callback="cb" state="0"><![CDATA[cb(_,S,S,S) :- shell(true).]]></spawn></state></statechart>',
@@ -117,6 +119,32 @@ behaviour_policy_mode(Mode) :-
  UnsafeSup='<statechart version="0.2" initial="s"><state id="s"><spawn type="supervisor" children="[child(w,[start(shell(true))])]"/></state></statechart>',
  sandbox_policy:sandbox_prepare_goal(Mode,actor,user,statechart_spawn(U,[src_text(UnsafeSup),trace(false),monitor(true),link(false)]),BadSup),call(BadSup),
  await_down(U,U,Why),Why\==true.
+
+% Chart termination confirms that child shutdown was requested, not that the
+% child's at_exit hook has already retired its node-wide name. Reusing fixture
+% 15 must wait for that cleanup; never unregister the name on the child's behalf.
+% Keep this separate from the unchanged two-second down/3 assertions.
+wait_fixture_name(Name,Stage) :-
+ get_time(Now),Deadline is Now+2,
+ fixture_name_snapshot(Name,State),
+ (State==names([],[]) -> true
+ ;writeq(fixture_cleanup_wait(Stage,Name,State)),nl,
+  wait_fixture_name_(Name,Stage,Deadline),
+  writeq(fixture_cleanup_complete(Stage,Name)),nl).
+wait_fixture_name_(Name,Stage,Deadline) :-
+ fixture_name_snapshot(Name,State),
+ (State==names([],[]) -> true
+ ;get_time(Now),
+  (Now<Deadline -> sleep(0.005),wait_fixture_name_(Name,Stage,Deadline)
+  ;throw(fixture_cleanup_timeout(Stage,Name,State)))).
+fixture_name_snapshot(Name,State) :-
+ (mutex_trylock('$actor_registry') ->
+  setup_call_cleanup(true,
+    (findall(Pid,actors:registered(Name,Pid),Registered),
+     findall(Token,actors:reserved_spawn_name(Name,Token),Reserved),
+     State=names(Registered,Reserved)),
+    mutex_unlock('$actor_registry'))
+ ;State=registry_busy).
 behaviour_cleanup :-
  Text='<statechart version="0.2" initial="s"><state id="s"><spawn type="supervisor" children="[child(w,[start(receive({never -&gt; true})),restart(temporary)])]" options="[link(false)]"/><go on="spawned(C)">supervisor_which_children(C,Children),output(children(C,Children))</go></state></statechart>',
  chart(Text,P),receive({output(P,children(S,[info(w,W,worker,temporary)])) -> true},[timeout(2),on_timeout(fail)]),

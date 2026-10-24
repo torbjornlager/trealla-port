@@ -1,0 +1,3 @@
+fixture_cleanup_wait(behaviour_policy(whitelist),counter_server,names([1148783029],[]))
+fixture_cleanup_complete(behaviour_policy(whitelist),counter_server)
+server and supervisor inherit sandbox policy and reject unsafe source: ok
