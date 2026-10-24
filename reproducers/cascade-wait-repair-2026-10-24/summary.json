@@ -1,0 +1,32 @@
+{
+  "isolated-original": {
+    "total": 20,
+    "passed": 20,
+    "failed": 0
+  },
+  "isolated-repaired": {
+    "total": 20,
+    "passed": 20,
+    "failed": 0
+  },
+  "sandbox-original": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0
+  },
+  "sandbox-repaired": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0
+  },
+  "cleanup-original": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0
+  },
+  "cleanup-repaired": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0
+  }
+}

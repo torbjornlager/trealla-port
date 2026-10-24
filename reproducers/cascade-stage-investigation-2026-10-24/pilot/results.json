@@ -1,0 +1,30 @@
+[
+  {
+    "name": "observed-original-01",
+    "mode": "observed",
+    "source": "original",
+    "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+    "trial": 1,
+    "exit_code": 0,
+    "seconds": 0.513,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ]
+  },
+  {
+    "name": "observed-repaired-01",
+    "mode": "observed",
+    "source": "repaired",
+    "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+    "trial": 1,
+    "exit_code": 0,
+    "seconds": 0.518,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ]
+  }
+]

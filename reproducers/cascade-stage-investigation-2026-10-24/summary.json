@@ -1,0 +1,381 @@
+{
+  "batches": {
+    "baseline-original": {
+      "total": 5,
+      "passed": 1,
+      "failed": 4,
+      "watchdog": 0
+    },
+    "baseline-repaired": {
+      "total": 5,
+      "passed": 4,
+      "failed": 1,
+      "watchdog": 0
+    },
+    "observed-original": {
+      "total": 10,
+      "passed": 6,
+      "failed": 4,
+      "watchdog": 0
+    },
+    "observed-repaired": {
+      "total": 10,
+      "passed": 5,
+      "failed": 5,
+      "watchdog": 0
+    }
+  },
+  "observed_failures": [
+    {
+      "name": "observed-original-02",
+      "initial_failure": "t145_cascade_timeout",
+      "session": "2078366041",
+      "roles": {
+        "root": "2215505387",
+        "child": "2295508609",
+        "grandchild": "1445734494"
+      },
+      "initial_snapshot": "[[2078366041,1445734494]]",
+      "extra_roles": [
+        "grandchild"
+      ],
+      "retained_reply": true,
+      "down_notifications": [
+        {
+          "pid": "2215505387",
+          "reference": "1000000008",
+          "reason": "die"
+        },
+        {
+          "pid": "2295508609",
+          "reference": "1000000009",
+          "reason": "kill"
+        },
+        {
+          "pid": "1445734494",
+          "reference": "1000000010",
+          "reason": "kill"
+        }
+      ],
+      "all_owned_downs_observed": true,
+      "post_failure_snapshots": [
+        "[[2078366041]]",
+        "[[2078366041]]",
+        "[[2078366041]]"
+      ],
+      "all_fresh_snapshots_clean": true
+    },
+    {
+      "name": "observed-original-03",
+      "initial_failure": "t145_cascade_timeout",
+      "session": "2403080499",
+      "roles": {
+        "root": "2672828528",
+        "child": "2919072783",
+        "grandchild": "2076971660"
+      },
+      "initial_snapshot": "[[2403080499,2076971660]]",
+      "extra_roles": [
+        "grandchild"
+      ],
+      "retained_reply": true,
+      "down_notifications": [
+        {
+          "pid": "2672828528",
+          "reference": "1000000008",
+          "reason": "die"
+        },
+        {
+          "pid": "2919072783",
+          "reference": "1000000009",
+          "reason": "kill"
+        },
+        {
+          "pid": "2076971660",
+          "reference": "1000000010",
+          "reason": "kill"
+        }
+      ],
+      "all_owned_downs_observed": true,
+      "post_failure_snapshots": [
+        "[[2403080499]]",
+        "[[2403080499]]",
+        "[[2403080499]]"
+      ],
+      "all_fresh_snapshots_clean": true
+    },
+    {
+      "name": "observed-repaired-04",
+      "initial_failure": "t145_cascade_timeout",
+      "session": "2009878230",
+      "roles": {
+        "root": "1183539924",
+        "child": "1343107256",
+        "grandchild": "3106794128"
+      },
+      "initial_snapshot": "[[2009878230,3106794128]]",
+      "extra_roles": [
+        "grandchild"
+      ],
+      "retained_reply": true,
+      "down_notifications": [
+        {
+          "pid": "1183539924",
+          "reference": "1000000008",
+          "reason": "die"
+        },
+        {
+          "pid": "1343107256",
+          "reference": "1000000009",
+          "reason": "kill"
+        },
+        {
+          "pid": "3106794128",
+          "reference": "1000000010",
+          "reason": "kill"
+        }
+      ],
+      "all_owned_downs_observed": true,
+      "post_failure_snapshots": [
+        "[[2009878230]]",
+        "[[2009878230]]",
+        "[[2009878230]]"
+      ],
+      "all_fresh_snapshots_clean": true
+    },
+    {
+      "name": "observed-repaired-06",
+      "initial_failure": "t145_cascade_timeout",
+      "session": "2658483088",
+      "roles": {
+        "root": "2740375483",
+        "child": "1737036507",
+        "grandchild": "2471714295"
+      },
+      "initial_snapshot": "[[2658483088,2471714295]]",
+      "extra_roles": [
+        "grandchild"
+      ],
+      "retained_reply": true,
+      "down_notifications": [
+        {
+          "pid": "2740375483",
+          "reference": "1000000008",
+          "reason": "die"
+        },
+        {
+          "pid": "1737036507",
+          "reference": "1000000009",
+          "reason": "kill"
+        },
+        {
+          "pid": "2471714295",
+          "reference": "1000000010",
+          "reason": "kill"
+        }
+      ],
+      "all_owned_downs_observed": true,
+      "post_failure_snapshots": [
+        "[[2658483088]]",
+        "[[2658483088]]",
+        "[[2658483088]]"
+      ],
+      "all_fresh_snapshots_clean": true
+    },
+    {
+      "name": "observed-original-07",
+      "initial_failure": "t145_cascade_timeout",
+      "session": "2167285063",
+      "roles": {
+        "root": "2031093062",
+        "child": "2407347066",
+        "grandchild": "2904861413"
+      },
+      "initial_snapshot": "[[2167285063,2904861413]]",
+      "extra_roles": [
+        "grandchild"
+      ],
+      "retained_reply": true,
+      "down_notifications": [
+        {
+          "pid": "2031093062",
+          "reference": "1000000008",
+          "reason": "die"
+        },
+        {
+          "pid": "2407347066",
+          "reference": "1000000009",
+          "reason": "kill"
+        },
+        {
+          "pid": "2904861413",
+          "reference": "1000000010",
+          "reason": "kill"
+        }
+      ],
+      "all_owned_downs_observed": true,
+      "post_failure_snapshots": [
+        "[[2167285063]]",
+        "[[2167285063]]",
+        "[[2167285063]]"
+      ],
+      "all_fresh_snapshots_clean": true
+    },
+    {
+      "name": "observed-repaired-07",
+      "initial_failure": "t145_cascade_timeout",
+      "session": "1493450343",
+      "roles": {
+        "root": "1094468295",
+        "child": "2746078261",
+        "grandchild": "3000162913"
+      },
+      "initial_snapshot": "[[1493450343,3000162913]]",
+      "extra_roles": [
+        "grandchild"
+      ],
+      "retained_reply": true,
+      "down_notifications": [
+        {
+          "pid": "1094468295",
+          "reference": "1000000008",
+          "reason": "die"
+        },
+        {
+          "pid": "2746078261",
+          "reference": "1000000009",
+          "reason": "kill"
+        },
+        {
+          "pid": "3000162913",
+          "reference": "1000000010",
+          "reason": "kill"
+        }
+      ],
+      "all_owned_downs_observed": true,
+      "post_failure_snapshots": [
+        "[[1493450343]]",
+        "[[1493450343]]",
+        "[[1493450343]]"
+      ],
+      "all_fresh_snapshots_clean": true
+    },
+    {
+      "name": "observed-repaired-09",
+      "initial_failure": "t145_cascade_timeout",
+      "session": "2637990746",
+      "roles": {
+        "root": "2443812654",
+        "child": "1139315408",
+        "grandchild": "1985401847"
+      },
+      "initial_snapshot": "[[2637990746,1985401847]]",
+      "extra_roles": [
+        "grandchild"
+      ],
+      "retained_reply": true,
+      "down_notifications": [
+        {
+          "pid": "2443812654",
+          "reference": "1000000008",
+          "reason": "die"
+        },
+        {
+          "pid": "1139315408",
+          "reference": "1000000009",
+          "reason": "kill"
+        },
+        {
+          "pid": "1985401847",
+          "reference": "1000000010",
+          "reason": "kill"
+        }
+      ],
+      "all_owned_downs_observed": true,
+      "post_failure_snapshots": [
+        "[[2637990746]]",
+        "[[2637990746]]",
+        "[[2637990746]]"
+      ],
+      "all_fresh_snapshots_clean": true
+    },
+    {
+      "name": "observed-original-10",
+      "initial_failure": "t145_cascade_timeout",
+      "session": "2273648170",
+      "roles": {
+        "root": "2864879604",
+        "child": "2807008027",
+        "grandchild": "1213465271"
+      },
+      "initial_snapshot": "[[2273648170,1213465271]]",
+      "extra_roles": [
+        "grandchild"
+      ],
+      "retained_reply": true,
+      "down_notifications": [
+        {
+          "pid": "2864879604",
+          "reference": "1000000008",
+          "reason": "die"
+        },
+        {
+          "pid": "2807008027",
+          "reference": "1000000009",
+          "reason": "kill"
+        },
+        {
+          "pid": "1213465271",
+          "reference": "1000000010",
+          "reason": "kill"
+        }
+      ],
+      "all_owned_downs_observed": true,
+      "post_failure_snapshots": [
+        "[[2273648170]]",
+        "[[2273648170]]",
+        "[[2273648170]]"
+      ],
+      "all_fresh_snapshots_clean": true
+    },
+    {
+      "name": "observed-repaired-10",
+      "initial_failure": "t145_cascade_timeout",
+      "session": "2576137293",
+      "roles": {
+        "root": "2842790640",
+        "child": "1180087836",
+        "grandchild": "2234341340"
+      },
+      "initial_snapshot": "[[2576137293,2234341340]]",
+      "extra_roles": [
+        "grandchild"
+      ],
+      "retained_reply": true,
+      "down_notifications": [
+        {
+          "pid": "2842790640",
+          "reference": "1000000008",
+          "reason": "die"
+        },
+        {
+          "pid": "1180087836",
+          "reference": "1000000009",
+          "reason": "kill"
+        },
+        {
+          "pid": "2234341340",
+          "reference": "1000000010",
+          "reason": "kill"
+        }
+      ],
+      "all_owned_downs_observed": true,
+      "post_failure_snapshots": [
+        "[[2576137293]]",
+        "[[2576137293]]",
+        "[[2576137293]]"
+      ],
+      "all_fresh_snapshots_clean": true
+    }
+  ]
+}

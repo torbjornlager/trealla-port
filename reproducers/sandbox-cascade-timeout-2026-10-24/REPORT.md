@@ -37,3 +37,11 @@ commit explicitly rather than assuming the current HEAD remains original.
 Installed runtimes and n3/n5 were unchanged. No engine rebuild or deployment was
 performed. The repair's broader-group raw failures remain in its own results
 and logs as well; this separate record does not replace them with passing controls.
+
+## Test-only repair follow-up
+
+The [bounded wait-strategy repair](../cascade-wait-repair-2026-10-24/REPORT.md)
+waits for all three exact termination notifications under one deadline before
+requesting a fresh snapshot. Its fixed verification passes 48/48 processes
+across the two explicit runtime revisions. Original findings above remain
+historical evidence; runtime code and installed/live nodes were unchanged.

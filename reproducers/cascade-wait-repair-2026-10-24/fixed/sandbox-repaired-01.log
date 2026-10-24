@@ -1,0 +1,21 @@
+47. sandbox mode normalization ok
+48. sandbox goal walker denial ok
+49. public source policy denial ok
+50. checked private source execution ok
+51. runtime meta-call guard ok
+52. conservative whitelist ok
+53. sandbox off compatibility ok
+54. runtime asserted-clause guard ok
+55. producer exception propagation ok
+56. scoped portable abolish/2 ok
+119. sandbox remote-spawn origin allowlist ok
+120. between/3 supports finite and infinite sandbox bounds ok
+144. sandbox exposes send/3 and cancel/1 ok
+145. nested link tutorial source copying and cascade ok
+146. copied sandbox terminal output remains callable ok
+147. actor-aware time/1 and sleep/1 wall timing ok
+148. tutorial parallel sleeps run concurrently ok
+149. copied hand-built toplevel protocol ok
+150. variable-bearing reflected proof tree ok
+151. sandboxed random_member/2 compatibility ok
+153. atom_string/2 and string src_text compatibility ok

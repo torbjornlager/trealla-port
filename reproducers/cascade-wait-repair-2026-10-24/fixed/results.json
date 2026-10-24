@@ -1,0 +1,626 @@
+[
+  {
+    "name": "isolated-original-01",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 1,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.664
+  },
+  {
+    "name": "isolated-repaired-01",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 1,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.679
+  },
+  {
+    "name": "isolated-original-02",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 2,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.672
+  },
+  {
+    "name": "isolated-repaired-02",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 2,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622
+  },
+  {
+    "name": "isolated-original-03",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 3,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.625
+  },
+  {
+    "name": "isolated-repaired-03",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 3,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616
+  },
+  {
+    "name": "isolated-original-04",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 4,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621
+  },
+  {
+    "name": "isolated-repaired-04",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 4,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623
+  },
+  {
+    "name": "isolated-original-05",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 5,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.61
+  },
+  {
+    "name": "isolated-repaired-05",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 5,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.612
+  },
+  {
+    "name": "isolated-original-06",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 6,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617
+  },
+  {
+    "name": "isolated-repaired-06",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 6,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619
+  },
+  {
+    "name": "isolated-original-07",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 7,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.611
+  },
+  {
+    "name": "isolated-repaired-07",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 7,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.573
+  },
+  {
+    "name": "isolated-original-08",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 8,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619
+  },
+  {
+    "name": "isolated-repaired-08",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 8,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617
+  },
+  {
+    "name": "isolated-original-09",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 9,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618
+  },
+  {
+    "name": "isolated-repaired-09",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 9,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619
+  },
+  {
+    "name": "isolated-original-10",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 10,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618
+  },
+  {
+    "name": "isolated-repaired-10",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 10,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619
+  },
+  {
+    "name": "isolated-original-11",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 11,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.619
+  },
+  {
+    "name": "isolated-repaired-11",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 11,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.616
+  },
+  {
+    "name": "isolated-original-12",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 12,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617
+  },
+  {
+    "name": "isolated-repaired-12",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 12,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618
+  },
+  {
+    "name": "isolated-original-13",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 13,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618
+  },
+  {
+    "name": "isolated-repaired-13",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 13,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617
+  },
+  {
+    "name": "isolated-original-14",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 14,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.617
+  },
+  {
+    "name": "isolated-repaired-14",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 14,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.621
+  },
+  {
+    "name": "isolated-original-15",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 15,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.618
+  },
+  {
+    "name": "isolated-repaired-15",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 15,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62
+  },
+  {
+    "name": "isolated-original-16",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 16,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62
+  },
+  {
+    "name": "isolated-repaired-16",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 16,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62
+  },
+  {
+    "name": "isolated-original-17",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 17,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.671
+  },
+  {
+    "name": "isolated-repaired-17",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 17,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.611
+  },
+  {
+    "name": "isolated-original-18",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 18,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.614
+  },
+  {
+    "name": "isolated-repaired-18",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 18,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.61
+  },
+  {
+    "name": "isolated-original-19",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 19,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.623
+  },
+  {
+    "name": "isolated-repaired-19",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 19,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.622
+  },
+  {
+    "name": "isolated-original-20",
+    "mode": "isolated",
+    "source": "original",
+    "trial": 20,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.62
+  },
+  {
+    "name": "isolated-repaired-20",
+    "mode": "isolated",
+    "source": "repaired",
+    "trial": 20,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.625
+  },
+  {
+    "name": "sandbox-original-01",
+    "mode": "sandbox",
+    "source": "original",
+    "trial": 1,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),run_test_group(sandbox)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.295
+  },
+  {
+    "name": "sandbox-repaired-01",
+    "mode": "sandbox",
+    "source": "repaired",
+    "trial": 1,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),run_test_group(sandbox)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.304
+  },
+  {
+    "name": "sandbox-original-02",
+    "mode": "sandbox",
+    "source": "original",
+    "trial": 2,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),run_test_group(sandbox)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.284
+  },
+  {
+    "name": "sandbox-repaired-02",
+    "mode": "sandbox",
+    "source": "repaired",
+    "trial": 2,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),run_test_group(sandbox)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.241
+  },
+  {
+    "name": "sandbox-original-03",
+    "mode": "sandbox",
+    "source": "original",
+    "trial": 3,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),run_test_group(sandbox)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.29
+  },
+  {
+    "name": "sandbox-repaired-03",
+    "mode": "sandbox",
+    "source": "repaired",
+    "trial": 3,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('tests.pl'),run_test_group(sandbox)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.272
+  },
+  {
+    "name": "cleanup-original-01",
+    "mode": "cleanup",
+    "source": "original",
+    "trial": 1,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('monitor_scope_tests.pl'),monitor_scope_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.238
+  },
+  {
+    "name": "cleanup-repaired-01",
+    "mode": "cleanup",
+    "source": "repaired",
+    "trial": 1,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "(catch((consult('monitor_scope_tests.pl'),monitor_scope_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.238
+  }
+]

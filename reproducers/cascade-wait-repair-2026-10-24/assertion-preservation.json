@@ -1,0 +1,9 @@
+{
+  "runtime_unchanged": true,
+  "original_sleeps_preserved": true,
+  "four_actor_assertion_preserved": true,
+  "final_snapshot_assertion_preserved": true,
+  "final_snapshot_bound_preserved": true,
+  "exact_down_assertions": true,
+  "one_shared_deadline": true
+}

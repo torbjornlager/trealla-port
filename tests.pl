@@ -1800,8 +1800,21 @@ t145 :-
              error(Session, ActorError) -> throw(ActorError)},
             [timeout(2),on_timeout(throw(t145_actors_timeout))]),
     length(FourAlive, 4),
-    exit(Root, die),
-    sleep(0.1),
+    % The actor list is a snapshot, not a wait for cascade completion. Observe
+    % each fixture actor before exiting the root, then ask for a fresh list.
+    with_mutex('$actor_registry',
+        (findall(C, actors:link(Root,C), [Child]),
+         findall(G, actors:link(Child,G), [Grandchild]))),
+    t145_with_monitors([Root-RootRef,Child-ChildRef,Grandchild-GrandRef],
+      (get_time(Now),Deadline is Now+2,
+       exit(Root, die),
+       sleep(0.1),
+       receive({down(Root,RootRef,die) -> true},
+               [deadline(Deadline),on_timeout(throw(t145_root_down_timeout))]),
+       receive({down(Child,ChildRef,kill) -> true},
+               [deadline(Deadline),on_timeout(throw(t145_child_down_timeout))]),
+       receive({down(Grandchild,GrandRef,kill) -> true},
+               [deadline(Deadline),on_timeout(throw(t145_grandchild_down_timeout))]))),
     toplevel_call(Session, actors(Remaining),
                   [template(Remaining),target(Me),limit(1)]),
     receive({success(Session, [[Session]], false) -> true;
@@ -1809,6 +1822,15 @@ t145 :-
             [timeout(2),on_timeout(throw(t145_cascade_timeout))]),
     toplevel_halt(Session, true),
     format("145. nested link tutorial source copying and cascade ok~n").
+
+% Nested scopes also retire earlier fixture refs if a later setup/body fails.
+% No unrelated application monitor is withdrawn or flushed.
+:- meta_predicate t145_with_monitors(+, 0).
+t145_with_monitors([], Goal) :- call(Goal).
+t145_with_monitors([Pid-Ref|Rest], Goal) :-
+    setup_call_cleanup(monitor(Pid,Ref),
+                       t145_with_monitors(Rest,Goal),
+                       demonitor(Ref,[flush])).
 
 t146 :-
     Source = 'alarm :- receive({ring -> writeln(''Alarm ringing!''), alarm; stop -> true}).',

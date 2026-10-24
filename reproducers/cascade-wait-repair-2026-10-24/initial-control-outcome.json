@@ -1,0 +1,6 @@
+{
+  "exit_code": 137,
+  "classification": "development cleanup-control fixture did not reach t145; not a fixed-batch trial",
+  "initial_setup_trigger": "monitoring an unknown name is not a setup failure",
+  "corrected_setup_trigger": "pre-bound invalid reference"
+}

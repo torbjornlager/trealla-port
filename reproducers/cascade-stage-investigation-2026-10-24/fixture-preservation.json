@@ -1,0 +1,12 @@
+{
+  "original_fixture_untouched": true,
+  "original_sleeps": 2,
+  "observed_original_path_sleeps": 2,
+  "original_receive_bounds": 3,
+  "observed_original_path_receive_bounds": 3,
+  "four_actor_assertion_preserved": true,
+  "target_snapshot_assertion_preserved": true,
+  "negative_snapshot_stays_unmatched": true,
+  "post_failure_queries_only_after_original_exception": true,
+  "source_text_sha256": "c41b0f15c46858b5958473f2237f86073472b084e6be0ef0dd57da0e864bf8f5"
+}

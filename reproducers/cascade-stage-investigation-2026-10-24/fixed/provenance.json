@@ -1,0 +1,643 @@
+{
+  "commits": {
+    "original": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+    "repaired": "bf47aac87d899b80da05c320f43dbe8aa438e068"
+  },
+  "engine": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+  "engine_revision": "4ef56e3bbbcc6ca44085a4aa5eae0e6848c70294",
+  "probe_sha256": "69ec8ca671de40d3bdb6d80b471e1bdb5fd43946344c4e54f591671a9cbb677d",
+  "watchdog_seconds": 30,
+  "rows": [
+    {
+      "name": "baseline-original-01",
+      "mode": "baseline",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 1,
+      "exit_code": 1,
+      "seconds": 4.487,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "baseline-repaired-01",
+      "mode": "baseline",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 1,
+      "exit_code": 0,
+      "seconds": 0.626,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "baseline-original-02",
+      "mode": "baseline",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 2,
+      "exit_code": 0,
+      "seconds": 0.621,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "baseline-repaired-02",
+      "mode": "baseline",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 2,
+      "exit_code": 0,
+      "seconds": 0.623,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "baseline-original-03",
+      "mode": "baseline",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 3,
+      "exit_code": 1,
+      "seconds": 4.538,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "baseline-repaired-03",
+      "mode": "baseline",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 3,
+      "exit_code": 0,
+      "seconds": 0.624,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "baseline-original-04",
+      "mode": "baseline",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 4,
+      "exit_code": 1,
+      "seconds": 4.508,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "baseline-repaired-04",
+      "mode": "baseline",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 4,
+      "exit_code": 0,
+      "seconds": 0.618,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "baseline-original-05",
+      "mode": "baseline",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 5,
+      "exit_code": 1,
+      "seconds": 4.495,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "baseline-repaired-05",
+      "mode": "baseline",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 5,
+      "exit_code": 1,
+      "seconds": 4.549,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('tests.pl'),t145),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-original-01",
+      "mode": "observed",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 1,
+      "exit_code": 0,
+      "seconds": 0.521,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-repaired-01",
+      "mode": "observed",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 1,
+      "exit_code": 0,
+      "seconds": 0.514,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-original-02",
+      "mode": "observed",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 2,
+      "exit_code": 1,
+      "seconds": 5.05,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-repaired-02",
+      "mode": "observed",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 2,
+      "exit_code": 0,
+      "seconds": 0.503,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-original-03",
+      "mode": "observed",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 3,
+      "exit_code": 1,
+      "seconds": 5.025,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-repaired-03",
+      "mode": "observed",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 3,
+      "exit_code": 0,
+      "seconds": 0.51,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-original-04",
+      "mode": "observed",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 4,
+      "exit_code": 0,
+      "seconds": 0.562,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-repaired-04",
+      "mode": "observed",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 4,
+      "exit_code": 1,
+      "seconds": 5.046,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-original-05",
+      "mode": "observed",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 5,
+      "exit_code": 0,
+      "seconds": 0.508,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-repaired-05",
+      "mode": "observed",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 5,
+      "exit_code": 0,
+      "seconds": 0.565,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-original-06",
+      "mode": "observed",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 6,
+      "exit_code": 0,
+      "seconds": 0.519,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-repaired-06",
+      "mode": "observed",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 6,
+      "exit_code": 1,
+      "seconds": 5.049,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-original-07",
+      "mode": "observed",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 7,
+      "exit_code": 1,
+      "seconds": 5.041,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-repaired-07",
+      "mode": "observed",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 7,
+      "exit_code": 1,
+      "seconds": 5.031,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-original-08",
+      "mode": "observed",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 8,
+      "exit_code": 0,
+      "seconds": 0.504,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-repaired-08",
+      "mode": "observed",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 8,
+      "exit_code": 0,
+      "seconds": 0.512,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-original-09",
+      "mode": "observed",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 9,
+      "exit_code": 0,
+      "seconds": 0.518,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-repaired-09",
+      "mode": "observed",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 9,
+      "exit_code": 1,
+      "seconds": 5.089,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-original-10",
+      "mode": "observed",
+      "source": "original",
+      "commit": "c472ecb9f1a30d80558d105a980be34c73014fe4",
+      "trial": 10,
+      "exit_code": 1,
+      "seconds": 5.022,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    },
+    {
+      "name": "observed-repaired-10",
+      "mode": "observed",
+      "source": "repaired",
+      "commit": "bf47aac87d899b80da05c320f43dbe8aa438e068",
+      "trial": 10,
+      "exit_code": 1,
+      "seconds": 5.024,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult('cascade_probe.pl'),probe),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ]
+    }
+  ],
+  "inputs": {
+    "original": {
+      "actor_api.pl": "9229c1e1728daab84a964c3e2600e168480fb2725baa007fd60b3add6d688f6e",
+      "actors.pl": "3f731c8357988e299b9924a1d53463c415258ce95f52049d5ab9666167a7054a",
+      "answer_negotiation_tests.pl": "e564e9b5fb4e9b2a412e6d55aa11cb02be15ea9034e73a24bebf2e9f06126096",
+      "auth_policy.pl": "7eece9c8c1d85d823ed5f04de3fbe0c0ac31d20542fffa765192b9270be84a97",
+      "child_spec_tests.pl": "0f0a126e6c1b3b7a50d7252b67c41e0188cfceb2b187a7b13d679a8386022432",
+      "connection_stack_tests.pl": "06b34629e2fe5360cef30cc1cae2d1166ef3fb359b43b4b6d5fd409852b1fd09",
+      "crypto_portable.pl": "e5f03062d464d5907c9987dce53716884cfb9cab057c1e43cd24f445a95a46e6",
+      "distribution.pl": "b2e0d966a39f48100abbb44f2e42ecaa81acbb074f24036634f0b399169ec82f",
+      "distribution_canonical_tests.pl": "9ae7e9de0220e27896250ba97ebfe895693b732dfbfb1125dbce97424d6e7abc",
+      "distribution_sync_tests.pl": "9112dfbb611c8cec66f07775c561b5d32d394d167a4608f291eb1accfb40f61d",
+      "distribution_tests.pl": "4a283f0c11e06509762291bb8ed8aac1db229c217989fccb651693a4b7c77bf3",
+      "first_solution_determinism_tests.pl": "6d032c9e71f8bb6c7152fc5b2d7b76a1d1484d55a12980e7b607fd6db11e4510",
+      "governance_policy.pl": "192cc74fec7f87ccaa823b45955fae34c6f9fc31d3690d5700888eb5e5332b64",
+      "http_cache_eviction_tests.pl": "02571c2e5fc4182dba74b2579596509dd924831f0c010cb3ba7c1bd1f974d604",
+      "http_once_tests.pl": "dd886733c3d41b7fd3cd7fabfc006fc944611acefb5e37087fe00bff08e1a6c9",
+      "http_page_deadline_tests.pl": "7db304cbb6c1b857ea7e636d416dbf768984354b58bf7c9901cdbc5f44be19f3",
+      "http_paging_cleanup_tests.pl": "9d33bf0035087bd247cf051afc48237d98e7caae2f0edc3681e39f7cd55dc0e0",
+      "http_paging_offset_tests.pl": "556a9b00e5ba85b00f5ac347630d1faae3b17b227bb473883a3507ddb658cfdd",
+      "http_source_tests.pl": "10cff7d94d9f13309dc264a741185732a00a3320caf207e99b9384713f85df35",
+      "ip_policy.pl": "dafb02d76d3f01832af949e6bc868d32131f71bb3423e4b1996d6a30dc470b0b",
+      "isolation.pl": "7a72759fa7d70f94cc851e4cee4c5ad9558d86dcbcdefdf99b4e0d2963faa720",
+      "named_creation_tests.pl": "8c84d24437facf6b01dad754f2acb0c29b7cf1120a66469627eaf714d4d7c7ad",
+      "namespace_tests.pl": "c5b4ae98afe54979c7cb417a17b779b2d7c8dd96f8cbcd3a0e2121e5394f8254",
+      "node.pl": "b0b4607e5bfc8bf335c8b9ede8a4e76a4c6400030210f506a120a1e5b63ecd22",
+      "node_tokens.pl": "f3db66ea47ec3ae05d42e68b077bbbbd5e6d8e58420f6ddd6bf750aaa9d7ad2b",
+      "observability.pl": "50d4db204f0541fbd9d43b7b5599346f46d69d09f44a6a5e622fd051609ada8f",
+      "page_size_tests.pl": "c76fee93e8e9f4a32d7b178bcc36178878d2dd8a53c13721eb02179626562e5c",
+      "parallel.pl": "0c2e005c6ec4b9eebc2332e00ccae3cf63d99184dce339de3395dec36fd8881a",
+      "parallel_exit_tests.pl": "8a5bbd50980074f932d388a8175309ceda47c9506b88f33d0b3c17c7f1a34de9",
+      "profile_policy.pl": "5a6128c9e9519540e19bfb7294635ebde5b2e41676b28e10ca4b147a569eb1c4",
+      "public_worker_routing_tests.pl": "c3caf7409827cd0ef702245dc1be69b3f6ab7dd724538a6e6916d4c67d793d40",
+      "receive_atomic_tests.pl": "ab2cfffccc30383bd203951d3f27a9bf26987f33d39f1e8c7880bbd370202d84",
+      "receive_handoff_tests.pl": "63a62259bcfae578b51ab814540ae81aa8302a8beb1f3764aa8b61304db4cfa3",
+      "receiver_lineage.pl": "b26279a89e1c7f7efa992ba489acbf4404519ec2b74c55aed6ee4b7440f4383c",
+      "receiver_lineage_tests.pl": "1b4400d51a74f673b02415b5564ef2a78806e9f6ffc02f9e083906c1c0e29064",
+      "registration_tests.pl": "c39cfc90c6454f16b5b02803136c11700bee3163a4ca98af994b438b15840e15",
+      "remote_alias_tests.pl": "51f68424b8026b7b50f21a502a4020c414a39af1089bbefb3b2d7b5b1779005d",
+      "remote_chart_tests.pl": "556ff3f075cd5702841c460d85c7f796e1823572b72bd7d3d25479c3f12fa4d9",
+      "remote_demonitor_tests.pl": "e40c6caeabe9548252526329de3ead0bff72f2204fdfe9d8b71fcee641964943",
+      "remote_named_tests.pl": "be3fc0ab8b8cd9cf237aff3006508314e0a92c2732100d749dcc21794a855a18",
+      "remote_server.pl": "fdffb507ebe20a8c82b5134275dd2943e552db138c317a8547c09d18b415f6a8",
+      "remote_statechart.pl": "f24447fcc7c0bdd5ddcf03a6bde788c2f0dd89ee9cd1bcc04ffde402fd0c4610",
+      "remote_statechart_invocation_tests.pl": "f9dce251a8cdc2ebc73cf60322606b18c3f7dce1bd2cd9971c0a9814c92588c5",
+      "remote_supervisor.pl": "297c5f9a42de7e72397451203bde129607272d2f779eee0613303c3eee6f5c34",
+      "remote_supervisor_tests.pl": "03b45826fa9c77847d4563f063154e57e63c228ea6ffc361de91e448e99efbae",
+      "remote_toplevel_creation_diagnostics.pl": "5f1e76ae4d86a4d481aa50f038ec382ff7a7fe237ff053e6105cb0293f49cf47",
+      "remote_toplevel_creation_tests.pl": "8f702795cd969e6f09cf6de2346f8a1dbfdcd78d397dc978e1f65e700f24d010",
+      "resource_policy.pl": "3db53506befe4db6df45478c20ef800200becce0d1aae82a4d8cfaf4b1bd747f",
+      "rpc.pl": "08ea2ed739e9f21d2d192156e908e7a2a93a14fb285d631a0cb62d782d7842f1",
+      "rpc_http_timeout_enforcement_tests.pl": "e0a90205cb14db883c76cbc8ee2cdb32fec9b1e95ecbb64b68954ccfcf34f53e",
+      "rpc_http_timeout_tests.pl": "398d6751dd2e9a7b33a36c2b6de0a2567248758e9e40c079c1d8369cf82d5c8a",
+      "rpc_lifecycle_tests.pl": "717fa8256a59a9789fc3bfe4383ad84a6b37c9ae59eb5507a3fc38aa451a3097",
+      "rpc_namespace_tests.pl": "c03bd7cee71decdb90eaa388606d5ee0dd288212048232537868905d0507d638",
+      "rpc_once_tests.pl": "c0e8d33e57f8ca6f3d1c6676d8e70ace60b1f31e0c26a04a631f3f4003d49ae1",
+      "rpc_option_tests.pl": "202c9a4c481238286b67f8135970ab2b22789011dfd3695f0f335c02a585d49a",
+      "rpc_ownership_tests.pl": "900b14d5d77c3afa21b9697196e9e39941dd683a33f71860d55877bbbf897217",
+      "rpc_promise_tests.pl": "2b310a42accfa4ea8834773e034e646e4a2c1f825e034121ef203f0233d93663",
+      "runtime_property_tests.pl": "edcaeebb45497fee9721eda8affb222d11c582007d903c7ef8591616ba7c272a",
+      "sandbox_policy.pl": "ffaf6e9463a49be8ab6e67b6ce780ec00735686a92c3ccc4042166b1e3fdccaf",
+      "server_actor.pl": "b62ce6e3be57d95b99fc94d4cb6a19d898637477f5a9cef356aa37248b7370f1",
+      "server_actor_tests.pl": "91e69b64393372d0c555e57b9935f8b098171de2582d1d90ad337126c1c79e53",
+      "server_promise_cleanup_tests.pl": "cc11755c0a62de0548d23f7f47102cb3da378b81574a6f5187f28d869980779d",
+      "source_capture_tests.pl": "f127e22c4042454e313aa02b6727add5a8e85f76aa933245f83c3757e45dccb0",
+      "source_declaration_tests.pl": "1708049b3cdee8c70295409cec99c5442c0c6d53193e568914cc5498b789b30f",
+      "source_policy.pl": "8b688a0e9b6e3acb3d128d44325b1b0f14d33f0427fa5e1bb5e360f9f6a9b6e4",
+      "spawn_option_tests.pl": "7adc2e111b582ad69f66f833083f69c053d24e643819469617b9147b2afaa6b1",
+      "spawn_reply_tests.pl": "00c8df0d7ba9eb2de2e37b177554b04f1d29aaaf8a08731d5b9ebe87a61b006c",
+      "statechart_actor.pl": "4fb8e0dea88b711720830234a9f5dc6177e9df4c02a4a7dc2c86a8c24b981e30",
+      "statechart_actor_tests.pl": "2d015da14bd513ef69e1886dc4a5441d4d8741019013506b8e4bc75b0f2c3c73",
+      "statechart_boxshop_tests.pl": "9e64e86c0e7286e733091e069cb4774764dd6cfea19b2781d7c00c5aa76a4f17",
+      "statechart_exec.pl": "7b65a58eb232da426d1c27fb422a146b09acd4ea927e19a18d1e458cbd7874a0",
+      "statechart_invocation_tests.pl": "cdcf7c1504e1cb5d593cfec401154e10fc91975ccf2a32655736d4b1bc848291",
+      "statechart_model.pl": "6861aebeb40108786710f4a2c587ab0e065abcdc4e828ebdbdc0eb023d502743",
+      "statechart_runtime.pl": "799defefce442e59d3944ee7a64f193741dc63219ff492d31d1bdd310df0eee6",
+      "statechart_support.pl": "f86c3652608d86b35a862e955c0306f2fa6ec6f1685334c6b05a694290050107",
+      "supervisor_actor.pl": "1bd13f8a7c298ee85b385d60ed040266750930edffdbdbc3f5985ab296dbb88f",
+      "supervisor_actor_tests.pl": "0c63c34996b9568d2472280f45e4d3fdc12cd7d4f8dd063967fe1b6534a9e7c1",
+      "supervisor_halt_tests.pl": "319fa1062ccd072be0737aa5ce4fd6806f621be6285a475d5802dbcfdd213557",
+      "supervisor_intensity_tests.pl": "c92ca1e1d0d9509f342e0759b01d9db08ff1580ef4691fb1860d207aeb3922e6",
+      "supervisor_restart_tests.pl": "00d3cbdd52fb6eb340a6885027dee0b12c7f5f5ffab6b5ce9ecd90969839a449",
+      "supervisor_source_tests.pl": "ec420ed8812081c81ba0b794a1f8ca5259eed17cc066077812b9ce04ef188cf9",
+      "supervisor_startup.pl": "d6abd7d462cc4acc11a26a20e31ed89aa7455c7bd0c02d4e55a3482ac1eb7c4e",
+      "supervisor_startup_tests.pl": "11d89c7795290411bf645a3b4ffc486fa3faf7398ba32ee3e7990c2d698be02b",
+      "swi_lineage_compat.pl": "1a61838d08dab83b44f866562b96d157f8b95f754cb537521fccdc2499a5920b",
+      "swi_remote_chart_interop.pl": "d92f15e0e843cb936ffecf7403da43ab04ff20c4665ed14e6105b29160c88ea7",
+      "swi_statechart_interop.pl": "099e51c6a63cdda7951cfb6c18963d422b1c8354a1aa0385f0e2095df19e0626",
+      "swi_supervisor_compat.pl": "353be24b67bd85fc186d47d4960b737c9e4ed3303ef45f40481d21c043964e07",
+      "swi_websocket_interop.pl": "12357b47b667de09eb42fc52a09049ecc6269f6a9b81ea9d499f396b671eacff",
+      "sxml_parser.pl": "af360dc7334946f6fb0785fd66a20f0031eb9a81dc8cb8c52267439eea47b4de",
+      "sxml_parser_tests.pl": "78e680f5601e4ec0ea442613fdac67f3f9e0ec2c75fca7339ad6680487304751",
+      "synchronous_toplevel_tests.pl": "1cc394c0c4fdc3d4081ecda38fae559682f052b9df1266ae278ff436d623fb26",
+      "termination_notification_tests.pl": "19190ec505778b7b6514e17a76c01a158a42eeb73f1d9f6da145b4cdd57dac9a",
+      "tests.pl": "72ace9e25a1cfc9e70071cfa90f135f3d900df282ea00b3824219d09923f1c8b",
+      "toplevel_actors.pl": "c405310ccaedcb0a8fe2f487c380c38dff67dce3e007b90330ac722770dea867",
+      "toplevel_correlation_tests.pl": "c18c9362a75c0bc2ebef5b398afba6960daae77dfc411874666c57566d42fbb8",
+      "unicode_answer_tests.pl": "4b4c973808d70f65f26d6cc3eca4875e10ef479fc6277e56c8cbb1f48f54b8d7",
+      "web_prolog.pl": "9bb0bfb78293b7d365b355f94e83ef66e001ef6b6874d95892857e3b115a6271",
+      "websocket.pl": "d82975a340d743775d5d224c10ede5b68f5257a6f903752118fa915038dda5fb",
+      "websocket_tests.pl": "1f4323b18348805f3fb3c8c6ca7dfdef586e67ae107f5df9d4a8be875ebb89b5",
+      "worker_cleanup.pl": "29a0909f828a690356e26cc750c8638580d876f6b5e495c093a8bed669531d77",
+      "worker_scope_tests.pl": "907da5ffdce8670e74e0f1f5a1ecca2dd29c6d3d6fd3e3abf1c5b253828e6c34",
+      "wrapper_option_tests.pl": "e450848d42f176349857d7eaf44fab600978b162b4e469a11a7e0e304a773055"
+    },
+    "repaired": {
+      "actor_api.pl": "9229c1e1728daab84a964c3e2600e168480fb2725baa007fd60b3add6d688f6e",
+      "actors.pl": "3f731c8357988e299b9924a1d53463c415258ce95f52049d5ab9666167a7054a",
+      "answer_negotiation_tests.pl": "e564e9b5fb4e9b2a412e6d55aa11cb02be15ea9034e73a24bebf2e9f06126096",
+      "auth_policy.pl": "7eece9c8c1d85d823ed5f04de3fbe0c0ac31d20542fffa765192b9270be84a97",
+      "child_spec_tests.pl": "0f0a126e6c1b3b7a50d7252b67c41e0188cfceb2b187a7b13d679a8386022432",
+      "connection_stack_tests.pl": "06b34629e2fe5360cef30cc1cae2d1166ef3fb359b43b4b6d5fd409852b1fd09",
+      "crypto_portable.pl": "e5f03062d464d5907c9987dce53716884cfb9cab057c1e43cd24f445a95a46e6",
+      "distribution.pl": "b2e0d966a39f48100abbb44f2e42ecaa81acbb074f24036634f0b399169ec82f",
+      "distribution_canonical_tests.pl": "9ae7e9de0220e27896250ba97ebfe895693b732dfbfb1125dbce97424d6e7abc",
+      "distribution_sync_tests.pl": "9112dfbb611c8cec66f07775c561b5d32d394d167a4608f291eb1accfb40f61d",
+      "distribution_tests.pl": "4a283f0c11e06509762291bb8ed8aac1db229c217989fccb651693a4b7c77bf3",
+      "first_solution_determinism_tests.pl": "6d032c9e71f8bb6c7152fc5b2d7b76a1d1484d55a12980e7b607fd6db11e4510",
+      "governance_policy.pl": "192cc74fec7f87ccaa823b45955fae34c6f9fc31d3690d5700888eb5e5332b64",
+      "http_cache_eviction_tests.pl": "02571c2e5fc4182dba74b2579596509dd924831f0c010cb3ba7c1bd1f974d604",
+      "http_once_tests.pl": "dd886733c3d41b7fd3cd7fabfc006fc944611acefb5e37087fe00bff08e1a6c9",
+      "http_page_deadline_tests.pl": "7db304cbb6c1b857ea7e636d416dbf768984354b58bf7c9901cdbc5f44be19f3",
+      "http_paging_cleanup_tests.pl": "9d33bf0035087bd247cf051afc48237d98e7caae2f0edc3681e39f7cd55dc0e0",
+      "http_paging_offset_tests.pl": "556a9b00e5ba85b00f5ac347630d1faae3b17b227bb473883a3507ddb658cfdd",
+      "http_source_tests.pl": "10cff7d94d9f13309dc264a741185732a00a3320caf207e99b9384713f85df35",
+      "ip_policy.pl": "dafb02d76d3f01832af949e6bc868d32131f71bb3423e4b1996d6a30dc470b0b",
+      "isolation.pl": "7c5ebcffc72bf83e147a4c7fcfc5ac3d824774c68e57793c0c4975de0557967f",
+      "named_creation_tests.pl": "8c84d24437facf6b01dad754f2acb0c29b7cf1120a66469627eaf714d4d7c7ad",
+      "namespace_tests.pl": "c5b4ae98afe54979c7cb417a17b779b2d7c8dd96f8cbcd3a0e2121e5394f8254",
+      "node.pl": "b0b4607e5bfc8bf335c8b9ede8a4e76a4c6400030210f506a120a1e5b63ecd22",
+      "node_tokens.pl": "f3db66ea47ec3ae05d42e68b077bbbbd5e6d8e58420f6ddd6bf750aaa9d7ad2b",
+      "observability.pl": "50d4db204f0541fbd9d43b7b5599346f46d69d09f44a6a5e622fd051609ada8f",
+      "page_size_tests.pl": "c76fee93e8e9f4a32d7b178bcc36178878d2dd8a53c13721eb02179626562e5c",
+      "parallel.pl": "0c2e005c6ec4b9eebc2332e00ccae3cf63d99184dce339de3395dec36fd8881a",
+      "parallel_exit_tests.pl": "8a5bbd50980074f932d388a8175309ceda47c9506b88f33d0b3c17c7f1a34de9",
+      "profile_policy.pl": "5a6128c9e9519540e19bfb7294635ebde5b2e41676b28e10ca4b147a569eb1c4",
+      "promise_callback_context_tests.pl": "39acf6d4fff1870a1993e2cd5338c5d04289ca6c43d944a507b7829d60d031b7",
+      "public_worker_routing_tests.pl": "c3caf7409827cd0ef702245dc1be69b3f6ab7dd724538a6e6916d4c67d793d40",
+      "receive_atomic_tests.pl": "ab2cfffccc30383bd203951d3f27a9bf26987f33d39f1e8c7880bbd370202d84",
+      "receive_handoff_tests.pl": "63a62259bcfae578b51ab814540ae81aa8302a8beb1f3764aa8b61304db4cfa3",
+      "receiver_lineage.pl": "b26279a89e1c7f7efa992ba489acbf4404519ec2b74c55aed6ee4b7440f4383c",
+      "receiver_lineage_tests.pl": "1b4400d51a74f673b02415b5564ef2a78806e9f6ffc02f9e083906c1c0e29064",
+      "registration_tests.pl": "c39cfc90c6454f16b5b02803136c11700bee3163a4ca98af994b438b15840e15",
+      "remote_alias_tests.pl": "51f68424b8026b7b50f21a502a4020c414a39af1089bbefb3b2d7b5b1779005d",
+      "remote_chart_tests.pl": "556ff3f075cd5702841c460d85c7f796e1823572b72bd7d3d25479c3f12fa4d9",
+      "remote_demonitor_tests.pl": "e40c6caeabe9548252526329de3ead0bff72f2204fdfe9d8b71fcee641964943",
+      "remote_named_tests.pl": "be3fc0ab8b8cd9cf237aff3006508314e0a92c2732100d749dcc21794a855a18",
+      "remote_server.pl": "fdffb507ebe20a8c82b5134275dd2943e552db138c317a8547c09d18b415f6a8",
+      "remote_statechart.pl": "f24447fcc7c0bdd5ddcf03a6bde788c2f0dd89ee9cd1bcc04ffde402fd0c4610",
+      "remote_statechart_invocation_tests.pl": "f9dce251a8cdc2ebc73cf60322606b18c3f7dce1bd2cd9971c0a9814c92588c5",
+      "remote_supervisor.pl": "297c5f9a42de7e72397451203bde129607272d2f779eee0613303c3eee6f5c34",
+      "remote_supervisor_tests.pl": "03b45826fa9c77847d4563f063154e57e63c228ea6ffc361de91e448e99efbae",
+      "remote_toplevel_creation_diagnostics.pl": "5f1e76ae4d86a4d481aa50f038ec382ff7a7fe237ff053e6105cb0293f49cf47",
+      "remote_toplevel_creation_tests.pl": "8f702795cd969e6f09cf6de2346f8a1dbfdcd78d397dc978e1f65e700f24d010",
+      "resource_policy.pl": "3db53506befe4db6df45478c20ef800200becce0d1aae82a4d8cfaf4b1bd747f",
+      "rpc.pl": "2e6dd0621ca66b21be61b69dace64b4b85508b04d94823a9468b08da1d8e1916",
+      "rpc_http_timeout_enforcement_tests.pl": "e0a90205cb14db883c76cbc8ee2cdb32fec9b1e95ecbb64b68954ccfcf34f53e",
+      "rpc_http_timeout_tests.pl": "398d6751dd2e9a7b33a36c2b6de0a2567248758e9e40c079c1d8369cf82d5c8a",
+      "rpc_lifecycle_tests.pl": "717fa8256a59a9789fc3bfe4383ad84a6b37c9ae59eb5507a3fc38aa451a3097",
+      "rpc_namespace_tests.pl": "c03bd7cee71decdb90eaa388606d5ee0dd288212048232537868905d0507d638",
+      "rpc_once_tests.pl": "c0e8d33e57f8ca6f3d1c6676d8e70ace60b1f31e0c26a04a631f3f4003d49ae1",
+      "rpc_option_tests.pl": "202c9a4c481238286b67f8135970ab2b22789011dfd3695f0f335c02a585d49a",
+      "rpc_ownership_tests.pl": "900b14d5d77c3afa21b9697196e9e39941dd683a33f71860d55877bbbf897217",
+      "rpc_promise_tests.pl": "2b310a42accfa4ea8834773e034e646e4a2c1f825e034121ef203f0233d93663",
+      "runtime_property_tests.pl": "edcaeebb45497fee9721eda8affb222d11c582007d903c7ef8591616ba7c272a",
+      "sandbox_policy.pl": "ea354908cc987bcaddac8d96165b0bce8386b222469e377799464a8ebac4eeaf",
+      "server_actor.pl": "b62ce6e3be57d95b99fc94d4cb6a19d898637477f5a9cef356aa37248b7370f1",
+      "server_actor_tests.pl": "91e69b64393372d0c555e57b9935f8b098171de2582d1d90ad337126c1c79e53",
+      "server_promise_cleanup_tests.pl": "cc11755c0a62de0548d23f7f47102cb3da378b81574a6f5187f28d869980779d",
+      "source_capture_tests.pl": "f127e22c4042454e313aa02b6727add5a8e85f76aa933245f83c3757e45dccb0",
+      "source_declaration_tests.pl": "1708049b3cdee8c70295409cec99c5442c0c6d53193e568914cc5498b789b30f",
+      "source_policy.pl": "8b688a0e9b6e3acb3d128d44325b1b0f14d33f0427fa5e1bb5e360f9f6a9b6e4",
+      "spawn_option_tests.pl": "7adc2e111b582ad69f66f833083f69c053d24e643819469617b9147b2afaa6b1",
+      "spawn_reply_tests.pl": "00c8df0d7ba9eb2de2e37b177554b04f1d29aaaf8a08731d5b9ebe87a61b006c",
+      "statechart_actor.pl": "4fb8e0dea88b711720830234a9f5dc6177e9df4c02a4a7dc2c86a8c24b981e30",
+      "statechart_actor_tests.pl": "2d015da14bd513ef69e1886dc4a5441d4d8741019013506b8e4bc75b0f2c3c73",
+      "statechart_boxshop_tests.pl": "9e64e86c0e7286e733091e069cb4774764dd6cfea19b2781d7c00c5aa76a4f17",
+      "statechart_exec.pl": "7b65a58eb232da426d1c27fb422a146b09acd4ea927e19a18d1e458cbd7874a0",
+      "statechart_invocation_tests.pl": "cdcf7c1504e1cb5d593cfec401154e10fc91975ccf2a32655736d4b1bc848291",
+      "statechart_model.pl": "6861aebeb40108786710f4a2c587ab0e065abcdc4e828ebdbdc0eb023d502743",
+      "statechart_runtime.pl": "799defefce442e59d3944ee7a64f193741dc63219ff492d31d1bdd310df0eee6",
+      "statechart_support.pl": "f86c3652608d86b35a862e955c0306f2fa6ec6f1685334c6b05a694290050107",
+      "supervisor_actor.pl": "1bd13f8a7c298ee85b385d60ed040266750930edffdbdbc3f5985ab296dbb88f",
+      "supervisor_actor_tests.pl": "0c63c34996b9568d2472280f45e4d3fdc12cd7d4f8dd063967fe1b6534a9e7c1",
+      "supervisor_halt_tests.pl": "319fa1062ccd072be0737aa5ce4fd6806f621be6285a475d5802dbcfdd213557",
+      "supervisor_intensity_tests.pl": "c92ca1e1d0d9509f342e0759b01d9db08ff1580ef4691fb1860d207aeb3922e6",
+      "supervisor_restart_tests.pl": "00d3cbdd52fb6eb340a6885027dee0b12c7f5f5ffab6b5ce9ecd90969839a449",
+      "supervisor_source_tests.pl": "ec420ed8812081c81ba0b794a1f8ca5259eed17cc066077812b9ce04ef188cf9",
+      "supervisor_startup.pl": "d6abd7d462cc4acc11a26a20e31ed89aa7455c7bd0c02d4e55a3482ac1eb7c4e",
+      "supervisor_startup_tests.pl": "11d89c7795290411bf645a3b4ffc486fa3faf7398ba32ee3e7990c2d698be02b",
+      "swi_lineage_compat.pl": "1a61838d08dab83b44f866562b96d157f8b95f754cb537521fccdc2499a5920b",
+      "swi_remote_chart_interop.pl": "d92f15e0e843cb936ffecf7403da43ab04ff20c4665ed14e6105b29160c88ea7",
+      "swi_statechart_interop.pl": "099e51c6a63cdda7951cfb6c18963d422b1c8354a1aa0385f0e2095df19e0626",
+      "swi_supervisor_compat.pl": "353be24b67bd85fc186d47d4960b737c9e4ed3303ef45f40481d21c043964e07",
+      "swi_websocket_interop.pl": "12357b47b667de09eb42fc52a09049ecc6269f6a9b81ea9d499f396b671eacff",
+      "sxml_parser.pl": "af360dc7334946f6fb0785fd66a20f0031eb9a81dc8cb8c52267439eea47b4de",
+      "sxml_parser_tests.pl": "78e680f5601e4ec0ea442613fdac67f3f9e0ec2c75fca7339ad6680487304751",
+      "synchronous_toplevel_tests.pl": "1cc394c0c4fdc3d4081ecda38fae559682f052b9df1266ae278ff436d623fb26",
+      "termination_notification_tests.pl": "19190ec505778b7b6514e17a76c01a158a42eeb73f1d9f6da145b4cdd57dac9a",
+      "tests.pl": "72ace9e25a1cfc9e70071cfa90f135f3d900df282ea00b3824219d09923f1c8b",
+      "toplevel_actors.pl": "c405310ccaedcb0a8fe2f487c380c38dff67dce3e007b90330ac722770dea867",
+      "toplevel_correlation_tests.pl": "c18c9362a75c0bc2ebef5b398afba6960daae77dfc411874666c57566d42fbb8",
+      "unicode_answer_tests.pl": "4b4c973808d70f65f26d6cc3eca4875e10ef479fc6277e56c8cbb1f48f54b8d7",
+      "web_prolog.pl": "9bb0bfb78293b7d365b355f94e83ef66e001ef6b6874d95892857e3b115a6271",
+      "websocket.pl": "d82975a340d743775d5d224c10ede5b68f5257a6f903752118fa915038dda5fb",
+      "websocket_tests.pl": "1f4323b18348805f3fb3c8c6ca7dfdef586e67ae107f5df9d4a8be875ebb89b5",
+      "worker_cleanup.pl": "29a0909f828a690356e26cc750c8638580d876f6b5e495c093a8bed669531d77",
+      "worker_scope_tests.pl": "907da5ffdce8670e74e0f1f5a1ecca2dd29c6d3d6fd3e3abf1c5b253828e6c34",
+      "wrapper_option_tests.pl": "e450848d42f176349857d7eaf44fab600978b162b4e469a11a7e0e304a773055"
+    }
+  }
+}
