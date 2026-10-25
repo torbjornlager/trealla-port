@@ -1,0 +1,82 @@
+[
+  {
+    "type": "success",
+    "pid": 1333248704,
+    "data": [
+      "ok"
+    ],
+    "more": false
+  },
+  {
+    "type": "io_request",
+    "request_id": "browser-1000000013",
+    "event": {
+      "type": "output",
+      "pid": 2951790709,
+      "data": "Pong received ping."
+    }
+  },
+  {
+    "type": "io_request",
+    "request_id": "browser-1000000014",
+    "event": {
+      "type": "output",
+      "pid": 1933738238,
+      "data": "Ping received pong."
+    }
+  },
+  {
+    "type": "io_request",
+    "request_id": "browser-1000000015",
+    "event": {
+      "type": "output",
+      "pid": 2951790709,
+      "data": "Pong received ping."
+    }
+  },
+  {
+    "type": "io_request",
+    "request_id": "browser-1000000016",
+    "event": {
+      "type": "output",
+      "pid": 1933738238,
+      "data": "Ping received pong."
+    }
+  },
+  {
+    "type": "io_request",
+    "request_id": "browser-1000000017",
+    "event": {
+      "type": "output",
+      "pid": 2951790709,
+      "data": "Pong received ping."
+    }
+  },
+  {
+    "type": "io_request",
+    "request_id": "browser-1000000018",
+    "event": {
+      "type": "output",
+      "pid": 1933738238,
+      "data": "Ping received pong."
+    }
+  },
+  {
+    "type": "io_request",
+    "request_id": "browser-1000000019",
+    "event": {
+      "type": "output",
+      "pid": 1933738238,
+      "data": "Ping finished."
+    }
+  },
+  {
+    "type": "io_request",
+    "request_id": "browser-1000000020",
+    "event": {
+      "type": "output",
+      "pid": 2951790709,
+      "data": "Pong finished."
+    }
+  }
+]

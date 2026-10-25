@@ -1,0 +1,10 @@
+[
+  {
+    "group": "isolation",
+    "exit_code": 0
+  },
+  {
+    "group": "sandbox",
+    "exit_code": 0
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "old_pid": 10267,
+  "new_pid": 11084,
+  "configuration_preserved": true,
+  "protected_processes": " 8855 Sun Oct 25 18:35:56 2026     /Users/torbjorn.lager/.local/share/trinity-runtimes/swi-current/bin/swipl -f none -q -s /Users/torbjorn.lager/.local/share/trinity-local-nodes/portable-text-live-2026-10-25/start_local_node.pl -- n3\n91509 Sun Oct 25 14:27:44 2026     /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python /Users/torbjorn.lager/.local/share/trinity-local-nodes/n5/frontend.py --port 3060\n97669 Sat Oct 24 09:58:02 2026     /Users/torbjorn.lager/Documents/GitHub/trealla-port/.build/trealla-current/tpl -g use_module(web_prolog),use_module(distribution),web_prolog:web_prolog_node(3061,[bind_address('127.0.0.1'),node_url('http://localhost:3061'),profile(actor),sandbox(blacklist),auth(open),ws_allowed_origins(['http://localhost:3053','http://localhost:3061'])]),thread_get_message(stop)\n",
+  "engine_sha256": "71f5ab7df3bde1a0a73cffccb2a762815895f6d2c2ef3f63ee52ef10baaeba1c",
+  "isolation_sha256": "4406dd4fde74315da16400a7fcb4bbcfc257eb812de94c670d7661c015c7a852",
+  "snapshot": "/Users/torbjorn.lager/.local/share/trinity-local-nodes/shared-shadow-dispatch-2026-10-25"
+}

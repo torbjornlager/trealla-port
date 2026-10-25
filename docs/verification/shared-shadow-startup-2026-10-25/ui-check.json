@@ -1,0 +1,18 @@
+{
+  "url": "http://localhost:3060/portal",
+  "example": "06 ping-pong.pl",
+  "load_message": "% Spawned new session and loaded 06 ping-pong.pl.",
+  "query": "ping_pong.",
+  "answer": "true.",
+  "output": [
+    "Pong received ping.",
+    "Ping received pong.",
+    "Pong received ping.",
+    "Ping received pong.",
+    "Pong received ping.",
+    "Ping received pong.",
+    "Ping finished.",
+    "Pong finished."
+  ],
+  "verified": "Actual example drawer and terminal through browser automation"
+}

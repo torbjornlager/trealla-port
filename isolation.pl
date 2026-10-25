@@ -787,7 +787,8 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_remember_pi\'((A,B)) :- !, \'$actor_remember_pi\'(A), \'$actor_remember_pi\'(B).~n', []),
     bootstrap_line( '\'$actor_remember_pi\'(Name/Arity) :- functor(Head,Name,Arity), \'$actor_prepare_pi\'(Name/Arity,Head).~n', []),
     bootstrap_line( '\'$actor_prepare_pi\'(PI,_Head) :- \'$actor_loading_shared\', !, ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ), ( \'$actor_shared_pi\'(PI) -> true ; assertz(\'$actor_shared_pi\'(PI)) ).~n', []),
-    bootstrap_line( '\'$actor_prepare_pi\'(Name/Arity,_Head) :- PI = Name/Arity, ( retract(\'$actor_shared_pi\'(PI)) -> functor(SharedHead,Name,Arity), retractall(SharedHead) ; true ), ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ).~n', []),
+    % Clause-list atoms may retain a host predicate lookup; shadow only here.
+    bootstrap_line( '\'$actor_prepare_pi\'(Name/Arity,_Head) :- PI = Name/Arity, ( retract(\'$actor_shared_pi\'(PI)) -> functor(SharedHead,Name,Arity), retractall(~q:SharedHead) ; true ), ( \'$actor_source_pi\'(PI) -> true ; assertz(\'$actor_source_pi\'(PI)) ).~n', [Module]),
     bootstrap_line( '\'$actor_remember_dynamic_pi\'((A,B)) :- !, \'$actor_remember_dynamic_pi\'(A), \'$actor_remember_dynamic_pi\'(B).~n', []),
     bootstrap_line( '\'$actor_remember_dynamic_pi\'(PI) :- ( \'$actor_dynamic_pi\'(PI) -> true ; assertz(\'$actor_dynamic_pi\'(PI)) ), \'$actor_ensure_empty_pi\'(PI).~n', []),
     bootstrap_line( '\'$actor_remember_discontiguous_pi\'((A,B)) :- !, \'$actor_remember_discontiguous_pi\'(A), \'$actor_remember_discontiguous_pi\'(B).~n', []),
@@ -846,6 +847,9 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_call\'(parallel(Goals)) :- !, parallel:parallel_in(~q,Goals).~n', [Module]),
     bootstrap_line( '\'$actor_call\'(first_solution(Solution,Goals)) :- !, parallel:first_solution_in(~q,Solution,Goals,[on_fail(continue),on_error(stop)]).~n', [Module]),
     bootstrap_line( '\'$actor_call\'(first_solution(Solution,Goals,Options)) :- !, parallel:first_solution_in(~q,Solution,Goals,Options).~n', [Module]),
+    % Parsed atoms can carry a host lookup. Recorded private/shared source
+    % predicates must resolve in this actor, including zero-arity entries.
+    bootstrap_line( '\'$actor_call\'(Goal) :- nonvar(Goal), functor(Goal,Name,Arity), \'$actor_source_pi\'(Name/Arity), !, Goal =.. Parts, Fresh =.. Parts, call(~q:call(Fresh)).~n', [Module]),
     bootstrap_line( '\'$actor_call\'(Goal) :- call(Goal).~n', []),
     bootstrap_line( '\'$actor_materialize_source_predicates\'([], []).~n', []),
     bootstrap_line( '\'$actor_materialize_source_predicates\'([src_predicates(PIs)|Options0], [src_list(Terms)|Options]) :- !, \'$actor_copy_predicates\'(PIs,Terms), \'$actor_materialize_source_predicates\'(Options0,Options).~n', []),
@@ -853,7 +857,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_sandbox_spawn\'(M,P,C,A,Goal,Pid,Options0) :- \'$actor_materialize_source_predicates\'(Options0,Options), sandbox_policy:sandbox_spawn(M,P,C,A,Goal,Pid,Options).~n', []),
     bootstrap_line( '\'$actor_toplevel_spawn\'(Pid,Options0) :- \'$actor_materialize_source_predicates\'(Options0,Options), toplevel_actors:toplevel_spawn(Pid,Options).~n', []),
     bootstrap_line( '\'$actor_copy_predicates\'([], []).~n', []),
-    bootstrap_line( '\'$actor_copy_predicates\'([Name/Arity|PIs], Terms) :- PI = Name/Arity, \'$actor_source_pi\'(PI), !, functor(Head,Name,Arity), \'$actor_dynamic_terms\'(PI,Declarations), findall(Term, (clause(Head,Body0), \'$actor_strip_source_module\'(Body0,Body), \'$actor_clause_term\'(Head,Body,Term)), Here), append(Declarations,Here,Current), \'$actor_copy_predicates\'(PIs,Rest), append(Current,Rest,Terms).~n', []),
+    bootstrap_line( '\'$actor_copy_predicates\'([Name/Arity|PIs], Terms) :- PI = Name/Arity, \'$actor_source_pi\'(PI), !, functor(Head,Name,Arity), \'$actor_dynamic_terms\'(PI,Declarations), findall(Term, (clause(~q:Head,Body0), \'$actor_strip_source_module\'(Body0,Body), \'$actor_clause_term\'(Head,Body,Term)), Here), append(Declarations,Here,Current), \'$actor_copy_predicates\'(PIs,Rest), append(Current,Rest,Terms).~n', [Module]),
     bootstrap_line( '\'$actor_copy_predicates\'([PI|_], _) :- throw(error(existence_error(procedure,PI), src_predicates/1)).~n', []),
     bootstrap_line( '\'$actor_dynamic_terms\'(PI, Terms) :- ( \'$actor_dynamic_pi\'(PI) -> Dynamic=[(:- dynamic(PI))] ; Dynamic=[] ), ( \'$actor_discontiguous_pi\'(PI) -> append(Dynamic,[(:- discontiguous(PI))],Terms) ; Terms=Dynamic ).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(Term, Term) :- var(Term), !.~n', []),
@@ -883,7 +887,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_strip_source_args\'([Arg0|Args0], [Arg|Args]) :- \'$actor_strip_source_module\'(Arg0,Arg), \'$actor_strip_source_args\'(Args0,Args).~n', []),
     bootstrap_line( '\'$actor_clause_term\'(Head, true, Head) :- !.~n', []),
     bootstrap_line( '\'$actor_clause_term\'(Head, Body, (Head :- Body)).~n', []),
-    bootstrap_line( '\'$actor_cleanup\' :- forall(retract(\'$actor_source_pi\'(Name/Arity)), (functor(Head, Name, Arity), retractall(Head))), retractall(\'$actor_dynamic_pi\'(_)), retractall(\'$actor_discontiguous_pi\'(_)), retractall(\'$actor_shared_pi\'(_)), retractall(\'$actor_loading_shared\').~n', []).
+    bootstrap_line( '\'$actor_cleanup\' :- forall(retract(\'$actor_source_pi\'(Name/Arity)), (functor(Head, Name, Arity), retractall(~q:Head))), retractall(\'$actor_dynamic_pi\'(_)), retractall(\'$actor_discontiguous_pi\'(_)), retractall(\'$actor_shared_pi\'(_)), retractall(\'$actor_loading_shared\').~n', [Module]).
 
 call_in_module(Module, Goal) :-
     Qualified = Module:Goal,

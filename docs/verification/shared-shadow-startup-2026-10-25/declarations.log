@@ -1,0 +1,8 @@
+empty zero/unary predicates, negation and current_predicate via list: ok
+empty zero/unary predicates, negation and current_predicate via text: ok
+clause order, variable sharing and copied empty/mixed declarations: ok
+empty declarations execute under blacklist policy: ok
+empty declarations execute under whitelist policy: ok
+invalid and reserved declaration targets remain rejected: ok
+multifile sandbox rejection and trusted empty behavior unchanged: ok
+Discontiguous source declarations: all regressions passed
