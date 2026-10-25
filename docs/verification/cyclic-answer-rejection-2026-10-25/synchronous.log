@@ -1,0 +1,11 @@
+answers, next, sharing and output mismatch: ok
+routing validation and asynchronous replies retained: ok
+late answer cannot satisfy a later call: ok
+timeout callback context, bindings, failure and exception: ok
+stale replies retain original deadline and unrelated monitor/messages: ok
+termination fails fast and private monitors are removed: ok
+committed exit escapes query errors; user actor_exit and unrelated monitors kept: ok
+profile, query and computed callback admission: ok
+private actor callback source context: ok
+sandbox-prepared local queries in both source modes: ok
+Synchronous toplevel wrappers: all regressions passed

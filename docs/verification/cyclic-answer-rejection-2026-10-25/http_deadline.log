@@ -1,0 +1,12 @@
+deadline covers startup before the producer thread exists: ok
+many individually fast answers exceed one page budget; unrelated monitor/message retained: ok
+offset skipping shares the page deadline: ok
+lookahead shares the budget already spent collecting the page: ok
+cached pages get fresh budgets; idle time and unrelated continuations are preserved: ok
+expiry after cache publication does not reclaim the handed-off producer: ok
+success, failure and exceptions cancel the timer before later caller work: ok
+the request timer is cancelled before cleanup lasting longer than its budget: ok
+skipping, collection and lookahead select only their producer; unrelated replies remain: ok
+cleanup drains owned solution/end/error replies only, preserving application monitors: ok
+infinite owner time limit remains unbounded: ok
+HTTP whole-page deadline: all regressions passed

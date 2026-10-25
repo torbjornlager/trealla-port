@@ -1,0 +1,10 @@
+first slice and offset stop before side effects, exceptions or blocking alternatives: ok
+non-ground template/goal sharing is preserved: ok
+same-goal ordinary continuation retains its pid, offset and lookahead: ok
+producer is retired before return; application monitor and unrelated reply survive: ok
+failure, short slices, offsets past end, errors and output mismatch reclaim producers: ok
+collection and skipping retain the whole-page deadline and cleanup: ok
+Node listening on port 57309 (profile actor, sandbox blacklist, auth open)
+HTTP once Prolog/JSON, offset, failure/error and ordinary paging on http://127.0.0.1:57309: ok
+HTTP once validates every occurrence and preserves first-value precedence: ok
+HTTP server once: all regressions passed

@@ -103,6 +103,7 @@ goal choicepoint after optionally changing the page limit.
 */
 
 
+:- use_module(answer_terms,[check_answer_term/1,finite_query_error/2]).
 :- use_module(actors).
 :- use_module(isolation).
 :- use_module(parallel, []).
@@ -318,7 +319,8 @@ run_call(Pid, Goal, Template, Offset, Limit0, Target1,
         ),
         Error0,
         ( disarm_call_timer,
-          normalize_resource_exception(Error0, Error),
+          finite_query_error(Error0, FiniteError),
+          normalize_resource_exception(FiniteError, Error),
           handle_error(Pid, Target, Target1, Error) )),
     !.
 
@@ -376,6 +378,7 @@ drive(Pid, Goal, Template, Offset, PageCount, PageState, Target,
 
 drive_solution(Pid, Template, Det, PageCount, PageState, Target,
                TimeLimit, IdleLimit) :-
+    check_answer_term(Template),
     copy_term(Template, Value),
     page_add(PageState, Value, Got),
     arg(1, PageCount, Limit),

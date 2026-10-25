@@ -1,0 +1,3 @@
+pre-copy guard and finite exception envelope: ok
+HTTP pre-handoff rejection, cleanup and finite controls: ok
+Cyclic answer rejection: all regressions passed

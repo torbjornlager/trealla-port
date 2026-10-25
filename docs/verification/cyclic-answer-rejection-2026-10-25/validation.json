@@ -1,0 +1,65 @@
+{
+  "new_regressions_pass": true,
+  "related_checks": [
+    {
+      "name": "synchronous",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult(synchronous_toplevel_tests),synchronous_toplevel_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "promise",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult(rpc_promise_tests),rpc_promise_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "http_once",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult(http_once_tests),http_once_tests:run(57309)),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "http_deadline",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult(http_page_deadline_tests),http_page_deadline_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "http_cleanup",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "(catch((consult(http_paging_cleanup_tests),http_paging_cleanup_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "live_validation_sha256": "493a11c859c900864e44b48de11b8658c994c23a3d7b4989d466ba07d9d1fa33",
+  "preservation": {
+    "native_prolog": true,
+    "trealla_sources": true,
+    "engines": true,
+    "library": true,
+    "live": true,
+    "required_regressions_pass": true,
+    "all_health_checks_pass": true,
+    "all_temporary_nodes_stopped": true,
+    "no_node_exited_before_shutdown": true,
+    "installed_launchers_and_engines_unchanged": true,
+    "dependency_pin_unchanged": true
+  },
+  "remaining": "catch/3 copies a cyclic exception as an acyclic term on v3.14.10"
+}

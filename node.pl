@@ -117,6 +117,7 @@ waits for their normal cleanup under a bounded timeout.
 :- dynamic http_promise_namespace/2.
 % Load the client before extending its owner hook: Trealla otherwise sees
 % a hook-only rpc module and may leave the client predicates unavailable.
+:- use_module(answer_terms,[check_answer_term/1,finite_query_error/2]).
 :- use_module(rpc).
 
 :- multifile rpc:hook_promise_owner/1.
@@ -1583,6 +1584,7 @@ run_goal_producer(Goal, Template) :-
         disarm_http_timer).
 
 producer_solution_wait(Template, TimeLimit) :-
+    check_answer_term(Template),
     self(Pid),
     disarm_http_timer,
     receive({
@@ -1631,7 +1633,8 @@ set_http_resource_timer(Timer) :-
 run_goal_producer_guarded(Goal, Template) :-
     catch(run_goal_producer(Goal, Template), Error0,
           ( producer_control_exception(Error0) -> throw(Error0)
-          ; normalize_resource_exception(Error0, Error),
+          ; finite_query_error(Error0, FiniteError),
+            normalize_resource_exception(FiniteError, Error),
             producer_error_reply(Error) )).
 
 run_goal_producer_guarded(Goal, Template, Maximum) :-
