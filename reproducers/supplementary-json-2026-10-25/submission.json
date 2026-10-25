@@ -1,0 +1,94 @@
+{
+  "issue": {
+    "number": 1181,
+    "url": "https://github.com/trealla-prolog/trealla-prolog/issues/1181",
+    "title": "library(json): UTF-16 surrogate escapes decode as separate characters",
+    "state": "open",
+    "created_at": "2026-10-25T06:59:24Z",
+    "author": "torbjornlager",
+    "body_verified": true
+  },
+  "upstream_revision": "4ef56e3bbbcc6ca44085a4aa5eae0e6848c70294",
+  "source_comparison": {
+    "url": "https://api.github.com/repos/trealla-prolog/trealla-prolog/contents/library/json.pl",
+    "matchesTestedControl": true
+  },
+  "searches": [
+    {
+      "query": "repo:trealla-prolog/trealla-prolog surrogate",
+      "issues": [
+        {
+          "number": 399,
+          "title": "Surrogate pair not working in JSON",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/399"
+        },
+        {
+          "number": 398,
+          "title": "Cannot use \\uXXXX to replicated JavaScript behaviour ",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/398"
+        },
+        {
+          "number": 158,
+          "title": "json(true) isn't always JSON sympathetic",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/158"
+        }
+      ]
+    },
+    {
+      "query": "repo:trealla-prolog/trealla-prolog json unicode",
+      "issues": [
+        {
+          "number": 399,
+          "title": "Surrogate pair not working in JSON",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/399"
+        },
+        {
+          "number": 398,
+          "title": "Cannot use \\uXXXX to replicated JavaScript behaviour ",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/398"
+        }
+      ]
+    },
+    {
+      "query": "repo:trealla-prolog/trealla-prolog json_chars",
+      "issues": [
+        {
+          "number": 46,
+          "title": "API for controlling queries",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/46"
+        },
+        {
+          "number": 162,
+          "title": "String leak?",
+          "url": "https://github.com/trealla-prolog/trealla-prolog/issues/162"
+        }
+      ]
+    }
+  ],
+  "related_issues": [
+    {
+      "number": 398,
+      "state": "closed",
+      "surface": "Prolog reader/json(true)"
+    },
+    {
+      "number": 399,
+      "state": "closed",
+      "surface": "Prolog reader/json(true)"
+    }
+  ],
+  "submission_method": "browser (GitHub connector issue creation returned 403)",
+  "patch_in_body": true,
+  "preservation_checks": {
+    "native_prolog": true,
+    "trealla_sources": true,
+    "engines": true,
+    "library": true,
+    "live": true,
+    "dependency_pin": true,
+    "runtime_working_files": true,
+    "installed": true
+  },
+  "issue_body_sha256": "5539177f79e83319cb526c795e4273808a13aa3f1bc0b1945d0b7407830bacb6",
+  "patch_sha256": "baf89c2d0315473eccc5842f4c2ab79dbcea4f5b29ab1d89525eb1160e552bb1"
+}

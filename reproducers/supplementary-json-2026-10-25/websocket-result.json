@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-supplementary-json-2026-10-25/engine/tpl",
+    "-g",
+    "consult(websocket_tests),websocket_tests,halt"
+  ],
+  "exit_code": 0,
+  "duration": 0.211,
+  "stdout": "WebSocket unit tests: ok\n",
+  "stderr": ""
+}

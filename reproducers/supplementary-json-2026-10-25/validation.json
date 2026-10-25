@@ -1,0 +1,44 @@
+{
+  "decoder_checks": {
+    "candidate": {
+      "pass": 37,
+      "fail": 0
+    },
+    "control": {
+      "pass": 20,
+      "fail": 17
+    }
+  },
+  "standalone_controls": {
+    "candidate_pass": 8,
+    "control_pass": 6,
+    "control_reader_errors": 2
+  },
+  "supplementary_cases": {
+    "TXT-008": "pass",
+    "TXT-020": "pass",
+    "TXT-025": "pass",
+    "TXT-026": "pass"
+  },
+  "trealla_full_experimental_pack": {
+    "fail": 2,
+    "pass": 24,
+    "unsupported": 0
+  },
+  "report_validation": "2 reports valid",
+  "patch_application": "clean exact base",
+  "owned_nodes_stopped": {
+    "swi": true,
+    "trealla": true
+  },
+  "preservation_checks": {
+    "native_prolog": true,
+    "trealla_sources": true,
+    "engines": true,
+    "library": true,
+    "live": true,
+    "dependency_pin": true,
+    "runtime_working_files": true,
+    "installed": true
+  }
+}

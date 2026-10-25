@@ -1,0 +1,216 @@
+{
+  "advertised_profile": "actor",
+  "candidate": "swi",
+  "counts": {
+    "fail": 22,
+    "pass": 4,
+    "unsupported": 0
+  },
+  "duration_ms": 4709,
+  "results": [
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 1143078752, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 32,
+      "id": "TXT-001",
+      "status": "fail",
+      "title": "A double-quoted literal is a list of one-character atoms"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 4368612066, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 12,
+      "id": "TXT-002",
+      "status": "fail",
+      "title": "The empty double-quoted literal is the empty list"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 8614671869, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 12,
+      "id": "TXT-003",
+      "status": "fail",
+      "title": "A non-ASCII literal contains one Unicode character atom rather than UTF-8 bytes"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'data': 'Type error: list expected, found \"abcd\" (a string)', 'details': 'error(type_error(list,\"abcd\"),_)', 'pid': 2859083387, 'type': 'error'}; preceding events were []",
+      "duration_ms": 12,
+      "id": "TXT-004",
+      "status": "fail",
+      "title": "Double-quoted terminals retain DCG list semantics"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 8278550393, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 12,
+      "id": "TXT-005",
+      "status": "fail",
+      "title": "Source loaded into a session uses character-list semantics"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 5171526561, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 14,
+      "id": "TXT-006",
+      "status": "fail",
+      "title": "A serialized text binding can be resubmitted with the same list meaning"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 1716660805, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 12,
+      "id": "TXT-007",
+      "status": "fail",
+      "title": "Double-quoted text supports ordinary relational list operations"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 3107474929, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 11,
+      "id": "TXT-008",
+      "status": "fail",
+      "title": "A supplementary Unicode scalar is one character atom"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 4282158609, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 11,
+      "id": "TXT-009",
+      "status": "fail",
+      "title": "Combining marks are separate character atoms"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 4933996450, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 12,
+      "id": "TXT-010",
+      "status": "fail",
+      "title": "Reading preserves normalization distinctions"
+    },
+    {
+      "duration_ms": 12,
+      "id": "TXT-011",
+      "status": "pass",
+      "title": "Single-quoted text remains an atom"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 8843305971, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 11,
+      "id": "TXT-012",
+      "status": "fail",
+      "title": "Quoted text escapes preserve quotes and backslashes"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 7303160943, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 12,
+      "id": "TXT-013",
+      "status": "fail",
+      "title": "Quoted clauses in spawn options use the option reader semantics"
+    },
+    {
+      "duration_ms": 21,
+      "id": "TXT-014",
+      "status": "pass",
+      "title": "Constructed src_list terms preserve numeric lists and variable sharing"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'data': \"node_sandbox:sandbox_check_goal/2: No permission to call sandboxed public_goal_guard:'$sandbox_dcg'(actor_2969461507,pt_dcg,[a,b],[])' (top-level module-qualified goal is disabled in blacklist sandbox mode)\", 'details': \"error(permission_error(call,sandboxed,public_goal_guard:'$sandbox_dcg'(actor_2969461507,pt_dcg,[a,b],[])),_)\", 'pid': 2969461507, 'type': 'error'}; preceding events were []",
+      "duration_ms": 14,
+      "id": "TXT-015",
+      "status": "fail",
+      "title": "Supplied DCG source compiles character terminals"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'data': 'Unknown message: missing_private_text', 'details': 'missing_private_text', 'pid': 6918825291, 'type': 'error'}; preceding events were []",
+      "duration_ms": 2029,
+      "id": "TXT-016",
+      "status": "fail",
+      "title": "A private actor source module reads double quotes consistently"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'data': 'Unknown message: missing_copied_text', 'details': 'missing_copied_text', 'pid': 9157666153, 'type': 'error'}; preceding events were []",
+      "duration_ms": 2066,
+      "id": "TXT-017",
+      "status": "fail",
+      "title": "Copied predicates preserve text through generated source"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 1570665669, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 44,
+      "id": "TXT-018",
+      "status": "fail",
+      "title": "URI-supplied source uses the same literal semantics"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: input text assertion failed: {'pid': 7754742716, 'type': 'failure'}",
+      "duration_ms": 16,
+      "id": "TXT-019",
+      "status": "fail",
+      "title": "Toplevel input replies use character-list literal semantics"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 5281921296, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 14,
+      "id": "TXT-020",
+      "status": "fail",
+      "title": "Unicode text survives serialized answer resubmission"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 2332023950, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 13,
+      "id": "TXT-021",
+      "status": "fail",
+      "title": "Empty text survives serialized answer resubmission"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 8783876913, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 13,
+      "id": "TXT-022",
+      "status": "fail",
+      "title": "Quotes and backslashes survive serialized answer resubmission"
+    },
+    {
+      "duration_ms": 144,
+      "id": "TXT-023",
+      "status": "pass",
+      "title": "A remote HTTP peer reads its supplied source consistently"
+    },
+    {
+      "duration_ms": 127,
+      "id": "TXT-024",
+      "status": "pass",
+      "title": "Remote answers preserve text code lists and variable sharing"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: expected success, got {'pid': 1802488873, 'type': 'failure'}; preceding events were []",
+      "duration_ms": 18,
+      "id": "TXT-025",
+      "status": "fail",
+      "title": "A joined emoji consists of scalar values rather than one grapheme"
+    },
+    {
+      "classification": "unclassified",
+      "detail": "ConformanceFailure: input text assertion failed: {'pid': 5685873846, 'type': 'failure'}",
+      "duration_ms": 16,
+      "id": "TXT-026",
+      "status": "fail",
+      "title": "Unicode input replies retain supplementary scalar characters"
+    }
+  ],
+  "schema_version": 1,
+  "started_at": "2026-10-25T06:51:40.439491+00:00",
+  "suite": "portable-text-0.2",
+  "ws_url": "ws://127.0.0.1:63162/ws"
+}

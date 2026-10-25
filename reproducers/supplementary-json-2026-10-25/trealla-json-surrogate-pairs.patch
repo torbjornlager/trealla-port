@@ -1,0 +1,188 @@
+diff --git a/library/json.pl b/library/json.pl
+index dac2788..6bb56cf 100644
+--- a/library/json.pl
++++ b/library/json.pl
+@@ -147,22 +147,48 @@ json_character(PrintChar)  -->
+     { dif(PrintChar, '\\'),
+       dif(PrintChar, '"'),
+       char_code(PrintChar, PrintCharCode),
+-      PrintCharCode >= 32 }.
++      PrintCharCode >= 32,
++      json_scalar_value(PrintCharCode) }.
++% A JSON \u escape denotes a UTF-16 code unit. Supplementary scalar values
++% require a high/low surrogate pair; neither surrogate is a character itself.
+ json_character(EscapeChar) -->
+-        "\\u",
+-        json_hex(H1),
+-        json_hex(H2),
+-        json_hex(H3),
+-        json_hex(H4),
+-        { (   nonvar(H1) ->
+-              EscapeCharCode is H1 * 16^3 + H2 * 16^2 + H3 * 16 + H4,
+-              char_code(EscapeChar, EscapeCharCode)
+-          ;   char_code(EscapeChar, EscapeCharCode),
+-              H1 is (EscapeCharCode // 16^3) mod 16,
+-              H2 is (EscapeCharCode // 16^2) mod 16,
+-              H3 is (EscapeCharCode // 16^1) mod 16,
+-              H4 is (EscapeCharCode // 16^0) mod 16
+-          ) }.
++        { ( nonvar(EscapeChar) -> char_code(EscapeChar, Code) ; true ) },
++        json_escaped_scalar(Code),
++        { char_code(EscapeChar, Code) }.
++
++json_scalar_value(Code) :-
++        Code >= 0, Code =< 0x10ffff,
++        ( Code < 0xd800 ; Code > 0xdfff ).
++
++json_bmp_scalar(Code) :-
++        Code >= 0, Code =< 0xffff,
++        ( Code < 0xd800 ; Code > 0xdfff ).
++
++json_escaped_scalar(Code) -->
++        { ( nonvar(Code) -> json_bmp_scalar(Code) ; true ) },
++        "\\u", json_hex_code(Code),
++        { json_bmp_scalar(Code) }.
++json_escaped_scalar(Code) -->
++        { ( nonvar(Code) ->
++              Code >= 0x10000, Code =< 0x10ffff,
++              High is 0xd800 + ((Code - 0x10000) // 0x400),
++              Low is 0xdc00 + ((Code - 0x10000) mod 0x400)
++          ; true ) },
++        "\\u", json_hex_code(High),
++        { High >= 0xd800, High =< 0xdbff },
++        "\\u", json_hex_code(Low),
++        { Low >= 0xdc00, Low =< 0xdfff,
++          Code is 0x10000 + (High - 0xd800) * 0x400 + Low - 0xdc00 }.
++
++json_hex_code(Code) -->
++        { ( nonvar(Code) ->
++              H1 is (Code // 16^3) mod 16,
++              H2 is (Code // 16^2) mod 16,
++              H3 is (Code // 16^1) mod 16,
++              H4 is Code mod 16
++          ; true ) },
++        json_hex(H1), json_hex(H2), json_hex(H3), json_hex(H4),
++        { Code is H1 * 16^3 + H2 * 16^2 + H3 * 16 + H4 }.
+ 
+ json_hex(Digit) --> json_digit(Digit).
+ json_hex(10)    --> "a".
+diff --git a/tests/sundry/json_unicode.expected b/tests/sundry/json_unicode.expected
+new file mode 100644
+index 0000000..2eaf495
+--- /dev/null
++++ b/tests/sundry/json_unicode.expected
+@@ -0,0 +1,38 @@
++pass-ascii
++pass-bmp_escape
++pass-raw_supplementary
++pass-surrogate_pair
++pass-uppercase_pair
++pass-first_supplementary
++pass-last_scalar
++pass-before_surrogates
++pass-after_surrogates
++pass-noncharacter_scalar
++pass-nul_escape
++pass-adjacent_pairs
++pass-mixed_raw_escaped
++pass-literal_backslashes
++pass-quote_backslash
++pass-empty
++pass-high_alone
++pass-low_alone
++pass-high_then_bmp
++pass-low_then_high
++pass-two_highs
++pass-two_lows
++pass-truncated_pair
++pass-separated_pair
++pass-nonhex_escape
++pass-bound_pair_match
++pass-bound_wrong_scalar
++pass-no_truncated_generation
++pass-generate_ascii
++pass-generate_bmp
++pass-generate_nul
++pass-generate_first_supplementary
++pass-generate_emoji
++pass-generate_last_scalar
++pass-object_key_value
++pass-array
++pass-prolog_reader
++JSON Unicode: 37 passed, 0 failed
+diff --git a/tests/sundry/json_unicode.pl b/tests/sundry/json_unicode.pl
+new file mode 100644
+index 0000000..2e11cdd
+--- /dev/null
++++ b/tests/sundry/json_unicode.pl
+@@ -0,0 +1,70 @@
++% JSON Unicode scalar and UTF-16 escape regressions.
++:- use_module(library(json)).
++:- initialization(main).
++
++codes([], []).
++codes([C|Cs], [N|Ns]) :- char_code(C,N), codes(Cs,Ns).
++parsed(Wire, Codes) :-
++    phrase(json_chars(string(Chars)), Wire), codes(Chars, Actual), Actual == Codes.
++rejected(Wire) :- \+ phrase(json_chars(_), Wire).
++scalar_round_trip(Code) :-
++    char_code(Char,Code),
++    once(phrase(json_chars(string([Char])), Wire)), parsed(Wire,[Code]).
++
++test(ascii, parsed("\"ab\"", [97,98])).
++test(bmp_escape, parsed("\"\\u00e5\"", [229])).
++test(raw_supplementary, parsed("\"😀\"", [128512])).
++test(surrogate_pair, parsed("\"\\ud83d\\ude00\"", [128512])).
++test(uppercase_pair, parsed("\"\\uD83D\\uDE00\"", [128512])).
++test(first_supplementary, parsed("\"\\ud800\\udc00\"", [65536])).
++test(last_scalar, parsed("\"\\udbff\\udfff\"", [1114111])).
++test(before_surrogates, parsed("\"\\ud7ff\"", [55295])).
++test(after_surrogates, parsed("\"\\ue000\"", [57344])).
++test(noncharacter_scalar, parsed("\"\\uffff\"", [65535])).
++test(nul_escape, parsed("\"\\u0000\"", [0])).
++test(adjacent_pairs, parsed("\"\\ud83d\\ude00\\ud83d\\udcbb\"", [128512,128187])).
++test(mixed_raw_escaped, parsed("\"aé\\ud83d\\ude00\\n\"", [97,233,128512,10])).
++test(literal_backslashes, parsed("\"\\\\ud83d\\\\ude00\"", [92,117,100,56,51,100,92,117,100,101,48,48])).
++test(quote_backslash, parsed("\"\\\"\\\\\"", [34,92])).
++test(empty, parsed("\"\"", [])).
++test(high_alone, rejected("\"\\ud800\"")).
++test(low_alone, rejected("\"\\udc00\"")).
++test(high_then_bmp, rejected("\"\\ud800\\u0061\"")).
++test(low_then_high, rejected("\"\\udc00\\ud800\"")).
++test(two_highs, rejected("\"\\ud800\\udbff\"")).
++test(two_lows, rejected("\"\\udc00\\udfff\"")).
++test(truncated_pair, rejected("\"\\ud800\\udc0\"")).
++test(separated_pair, rejected("\"\\ud800x\\udc00\"")).
++test(nonhex_escape, rejected("\"\\uZZZZ\"")).
++test(bound_pair_match, phrase(json_chars(string(['😀'])), "\"\\ud83d\\ude00\"")).
++test(bound_wrong_scalar, \+ phrase(json_chars(string(['😀'])), "\"\\uf600\"")).
++test(no_truncated_generation,
++    \+ phrase(json_chars(string(['😀'])), ['"','\\',u,_,_,_,_,'"'])).
++test(generate_ascii, scalar_round_trip(97)).
++test(generate_bmp, scalar_round_trip(229)).
++test(generate_nul, scalar_round_trip(0)).
++test(generate_first_supplementary, scalar_round_trip(65536)).
++test(generate_emoji, scalar_round_trip(128512)).
++test(generate_last_scalar, scalar_round_trip(1114111)).
++test(object_key_value, (
++    phrase(json_chars(pairs([string(Key)-string(Value)])),
++           "{\"\\ud83d\\ude00\":\"\\ud83d\\udcbb\"}"),
++    codes(Key,[128512]),codes(Value,[128187]))).
++test(array, (
++    phrase(json_chars(list([string(Chars),number(7),boolean(true)])),
++           "[\"\\ud83d\\ude00\",7,true]"),codes(Chars,[128512]))).
++test(prolog_reader, (
++    phrase(json_chars(string(Chars)), "\"\\\"\\ud83d\\ude00\\\"==['\\ud83d\\ude00']\""),
++    atom_chars(Goal,Chars),read_term_from_atom(Goal,Term,[]),call(Term))).
++
++run([], 0, 0).
++run([Label-Goal|Cases], Passed, Failed) :-
++    ( catch(call(Goal), Error, (writeq(error(Label,Error)),nl,fail)) ->
++        Result=pass, P=1, F=0
++    ; Result=fail, P=0, F=1 ),
++    writeq(Result-Label),nl,
++    run(Cases,Ps,Fs),Passed is Ps+P,Failed is Fs+F.
++main :-
++    findall(Label-Goal,test(Label,Goal),Cases),run(Cases,Passed,Failed),
++    format('JSON Unicode: ~d passed, ~d failed~n',[Passed,Failed]),
++    (Failed=:=0 -> halt ; halt(1)).

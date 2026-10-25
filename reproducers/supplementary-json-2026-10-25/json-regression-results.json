@@ -1,0 +1,38 @@
+[
+  {
+    "candidate": "control",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-q",
+      "-f",
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-supplementary-json-2026-10-25/engine/tests/sundry/json_unicode.pl",
+      "-g",
+      "halt"
+    ],
+    "exit_code": 0,
+    "duration": 0.169,
+    "stdout": "pass-ascii\npass-bmp_escape\npass-raw_supplementary\nfail-surrogate_pair\nfail-uppercase_pair\nfail-first_supplementary\nfail-last_scalar\npass-before_surrogates\npass-after_surrogates\npass-noncharacter_scalar\npass-nul_escape\nfail-adjacent_pairs\nfail-mixed_raw_escaped\npass-literal_backslashes\npass-quote_backslash\npass-empty\nfail-high_alone\nfail-low_alone\nfail-high_then_bmp\nfail-low_then_high\nfail-two_highs\nfail-two_lows\npass-truncated_pair\nfail-separated_pair\npass-nonhex_escape\nfail-bound_pair_match\npass-bound_wrong_scalar\npass-no_truncated_generation\npass-generate_ascii\npass-generate_bmp\npass-generate_nul\npass-generate_first_supplementary\npass-generate_emoji\npass-generate_last_scalar\nfail-object_key_value\nfail-array\nerror(prolog_reader,error(representation_error(character),read_term_from_atom/3))\nfail-prolog_reader\nJSON Unicode: 20 passed, 17 failed\n",
+    "stderr": "",
+    "passed": 20,
+    "failed": 17,
+    "status": "fail"
+  },
+  {
+    "candidate": "candidate",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-supplementary-json-2026-10-25/engine/tpl",
+      "-q",
+      "-f",
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-supplementary-json-2026-10-25/engine/tests/sundry/json_unicode.pl",
+      "-g",
+      "halt"
+    ],
+    "exit_code": 0,
+    "duration": 0.025,
+    "stdout": "pass-ascii\npass-bmp_escape\npass-raw_supplementary\npass-surrogate_pair\npass-uppercase_pair\npass-first_supplementary\npass-last_scalar\npass-before_surrogates\npass-after_surrogates\npass-noncharacter_scalar\npass-nul_escape\npass-adjacent_pairs\npass-mixed_raw_escaped\npass-literal_backslashes\npass-quote_backslash\npass-empty\npass-high_alone\npass-low_alone\npass-high_then_bmp\npass-low_then_high\npass-two_highs\npass-two_lows\npass-truncated_pair\npass-separated_pair\npass-nonhex_escape\npass-bound_pair_match\npass-bound_wrong_scalar\npass-no_truncated_generation\npass-generate_ascii\npass-generate_bmp\npass-generate_nul\npass-generate_first_supplementary\npass-generate_emoji\npass-generate_last_scalar\npass-object_key_value\npass-array\npass-prolog_reader\nJSON Unicode: 37 passed, 0 failed\n",
+    "stderr": "",
+    "passed": 37,
+    "failed": 0,
+    "status": "pass"
+  }
+]

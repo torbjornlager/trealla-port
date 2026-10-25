@@ -1,0 +1,29 @@
+PASS        TXT-001  A double-quoted literal is a list of one-character atoms
+PASS        TXT-002  The empty double-quoted literal is the empty list
+PASS        TXT-003  A non-ASCII literal contains one Unicode character atom rather than UTF-8 bytes
+PASS        TXT-004  Double-quoted terminals retain DCG list semantics
+PASS        TXT-005  Source loaded into a session uses character-list semantics
+PASS        TXT-006  A serialized text binding can be resubmitted with the same list meaning
+PASS        TXT-007  Double-quoted text supports ordinary relational list operations
+PASS        TXT-008  A supplementary Unicode scalar is one character atom
+PASS        TXT-009  Combining marks are separate character atoms
+PASS        TXT-010  Reading preserves normalization distinctions
+PASS        TXT-011  Single-quoted text remains an atom
+PASS        TXT-012  Quoted text escapes preserve quotes and backslashes
+PASS        TXT-013  Quoted clauses in spawn options use the option reader semantics
+FAIL        TXT-014  Constructed src_list terms preserve numeric lists and variable sharing — ConformanceFailure: expected success, got {'type': 'error', 'data': 'error(instantiation_error,not_sufficiently_instantiated)'}; preceding events were []
+PASS        TXT-015  Supplied DCG source compiles character terminals
+PASS        TXT-016  A private actor source module reads double quotes consistently
+PASS        TXT-017  Copied predicates preserve text through generated source
+PASS        TXT-018  URI-supplied source uses the same literal semantics
+PASS        TXT-019  Toplevel input replies use character-list literal semantics
+PASS        TXT-020  Unicode text survives serialized answer resubmission
+PASS        TXT-021  Empty text survives serialized answer resubmission
+PASS        TXT-022  Quotes and backslashes survive serialized answer resubmission
+FAIL        TXT-023  A remote HTTP peer reads its supplied source consistently — ConformanceFailure: expected success, got {'type': 'failure', 'pid': 1251486837}; preceding events were []
+PASS        TXT-024  Remote answers preserve text code lists and variable sharing
+PASS        TXT-025  A joined emoji consists of scalar values rather than one grapheme
+PASS        TXT-026  Unicode input replies retain supplementary scalar characters
+
+24 passed, 2 failed, 0 unsupported
+Report: /Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/supplementary-json-2026-10-25/conformance-candidate/trealla-portable-text.json
