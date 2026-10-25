@@ -1,0 +1,46 @@
+{
+  "base_revision": "7220bb562cf510d5cb12093fe84e7da73b5ecc86",
+  "engines": {
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swi-default-startup-2026-10-24/runtime/bin/swipl": "915c4758b6aba3d01ade4fe4f46332b6f526ad6c70a8e2574dd05278c2b0ce9c",
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl": "71f5ab7df3bde1a0a73cffccb2a762815895f6d2c2ef3f63ee52ef10baaeba1c",
+    "/Users/torbjorn.lager/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node": "060b970693b04c9b5664c68014c6ece7c30ec7968d55c8764776d8a07e154056"
+  },
+  "groups": [
+    {
+      "label": "focused",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-q",
+        "-g",
+        "consult('boolean_option_tests.pl'),(catch((boolean_option_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "seconds": 0.186,
+      "log": "focused.log"
+    },
+    {
+      "label": "synchronous",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-q",
+        "-g",
+        "consult('synchronous_toplevel_tests.pl'),(catch((synchronous_toplevel_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "seconds": 5.695,
+      "log": "synchronous.log"
+    },
+    {
+      "label": "wrappers",
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-q",
+        "-g",
+        "consult('wrapper_option_tests.pl'),(catch((wrapper_option_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+      ],
+      "exit_code": 0,
+      "seconds": 2.332,
+      "log": "wrappers.log"
+    }
+  ]
+}

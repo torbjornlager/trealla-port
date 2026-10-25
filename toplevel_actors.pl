@@ -499,9 +499,18 @@ toplevel_call(Pid, Goal) :-
     toplevel_call(Pid, Goal, []).
 
 toplevel_call(Pid, Goal0, Options) :-
+    validate_once_options(Options),
+    toplevel_call_validated(Pid, Goal0, Options).
+
+validate_once_options(Options) :-
+    must_be(list, Options),
+    forall((member(Option, Options), nonvar(Option), Option = once(Value)),
+           must_be(boolean, Value)).
+
+toplevel_call_validated(Pid, Goal0, Options) :-
     remote_toplevel_route(Pid,Node),!,
     distribution:remote_toplevel_call_routed(Node,Pid,Goal0,Options).
-toplevel_call(Pid, Goal0, Options) :-
+toplevel_call_validated(Pid, Goal0, Options) :-
     ( nonvar(Goal0), Goal0 = Qualified:_Goal, atom(Qualified)
     -> Goal = Goal0
     ; strip_module(Goal0, _, Goal)
