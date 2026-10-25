@@ -1,0 +1,209 @@
+diff --git a/sandbox_policy.pl b/sandbox_policy.pl
+index 0218ba7..b1b9f5c 100644
+--- a/sandbox_policy.pl
++++ b/sandbox_policy.pl
+@@ -272,13 +272,32 @@ check_nested_spawn(whitelist, _Profile, _Module, _AppPIs, _Goal, Options) :-
+     throw_sandbox(option, Options, opaque_spawn_options).
+ check_nested_spawn(Mode, Profile, Module, AppPIs, Goal, Options) :-
+     ( is_list(Options)
+-    -> profile_check_spawn_options(Profile, Options),
+-       check_spawn_options(Options),
+-       nested_source_predicate_indicators(Options, DeferredPIs),
++    -> % Admission must neither bind application variables nor demand source
++       % that preceding query goals have not constructed yet. This copy is
++       % inspected only; the runtime guard receives the original terms.
++       copy_term(Goal-Options, CheckGoal-CheckOptions),
++       nested_source_admission_options(CheckOptions, AdmissionOptions, Deferred),
++       profile_check_spawn_options(Profile, AdmissionOptions),
++       check_spawn_options(CheckOptions),
++       nested_source_predicate_indicators(AdmissionOptions, DeferredPIs),
+        append(AppPIs, DeferredPIs, NestedAppPIs)
+-    ; NestedAppPIs = AppPIs
++    ; CheckGoal = Goal, Deferred = false, NestedAppPIs = AppPIs
+     ),
+-    sandbox_check_goal_(Mode, Profile, Module, NestedAppPIs, Goal).
++    % With unknown source, whitelist membership of its child predicates is
++    % not decidable yet. Still reject known forbidden operations now. The
++    % rewritten sandbox_spawn/7 retains Mode and checks the actual source
++    % and child goal under that original policy before actors:spawn/3.
++    ( Mode == whitelist, Deferred == true -> CheckMode = blacklist
++    ; CheckMode = Mode ),
++    sandbox_check_goal_(CheckMode, Profile, Module, NestedAppPIs, CheckGoal).
++
++nested_source_admission_options([], [], false).
++nested_source_admission_options([Option|Options], [Admission|Rest], Deferred) :-
++    ( nonvar(Option), Option = src_list(Terms), \+ ground(Terms)
++    -> Admission = src_list([]), Deferred = true
++    ; Admission = Option, Deferred = TailDeferred
++    ),
++    nested_source_admission_options(Options, Rest, TailDeferred).
+ 
+ nested_source_predicate_indicators([], []).
+ nested_source_predicate_indicators([src_predicates(PIs)|Options], All) :- !,
+--- a/README.md
++++ b/README.md
+@@ -2577,3 +2577,29 @@
+ source origin policy, redirects, TLS or permitted schemes. See the shared manual
+ for the runtime-specific text forms. The bounded regression report is in
+ `reproducers/uri-options-2026-10-24/REPORT.md`.
++
++### Constructed clause-list source admission
++
++A nested `spawn/3` may receive a `src_list/1` value constructed by earlier
++goals in the query. Static admission inspects a copy and defers content checks
++for non-ground clause lists; it does not execute preceding goals, bind source
++variables or require clause data to be ground. Runtime `sandbox_spawn/7` checks
++the actual options, supplied clauses and child goal under the original profile,
++sandbox policy and source context before creating the child. Malformed lists
++and source lists still unbound at that point are rejected there.
++
++For a deferred source list in whitelist mode, the early scan still rejects
++known forbidden operations; source-dependent whitelist membership is checked
++at runtime once the clauses are available. This does not mark unknown child
++predicates safe. Completely opaque option lists retain their existing whitelist
++rejection. Ground-source admission and other source-option handling are unchanged.
++The clause loader preserves numeric lists, character lists and within-clause
++variable sharing; no text/data conversion or copying semantics are changed.
++Blacklist mode remains a prototype policy rather than a complete security boundary.
++
++`src_list_admission_tests.pl` covers nonbinding inspection, runtime construction,
++partial source lists, constructed clauses, sharing, malformed/unresolved lists,
++forbidden source and child goals, whitelist rechecking and profile restrictions.
++It is included in `tools/test.sh unit`. The investigation and verification are
++recorded in `reproducers/constructed-src-list-2026-10-25/REPORT.md`. Installed
++runtimes and n3/n5 are not updated or restarted by this repair.
+--- a/tools/test.sh
++++ b/tools/test.sh
+@@ -179,6 +179,8 @@
+         "$TPL" -g "(catch((consult('$ROOT/spawn_reply_tests.pl'),spawn_reply_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+     run_with_timeout "nonbinding supervisor admission" \
+         "$TPL" -g "consult('$ROOT/supervisor_admission_tests.pl'),(catch(supervisor_admission_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
++    run_with_timeout "constructed src_list admission" \
++        "$TPL" -g "consult('$ROOT/src_list_admission_tests.pl'),(catch(src_list_admission_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+     run_with_timeout "remote supervisor receiver and sandbox" \
+         "$TPL" -g "(catch((consult('$ROOT/remote_supervisor_tests.pl'),remote_supervisor_tests:remote_supervisor_tests,remote_supervisor_tests:remote_supervisor_policy_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+     run_with_timeout "atomic remote named startup" \
+--- /dev/null
++++ b/src_list_admission_tests.pl
+@@ -0,0 +1,121 @@
++% SPDX-License-Identifier: MIT
++:- module(src_list_admission_tests,[run/0]).
++:- use_module(actor_api).
++:- use_module(actors).
++:- use_module(sandbox_policy).
++
++check(Goal) :-
++    ( call(Goal) -> true ; throw(error(src_list_admission_check_failed(Goal),run/0)) ).
++
++run :-
++    forall(member(Mode,[blacklist,whitelist]),
++      ( nonbinding(Mode), unresolved_at_runtime(Mode), malformed_at_runtime(Mode),
++        forbidden_source(Mode), forbidden_runtime_goal(Mode),
++        forbidden_static_goal(Mode), unknown_whitelist_goal(Mode),
++        computed_source(Mode), partial_source(Mode), constructed_clause(Mode),
++        literal_source(Mode) )),
++    opaque_whitelist_options,
++    lower_profile,
++    write('Constructed src_list admission: all regressions passed'),nl.
++
++nonbinding(Mode) :-
++    Goal=(Clauses=[p(X,X)],spawn(p(Y,Y),Pid,[src_list(Clauses)])),
++    term_variables(Goal,Before),
++    sandbox_prepare_goal(Mode,actor,src_list_admission_tests,Goal,Guarded),
++    term_variables(Goal,After),
++    check(Before==After),check(var(Clauses)),check(var(X)),check(var(Y)),check(var(Pid)),
++    check(nonvar(Guarded)),
++    sandbox_prepare_goal(Mode,actor,src_list_admission_tests,
++        spawn(true,_,[src_list([Clause])]),_),check(var(Clause)).
++
++expect_error(Goal, Pattern) :-
++    catch(call(Goal),Error,true),check(nonvar(Error)),check(Error=Pattern).
++
++unresolved_at_runtime(Mode) :-
++    sandbox_prepare_goal(Mode,actor,src_list_admission_tests,
++        spawn(true,Pid,[src_list(Clauses)]),Guarded),
++    expect_error(call(Guarded),error(instantiation_error,_)),
++    check(var(Clauses)),check(var(Pid)).
++
++malformed_at_runtime(Mode) :-
++    sandbox_prepare_goal(Mode,actor,src_list_admission_tests,
++        spawn(true,Pid,[src_list(Clauses)]),Guarded),
++    Clauses=[p(ok)|bad],
++    expect_error(call(Guarded),error(type_error(list,_),_)),check(var(Pid)).
++
++forbidden_source(Mode) :-
++    sandbox_prepare_goal(Mode,actor,src_list_admission_tests,
++        spawn(loaded,Pid,[src_list(Clauses)]),Guarded),
++    Clauses=[(loaded :- open('/must-not-be-opened',read,_))],
++    expect_error(call(Guarded),error(permission_error(call,sandboxed,_),_)),check(var(Pid)).
++
++forbidden_runtime_goal(Mode) :-
++    sandbox_prepare_goal(Mode,actor,src_list_admission_tests,
++        spawn(Goal,Pid,[src_list(Clauses)]),Guarded),
++    Clauses=[loaded],Goal=open('/must-not-be-opened',read,_),
++    expect_error(call(Guarded),error(permission_error(call,sandboxed,_),_)),check(var(Pid)).
++
++forbidden_static_goal(Mode) :-
++    expect_error(sandbox_prepare_goal(Mode,actor,src_list_admission_tests,
++        spawn(open('/must-not-be-opened',read,_),Pid,[src_list(Clauses)]),_),
++        error(permission_error(call,sandboxed,_),_)),
++    check(var(Clauses)),check(var(Pid)).
++
++unknown_whitelist_goal(blacklist).
++unknown_whitelist_goal(whitelist) :-
++    sandbox_prepare_goal(whitelist,actor,src_list_admission_tests,
++        spawn(not_in_actual_source,Pid,[src_list(Clauses)]),Guarded),
++    Clauses=[loaded],
++    expect_error(call(Guarded),error(permission_error(call,sandboxed,_),context(_,not_whitelisted))),
++    check(var(Pid)).
++
++% Execute in the same source-bearing private actor context used by the public
++% endpoint. Exact normal termination makes false assertions visible as failure.
++execute(Mode,Raw) :-
++    sandbox_prepare_spawn(Mode,actor,actor_context,Raw,[monitor(true)],Goal,Options),
++    setup_call_cleanup(spawn(Goal,Session,Options),
++       ( receive({down(Session,Session,Reason)->true},
++                  [timeout(5),on_timeout(throw(missing_source_test_session))]),
++         check(Reason==true) ),
++       (catch(exit(Session,kill),_,true),catch(demonitor(Session,[flush]),_,true))).
++
++computed_source(Mode) :-
++    execute(Mode,
++      (A is 96+1,B is 97+1,
++       Clauses=[data([A,B],[a,b],pair(S,S))],self(Parent),
++       spawn((data(C,T,Pair),C==[97,98],T==[a,b],Pair=pair(X,Y),
++              var(X),X==Y,Parent!source_data_ok),P,
++             [src_list(Clauses),monitor(true)]),
++       var(S),
++       receive({source_data_ok->true},[timeout(2),on_timeout(throw(missing_source_data))]),
++       receive({down(P,P,true)->true},[timeout(2),on_timeout(throw(missing_source_child))]))).
++
++partial_source(Mode) :-
++    execute(Mode,
++      (Tail=[],self(Parent),
++       spawn((loaded,Parent!partial_ok),P,[src_list([loaded|Tail]),monitor(true)]),
++       receive({partial_ok->true},[timeout(2),on_timeout(throw(missing_partial_data))]),
++       receive({down(P,P,true)->true},[timeout(2),on_timeout(throw(missing_partial_child))]))).
++
++constructed_clause(Mode) :-
++    execute(Mode,
++      (Clause=loaded,self(Parent),
++       spawn((loaded,Parent!clause_ok),P,[src_list([Clause]),monitor(true)]),
++       receive({clause_ok->true},[timeout(2),on_timeout(throw(missing_clause_data))]),
++       receive({down(P,P,true)->true},[timeout(2),on_timeout(throw(missing_clause_child))]))).
++
++literal_source(Mode) :-
++    execute(Mode,
++      (spawn(true,P,[src_list([data([97,98],[a,b])]),monitor(true)]),
++       receive({down(P,P,true)->true},[timeout(2),on_timeout(throw(missing_literal_child))]))).
++
++opaque_whitelist_options :-
++    expect_error(sandbox_prepare_goal(whitelist,actor,src_list_admission_tests,
++        spawn(true,_,Options),_),error(permission_error(option,sandboxed,_),_)),
++    check(var(Options)).
++
++lower_profile :-
++    forall(member(Mode,[blacklist,whitelist]),
++      (expect_error(sandbox_prepare_goal(Mode,isotope,src_list_admission_tests,
++          spawn(true,Pid,[src_list(Clauses)]),_),error(profile_violation(isotope,_),_)),
++       check(var(Clauses)),check(var(Pid)))).

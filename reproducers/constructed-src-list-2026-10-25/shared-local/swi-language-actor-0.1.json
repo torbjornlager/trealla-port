@@ -1,0 +1,153 @@
+{
+  "advertised_profile": "actor",
+  "baseline": "0.1",
+  "candidate": "swi",
+  "counts": {
+    "diagnostic_error": 0,
+    "fail": 0,
+    "observed": 0,
+    "pass": 7,
+    "unsupported": 0
+  },
+  "duration_ms": 296,
+  "endpoint": "ws://127.0.0.1:63634/ws",
+  "peer": null,
+  "results": [
+    {
+      "duration_ms": 33,
+      "id": "LC-001",
+      "observation": {
+        "data": [
+          {
+            "A": "7950217226",
+            "Again": "1255445343@'http://127.0.0.1:63634'",
+            "B": "7475912591",
+            "BaselineResult": "passed",
+            "Self": "1255445343@'http://127.0.0.1:63634'"
+          }
+        ],
+        "more": false,
+        "pid": 1255445343,
+        "type": "success"
+      },
+      "status": "pass",
+      "title": "Identity and references are opaque and stable"
+    },
+    {
+      "duration_ms": 12,
+      "id": "LC-002",
+      "observation": {
+        "data": [
+          {
+            "BaselineResult": "passed",
+            "S": "5059782218@'http://127.0.0.1:63634'"
+          }
+        ],
+        "more": false,
+        "pid": 5059782218,
+        "type": "success"
+      },
+      "status": "pass",
+      "title": "Selective receive retains earlier unmatched data"
+    },
+    {
+      "duration_ms": 12,
+      "id": "LC-003",
+      "observation": {
+        "data": [
+          {
+            "BaselineResult": "passed",
+            "S": "7548654481@'http://127.0.0.1:63634'",
+            "X": "X",
+            "Y": "1"
+          }
+        ],
+        "more": false,
+        "pid": 7548654481,
+        "type": "success"
+      },
+      "status": "pass",
+      "title": "Failed guards preserve messages"
+    },
+    {
+      "duration_ms": 40,
+      "id": "LC-004",
+      "observation": {
+        "data": [
+          {
+            "BaselineResult": "passed",
+            "E": "baseline_error",
+            "X": "one",
+            "Y": "two"
+          }
+        ],
+        "more": false,
+        "pid": 9481327576,
+        "type": "success"
+      },
+      "status": "pass",
+      "title": "Parallel bindings failure and exception"
+    },
+    {
+      "duration_ms": 34,
+      "id": "LC-005",
+      "observation": {
+        "data": [
+          {
+            "BaselineResult": "passed",
+            "X": "ok",
+            "Y": "ready"
+          }
+        ],
+        "more": false,
+        "pid": 7565097321,
+        "type": "success"
+      },
+      "status": "pass",
+      "title": "First solution returns one winner and applies continue policy"
+    },
+    {
+      "duration_ms": 82,
+      "id": "LC-006",
+      "observation": {
+        "data": [
+          {
+            "A": "success(9826282365@'http://127.0.0.1:63634',[a,b],true)",
+            "B": "success(9826282365@'http://127.0.0.1:63634',[c],false)",
+            "BaselineResult": "passed",
+            "P": "9826282365@'http://127.0.0.1:63634'",
+            "X": "X"
+          }
+        ],
+        "more": false,
+        "pid": 9770374477,
+        "type": "success"
+      },
+      "status": "pass",
+      "title": "Synchronous toplevel paging returns answer terms"
+    },
+    {
+      "duration_ms": 82,
+      "id": "LC-007",
+      "observation": {
+        "data": [
+          {
+            "A": "failure(1677599953@'http://127.0.0.1:63634')",
+            "B": "error(1677599953@'http://127.0.0.1:63634',baseline_error)",
+            "BaselineResult": "passed",
+            "P": "1677599953@'http://127.0.0.1:63634'"
+          }
+        ],
+        "more": false,
+        "pid": 3522074701,
+        "type": "success"
+      },
+      "status": "pass",
+      "title": "Synchronous failure and exception remain answer terms"
+    }
+  ],
+  "schema_version": 2,
+  "scope": "required",
+  "started_at": "2026-10-25T07:19:18.877094+00:00",
+  "suite": "language-actor-0.1"
+}

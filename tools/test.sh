@@ -175,6 +175,8 @@ run_unit() {
         "$TPL" -g "(catch((consult('$ROOT/spawn_reply_tests.pl'),spawn_reply_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "nonbinding supervisor admission" \
         "$TPL" -g "consult('$ROOT/supervisor_admission_tests.pl'),(catch(supervisor_admission_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "constructed src_list admission" \
+        "$TPL" -g "consult('$ROOT/src_list_admission_tests.pl'),(catch(src_list_admission_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "remote supervisor receiver and sandbox" \
         "$TPL" -g "(catch((consult('$ROOT/remote_supervisor_tests.pl'),remote_supervisor_tests:remote_supervisor_tests,remote_supervisor_tests:remote_supervisor_policy_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "atomic remote named startup" \

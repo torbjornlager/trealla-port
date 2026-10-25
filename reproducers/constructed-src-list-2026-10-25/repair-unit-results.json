@@ -1,0 +1,74 @@
+[
+  {
+    "label": "unmodified-control",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "use_module(src_list_admission_tests),(catch(src_list_admission_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 1,
+    "duration": 0.132,
+    "stdout": "error(instantiation_error,not_sufficiently_instantiated)\n",
+    "stderr": ""
+  },
+  {
+    "label": "focused",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "use_module(src_list_admission_tests),(catch(src_list_admission_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "duration": 0.276,
+    "stdout": "Constructed src_list admission: all regressions passed\n",
+    "stderr": ""
+  },
+  {
+    "label": "sandbox",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(tests),(catch(run_test_group(sandbox),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "duration": 2.33,
+    "stdout": "47. sandbox mode normalization ok\n48. sandbox goal walker denial ok\n49. public source policy denial ok\n50. checked private source execution ok\n51. runtime meta-call guard ok\n52. conservative whitelist ok\n53. sandbox off compatibility ok\n54. runtime asserted-clause guard ok\n55. producer exception propagation ok\n56. scoped portable abolish/2 ok\n119. sandbox remote-spawn origin allowlist ok\n120. between/3 supports finite and infinite sandbox bounds ok\n144. sandbox exposes send/3 and cancel/1 ok\n145. nested link tutorial source copying and cascade ok\n146. copied sandbox terminal output remains callable ok\n147. actor-aware time/1 and sleep/1 wall timing ok\n148. tutorial parallel sleeps run concurrently ok\n149. copied hand-built toplevel protocol ok\n150. variable-bearing reflected proof tree ok\n151. sandboxed random_member/2 compatibility ok\n153. atom_string/2 and string src_text compatibility ok\n",
+    "stderr": ""
+  },
+  {
+    "label": "profiles",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(tests),(catch(run_test_group(profiles),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "duration": 0.186,
+    "stdout": "42. profile ordering and ceilings ok\n43. profile route and command rejection ok\n44. nested goal profile enforcement ok\n45. advertised relation allowlist ok\n46. source option profile enforcement ok\n",
+    "stderr": ""
+  },
+  {
+    "label": "isolation",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(tests),(catch(run_test_group(isolation),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "duration": 1.177,
+    "stdout": "34. src_text private predicate ok\n35. src_list private predicate ok\n36. source operator directive ok\n37. src_predicates copy ok\n38. private namespaces do not cross-talk ok\n39. toplevel private source ok\n40. source namespace cleanup ok\n41. source preparation error cleanup ok\n102. receive body keeps private source module ok\n103. guarded source receive and timeout callback ok\n104. sandbox nested spawn keeps runtime module ok\n105. nested src_predicates copies private session source ok\n106. sandboxed actor format output ok\n107. private sessions expose sandboxed rpc source options ok\n109. guarded application clause/2 supports meta-interpreters ok\n114. shared database visibility and local shadowing ok\n116. private actor toplevel API surface ok\n117. nested toplevel receive binding is isolated ok\n121. private control commitment semantics ok\n122. private forall transforms nested built-ins and DCGs ok\n",
+    "stderr": ""
+  },
+  {
+    "label": "supervisor-admission",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "use_module(supervisor_admission_tests),(catch(supervisor_admission_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "duration": 0.891,
+    "stdout": "Nonbinding supervisor admission: all regressions passed\n",
+    "stderr": ""
+  }
+]

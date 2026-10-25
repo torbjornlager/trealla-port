@@ -2551,3 +2551,29 @@ constructor helpers. It is included in `tools/test.sh unit`. Verification and
 remaining cross-runtime qualifications are recorded under
 [`docs/verification/nonbinding-supervisor-admission-2026-10-24`](docs/verification/nonbinding-supervisor-admission-2026-10-24/REPORT.md).
 Installed runtimes and n3/n5 were not updated or restarted for this repair.
+
+### Constructed clause-list source admission
+
+A nested `spawn/3` may receive a `src_list/1` value constructed by earlier
+goals in the query. Static admission inspects a copy and defers content checks
+for non-ground clause lists; it does not execute preceding goals, bind source
+variables or require clause data to be ground. Runtime `sandbox_spawn/7` checks
+the actual options, supplied clauses and child goal under the original profile,
+sandbox policy and source context before creating the child. Malformed lists
+and source lists still unbound at that point are rejected there.
+
+For a deferred source list in whitelist mode, the early scan still rejects
+known forbidden operations; source-dependent whitelist membership is checked
+at runtime once the clauses are available. This does not mark unknown child
+predicates safe. Completely opaque option lists retain their existing whitelist
+rejection. Ground-source admission and other source-option handling are unchanged.
+The clause loader preserves numeric lists, character lists and within-clause
+variable sharing; no text/data conversion or copying semantics are changed.
+Blacklist mode remains a prototype policy rather than a complete security boundary.
+
+`src_list_admission_tests.pl` covers nonbinding inspection, runtime construction,
+partial source lists, constructed clauses, sharing, malformed/unresolved lists,
+forbidden source and child goals, whitelist rechecking and profile restrictions.
+It is included in `tools/test.sh unit`. The investigation and verification are
+recorded in `reproducers/constructed-src-list-2026-10-25/REPORT.md`. Installed
+runtimes and n3/n5 are not updated or restarted by this repair.

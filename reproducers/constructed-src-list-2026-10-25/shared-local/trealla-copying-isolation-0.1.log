@@ -1,0 +1,7 @@
+PASS CI-001 
+PASS CI-002 
+PASS CI-003 
+PASS CI-004 
+PASS CI-005 
+PASS CI-006 
+{"pass": 6, "fail": 0, "unsupported": 0, "observed": 0, "diagnostic_error": 0}

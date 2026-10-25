@@ -1,0 +1,85 @@
+{
+  "revision": "d0993e422be4fad74f957c5bcd12a400475fb6dc",
+  "command": [
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+    "-g",
+    "use_module(web_prolog),use_module(distribution),web_prolog:web_prolog_node(63404,[bind_address('127.0.0.1'),node_url('http://127.0.0.1:63404'),profile(actor),sandbox(blacklist),auth(open)]),thread_get_message(stop)"
+  ],
+  "pid": 60177,
+  "stopped": true,
+  "records": [
+    {
+      "label": "original_TXT_014",
+      "goal": "N1 is 96+1,N2 is 97+1,Clauses=[pt_codes([N1,N2]),pt_chars([a,b]),pt_pair(S,S)],self(Parent),spawn((A is 96+1,B is 97+1,pt_codes(C),C==[A,B],pt_chars(T),T==[a,b],pt_pair(X,Y),var(X),X==Y,Parent!pt_terms_ok),P,[src_list(Clauses),monitor(true)]),var(S),receive({pt_terms_ok->true},[timeout(2),on_timeout(throw(missing_term_preservation))]),receive({down(P,P,true)->true},[timeout(2),on_timeout(throw(missing_term_child_down))])",
+      "reply": {
+        "type": "error",
+        "data": "error(instantiation_error,not_sufficiently_instantiated)"
+      }
+    },
+    {
+      "label": "same_assertions_runtime_options_control",
+      "goal": "N1 is 96+1,N2 is 97+1,Clauses=[pt_codes([N1,N2]),pt_chars([a,b]),pt_pair(S,S)],Options=[src_list(Clauses),monitor(true)],self(Parent),spawn((A is 96+1,B is 97+1,pt_codes(C),C==[A,B],pt_chars(T),T==[a,b],pt_pair(X,Y),var(X),X==Y,Parent!pt_terms_ok),P,Options),var(S),receive({pt_terms_ok->true},[timeout(2),on_timeout(throw(missing_term_preservation))]),receive({down(P,P,true)->true},[timeout(2),on_timeout(throw(missing_term_child_down))])",
+      "reply": {
+        "type": "success",
+        "pid": 1994009357,
+        "data": [
+          {
+            "N1": "97",
+            "N2": "98",
+            "Clauses": "[pt_codes([97,98]),pt_chars([a,b]),pt_pair(S,S)]",
+            "S": "S",
+            "Options": "[src_list([pt_codes([97,98]),pt_chars([a,b]),pt_pair(S,S)]),monitor(true)]",
+            "Parent": "1994009357@'http://127.0.0.1:63404'",
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "T": "T",
+            "X": "X",
+            "Y": "Y",
+            "P": "2640075184"
+          }
+        ],
+        "more": false
+      }
+    },
+    {
+      "label": "literal_control",
+      "goal": "spawn(p(ok),P,[src_list([p(ok)]),monitor(true)]),receive({down(P,P,true)->true},[timeout(2),on_timeout(throw(missing_child_down))])",
+      "reply": {
+        "type": "success",
+        "pid": 1775273543,
+        "data": [
+          {
+            "P": "1544556148"
+          }
+        ],
+        "more": false
+      }
+    },
+    {
+      "label": "outer_catch_runtime_source",
+      "goal": "catch((C=[p(ok)],spawn(true,P,[src_list(C)])),E,true)",
+      "reply": {
+        "type": "error",
+        "data": "error(instantiation_error,not_sufficiently_instantiated)"
+      }
+    },
+    {
+      "label": "invalid_runtime_list",
+      "goal": "O=[src_list(C)],catch(spawn(true,P,O),E,true),nonvar(E),var(C),var(P)",
+      "reply": {
+        "type": "success",
+        "pid": 2161886232,
+        "data": [
+          {
+            "O": "[src_list(C)]",
+            "C": "C",
+            "P": "P",
+            "E": "error(instantiation_error,context(actors:spawn/3,'invalid spawn option'))"
+          }
+        ],
+        "more": false
+      }
+    }
+  ]
+}

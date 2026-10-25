@@ -1,0 +1,16 @@
+{
+  "reference": "../supplementary-json-2026-10-25/before.json",
+  "checks": {
+    "native_prolog": true,
+    "trealla_sources": true,
+    "engines": true,
+    "library": true,
+    "live": true,
+    "dependency_pin": true,
+    "runtime_working_files": true,
+    "installed": true
+  },
+  "engine_path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+  "engine_sha256": "71f5ab7df3bde1a0a73cffccb2a762815895f6d2c2ef3f63ee52ef10baaeba1c",
+  "scope": "investigation only; no runtime repair"
+}

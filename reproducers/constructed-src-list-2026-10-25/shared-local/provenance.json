@@ -1,0 +1,221 @@
+{
+  "runs": [
+    {
+      "label": "swi-language-actor-0.1",
+      "report": "swi-language-actor-0.1.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/cases/language-actor-0.1.json",
+        "--url",
+        "ws://127.0.0.1:63634/ws",
+        "--candidate",
+        "swi",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/constructed-src-list-2026-10-25/shared-local/swi-language-actor-0.1.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "swi-copying-isolation-0.1",
+      "report": "swi-copying-isolation-0.1.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/cases/copying-isolation-0.1.json",
+        "--url",
+        "ws://127.0.0.1:63634/ws",
+        "--candidate",
+        "swi",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/constructed-src-list-2026-10-25/shared-local/swi-copying-isolation-0.1.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "swi-creation-validation-0.1",
+      "report": "swi-creation-validation-0.1.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/cases/creation-validation-0.1.json",
+        "--url",
+        "ws://127.0.0.1:63634/ws",
+        "--candidate",
+        "swi",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/constructed-src-list-2026-10-25/shared-local/swi-creation-validation-0.1.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "swi-child-specs-0.1",
+      "report": "swi-child-specs-0.1.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/cases/child-specs-0.1.json",
+        "--url",
+        "ws://127.0.0.1:63634/ws",
+        "--candidate",
+        "swi",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/constructed-src-list-2026-10-25/shared-local/swi-child-specs-0.1.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "trealla-language-actor-0.1",
+      "report": "trealla-language-actor-0.1.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/cases/language-actor-0.1.json",
+        "--url",
+        "ws://127.0.0.1:63640/ws",
+        "--candidate",
+        "trealla",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/constructed-src-list-2026-10-25/shared-local/trealla-language-actor-0.1.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "trealla-copying-isolation-0.1",
+      "report": "trealla-copying-isolation-0.1.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/cases/copying-isolation-0.1.json",
+        "--url",
+        "ws://127.0.0.1:63640/ws",
+        "--candidate",
+        "trealla",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/constructed-src-list-2026-10-25/shared-local/trealla-copying-isolation-0.1.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "trealla-creation-validation-0.1",
+      "report": "trealla-creation-validation-0.1.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/cases/creation-validation-0.1.json",
+        "--url",
+        "ws://127.0.0.1:63640/ws",
+        "--candidate",
+        "trealla",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/constructed-src-list-2026-10-25/shared-local/trealla-creation-validation-0.1.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "trealla-child-specs-0.1",
+      "report": "trealla-child-specs-0.1.json",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "runner/baseline.py",
+        "--manifest",
+        "/Users/torbjorn.lager/Documents/GitHub/trinity-conformance/cases/child-specs-0.1.json",
+        "--url",
+        "ws://127.0.0.1:63640/ws",
+        "--candidate",
+        "trealla",
+        "--profile",
+        "actor",
+        "--timeout",
+        "8",
+        "--report",
+        "/Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/constructed-src-list-2026-10-25/shared-local/trealla-child-specs-0.1.json"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "nodes": {
+    "swi": {
+      "url": "http://127.0.0.1:63634",
+      "pid": 61574,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swi-default-startup-2026-10-24/runtime/bin/swipl",
+        "-f",
+        "none",
+        "-q",
+        "-g",
+        "use_module(library(sgml)),use_module(library(option)),consult('/var/folders/8p/_fp_26cs6zz3_d8pdwtnh_ym0000gp/T/src-list-conformance-wor99e9x/swi/load.pl'),set_setting(http:public_host,'127.0.0.1'),set_setting(http:public_port,63634),set_setting(http:public_scheme,http),use_module(library(socket)),tcp_socket(S),tcp_bind(S,ip(127,0,0,1):63634),tcp_listen(S,128),node:node(63634,[tcp_socket(S),profile(actor),sandbox(blacklist),auth(open)]),thread_get_message(stop)"
+      ]
+    },
+    "trealla": {
+      "url": "http://127.0.0.1:63640",
+      "pid": 61579,
+      "command": [
+        "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+        "-g",
+        "use_module(web_prolog),use_module(distribution),web_prolog:web_prolog_node(63640,[bind_address('127.0.0.1'),node_url('http://127.0.0.1:63640'),profile(actor),sandbox(blacklist),auth(open)]),thread_get_message(stop)"
+      ]
+    }
+  },
+  "sources": {
+    "swi": {
+      "revision": "786737f3352c9a3abc3f59c6e09a393008579b5a",
+      "archive_sha256": "6f193e2b5c7c49a63d629011ebda32fd576b88e5b4e596e64ff7ccf1f83ce523",
+      "root": "/Users/torbjorn.lager/Documents/GitHub/swi-prolog-node"
+    },
+    "trealla": {
+      "revision": "cbd13cf647ff52390e04ff46009fea420702fd5a",
+      "archive_sha256": "4a9ca7fe357845b63561537b81503eb4aa6d4a45c81d1bd742d192eaad76d2cf",
+      "root": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-src-list-admission-2026-10-25/source"
+    }
+  },
+  "scope": "unchanged language/copying/creation/child-spec packs; no experimental counts in these totals",
+  "input_hashes": {
+    "cases/language-actor-0.1.json": "6204ea84a13e834aa2329fd97cb61c2508c989f1b1447cf86d22dda1ddb4bb91",
+    "cases/copying-isolation-0.1.json": "b7c0d35c88fbb9edbc4205a0e946767e5c97f4685645de9d40dca73f5fa0be19",
+    "cases/creation-validation-0.1.json": "ef48dc9ffd93590cae5e9b9a06430c047a90cff743d00fdccb4e767b2802c0d4",
+    "cases/child-specs-0.1.json": "fc73f572df9ce9921475bcd6efe7d1b12ca68e1f73d96eefe2a69e87ad206c3b",
+    "runner/baseline.py": "0e672a082e2ed159f34396cb56fef80632269ace648215b9b21c8798d643538f",
+    "conformance-check.py": "38e79dc090b8dd118e4b561525cc5a81ae7a7f16996ccb72cb7660daa12da2c8"
+  },
+  "owned_nodes_stopped": true,
+  "engine_sha256": {
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/swi-default-startup-2026-10-24/runtime/bin/swipl": "915c4758b6aba3d01ade4fe4f46332b6f526ad6c70a8e2574dd05278c2b0ce9c",
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl": "71f5ab7df3bde1a0a73cffccb2a762815895f6d2c2ef3f63ee52ef10baaeba1c"
+  }
+}

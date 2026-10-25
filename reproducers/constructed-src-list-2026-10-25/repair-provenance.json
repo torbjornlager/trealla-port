@@ -1,0 +1,37 @@
+{
+  "runtime_base_revision": "d0993e422be4fad74f957c5bcd12a400475fb6dc",
+  "fixture": {
+    "path": "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-src-list-admission-2026-10-25/source",
+    "base_revision": "d0993e422be4fad74f957c5bcd12a400475fb6dc",
+    "snapshot_revision": "cbd13cf647ff52390e04ff46009fea420702fd5a"
+  },
+  "primary_engine": "unmodified Trealla v3.14.10",
+  "primary_engine_sha256": "71f5ab7df3bde1a0a73cffccb2a762815895f6d2c2ef3f63ee52ef10baaeba1c",
+  "combined_json_candidate": "../supplementary-json-2026-10-25/provenance.json",
+  "repair_only_patch_sha256": "6effce2f876bc85428795697792e818f6722b7ed23ff864b3c02759d2a1b3d53",
+  "authorized_inputs": {
+    "sandbox_policy.pl": "c0f0ae2719e6a88908e26c233c4de0835816863bdf75a0fe50ecee59c2d8318c",
+    "README.md": "5bda6d3d035e3398168a4bd4fcaa33bd89f76be7d41d7ed76d7ff60a9f829a98",
+    "tools/test.sh": "1cd85a1e122d6a3d34c0dfc6b483a7635c4f10c6b756f124c1f706b7ca3e96a4",
+    "src_list_admission_tests.pl": "1e2cd89e5779145540d5aa72aca4ac7fde97d88984b2f3d0b3638c24c3a03174"
+  },
+  "commands_file": "repair-unit-results.json",
+  "shared_conformance_file": "shared-local/provenance.json",
+  "portable_files": [
+    "portable-unmodified-engine/provenance.json",
+    "portable-json-candidate-engine/provenance.json"
+  ],
+  "candidate_scope": "archived committed runtime root files plus sandbox_policy.pl and new focused tests; pending Boolean/URI edits excluded",
+  "preservation_checks": {
+    "native_prolog": true,
+    "engines": true,
+    "library": true,
+    "live": true,
+    "pin": true,
+    "installed": true,
+    "unrelated_working_files": true,
+    "only_authorized_root_prolog_changes": true,
+    "pending_readme_text_preserved": true,
+    "pending_runner_edits_preserved": true
+  }
+}

@@ -1,0 +1,8 @@
+PASS LC-001 
+PASS LC-002 
+PASS LC-003 
+PASS LC-004 
+PASS LC-005 
+PASS LC-006 
+PASS LC-007 
+{"pass": 7, "fail": 0, "unsupported": 0, "observed": 0, "diagnostic_error": 0}

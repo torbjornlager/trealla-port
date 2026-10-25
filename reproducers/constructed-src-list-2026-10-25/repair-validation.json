@@ -1,0 +1,33 @@
+{
+  "shared_conformance_passed": 50,
+  "shared_conformance_failed": 0,
+  "portable_unmodified_engine": {
+    "pass": 21,
+    "fail": 5
+  },
+  "portable_json_candidate_engine": {
+    "pass": 25,
+    "fail": 1
+  },
+  "TXT-014": "pass with either engine",
+  "existing_groups_passed": [
+    "focused",
+    "sandbox",
+    "profiles",
+    "isolation",
+    "supervisor-admission"
+  ],
+  "baseline_regression_control": "fails as expected",
+  "preservation": {
+    "native_prolog": true,
+    "engines": true,
+    "library": true,
+    "live": true,
+    "pin": true,
+    "installed": true,
+    "unrelated_working_files": true,
+    "only_authorized_root_prolog_changes": true,
+    "pending_readme_text_preserved": true,
+    "pending_runner_edits_preserved": true
+  }
+}

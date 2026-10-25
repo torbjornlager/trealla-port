@@ -272,13 +272,32 @@ check_nested_spawn(whitelist, _Profile, _Module, _AppPIs, _Goal, Options) :-
     throw_sandbox(option, Options, opaque_spawn_options).
 check_nested_spawn(Mode, Profile, Module, AppPIs, Goal, Options) :-
     ( is_list(Options)
-    -> profile_check_spawn_options(Profile, Options),
-       check_spawn_options(Options),
-       nested_source_predicate_indicators(Options, DeferredPIs),
+    -> % Admission must neither bind application variables nor demand source
+       % that preceding query goals have not constructed yet. This copy is
+       % inspected only; the runtime guard receives the original terms.
+       copy_term(Goal-Options, CheckGoal-CheckOptions),
+       nested_source_admission_options(CheckOptions, AdmissionOptions, Deferred),
+       profile_check_spawn_options(Profile, AdmissionOptions),
+       check_spawn_options(CheckOptions),
+       nested_source_predicate_indicators(AdmissionOptions, DeferredPIs),
        append(AppPIs, DeferredPIs, NestedAppPIs)
-    ; NestedAppPIs = AppPIs
+    ; CheckGoal = Goal, Deferred = false, NestedAppPIs = AppPIs
     ),
-    sandbox_check_goal_(Mode, Profile, Module, NestedAppPIs, Goal).
+    % With unknown source, whitelist membership of its child predicates is
+    % not decidable yet. Still reject known forbidden operations now. The
+    % rewritten sandbox_spawn/7 retains Mode and checks the actual source
+    % and child goal under that original policy before actors:spawn/3.
+    ( Mode == whitelist, Deferred == true -> CheckMode = blacklist
+    ; CheckMode = Mode ),
+    sandbox_check_goal_(CheckMode, Profile, Module, NestedAppPIs, CheckGoal).
+
+nested_source_admission_options([], [], false).
+nested_source_admission_options([Option|Options], [Admission|Rest], Deferred) :-
+    ( nonvar(Option), Option = src_list(Terms), \+ ground(Terms)
+    -> Admission = src_list([]), Deferred = true
+    ; Admission = Option, Deferred = TailDeferred
+    ),
+    nested_source_admission_options(Options, Rest, TailDeferred).
 
 nested_source_predicate_indicators([], []).
 nested_source_predicate_indicators([src_predicates(PIs)|Options], All) :- !,

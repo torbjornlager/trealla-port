@@ -1,0 +1,29 @@
+FAIL        TXT-001  A double-quoted literal is a list of one-character atoms — ConformanceFailure: expected success, got {'pid': 3834479801, 'type': 'failure'}; preceding events were []
+FAIL        TXT-002  The empty double-quoted literal is the empty list — ConformanceFailure: expected success, got {'pid': 7491052795, 'type': 'failure'}; preceding events were []
+FAIL        TXT-003  A non-ASCII literal contains one Unicode character atom rather than UTF-8 bytes — ConformanceFailure: expected success, got {'pid': 5486391427, 'type': 'failure'}; preceding events were []
+FAIL        TXT-004  Double-quoted terminals retain DCG list semantics — ConformanceFailure: expected success, got {'data': 'Type error: list expected, found "abcd" (a string)', 'details': 'error(type_error(list,"abcd"),_)', 'pid': 9284933333, 'type': 'error'}; preceding events were []
+FAIL        TXT-005  Source loaded into a session uses character-list semantics — ConformanceFailure: expected success, got {'pid': 2110996640, 'type': 'failure'}; preceding events were []
+FAIL        TXT-006  A serialized text binding can be resubmitted with the same list meaning — ConformanceFailure: expected success, got {'pid': 6982834121, 'type': 'failure'}; preceding events were []
+FAIL        TXT-007  Double-quoted text supports ordinary relational list operations — ConformanceFailure: expected success, got {'pid': 9491931133, 'type': 'failure'}; preceding events were []
+FAIL        TXT-008  A supplementary Unicode scalar is one character atom — ConformanceFailure: expected success, got {'pid': 9650501501, 'type': 'failure'}; preceding events were []
+FAIL        TXT-009  Combining marks are separate character atoms — ConformanceFailure: expected success, got {'pid': 8231730219, 'type': 'failure'}; preceding events were []
+FAIL        TXT-010  Reading preserves normalization distinctions — ConformanceFailure: expected success, got {'pid': 9512485679, 'type': 'failure'}; preceding events were []
+PASS        TXT-011  Single-quoted text remains an atom
+FAIL        TXT-012  Quoted text escapes preserve quotes and backslashes — ConformanceFailure: expected success, got {'pid': 1371599559, 'type': 'failure'}; preceding events were []
+FAIL        TXT-013  Quoted clauses in spawn options use the option reader semantics — ConformanceFailure: expected success, got {'pid': 6116587412, 'type': 'failure'}; preceding events were []
+PASS        TXT-014  Constructed src_list terms preserve numeric lists and variable sharing
+FAIL        TXT-015  Supplied DCG source compiles character terminals — ConformanceFailure: expected success, got {'data': "node_sandbox:sandbox_check_goal/2: No permission to call sandboxed public_goal_guard:'$sandbox_dcg'(actor_1445224863,pt_dcg,[a,b],[])' (top-level module-qualified goal is disabled in blacklist sandbox mode)", 'details': "error(permission_error(call,sandboxed,public_goal_guard:'$sandbox_dcg'(actor_1445224863,pt_dcg,[a,b],[])),_)", 'pid': 1445224863, 'type': 'error'}; preceding events were []
+FAIL        TXT-016  A private actor source module reads double quotes consistently — ConformanceFailure: expected success, got {'data': 'Unknown message: missing_private_text', 'details': 'missing_private_text', 'pid': 5686816974, 'type': 'error'}; preceding events were []
+FAIL        TXT-017  Copied predicates preserve text through generated source — ConformanceFailure: expected success, got {'data': 'Unknown message: missing_copied_text', 'details': 'missing_copied_text', 'pid': 5134258153, 'type': 'error'}; preceding events were []
+FAIL        TXT-018  URI-supplied source uses the same literal semantics — ConformanceFailure: expected success, got {'pid': 3561087605, 'type': 'failure'}; preceding events were []
+FAIL        TXT-019  Toplevel input replies use character-list literal semantics — ConformanceFailure: input text assertion failed: {'pid': 6841911177, 'type': 'failure'}
+FAIL        TXT-020  Unicode text survives serialized answer resubmission — ConformanceFailure: expected success, got {'pid': 9808622892, 'type': 'failure'}; preceding events were []
+FAIL        TXT-021  Empty text survives serialized answer resubmission — ConformanceFailure: expected success, got {'pid': 8069017524, 'type': 'failure'}; preceding events were []
+FAIL        TXT-022  Quotes and backslashes survive serialized answer resubmission — ConformanceFailure: expected success, got {'pid': 7458771274, 'type': 'failure'}; preceding events were []
+PASS        TXT-023  A remote HTTP peer reads its supplied source consistently
+PASS        TXT-024  Remote answers preserve text code lists and variable sharing
+FAIL        TXT-025  A joined emoji consists of scalar values rather than one grapheme — ConformanceFailure: expected success, got {'pid': 9861373187, 'type': 'failure'}; preceding events were []
+FAIL        TXT-026  Unicode input replies retain supplementary scalar characters — ConformanceFailure: input text assertion failed: {'pid': 4499728878, 'type': 'failure'}
+
+4 passed, 22 failed, 0 unsupported
+Report: /Users/torbjorn.lager/Documents/GitHub/trealla-port/reproducers/constructed-src-list-2026-10-25/portable-unmodified-engine/swi-portable-text.json
