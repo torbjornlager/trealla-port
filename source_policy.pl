@@ -7,6 +7,7 @@
       reset_source_policy/0,
       resolve_source_options/2,
       fetch_source_uri/2,
+      uri_atom/2,
       normalize_source_origin/2,
       source_origin_allowed/1,
       resolve_redirect_uri/3,
@@ -147,7 +148,7 @@ resolve_source_options([Option|Options], [Option|Resolved]) :-
     resolve_source_options(Options, Resolved).
 
 fetch_source_uri(URI0, Text) :-
-    source_text_atom(URI0, URI),
+    uri_atom(URI0, URI),
     atom_length(URI, URILength),
     ( URILength =< 4096 -> true
     ; throw(error(resource_error(input_size(src_uri, URILength, 4096)),
@@ -643,6 +644,13 @@ ascii_lower_codes([Code|Codes], [Lower|Lowers]) :-
 ascii_lower_atom(Atom, Lower) :-
     atom_codes(Atom, Codes), ascii_lower_codes(Codes, LowerCodes),
     atom_codes(Lower, LowerCodes).
+
+% URI representations are text, never numbers or arbitrary terms. Output is
+% an atom; validation does not instantiate caller data.
+uri_atom(Input, URI) :-
+    must_be(nonvar, Input),
+    (acyclic_term(Input) -> true ; throw(error(representation_error(cyclic_term),uri_atom/2))),
+    source_text_atom(Input, URI).
 
 source_text_atom(Text, Text) :- atom(Text), !.
 source_text_atom(Text, Atom) :- string(Text), !, atom_chars(Atom, Text).

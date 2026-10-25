@@ -1,0 +1,13 @@
+{
+  "base_revision": "7220bb562cf510d5cb12093fe84e7da73b5ecc86",
+  "files": {
+    "README.md": "5ae9f5ad0252d6d0db356823f2546fece5c347b004edb6f5c9158a67269c87d8",
+    "boolean_option_tests.pl": "409e30163f46cc7b52f4e96c983f0ab2b73fd88c617115f581c6e00193439e25",
+    "distribution.pl": "bdbcbcdb09f13a41a86c02fb857bd16e3b49878e0e27fa1c17b4cd8b9322ebae",
+    "rpc.pl": "00e67c3b597d6138f53ca91dc25da47ac2801985da2d445f069eeba0592d0c3c",
+    "source_policy.pl": "90647cebf28bd33f1d1b66165a36bf98206b8c47afd6baa3a779c81a34023b4e",
+    "tools/test.sh": "3e132196b58e263f55788988457ac177c9ab115d3083c68049ac3e4d0be07460",
+    "toplevel_actors.pl": "07c62ea76e16842d8c55a430d6c2247ae9f7e9a6e921bad7ef27a9a6fd88ba75",
+    "uri_option_tests.pl": "88a1dddec408d16c158a6ed2097847fcd223ddd552ffa43e1a4d9a0281152519"
+  }
+}

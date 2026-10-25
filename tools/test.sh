@@ -107,6 +107,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Canonical URI inputs" \
+        "$TPL" -g "consult('$ROOT/uri_option_tests.pl'),(catch(uri_option_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Strict Boolean language options" \
         "$TPL" -g "consult('$ROOT/boolean_option_tests.pl'),(catch(boolean_option_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Canonical answer negotiation context" \

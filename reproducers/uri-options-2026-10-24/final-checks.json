@@ -1,0 +1,76 @@
+[
+  {
+    "label": "focused",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-q",
+      "-g",
+      "(catch((use_module(uri_option_tests),uri_option_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.292
+  },
+  {
+    "label": "synchronous",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-q",
+      "-g",
+      "(catch((use_module(synchronous_toplevel_tests),synchronous_toplevel_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 5.748
+  },
+  {
+    "label": "wrappers",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-q",
+      "-g",
+      "(catch((consult('wrapper_option_tests.pl'),wrapper_option_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 2.341
+  },
+  {
+    "label": "rpc_options",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-q",
+      "-g",
+      "(catch((consult('rpc_option_tests.pl'),rpc_option_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.077
+  },
+  {
+    "label": "source_policy",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-q",
+      "-g",
+      "(catch((consult('tests.pl'),run_test_group(source_policy)),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "seconds": 0.18
+  },
+  {
+    "label": "live",
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-q",
+      "-g",
+      "use_module(uri_option_tests),(catch(uri_option_tests:live('http://127.0.0.1:61979'),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ],
+    "exit_code": 0,
+    "requests": [
+      "/call?goal=%28_4%3dok%29&template=%28v%28_4%29%29&offset=0&limit=10000000000&format=prolog&once=false",
+      "/call?goal=%28_5%3dok%29&template=%28pair%28_5%2c_5%29%29&offset=0&limit=10000000000&format=prolog&once=false",
+      "/call?goal=%28_4%3dok%29&template=%28v%28_4%29%29&offset=0&limit=10000000000&format=prolog&once=false",
+      "/call?goal=%28_5%3dok%29&template=%28pair%28_5%2c_5%29%29&offset=0&limit=10000000000&format=prolog&once=false",
+      "/call?goal=%28_4%3dok%29&template=%28v%28_4%29%29&offset=0&limit=10000000000&format=prolog&once=false",
+      "/call?goal=%28_5%3dok%29&template=%28pair%28_5%2c_5%29%29&offset=0&limit=10000000000&format=prolog&once=false",
+      "/call?goal=%28_11%3dok%29&template=%28v%28_11%29%29&offset=0&limit=10000000000&format=prolog&once=false"
+    ]
+  }
+]

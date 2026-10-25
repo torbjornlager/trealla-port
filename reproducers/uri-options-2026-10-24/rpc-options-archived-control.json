@@ -1,0 +1,11 @@
+{
+  "base_revision": "7220bb562cf510d5cb12093fe84e7da73b5ecc86",
+  "command": [
+    "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+    "-q",
+    "-g",
+    "consult('rpc_option_tests.pl'),(rpc_option_tests->halt;halt(1))"
+  ],
+  "exit_code": 0,
+  "temporary_archive_removed": true
+}

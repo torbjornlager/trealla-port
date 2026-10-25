@@ -1,0 +1,4 @@
+unknown, ineffective, output and malformed options: ok
+values and every duplicate occurrence are validated: ok
+invalid options do not fetch source or create promise resources: ok
+error(existence_error(procedure,make_ref/1),make_ref/1)

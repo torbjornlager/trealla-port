@@ -1,0 +1,6 @@
+wrapper values, unknown options, malformed lists and duplicates: ok
+validation precedes callback/source/child work and actor creation: ok
+toplevel scalar precedence and monitor metadata: ok
+named server precedence and monitor metadata: ok
+named wrappers, supported values, precedence and monitor metadata: ok
+Specialized wrapper option validation: all regressions passed

@@ -253,8 +253,9 @@ base_path_prefix(BasePath, Prefix) :-
 rpc(URI, Goal) :-
     rpc(URI, Goal, []).
 
-rpc(URI, Goal0, Options) :-
+rpc(URI0, Goal0, Options) :-
     validate_client_options(rpc,Options),
+    resolve_rpc_uri(URI0, URI),
     strip_module(Goal0, _, Goal),
     term_variables(Goal, Vars),
     Template =.. [v|Vars],
@@ -265,6 +266,12 @@ rpc(URI, Goal0, Options) :-
     load_options_text(SourceModule, Options, LoadText),
     rpc_page(Template, 0, Limit, GoalAtom, TemplateAtom, URI, Options,
              LoadText).
+
+resolve_rpc_uri(Input, URI) :-
+    nonvar(Input), Input=Host0:Port, !,
+    source_policy:uri_atom(Host0, Host), must_be(integer, Port),
+    format(atom(URI),'http://~w:~w',[Host,Port]).
+resolve_rpc_uri(Input, URI) :- source_policy:uri_atom(Input, URI).
 
 rpc_source_module(Module) :-
     self(Pid),
@@ -392,8 +399,9 @@ rpc_answer(error(Error), _, _, _, _, _, _, _, _) :-
 promise(URI, Goal, Reference) :-
     promise(URI, Goal, Reference, []).
 
-promise(URI, Goal0, Reference, Options) :-
+promise(URI0, Goal0, Reference, Options) :-
     validate_client_options(promise,Options),
+    resolve_rpc_uri(URI0, URI),
     strip_module(Goal0, _, Goal),
     option(template(Template), Options, Goal),
     option(offset(Offset), Options, 0),

@@ -1,0 +1,7 @@
+85. remote source loading defaults to denied ok
+86. source origin normalization ok
+87. source redirect resolution ok
+88. HTTPS verification policy ok
+93. public-only source egress policy ok
+94. resolved and pinned source destination policy ok
+108. explicit source-origin alias policy ok

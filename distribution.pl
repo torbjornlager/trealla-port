@@ -90,8 +90,7 @@ remote_node_open(URL0, remote_node(URL, Reader, Writer), Options) :-
     spawn(remote_writer_start(WS, URL, Owner, capabilities(Sync,Correlated)), Writer, [link(false)]),
     spawn(remote_reader_loop(WS, URL, Writer), Reader, [link(false)]).
 
-node_url_atom(URL, URL) :- atom(URL), !.
-node_url_atom(URL, Atom) :- atom_chars(Atom, URL).
+node_url_atom(Input, URL) :- source_policy:uri_atom(Input, URL).
 
 node_websocket_url(URL, URL) :-
     ( sub_atom(URL, 0, 5, _, 'ws://')
@@ -256,8 +255,7 @@ remote_toplevel_spawn(Node, RemotePid, Options0) :-
 % Match SWI's constructor hook: ask the peer to create its own PTCP instead
 % of exporting Trealla's private session/5 as an ordinary actor entry point.
 toplevel_actors:hook_toplevel_spawn(Pid,SourceModule,Options) :-
-    option(node(URL0),Options), URL0 \== localhost, !,
-    node_url_atom(URL0,URL), transparent_node(URL,Node),
+    option(node(URL0),Options), node_url_atom(URL0,URL), URL \== localhost, !, transparent_node(URL,Node),
     remote_toplevel_spawn_mode(Node,Pid,SourceModule:Options,transparent).
 
 % General and chart-owned toplevels use the transparent name/monitor handshake.
@@ -1139,8 +1137,8 @@ actors:hook_local_registration_pid(Pid@Node0,Pid) :-
 
 actors:hook_spawn(Goal, RemotePid, Options0) :-
     take_node_option(Options0, URL0, Options),
-    URL0 \== localhost,
     node_url_atom(URL0, URL),
+    URL \== localhost,
     transparent_node(URL, Node),
     remote_spawn_mode(Node, Goal, RemotePid, Options, transparent).
 
@@ -1170,7 +1168,7 @@ actors:hook_send(WirePid@Node0, Message) :-
     integer(WirePid),
     !,
     node_url_atom(Node0, URL),
-    ( ( Node0 == localhost ; web_prolog:current_node_url(URL) ) ->
+    ( ( URL == localhost ; web_prolog:current_node_url(URL) ) ->
         actors:send(WirePid, Message)
     ; transparent_node(URL, remote_node(_, _, Writer)),
       portable_term_for_writer(Writer, Message, PortableMessage),

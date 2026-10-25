@@ -1,0 +1,6 @@
+unknown, ineffective, output and malformed options: ok
+values and every duplicate occurrence are validated: ok
+invalid options do not fetch source or create promise resources: ok
+invalid yield options preserve the reference and answer: ok
+documented subset, precedence, source formats and sharing: ok
+RPC client option validation: all regressions passed
