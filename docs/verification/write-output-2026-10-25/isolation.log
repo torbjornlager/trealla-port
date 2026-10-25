@@ -1,0 +1,20 @@
+34. src_text private predicate ok
+35. src_list private predicate ok
+36. source operator directive ok
+37. src_predicates copy ok
+38. private namespaces do not cross-talk ok
+39. toplevel private source ok
+40. source namespace cleanup ok
+41. source preparation error cleanup ok
+102. receive body keeps private source module ok
+103. guarded source receive and timeout callback ok
+104. sandbox nested spawn keeps runtime module ok
+105. nested src_predicates copies private session source ok
+106. sandboxed actor format output ok
+107. private sessions expose sandboxed rpc source options ok
+109. guarded application clause/2 supports meta-interpreters ok
+114. shared database visibility and local shadowing ok
+116. private actor toplevel API surface ok
+117. nested toplevel receive binding is isolated ok
+121. private control commitment semantics ok
+122. private forall transforms nested built-ins and DCGs ok

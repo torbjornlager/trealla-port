@@ -1,0 +1,3 @@
+blacklist: sharing, inherited terminal, higher-order call and stream denial: ok
+whitelist: sharing, inherited terminal, higher-order call and stream denial: ok
+Actor write/1 output: all regressions passed

@@ -107,6 +107,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Actor write/1 terminal routing" \
+        "$TPL" -g "consult('$ROOT/write_output_tests.pl'),(catch(write_output_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Computed cyclic answer rejection" \
         "$TPL" -g "consult('$ROOT/cyclic_answer_tests.pl'),(catch(cyclic_answer_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Canonical URI inputs" \

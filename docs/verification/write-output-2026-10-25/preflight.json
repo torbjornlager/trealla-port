@@ -1,0 +1,418 @@
+[
+  {
+    "case": "atom",
+    "kind": "shared",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "write(abc),Outcome=ok",
+    "options": {},
+    "result": {
+      "outputs": [
+        "abc"
+      ],
+      "answer": {
+        "type": "success",
+        "pid": 1292731019,
+        "data": [
+          "ok"
+        ],
+        "more": false
+      },
+      "events": [
+        {
+          "type": "io_request",
+          "request_id": "browser-1000000009",
+          "event": {
+            "type": "output",
+            "pid": 1292731019,
+            "data": "abc"
+          }
+        },
+        {
+          "type": "success",
+          "pid": 1292731019,
+          "data": [
+            "ok"
+          ],
+          "more": false
+        }
+      ]
+    }
+  },
+  {
+    "case": "chars",
+    "kind": "shared",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "write([a,b,c]),Outcome=ok",
+    "options": {},
+    "result": {
+      "outputs": [
+        "[a,b,c]"
+      ],
+      "answer": {
+        "type": "success",
+        "pid": 2607430820,
+        "data": [
+          "ok"
+        ],
+        "more": false
+      },
+      "events": [
+        {
+          "type": "io_request",
+          "request_id": "browser-1000000018",
+          "event": {
+            "type": "output",
+            "pid": 2607430820,
+            "data": "[a,b,c]"
+          }
+        },
+        {
+          "type": "success",
+          "pid": 2607430820,
+          "data": [
+            "ok"
+          ],
+          "more": false
+        }
+      ]
+    }
+  },
+  {
+    "case": "unicode",
+    "kind": "shared",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "write('r\u00e4ksm\u00f6rg\u00e5s'),Outcome=ok",
+    "options": {},
+    "result": {
+      "outputs": [
+        "r\u00e4ksm\u00f6rg\u00e5s"
+      ],
+      "answer": {
+        "type": "success",
+        "pid": 1878463097,
+        "data": [
+          "ok"
+        ],
+        "more": false
+      },
+      "events": [
+        {
+          "type": "io_request",
+          "request_id": "browser-1000000027",
+          "event": {
+            "type": "output",
+            "pid": 1878463097,
+            "data": "r\u00e4ksm\u00f6rg\u00e5s"
+          }
+        },
+        {
+          "type": "success",
+          "pid": 1878463097,
+          "data": [
+            "ok"
+          ],
+          "more": false
+        }
+      ]
+    }
+  },
+  {
+    "case": "compound",
+    "kind": "shared",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "write(pair(a,a)),Outcome=ok",
+    "options": {},
+    "result": {
+      "outputs": [
+        "pair(a,a)"
+      ],
+      "answer": {
+        "type": "success",
+        "pid": 2784906155,
+        "data": [
+          "ok"
+        ],
+        "more": false
+      },
+      "events": [
+        {
+          "type": "io_request",
+          "request_id": "browser-1000000036",
+          "event": {
+            "type": "output",
+            "pid": 2784906155,
+            "data": "pair(a,a)"
+          }
+        },
+        {
+          "type": "success",
+          "pid": 2784906155,
+          "data": [
+            "ok"
+          ],
+          "more": false
+        }
+      ]
+    }
+  },
+  {
+    "case": "call",
+    "kind": "shared",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "call(write(abc)),Outcome=ok",
+    "options": {},
+    "result": {
+      "outputs": [
+        "abc"
+      ],
+      "answer": {
+        "type": "success",
+        "pid": 1985526745,
+        "data": [
+          "ok"
+        ],
+        "more": false
+      },
+      "events": [
+        {
+          "type": "io_request",
+          "request_id": "browser-1000000045",
+          "event": {
+            "type": "output",
+            "pid": 1985526745,
+            "data": "abc"
+          }
+        },
+        {
+          "type": "success",
+          "pid": 1985526745,
+          "data": [
+            "ok"
+          ],
+          "more": false
+        }
+      ]
+    }
+  },
+  {
+    "case": "computed_call",
+    "kind": "shared",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "G=write(abc),call(G),Outcome=ok",
+    "options": {},
+    "result": {
+      "outputs": [
+        "abc"
+      ],
+      "answer": {
+        "type": "success",
+        "pid": 1619585648,
+        "data": [
+          "ok"
+        ],
+        "more": false
+      },
+      "events": [
+        {
+          "type": "io_request",
+          "request_id": "browser-1000000054",
+          "event": {
+            "type": "output",
+            "pid": 1619585648,
+            "data": "abc"
+          }
+        },
+        {
+          "type": "success",
+          "pid": 1619585648,
+          "data": [
+            "ok"
+          ],
+          "more": false
+        }
+      ]
+    }
+  },
+  {
+    "case": "private_source",
+    "kind": "shared",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "writer(abc),Outcome=ok",
+    "options": {
+      "source": "writer(X) :- write(X)."
+    },
+    "result": {
+      "outputs": [
+        "abc"
+      ],
+      "answer": {
+        "type": "success",
+        "pid": 2740434453,
+        "data": [
+          "ok"
+        ],
+        "more": false
+      },
+      "events": [
+        {
+          "type": "io_request",
+          "request_id": "browser-1000000063",
+          "event": {
+            "type": "output",
+            "pid": 2740434453,
+            "data": "abc"
+          }
+        },
+        {
+          "type": "success",
+          "pid": 2740434453,
+          "data": [
+            "ok"
+          ],
+          "more": false
+        }
+      ]
+    }
+  },
+  {
+    "case": "copied_helper",
+    "kind": "shared",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "spawn(writer(copied),C,[src_predicates([writer/1]),monitor(true)]),receive({down(C,C,true)->Outcome=ok},[timeout(2),on_timeout(fail)])",
+    "options": {
+      "source": "writer(X) :- write(X)."
+    },
+    "result": {
+      "outputs": [
+        "copied"
+      ],
+      "answer": {
+        "type": "success",
+        "pid": 1481778310,
+        "data": [
+          "ok"
+        ],
+        "more": false
+      },
+      "events": [
+        {
+          "type": "io_request",
+          "request_id": "browser-1000000074",
+          "event": {
+            "type": "output",
+            "pid": 3094142760,
+            "data": "copied"
+          }
+        },
+        {
+          "type": "success",
+          "pid": 1481778310,
+          "data": [
+            "ok"
+          ],
+          "more": false
+        }
+      ]
+    }
+  },
+  {
+    "case": "backtracking",
+    "kind": "shared",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "((write(a),fail);write(b)),Outcome=ok",
+    "options": {},
+    "result": {
+      "outputs": [
+        "a",
+        "b"
+      ],
+      "answer": {
+        "type": "success",
+        "pid": 2204533132,
+        "data": [
+          "ok"
+        ],
+        "more": false
+      },
+      "events": [
+        {
+          "type": "io_request",
+          "request_id": "browser-1000000083",
+          "event": {
+            "type": "output",
+            "pid": 2204533132,
+            "data": "a"
+          }
+        },
+        {
+          "type": "io_request",
+          "request_id": "browser-1000000084",
+          "event": {
+            "type": "output",
+            "pid": 2204533132,
+            "data": "b"
+          }
+        },
+        {
+          "type": "success",
+          "pid": 2204533132,
+          "data": [
+            "ok"
+          ],
+          "more": false
+        }
+      ]
+    }
+  },
+  {
+    "case": "stream_direct",
+    "kind": "trealla_stream_denial",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "write(user_output,abc),Outcome=unexpected",
+    "result": {
+      "outputs": [],
+      "answer": {
+        "type": "error",
+        "data": "error(permission_error(call,sandboxed,write(user_output,abc)),context(sandbox_policy:sandbox_check_goal/4,stream_io))"
+      },
+      "events": [
+        {
+          "type": "error",
+          "data": "error(permission_error(call,sandboxed,write(user_output,abc)),context(sandbox_policy:sandbox_check_goal/4,stream_io))"
+        }
+      ]
+    }
+  },
+  {
+    "case": "stream_computed",
+    "kind": "trealla_stream_denial",
+    "candidate": "trealla",
+    "passed": true,
+    "goal": "G=write(user_output,abc),call(G),Outcome=unexpected",
+    "result": {
+      "outputs": [],
+      "answer": {
+        "type": "error",
+        "pid": 2500408950,
+        "data": "error(permission_error(call,sandboxed,write(user_output,abc)),context(sandbox_policy:sandbox_check_goal/4,stream_io))"
+      },
+      "events": [
+        {
+          "type": "error",
+          "pid": 2500408950,
+          "data": "error(permission_error(call,sandboxed,write(user_output,abc)),context(sandbox_policy:sandbox_check_goal/4,stream_io))"
+        }
+      ]
+    }
+  }
+]

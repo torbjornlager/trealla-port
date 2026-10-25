@@ -627,7 +627,9 @@ rewrite_goal_(_,_,_,_,in(S),statechart_actor:in(S)) :- !.
 rewrite_goal_(M,P,C,_A,statechart_spawn(Pid,Options),
               statechart_actor:statechart_spawn_in(M,P,C,Pid,Options)) :- !.
 % Match the SWI actor I/O prelude without requiring Trealla to redefine a
-% built-in predicate.  The stream-specific writeln/2 remains forbidden.
+% built-in predicate. Stream-specific write/2 and writeln/2 remain forbidden.
+rewrite_goal_(_M,_P,_C,_A,write(Term),
+              actors:terminal_output(Term,[source(io)])).
 rewrite_goal_(_M,_P,_C,_A,writeln(Term),
               actors:terminal_output(Term,[source(io)])).
 % The SWI actor I/O prelude redefines the non-stream format predicates.  A
@@ -935,7 +937,7 @@ forbidden_pi(put_char/1,stream_io). forbidden_pi(put_char/2,stream_io).
 forbidden_pi(put_code/1,stream_io). forbidden_pi(put_code/2,stream_io).
 forbidden_pi(read/1,stream_io). forbidden_pi(read/2,stream_io).
 forbidden_pi(read_term/2,stream_io). forbidden_pi(read_term/3,stream_io).
-forbidden_pi(write/1,stream_io). forbidden_pi(write/2,stream_io).
+forbidden_pi(write/2,stream_io).
 forbidden_pi(writeln/2,stream_io).
 forbidden_pi(writeq/1,stream_io). forbidden_pi(writeq/2,stream_io).
 forbidden_pi(write_term/2,stream_io). forbidden_pi(write_term/3,stream_io).
@@ -1025,7 +1027,7 @@ actor_safe_pi(unregister/1). actor_safe_pi(output/1). actor_safe_pi(output/2).
 % terminal bridge produced by the writeln/1 rewrite.  It is capability-free:
 % output is still confined to the actor's inherited terminal target.
 actor_safe_pi(terminal_output/1). actor_safe_pi(terminal_output/2).
-actor_safe_pi(writeln/1).
+actor_safe_pi(write/1). actor_safe_pi(writeln/1).
 actor_safe_pi(format/1). actor_safe_pi(format/2).
 actor_safe_pi(input/2). actor_safe_pi(input/3). actor_safe_pi(respond/2).
 actor_safe_pi(make_ref/1). actor_safe_pi(flush/0).

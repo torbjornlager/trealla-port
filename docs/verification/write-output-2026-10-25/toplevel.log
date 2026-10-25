@@ -1,0 +1,20 @@
+11. findnsols batches ok
+12. offset ok
+13. toplevel first batch ok
+14. toplevel_next ok
+15. toplevel failure ok
+16. toplevel error ok
+17. toplevel_stop+reuse ok
+18. session multi-call ok
+22. mid-stream limit change ok
+27. toplevel output ok
+28. toplevel input/respond ok
+29. toplevel_abort ok
+99. exact-page self/1 is deterministic ok
+100. paging does not execute the next solution early
+101. flush output uses inherited terminal ok
+111. guarded receive supports SWI ~p formatting ok
+112. sandboxed sleep supports monitored child lifecycle ok
+123. nested toplevel input targets its protocol caller ok
+131. stale deferred commands are scoped to the prior call ok
+152. toplevel once(true) commits the first answer ok

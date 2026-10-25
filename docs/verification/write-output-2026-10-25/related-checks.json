@@ -1,0 +1,29 @@
+[
+  {
+    "group": "sandbox",
+    "exit_code": 0,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(tests),(catch(run_test_group(sandbox),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ]
+  },
+  {
+    "group": "isolation",
+    "exit_code": 0,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(tests),(catch(run_test_group(isolation),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ]
+  },
+  {
+    "group": "toplevel",
+    "exit_code": 0,
+    "command": [
+      "/Users/torbjorn.lager/.local/share/trinity-runtime-tests/trealla-v3.14.10-acceptance-2026-10-24/engine/tpl",
+      "-g",
+      "consult(tests),(catch(run_test_group(toplevel),E,(writeq(E),nl,fail))->halt;halt(1))"
+    ]
+  }
+]
