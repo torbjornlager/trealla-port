@@ -2642,3 +2642,11 @@ the owner's same-named static definition.
 [Regressions and live ping-pong verification](docs/verification/shared-shadow-startup-2026-10-25/REPORT.md)
 cover zero/unary entries, copying, host preservation, both source admission
 policies and the demonstrator's exact example.
+
+### Commit-pinned local adoption
+
+The [committed checkpoint](docs/verification/committed-adoption-2026-10-25/REPORT.md)
+records the full unit suite and n5 adoption at
+`e7c51dc101cd8002dea9548f8154fc4d2bf6707d`. Local startup checks that exact HEAD
+and clean inputs; the engine remains v3.14.10. Rollback remains available and
+the cyclic-exception and supplementary JSON-escape diagnostics remain separate.

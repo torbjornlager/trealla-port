@@ -1,0 +1,7 @@
+{
+  "revision": "e7c51dc101cd8002dea9548f8154fc4d2bf6707d",
+  "command": "TPL=<verified v3.14.10>/tpl TPL_LIBRARY_PATH=<matching library> bash tools/test.sh unit",
+  "exit_code": 0,
+  "log": "unit.log",
+  "full_unit_suite": true
+}
