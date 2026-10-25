@@ -2603,3 +2603,42 @@ forbidden source and child goals, whitelist rechecking and profile restrictions.
 It is included in `tools/test.sh unit`. The investigation and verification are
 recorded in `reproducers/constructed-src-list-2026-10-25/REPORT.md`. Installed
 runtimes and n3/n5 are not updated or restarted by this repair.
+
+### Computed cyclic answer boundary
+
+`answer_terms.pl` validates each computed answer before PTCP page storage and
+before the HTTP producer's receive/message handoff. Cyclic templates now produce
+a finite `error(representation_error(cyclic_term),_)` instead of being copied as
+acyclic approximations. Finite non-ground sharing, paging and promise
+callbacks/timeout-and-retry behavior retain their existing semantics. Local
+unification and application-message handling are unchanged.
+
+Cyclic exceptions remain a separate engine limitation: unmodified v3.14.10 can
+turn `throw/1`'s cyclic payload into an acyclic copy before `catch/3`'s handler
+receives it. A defensive handler check cannot detect that lost structure. We do
+not rewrite user `throw/1` calls, since that would also change locally caught
+exceptions. The standalone reproducer is
+[port-cyclic-exception-copy.pl](reproducers/port-cyclic-exception-copy.pl).
+[Verification and remaining work](docs/verification/cyclic-answer-rejection-2026-10-25/REPORT.md)
+keep this diagnostic separate from successful answer-boundary regressions.
+Installed runtimes and n3/n5 were not changed.
+
+### Sandboxed actor write/1
+
+`write/1` now uses the same inherited terminal-output bridge as `writeln/1` in
+blacklist and whitelist actor modes. Explicit-stream `write/2` remains forbidden.
+[Regression, interoperability and live n5 verification](docs/verification/write-output-2026-10-25/REPORT.md)
+cover term sharing, private/copied helpers and stream denials. Double-quote
+reading and other I/O predicates are unchanged. The public n5 backend has been
+restarted with this repair; its engine and the n3 process are unchanged.
+
+### Private source shadowing of shared predicates
+
+The private loader explicitly targets the actor module when replacing shared
+clauses, copying `src_predicates/1` and retiring source. Source-owned dispatched
+goals are rebuilt before calling in that namespace, avoiding retained host
+predicate lookups. A private override therefore neither mutates nor executes
+the owner's same-named static definition.
+[Regressions and live ping-pong verification](docs/verification/shared-shadow-startup-2026-10-25/REPORT.md)
+cover zero/unary entries, copying, host preservation, both source admission
+policies and the demonstrator's exact example.
