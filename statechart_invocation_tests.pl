@@ -6,7 +6,7 @@
 :- use_module(isolation,[]).
 :- use_module(statechart_actor_tests,[]).
 run :- actors(Baseline),actor_child,reentry,toplevel_child,nested_child,
- timing,rollback,abort_cleanup,unrelated_monitor,policy_tests,example_fixtures,behaviour_fixtures,behaviour_sources,behaviour_policy,behaviour_cleanup,behaviour_rollback,behaviour_dynamic_admission,
+ timing,lifecycle,rollback,abort_cleanup,unrelated_monitor,policy_tests,example_fixtures,behaviour_fixtures,behaviour_sources,behaviour_policy,behaviour_cleanup,behaviour_rollback,behaviour_dynamic_admission,
  get_time(Now),Deadline is Now+2,statechart_actor_tests:wait_actors(Baseline,Deadline),
  writeln('Statechart local invocation regressions: all passed').
 chart(Text,P) :- self(Self),statechart_spawn(P,[src_text(Text),trace(true),io_target(Self),monitor(true),link(false)]).
@@ -39,6 +39,21 @@ timing :-
  chart(Text,P),config(P,[s]),config(P,[f]),down(P),
  receive({terminal_output(P,statechart_trace(invoked(_,_,_))) -> fail},[timeout(0),on_timeout(true)]),
  writeln('internal events precede invocation of stable states: ok').
+lifecycle :- lifecycle_case(finish,true),lifecycle_case(crash,exception(broken)),
+ writeln('transient invocation, spawned stabilisation and child/state completion: ok').
+lifecycle_case(Command,Reason) :-
+ setup_call_cleanup(open('fixtures/statecharts/statechart-invocation-lifecycle.statechart',read,S),statechart_actor_tests:read_all(S,[],Codes),close(S)),
+ atom_codes(Template,Codes),self(Self),format(atom(Text),Template,[Self]),chart(Text,P),
+ setup_call_cleanup(true,
+  (receive({lifecycle(P,settled(Child)) -> true},[timeout(2),on_timeout(fail)]),
+   send(Child,Command),receive({lifecycle(P,child_down(Reason)) -> true},[timeout(2),on_timeout(fail)]),
+   send(P,probe),receive({lifecycle(P,snapshot([Reason])) -> true},[timeout(2),on_timeout(fail)]),
+   send(P,complete),receive({lifecycle(P,state_done) -> true},[timeout(2),on_timeout(fail)]),down(P),
+   invocation_states(P,[owned])),
+  catch(statechart_halt(P,_,1),_,true)).
+invocation_states(P,States) :-
+ (receive({terminal_output(P,statechart_trace(invoked(_,_,State))) -> true},[timeout(0),on_timeout(fail)])
+ -> States=[State|Rest],invocation_states(P,Rest);States=[]).
 rollback :-
  Text='<statechart version="0.2" initial="s"><state id="s"><spawn type="actor" goal="wait" options="[link(false)]">wait :- output(started),receive({never -&gt; true}).</spawn><spawn type="actor" goal="true">bad :- shell(true).</spawn></state></statechart>',
  chart(Text,P),

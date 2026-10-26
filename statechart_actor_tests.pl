@@ -3,7 +3,7 @@
 :- use_module(actors).
 :- use_module(statechart_actor).
 :- use_module(sandbox_policy,[]).
-run :- actors(Baseline),action_errors,unspecified_event,pause_resume,isolation_test,action_bindings,timed_transition,postponed,parallel_final,deep_history,source_helpers,datamodel_tests,datamodel_computations,datamodel_shared,cleanup_tests(Baseline),negative_tests,
+run :- actors(Baseline),action_errors,parallel_event_bindings,unspecified_event,pause_resume,isolation_test,action_bindings,timed_transition,postponed,parallel_final,deep_history,source_helpers,datamodel_tests,datamodel_computations,datamodel_shared,cleanup_tests(Baseline),negative_tests,
  writeln('Statechart execution regressions: all passed').
 text_file(Name,Text) :-
  Name='01 pause-and-resume.xml',File='fixtures/statecharts/pause-and-resume.xml',
@@ -28,6 +28,16 @@ action_bindings :-
  config(P,[s]),self(Self),send(P,choose(Self)),
  receive({chosen(bound) -> true},[timeout(2),on_timeout(throw(missing_binding))]),config(P,[f]),down(P),
  writeln('event/guard/action variable sharing: ok').
+parallel_event_bindings :-
+ setup_call_cleanup(open('fixtures/statecharts/statechart-parallel-bindings.statechart',read,S),read_all(S,[],Codes),close(S)),
+ atom_codes(Text,Codes),chart(Text,P),
+ setup_call_cleanup(true,
+  (config(P,[p,left_region,right_region]),send(P,query(Value,Value)),var(Value),
+   self(Self),send(P,probe(Self)),
+   receive({snapshot(Rows) -> true},[timeout(2),on_timeout(throw(missing_parallel_bindings))]),
+   (Rows==[seen(left,left,left),seen(right,right,right)] -> true;throw(unexpected_parallel_bindings(Rows)))),
+  (statechart_halt(P,true,1),down(P))),
+ writeln('parallel event aliases, failed guards and sibling bindings: ok').
 timed_transition :-
  chart('<statechart version="0.2" initial="s"><state id="s"><go after="0.02" to="f"/></state><final id="f"/></statechart>',P),
  config(P,[s]),config(P,[f]),down(P),writeln('timed transitions: ok').
