@@ -338,11 +338,39 @@ start_children([Spec|Specs], State0, State) :-
     do_start_child(Spec, State0, State1),
     start_children(Specs, State1, State).
 
+% Keep monitor identities in this supervisor's engine/thread-local store.
+% Prune against current state so retired/replaced children leave no registry.
+remember_child_monitor(Pid, Ref) :-
+    remember_monitor(Pid, Ref),
+    (nb_current('$supervisor_child_monitors', Old) -> true ; Old = []),
+    nb_setval('$supervisor_child_monitors', [Pid-Ref|Old]).
+
+prune_child_monitors(sup(_, _, _, Children, _)) :-
+    (nb_current('$supervisor_child_monitors', Old) -> true ; Old = []),
+    include(current_child_pid(Children), Old, Current),
+    nb_setval('$supervisor_child_monitors', Current).
+
+current_child_pid(Children, Pid-_) :-
+    Pid \== undefined,
+    member(ch(_, ChildPid, _), Children),
+    Pid == ChildPid, !.
+
+current_child_monitor(Pid, Ref, sup(_, _, _, Children, _)) :-
+    ground(Pid-Ref),
+    current_child_pid(Children, Pid-Ref),
+    nb_current('$supervisor_child_monitors', Monitors),
+    member(ChildPid-ChildRef, Monitors),
+    Pid == ChildPid, Ref == ChildRef, !.
+
 sup_loop(State) :-
+    prune_child_monitors(State),
     receive({
-        down(Pid, _, Reason) ->
+        down(Pid, Ref, Reason)
+                if current_child_monitor(Pid, Ref, State) ->
             handle_exit(Pid, Reason, State, Next),
             sup_loop(Next) ;
+        down(_, _, _) ->
+            sup_loop(State) ;
         '$sup'(From, Ref, Request) ->
             catch((remote_supervisor_request(Request,Checked),Admission=ok),
                   Error,Admission=error(Error)),
@@ -371,7 +399,7 @@ do_start_child(spec(Id, Start, Restart, Shutdown, Type),
     Spec = spec(Id, Start, Restart, Shutdown, Type),
     supervisor_startup:start_child(Spec, Start, Id, Pid),
     monitor(Pid, Ref),
-    remember_monitor(Pid, Ref),
+    remember_child_monitor(Pid, Ref),
     append(Children, [ch(Id, Pid, Spec)], NewChildren).
 
 % Receiver-generated starts keep checked sources with their child and execute
@@ -494,7 +522,8 @@ nested_supervisor_entry(Specs, Options) :-
 
 handle_exit(Pid, Reason,
             sup(Strategy, MaxR, MaxT, Children, Log0), State) :-
-    ( select(ch(Id, Pid, Spec), Children, _)
+    ( ground(Pid), Pid \== undefined,
+      select(ch(Id, Pid, Spec), Children, _)
     -> Spec = spec(_, _, Restart, _, _),
        ( should_restart(Restart, Reason)
        -> replace_child(Id, ch(Id, undefined, Spec), Children, Marked),
@@ -550,7 +579,7 @@ restart_attempt_failed(Id,Children,Error) :-
 start_replacement(Spec,Pid) :-
     Spec=spec(Id,Start,_,_,_),
     supervisor_startup:start_child(Spec,Start,Id,Pid),
-    monitor(Pid,Ref),remember_monitor(Pid,Ref).
+    monitor(Pid,Ref),remember_child_monitor(Pid,Ref).
 
 restart_child_record(Id,Spec,Pid) :-
     catch((start_replacement(Spec,Pid)->true;throw(start_failed)),

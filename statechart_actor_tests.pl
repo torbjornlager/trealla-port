@@ -3,7 +3,7 @@
 :- use_module(actors).
 :- use_module(statechart_actor).
 :- use_module(sandbox_policy,[]).
-run :- actors(Baseline),pause_resume,isolation_test,action_bindings,timed_transition,postponed,parallel_final,deep_history,source_helpers,datamodel_tests,datamodel_computations,datamodel_shared,cleanup_tests(Baseline),negative_tests,
+run :- actors(Baseline),action_errors,unspecified_event,pause_resume,isolation_test,action_bindings,timed_transition,postponed,parallel_final,deep_history,source_helpers,datamodel_tests,datamodel_computations,datamodel_shared,cleanup_tests(Baseline),negative_tests,
  writeln('Statechart execution regressions: all passed').
 text_file(Name,Text) :-
  Name='01 pause-and-resume.xml',File='fixtures/statecharts/pause-and-resume.xml',
@@ -123,3 +123,48 @@ datamodel_shared_check :-
  spawn((local_label(L),Self ! shared_label(L)),Probe,[monitor(true),link(false),src_list([])]),
  receive({shared_label(shared) -> true},[timeout(2),on_timeout(fail)]),down(Probe),
  writeln('datamodel shadows shared predicates without modifying shared data: ok').
+
+unspecified_event :-
+    chart('<statechart version="0.2" initial="s"><state id="s"><go on="probe(To)" if="ground(To)">To ! alive</go><go after="60" to="timed"/></state><final id="timed"/></statechart>',P),
+    config(P,[s]),send(P,_),send(P,'$stop'(_)),self(Self),send(P,probe(Self)),
+    receive({alive -> true},[timeout(2),on_timeout(throw(variable_event_stopped_chart))]),
+    statechart_halt(P,true,1),down(P),
+    writeln('unspecified event does not become stop/timer control: ok').
+
+error_marks(Marks) :-
+    sort([exit_before,exit_other,transition_before,entry_before,entry_other,
+          parallel_exit,parallel_action,parallel_entry], Expected),
+    sort(Marks, Actual),
+    (Actual == Expected -> true ; throw(unexpected_effects(Marks))).
+error_message(Message) :-
+    receive({Message -> true},[timeout(3),on_timeout(throw(missing(Message)))]).
+error_chart_cleanup(Pid) :-
+    catch(statechart_halt(Pid,_,1),_,true),
+    receive({down(Pid,Pid,_) -> true},[timeout(0)]).
+check_error_chart(handle, Pid) :-
+    send(Pid,go),
+    error_message(handled(E1,M1)),error_marks(M1),
+    error_message(handled(E2,M2)),error_marks(M2),
+    error_message(handled(E3,M3)),error_marks(M3),
+    memberchk(block_error,[E1,E2,E3]),
+    findall(G,member(failure(G),[E1,E2,E3]),Failures),length(Failures,2),
+    self(Self),send(Pid,probe(Self)),error_message(snapshot(Marks)),error_marks(Marks).
+check_error_chart(ignore, Pid) :-
+    send(Pid,go),self(Self),send(Pid,probe(Self)),
+    error_message(snapshot(Marks)),error_marks(Marks),
+    receive({handled(_,_) -> throw(unexpected_handler)},[timeout(0)]).
+check_error_chart(terminate, Pid) :-
+    send(Pid,go),error_message(terminated(Marks)),error_marks(Marks),
+    error_message(down(Pid,Pid,true)).
+
+action_errors :-
+    read_action_error_template(Template),
+    forall(member(Policy,[handle,ignore,terminate]),
+        (self(Self),format(atom(Text),Template,[Self,Policy]),
+         setup_call_cleanup(
+             statechart_spawn(Pid,[src_text(Text),trace(false),monitor(true),link(false)]),
+             check_error_chart(Policy,Pid),error_chart_cleanup(Pid)))),
+    writeln('action errors: completed effects, other blocks, parallel microstep and chart-selected policies: ok').
+read_action_error_template(Template) :-
+    setup_call_cleanup(open('fixtures/statecharts/action-errors.statechart',read,Stream),
+        read_all(Stream,[],Codes),close(Stream)),atom_codes(Template,Codes).

@@ -166,8 +166,10 @@ cancel_all_after_transitions :-
     forall(retract(statechart_actor:after_timer(_State, _Key, Ref)),
            catch(cancel(Ref), _, true)).
 
+% One element is one block. script/1 fails after queuing an ordinary error,
+% ending this block; other blocks in the microstep must still execute.
 execute_content(Content) :-
-    maplist(call, Content).
+    ignore(maplist(call, Content)).
 
 enqueue_internal_event(Event) :-
     statechart_actor:internal_queue(Internal),
@@ -381,16 +383,18 @@ call_chart_goal(Goal) :- statechart_actor:call_goal(Goal).
 
 script(Goal) :-
     emit_trace(execution(Goal)),
-    (   catch(once(call_chart_goal(Goal)),
-              Error,
-              ( statechart_support:rethrow_reserved(Error),
-                enqueue_internal_event(error(Error)),
-                true
-              ))
+    catch((once(call_chart_goal(Goal)) -> Result = success
+          ; Result = failure),
+          Error,
+          ( statechart_support:rethrow_reserved(Error), Result = exception(Error) )),
+    debug(statechart_actor(execute), '    Execution: ~p', [Goal]),
+    (   Result == success
     ->  true
-    ;   enqueue_internal_event(error(failure(Goal)))
-    ),
-    debug(statechart_actor(execute), '    Execution: ~p', [Goal]).
+    ;   Result == failure
+    ->  enqueue_internal_event(error(failure(Goal))), fail
+    ;   Result = exception(Exception),
+        enqueue_internal_event(error(Exception)), fail
+    ).
 
 
 emit_trace(Event) :-

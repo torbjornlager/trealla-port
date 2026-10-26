@@ -17,6 +17,8 @@ test_fridge(take(Food), Foods, ok(Food), Rest) :-
 test_fridge(take(_), Foods, not_found, Foods).
 
 run_supervisor_actor_tests :-
+    run_case(notification_guard_running, notification_guard_running),
+    run_case(notification_guard_retired, notification_guard_retired),
     run_case(basic_startup, basic_startup),
     run_case(one_for_one_restart, one_for_one_restart),
     run_case(temporary_not_restarted, temporary_not_restarted),
@@ -39,7 +41,7 @@ run_supervisor_actor_tests :-
     run_case(cascade_cleanup, cascade_cleanup),
     run_case(private_source_body, private_source_body),
     run_case(private_source_and_policy, private_source_and_policy),
-    format('All 20 supervisor behaviour tests passed.~n', []).
+    format('All 22 supervisor behaviour tests passed.~n', []).
 
 run_case(Name, Goal) :-
     catch(( call(Goal) -> true ; throw(test_failed(Name)) ), Error, true),
@@ -334,3 +336,36 @@ private_source_and_policy :-
           UnsafeError, true),
     UnsafeError = error(permission_error(call, sandboxed,
                                          shell(command)), _).
+
+
+% Each management reply is an ordering barrier after the injected messages.
+notification_guard_running :-
+    setup_call_cleanup(
+        supervisor_spawn(supervisor_actor_tests:[child(guarded,
+            [start(forever),shutdown(brutal_kill)])], Sup, [intensity(0)]),
+        ( supervisor_which_children(Sup, Before),
+          member(info(guarded, Pid, _, _), Before),
+          actors:send(Sup, down(_, unknown, false)),
+          actors:send(Sup, down(Pid, _, false)),
+          actors:send(Sup, down(Pid, wrong_reference, false)),
+          actors:send(Sup, down(undefined, unknown, false)),
+          actors:send(Sup, down(unrelated, unknown, false)),
+          supervisor_which_children(Sup, After), After == Before
+        ),
+        supervisor_halt(Sup)).
+
+notification_guard_retired :-
+    setup_call_cleanup(
+        supervisor_spawn(supervisor_actor_tests:[child(guarded,
+            [start(forever),shutdown(brutal_kill)])], Sup, [intensity(0)]),
+        ( supervisor_which_children(Sup, Before),
+          member(info(guarded, Old, _, _), Before),
+          supervisor_terminate_child(Sup, guarded, ok),
+          supervisor_which_children(Sup, Retired),
+          member(info(guarded, undefined, _, _), Retired),
+          actors:send(Sup, down(undefined, unknown, false)),
+          actors:send(Sup, down(_, unknown, false)),
+          actors:send(Sup, down(Old, unknown, false)),
+          supervisor_which_children(Sup, After), After == Retired
+        ),
+        supervisor_halt(Sup)).
