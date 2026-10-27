@@ -211,6 +211,10 @@ run_unit() {
         "$TPL" -g "(catch((consult('$ROOT/supervisor_startup_tests.pl'),supervisor_startup_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "supervisor child specification validation" \
         "$TPL" -g "(catch((consult('$ROOT/child_spec_tests.pl'),child_spec_tests:child_spec_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "conditional paging and cut scope" \
+        "$TPL" -g "(catch((consult('$ROOT/control_paging_tests.pl'),control_paging_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "JSON Unicode wire decoding" \
+        "$TPL" -g "(catch((consult('$ROOT/json_wire_tests.pl'),json_wire_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "supervisor source selection and variable receive" \
         "$TPL" -g "(catch((consult('$ROOT/supervisor_source_tests.pl'),supervisor_source_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "specialized wrapper option validation" \

@@ -135,6 +135,7 @@ with_http_promise_namespace(Goal) :-
 
 :- use_module(library(sockets)).
 :- use_module(library(json), [json_chars//1]).
+:- use_module(json_wire,[decode_json_atom/2]).
 :- use_module(library(uri), [www_form_encode/2]).
 :- use_module(actors).
 :- use_module(profile_policy).
@@ -908,8 +909,7 @@ read_json_request(C, Headers, JSON) :-
     ; throw(error(resource_error(input_size(admin_json,Length,MaxBytes)), node))
     ),
     read_exact_bytes(C, Length, Codes), atom_codes(Body, Codes),
-    atom_chars(Body, Chars),
-    ( phrase(json_chars(JSON), Chars) -> true
+    ( decode_json_atom(Body, JSON) -> true
     ; throw(error(syntax_error(json), node:handle_admin_tokens/6))
     ).
 
@@ -1174,7 +1174,7 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     ; throw(error(domain_error(offset, Offset), node:handle_call/6)) ),
     effective_solution_limit(RequestedLimit, Limit),
     % Parse Goal and Template as a single term so variables are shared
-    atomic_list_concat([GoalAtom, +, TemplateAtom], QTAtom),
+    atomic_list_concat(['(',GoalAtom,')+(',TemplateAtom,')'], QTAtom),
     read_term_from_atom(QTAtom, Goal+Template0, [variable_names(Bindings0)]),
     response_template(Format, Template0, Bindings0, Template),
     profile_check_goal(Profile, Goal, RelationPatterns),

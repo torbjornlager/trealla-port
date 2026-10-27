@@ -287,13 +287,12 @@ actor_query_goal(Module, (Left0, Right0), (Left, Right)) :- !,
     actor_query_goal(Module, Left0, Left),
     actor_query_goal(Module, Right0, Right).
 actor_query_goal(Module, (((Left == Right) -> Then0) ; Else0),
-                 ((isolation:actor_identical(Left, Right), Then) ;
-                  (isolation:actor_not_identical(Left, Right), Else))) :- !,
+                 (isolation:actor_identical(Left, Right) -> Then ; Else)) :- !,
     actor_query_goal(Module, Then0, Then),
     actor_query_goal(Module, Else0, Else).
 actor_query_goal(Module, ((If0 -> Then0) ; Else0),
                  (isolation:actor_if_choice(If, Choice),
-                  ((Choice = then, Then) ; (Choice = else, Else)))) :- !,
+                  (isolation:actor_then_choice(Choice) -> Then ; Else))) :- !,
     actor_query_goal(Module, If0, If),
     actor_query_goal(Module, Then0, Then),
     actor_query_goal(Module, Else0, Else).
@@ -428,6 +427,11 @@ actor_if_choice(Condition, then) :-
     call(Condition),
     !.
 actor_if_choice(_, else).
+
+% Dispatch with a native committed conditional, not a guarded disjunction.
+% An empty Else alternative must not keep a deterministic Then page alive.
+% Branch bodies stay inline so their cuts retain the surrounding query scope.
+actor_then_choice(then).
 
 actor_direct_builtin_pi((=)/2). actor_direct_builtin_pi((\=)/2).
 actor_direct_builtin_pi((==)/2). actor_direct_builtin_pi((\==)/2).

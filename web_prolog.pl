@@ -89,6 +89,7 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- use_module(rpc, [dispose_namespace_promises/1]).
 :- use_module(websocket).
 :- use_module(receiver_lineage, []).
+:- use_module(json_wire,[decode_json_atom/2]).
 
 :- op(200, xfx, @).
 
@@ -1330,8 +1331,7 @@ json_pid(Pid, string(Chars)) :- term_wire_atom(Pid, Atom), atom_chars(Atom, Char
 
 json_atom(JSON, Atom) :-
     var(JSON), !,
-    atom_chars(Atom, Chars),
-    phrase(json_chars(JSON), Chars).
+    decode_json_atom(Atom, JSON).
 json_atom(JSON, Atom) :-
     phrase(json_chars(JSON), Chars),
     atom_chars(Atom, Chars).
