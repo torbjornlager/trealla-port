@@ -20,7 +20,9 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 TPL=${TPL:-tpl}
 SWIPL=${SWIPL:-swipl}
 TEST_TIMEOUT=${TEST_TIMEOUT:-30}
-TEST_PORT_BASE=${TEST_PORT_BASE:-39760}
+# Keep listeners below Linux's default ephemeral range so earlier clients
+# cannot take a port that a later fixture still needs to bind.
+TEST_PORT_BASE=${TEST_PORT_BASE:-22060}
 TRINITY_NODE_FILE=${TRINITY_NODE_FILE:-$ROOT/../trinity-demonstrator/prolog/web_prolog/node.pl}
 MODE=${1:-unit}
 BACKGROUND_PIDS=""

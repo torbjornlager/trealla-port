@@ -16,6 +16,16 @@ run :-
     quoted(MaxPair,MaxInput),decode_json_atom(MaxInput,string([Max])),
     char_code(Max,1114111),
     append(H,[a],Broken),quoted(Broken,Bad),rejected(Bad),
+    escaped(['D','8','3','D'],UpperH),escaped(['D','E','0','0'],UpperL),
+    append(UpperH,UpperL,UpperPair),quoted(UpperPair,Upper),
+    decode_json_atom(Upper,string(['😀'])),
+    append(['{','"'|H],['"',':','0','}'],BadKeyChars),
+    atom_chars(BadKey,BadKeyChars),rejected(BadKey),
+    append(['[','"'|L],['"',']'],BadValueChars),
+    atom_chars(BadValue,BadValueChars),rejected(BadValue),
+    quoted(['\\','"','\\','\\',u,d,'8','3',d],EscapedQuote),
+    decode_json_atom(EscapedQuote,string(['"','\\',u,d,'8','3',d])),
+    decode_json_atom('[55296,56320]',list([number(55296),number(56320)])),
     decode_json_atom('"é"',string([e,'́'])),
     writeln('JSON wire Unicode scalar decoding: all regressions passed').
 escaped(Hex,['\\',u|Hex]).

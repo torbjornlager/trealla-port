@@ -64,6 +64,9 @@ server(Port) :-
     http_stop_server(Port, []).
 
 protocol_server(Port) :-
+    http_handler(root(ws),
+                 http_upgrade_to_websocket(protocol_connection, []),
+                 [spawn([])]),
     http_server(http_dispatch, [port(Port)]),
     thread_get_message(stop),
     http_stop_server(Port, []).

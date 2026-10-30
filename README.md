@@ -2,7 +2,7 @@
 
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
-(currently tested on v3.14.10; earlier actor/RPC work was also tested on
+(currently tested on v3.14.20; earlier actor/RPC work was also tested on
 v3.13.10, v2.99.12, v2.99.6, and v2.97.13).
 
 The [Web Prolog language manual](https://github.com/torbjornlager/trinity-demonstrator/blob/main/web/manual.html)
@@ -220,7 +220,7 @@ reported as skipped; set `TRINITY_NODE_FILE` to the canonical SWI `node.pl` to
 enable it from a different checkout layout.
 
 For an invitation-only deployment, see [Deployment/README.md](Deployment/README.md).
-The bundle pins Trealla v3.13.10, runs it unprivileged and read-only behind
+The bundle pins Trealla v3.14.20, runs it unprivileged and read-only behind
 Caddy, applies container resource limits, exposes only an authenticated route
 allowlist, drains on shutdown, and has an end-to-end smoke test:
 

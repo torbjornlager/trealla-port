@@ -2,9 +2,9 @@
 % Identical public-interface assertions for native SWI and Trealla clients.
 :- module(unicode_answer_tests,[live/1]).
 :- if(current_prolog_flag(dialect,swi)).
-:- use_module('../trinity-demonstrator/prolog/web_prolog/node.pl').
-:- use_module('../trinity-demonstrator/prolog/web_prolog/actor_api.pl').
-:- use_module('../trinity-demonstrator/prolog/web_prolog/toplevel_actors.pl').
+:- use_module('../swi-prolog-node/prolog/web_prolog.pl').
+:- use_module('../swi-prolog-node/prolog/web_prolog/actor_api.pl').
+:- use_module('../swi-prolog-node/prolog/web_prolog/toplevel_actors.pl').
 :- else.
 :- use_module(actor_api).
 :- use_module(actors).
