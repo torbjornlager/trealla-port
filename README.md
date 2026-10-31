@@ -2650,3 +2650,12 @@ records the full unit suite and n5 adoption at
 `e7c51dc101cd8002dea9548f8154fc4d2bf6707d`. Local startup checks that exact HEAD
 and clean inputs; the engine remains v3.14.10. Rollback remains available and
 the cyclic-exception and supplementary JSON-escape diagnostics remain separate.
+
+## Submitted termination authority
+
+Public `exit/2` calls now check inherited client ownership before local or
+remote dispatch, including calls from submitted goals. Legitimate same-scope
+and node-owner operations remain available; standalone local library use is
+unrestricted. See [the policy and regression scope](docs/ACTOR_EXIT_AUTHORITY.md).
+The new shared ownership/lifecycle pack covers independent observers and
+connection teardown; earlier wire-command checks did not cover this path.

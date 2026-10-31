@@ -168,6 +168,7 @@ Reply = hello.
     hook_spawn/3,
     hook_send/2,
     hook_exit/2,
+    hook_check_exit/1,
     hook_monitor/3,
     hook_demonitor/1,
     hook_admit_spawn/2,
@@ -956,9 +957,14 @@ actor_terminating :-
 %   safety net.
 
 exit(Pid, Reason) :-
+    must_be(ground, Pid),
+    forall(hook_check_exit(Pid), true),
+    exit_actor(Pid, Reason).
+
+exit_actor(Pid, Reason) :-
     hook_exit(Pid, Reason),
     !.
-exit(Pid, Reason) :-
+exit_actor(Pid, Reason) :-
     ( actor_thread(Pid, Thread) ->
         catch(thread_signal(Thread, actors:exit_signal(Pid, Reason)), _, true)
     ; logical_pid(Pid) ->

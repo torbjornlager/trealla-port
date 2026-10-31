@@ -89,6 +89,7 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- use_module(rpc, [dispose_namespace_promises/1]).
 :- use_module(websocket).
 :- use_module(receiver_lineage, []).
+:- use_module(actor_authority, []).
 :- use_module(json_wire,[decode_json_atom/2]).
 
 :- op(200, xfx, @).
@@ -180,7 +181,7 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
     make_ref(NamespaceId),
     Namespace = ws_client(NamespaceId),
     setup_call_cleanup(
-        true,
+        actor_authority:open_namespace(Namespace, Principal),
         ( actors:spawn_scoped(
               relay_start(WS, Principal, Identity, AnswerTerms), Relay,
               [link(false)], Namespace, internal),
@@ -191,7 +192,8 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
               call_cleanup(retire_websocket_namespace(Namespace),
                   (close_connection(Relay),
                    observe_activity_end(ws_connection, Reader, disconnected)))) ),
-        retire_websocket_namespace(Namespace)
+        call_cleanup(retire_websocket_namespace(Namespace),
+                     actor_authority:close_namespace(Namespace))
     ).
 
 % Each subsystem releases its mutex before the next begins. Connection actor

@@ -118,6 +118,7 @@ waits for their normal cleanup under a bounded timeout.
 % Load the client before extending its owner hook: Trealla otherwise sees
 % a hook-only rpc module and may leave the client predicates unavailable.
 :- use_module(answer_terms,[check_answer_term/1,finite_query_error/2]).
+:- use_module(actor_authority, []).
 :- use_module(rpc).
 
 :- multifile rpc:hook_promise_owner/1.
@@ -130,8 +131,14 @@ current_http_promise_namespace(Namespace) :-
 :- meta_predicate with_http_promise_namespace(0).
 with_http_promise_namespace(Goal) :-
     thread_self(Thread),make_ref(Id),Namespace=http_client(Id),
-    setup_call_cleanup(asserta(http_promise_namespace(Thread,Namespace)),
-                       call(Goal),retract(http_promise_namespace(Thread,Namespace))).
+    (current_connection_governance(Principal,_) -> true
+    ; Principal=principal(local,[admin])),
+    setup_call_cleanup(
+        (asserta(http_promise_namespace(Thread,Namespace)),
+         actor_authority:open_namespace(Namespace,Principal)),
+        call(Goal),
+        call_cleanup(retract(http_promise_namespace(Thread,Namespace)),
+                     actor_authority:close_namespace(Namespace))).
 
 :- use_module(library(sockets)).
 :- use_module(library(json), [json_chars//1]).
