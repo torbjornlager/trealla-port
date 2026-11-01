@@ -2659,3 +2659,15 @@ and node-owner operations remain available; standalone local library use is
 unrestricted. See [the policy and regression scope](docs/ACTOR_EXIT_AUTHORITY.md).
 The new shared ownership/lifecycle pack covers independent observers and
 connection teardown; earlier wire-command checks did not cover this path.
+
+### Private source-copying regression follow-up (1 November 2026)
+
+The shared conformance pack `source-copying-0.1` exercises primitive guards after
+private predicate copying and an inline nondeterministic worker with explicitly
+copied generator definitions, alongside named controls and receive timeout
+callbacks. The implementation restores the public primitive goal when exporting
+source, lets the new child qualify its own entry goal, and preserves copied
+option lists. Qualification checks on submitted source remain unchanged.
+Use the conformance repository's scoped ACTOR release gate with two distinct
+execution-only principals; an administrator is an intentional positive authority
+control, not a valid subject for an unauthorized-exit assertion.

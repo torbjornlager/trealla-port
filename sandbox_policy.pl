@@ -1181,6 +1181,9 @@ restore_clause_body(Module,
 restore_clause_body(Module, Module:Inner0, Inner) :-
     !,
     restore_clause_body(Module, Inner0, Inner).
+restore_clause_body(Module, sandbox_policy:sandbox_builtin_call(Goal0), Goal) :-
+    !,
+    restore_clause_body(Module, Goal0, Goal).
 restore_clause_body(_Module, sandbox_policy:sandbox_sleep(Seconds),
                     sleep(Seconds)) :- !.
 restore_clause_body(_Module,
@@ -1205,6 +1208,10 @@ restore_clause_body(Module, sandbox_policy:Call0, Call) :-
     restore_clause_body(Module, Closure0, Closure),
     restore_clause_args(Module, Extra0, Extra),
     Call =.. [call,Closure|Extra].
+restore_clause_body(Module, [Head0|Tail0], [Head|Tail]) :-
+    !,
+    restore_clause_body(Module, Head0, Head),
+    restore_clause_body(Module, Tail0, Tail).
 restore_clause_body(_Module, Term, Term) :- atomic(Term), !.
 restore_clause_body(Module, Term0, Term) :-
     Term0 =.. [Functor|Args0],
