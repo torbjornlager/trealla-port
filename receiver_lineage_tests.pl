@@ -142,10 +142,20 @@ creation_race(Iteration) :-
     race_step(await_worker_down,Context,
         receive({down(Worker,Worker,Reason) -> true},[timeout(2),on_timeout(fail)])),
     race_step(worker_reason(Reason),Context,Reason==true),
-    % Preserve this immediate assertion. Adding a wait would conceal whether
-    % the original test expects namespace retirement before it is guaranteed.
+    % Closure rejects new admission immediately, but a reserved child still
+    % preparing source retires asynchronously after reporting startup failure.
+    % The creator's down is not a barrier for that separate child's cleanup.
+    race_step(namespace_retirement,Context,await_namespace_retirement(NS)),
     race_step(namespace_empty,Context,\+ actors:actor_namespace(_,NS)),
     race_step(relay_teardown,Context,close_relay(Base,Relay)).
+
+await_namespace_retirement(NS) :-
+    with_mutex('$actor_registry',findall(P,actors:actor_namespace(P,NS),Pids)),
+    get_time(Now),Deadline is Now+2,
+    forall(member(Pid,Pids),
+      setup_call_cleanup(monitor(Pid,Ref),
+        receive({down(Pid,Ref,_) -> true},[deadline(Deadline),on_timeout(fail)]),
+        demonitor(Ref,[flush]))).
 
 :- meta_predicate race_step(+, +, 0).
 race_step(Stage,Context,Goal) :-
