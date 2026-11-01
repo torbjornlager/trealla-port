@@ -58,8 +58,9 @@ live_connections(Port,Mode) :-
     thread_create(node:node(Port,connection_stack_tests:echo,
       [bind_address('127.0.0.1'),node_url(URL),profile(actor),auth(open),
        stack_limit(4000000),time_limit(5)]),Listener,[]),
+    % Commit client enumeration so cleanup runs before retirement assertions.
     setup_call_cleanup(wait_listening(Port,100),
-      (Mode==http ->
+      once((Mode==http ->
        http_page(URL,0,success([a,b],true)),
        http_page(URL,2,success([c],false)),
        http_exhaustion(URL),
@@ -67,7 +68,7 @@ live_connections(Port,Mode) :-
        thread_join(JSONClient,true),
        http_page(URL,0,success([a,b],true)),
        http_page(URL,2,success([c],false))
-      ; websocket_echo(Port)),
+      ; websocket_echo(Port))),
       (stop_node(Port),thread_join(Listener,Status),
        (Status==true;Status==false))),
     node_connection_count(Port,0),
@@ -103,8 +104,7 @@ http_json_exhaustion(URL) :-
 
 websocket_echo(Port) :-
     format(atom(URL),'ws://127.0.0.1:~w/ws',[Port]),
-    http_open_websocket(URL,WS,[]),
-    setup_call_cleanup(true,
+    setup_call_cleanup(http_open_websocket(URL,WS,[]),
       once((ws_send(WS,text('small unicode: \u00e5 \u20ac')),ws_receive(WS,Text),Text==text('small unicode: \u00e5 \u20ac'),
        ws_send(WS,binary([0,1,127,128,255])),ws_receive(WS,Binary),Binary==binary([0,1,127,128,255]),
        ws_send(WS,close(1000,done)),ws_receive(WS,Close),Close==close(1000,done))),

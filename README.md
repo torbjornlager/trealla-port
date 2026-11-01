@@ -182,9 +182,12 @@ suite covers the 18 SWI semantics plus private-source and policy integration.
 
 ## Test results
 
-The complete manual and interoperability suites pass on Trealla v3.13.10
-(the original 30 tests also pass on v2.99.6 and v2.99.12). Tests t23-t30 mirror behaviours from the
-canonical SWI plunit suite in `simple-node/tests.pl`:
+Current native reliability verification uses Trealla v3.14.20. The current
+node cleanup requires the public `sig_atomic/1` introduced in v3.14.10; the test
+runner requires that version or newer. Earlier manual/interoperability results
+on v3.13.10 and the original 30 tests on v2.99.6/v2.99.12 are historical results.
+Tests t23-t30 mirror behaviours from the canonical SWI plunit suite in
+`simple-node/tests.pl`:
 
 Run the isolated unit groups with:
 
@@ -192,12 +195,12 @@ Run the isolated unit groups with:
 TPL=/path/to/tpl ./tools/test.sh
 ```
 
-To create a pinned repository-local Trealla v3.13.10 build without replacing a
+To create a pinned repository-local Trealla v3.14.20 build without replacing a
 system installation:
 
 ```sh
 ./tools/build-trealla.sh
-TPL="$PWD/.build/trealla-v3.13.10/tpl" ./tools/test.sh all
+TPL="$PWD/.build/trealla-v3.14.20/tpl" ./tools/test.sh all
 ```
 
 The helper disables TLS by default; the automated matrix uses plain loopback

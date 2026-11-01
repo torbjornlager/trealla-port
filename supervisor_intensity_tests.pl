@@ -92,11 +92,19 @@ isolated_exhaustion(Observer) :-
     monitor(Child,AppRef),self(Self),send(Self,down(unrelated,application,unrelated_reason)),
     Spec=spec(intensity_monitor,server(supervisor_restart_tests:callback,[]),temporary,0.1,worker),
     catch(supervisor_actor:intensity_exhausted([ch(intensity_monitor,Child,Spec)]),actor_exit,true),
-    receive({down(Child,AppRef,true) -> true},[timeout(0),on_timeout(fail)]),
-    receive({down(unrelated,application,unrelated_reason) -> true},[timeout(0),on_timeout(fail)]),
+    retired_mailbox_message(down(Child,AppRef,true)),
+    retired_mailbox_message(down(unrelated,application,unrelated_reason)),
     % Exit was caught only to inspect the mailbox. Its committed public reason
     % is still shutdown; the enclosing fixture checks that reason as well.
     send(Observer,isolation_ok).
+
+% Inspect the cleanup snapshot directly: application receive/1-2 must honour
+% the committed exit instead of resuming the retired actor's computation.
+retired_mailbox_message(Message) :-
+    actors:deferred_list(Pending),
+    ( select(Message,Pending,Rest) -> actors:deferred_put(Rest)
+    ; thread_self(Thread),thread_get_message(Thread,Message,[timeout(0)])
+    ).
 
 abort_control :-
     catch(supervisor_startup:cleanup_child_error('$abort_goal'),Error,true),Error=='$abort_goal',

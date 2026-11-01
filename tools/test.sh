@@ -70,8 +70,8 @@ esac
 printf 'Trealla: %s (%s)\n' "$VERSION_TERM" "$TPL"
 
 "$TPL" -g \
-    "current_prolog_flag(version_data,trealla(A,B,C,_)),((A>3;A=:=3,B>13;A=:=3,B=:=13,C>=10)->halt;halt(2))" \
-    >/dev/null 2>&1 || fail "Trealla v3.13.10 or newer is required; found $VERSION_TERM"
+    "current_prolog_flag(version_data,trealla(A,B,C,_)),((A>3;A=:=3,B>14;A=:=3,B=:=14,C>=10)->halt;halt(2))" \
+    >/dev/null 2>&1 || fail "Trealla v3.14.10 or newer is required; found $VERSION_TERM"
 
 run_with_timeout() {
     test_label=$1
@@ -109,6 +109,10 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Idempotent connection shutdown" \
+        "$TPL" -g "(catch((consult('$ROOT/node_shutdown_tests.pl'),node_shutdown_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Committed exit mailbox boundaries" \
+        "$TPL" -g "(catch((consult('$ROOT/actor_exit_wait_tests.pl'),actor_exit_wait_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "submitted actor exit authority" \
         "$TPL" -g "(catch((consult('$ROOT/actor_authority_tests.pl'),actor_authority_tests:actor_authority_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Private shared-predicate shadowing" \

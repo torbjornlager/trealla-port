@@ -5,11 +5,15 @@
 :- use_module(distribution).
 
 run :-
-    lock_ack_and_flush,
-    writer_ownership,
-    stopped_writer,
-    unresponsive_writer,
+    must_pass(lock_ack_and_flush),
+    must_pass(writer_ownership),
+    must_pass(stopped_writer),
+    must_pass(unresponsive_writer),
     writeln('Remote demonitor: lock, acknowledgement, ownership, flush and writer failures: ok').
+
+% Preserve the stage when a nondeterministic native failure is reported.
+must_pass(Test) :-
+    (call(Test) -> true ; throw(error(test_failed(Test),remote_demonitor_tests:run/0))).
 
 lock_ack_and_flush :-
     self(Self),make_ref(Ref),make_ref(Keep),make_ref(Foreign),make_ref(Other),

@@ -1159,6 +1159,7 @@ receive_empty :-
 % spurious solutions and lose the caller's binding.  The isolation trampoline
 % constructs the exact Module:{Clauses} term and enters here instead.
 receive_qualified(Clauses, Options) :-
+    check_committed_exit,
     thread_self(Mailbox),
     deferred_list(Deferred),
     (   select_deferred(Deferred, Clauses, Body, Rest)
@@ -1259,7 +1260,18 @@ receive_message_atomic(Mailbox, Msg, [], Deferred) :-
     receive_message_slice(Mailbox, Msg, [timeout(0.1)], Deferred),
     !.
 
+% The unwind token can be caught by a goal or by host cleanup. The recorded
+% exit still wins at the next mailbox boundary, including between native wait
+% slices. Do not restart an unwind in stop/2 after run_to_end marked finishing.
+check_committed_exit :-
+    thread_self(Thread),
+    ( thread_pid(Thread,Pid),exit_reason(Pid,_), \+ actor_finishing(Pid)
+    -> throw(actor_exit)
+    ; true
+    ).
+
 receive_message_slice(Mailbox, Msg, Options, Deferred) :-
+    check_committed_exit,
     sig_atomic((thread_get_message(Mailbox, Msg, Options),
                 deferred_list(Deferred),
                 append(Deferred, [Msg], Pending),

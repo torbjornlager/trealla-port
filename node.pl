@@ -164,6 +164,8 @@ with_http_promise_namespace(Goal) :-
 :- dynamic connection_answer_terms/2.
 :- dynamic node_listener/4.
 :- dynamic node_connection/4.
+:- dynamic node_connection_stopping/1.
+:- dynamic node_connection_closing/1.
 :- dynamic node_stopping/1.
 :- dynamic node_configuration/7.
 :- dynamic node_in_maintenance/1.
@@ -410,22 +412,27 @@ accept_node_error(_, Error) :-
 dispatch_node_connection(Port, C, Peer, WebSocketHandler, WebSocketOptions,
                          Profile, Sandbox, RelationPatterns) :-
     make_ref(Key),
-    register_node_connection(Port, Key, C),
-    % The connection thread owns page accumulation and response formatting.
-    % Reuse the same owner stack ceiling as producer actors, independently.
-    catch((actor_thread_options(
+    % Publish the native handle before shutdown can snapshot this connection.
+    % A fast worker may finish immediately, but cannot unregister until this
+    % handoff releases the lifecycle mutex.
+    catch(actor_thread_options(
               [detached(true),at_exit(node:node_connection_exit(Key,C))],
               ThreadOptions),
-           thread_create(
-              node_serve_tracked(Port, Key, C, Peer, WebSocketHandler,
-                                 WebSocketOptions, Profile, Sandbox,
-                                 RelationPatterns),
-              Thread,
-              ThreadOptions)),
-          Error,
-          ( unregister_node_connection(Key),
-            catch(close(C), _, true), throw(Error) )),
-    set_node_connection_thread(Key, Thread).
+          Error,(safe_close_stream(C),throw(Error))),
+    with_mutex('$node_lifecycle',
+      ( node_stopping(Port)
+      -> safe_close_stream(C)
+      ; assertz(node_connection(Port,Key,C,pending)),
+        catch(thread_create(
+                node_serve_tracked(Port, Key, C, Peer, WebSocketHandler,
+                                   WebSocketOptions, Profile, Sandbox,
+                                   RelationPatterns), Thread, ThreadOptions),
+              Error,
+              (retractall(node_connection(Port,Key,_,_)),
+               safe_close_stream(C),throw(Error))),
+        retractall(node_connection(Port,Key,_,_)),
+        assertz(node_connection(Port,Key,C,Thread))
+      )).
 
 node_serve_tracked(Port, Key, C, Peer, WebSocketHandler, WebSocketOptions,
                    Profile, Sandbox, RelationPatterns) :-
@@ -433,12 +440,23 @@ node_serve_tracked(Port, Key, C, Peer, WebSocketHandler, WebSocketOptions,
         true,
         node_serve(Port, C, Peer, WebSocketHandler, WebSocketOptions,
                    Profile, Sandbox, RelationPatterns),
-        ( safe_close_stream(C),
-          unregister_node_connection(Key) )).
+        node_connection_exit(Key,C)).
 
 node_connection_exit(Key, Stream) :-
-    safe_close_stream(Stream),
-    unregister_node_connection(Key).
+    % One owner-side close, protected against a shutdown signal arriving
+    % between closing the stream and withdrawing its lifecycle record.
+    sig_atomic(
+      ( with_mutex('$node_lifecycle',
+          (node_connection(_,Key,Stream,_),
+           \+ node_connection_closing(Key),
+           assertz(node_connection_closing(Key))))
+      -> safe_close_stream(Stream),unregister_node_connection(Key)
+      ; true
+      )).
+
+node_connection_shutdown(Key, Stream) :-
+    node_connection_exit(Key, Stream),
+    throw('$node_connection_shutdown').
 
 % Recover the normalized peer recorded on the accepted stream and retain the
 % public accept result as a compatibility fallback.
@@ -450,8 +468,7 @@ node_serve(Port, C, Peer, WebSocketHandler, WebSocketOptions, Profile, Sandbox,
            RelationPatterns) :-
     catch(handle_connection(Port, C, Peer, WebSocketHandler, WebSocketOptions,
                             Profile, Sandbox, RelationPatterns), Error,
-          report_node_connection_error(Port, Error)),
-    catch(close(C), _, true).
+          report_node_connection_error(Port, Error)).
 
 report_node_connection_error(Port, _) :- node_is_stopping(Port), !.
 report_node_connection_error(_, Error) :-
@@ -498,7 +515,9 @@ set_node_connection_thread(Key, Thread) :-
 
 unregister_node_connection(Key) :-
     with_mutex('$node_lifecycle',
-               retractall(node_connection(_, Key, _, _))).
+               (retractall(node_connection(_, Key, _, _)),
+                retractall(node_connection_stopping(Key)),
+                retractall(node_connection_closing(Key)))).
 
 node_running(Port) :-
     with_mutex('$node_lifecycle', node_listener(Port, _, _, _)).
@@ -602,17 +621,33 @@ close_node_connections(Port) :-
     stop_node_connections(Connections).
 
 stop_node_connections([]).
-stop_node_connections([connection(Stream, pending)|Connections]) :- !,
-    safe_close_stream(Stream),
-    stop_node_connections(Connections).
 stop_node_connections([connection(Stream, Thread)|Connections]) :-
-    % Trealla 3.13.2 makes thread_cancel/1 interrupt a handler blocked in a
-    % socket read. Let the handler's cleanup close its own stream; closing it
-    % concurrently from the shutdown thread can race inside the runtime.
-    ( catch(thread_cancel(Thread), _, fail) -> true
-    ; safe_close_stream(Stream)
+    % Both stop_node/2 and listener cleanup drain the same connections. A
+    % second native cancellation can interrupt the first one's at_exit hook
+    % before it unregisters the connection. Claim each shutdown only once.
+    ( claim_node_connection_stop(Stream, Thread, Key)
+    -> stop_node_connection(Stream, Thread, Key)
+    ; true
     ),
     stop_node_connections(Connections).
+
+claim_node_connection_stop(Stream, Thread, Key) :-
+    with_mutex('$node_lifecycle',
+        ( node_connection(_, Key, Stream, Thread),
+          \+ node_connection_stopping(Key),
+          assertz(node_connection_stopping(Key)) )).
+
+stop_node_connection(Stream, pending, Key) :- !,
+    node_connection_exit(Key,Stream).
+stop_node_connection(Stream, Thread, Key) :-
+    % A native cancellation has both a pending read-cancellation flag and a
+    % queued thread_exit signal. They can terminate the goal and then its
+    % at_exit cleanup separately. An owner-side signal closes and unregisters
+    % first; it also interrupts socket reads without that second native exit.
+    ( catch(thread_signal(Thread,node:node_connection_shutdown(Key,Stream)),_,fail)
+    -> true
+    ; node_connection_exit(Key,Stream)
+    ).
 
 safe_close_stream(Stream) :-
     ( catch(close(Stream), _, fail) -> true ; true ).
