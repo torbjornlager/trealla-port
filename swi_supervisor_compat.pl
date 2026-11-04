@@ -3,7 +3,7 @@
 :- use_module(library(http/websocket), []).
 run(HomePort,PeerPort,NodeFile) :-
     use_module(NodeFile),
-    file_directory_name(NodeFile,Dir),directory_file_path(Dir,'supervisor_actor.pl',SupFile),
+    file_directory_name(NodeFile,Dir),directory_file_path(Dir,'web_prolog/supervisor_actor.pl',SupFile),
     use_module(SupFile),node:node(HomePort,[profile(actor),auth(open)]),
     format(atom(URL),'http://localhost:~w',[PeerPort]),
     thread_create(swi_supervisor_compat:exercise(URL),Thread,[]),
