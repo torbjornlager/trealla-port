@@ -15,6 +15,9 @@ builds call check_config/0 without opening a listener.
 */
 
 :- use_module(web_prolog).
+% Public actor goals may pass qualified local pids between workers. Install
+% the distribution routing hooks before admitting any client computation.
+:- use_module(distribution, []).
 :- use_module(profile_policy).
 :- use_module(sandbox_policy).
 :- use_module(auth_policy).

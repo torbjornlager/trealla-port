@@ -5,7 +5,7 @@ run(HomePort,PeerPort,SourcePort,NodeFile) :-
  run_uri(HomePort,PeerPort,URI,NodeFile).
 run_uri(HomePort,PeerPort,URI,NodeFile) :-
  use_module(NodeFile),file_directory_name(NodeFile,Dir),
- directory_file_path(Dir,'statechart_actor.pl',ChartFile),use_module(ChartFile,[]),
+ directory_file_path(Dir,'web_prolog/statechart_actor.pl',ChartFile),use_module(ChartFile,[]),
  node:node(HomePort,[profile(actor),auth(open)]),
  format(atom(URL),'http://localhost:~w',[PeerPort]),
  thread_create(swi_remote_chart_interop:exercise(URL,URI),T,[]),thread_join(T,Status),
