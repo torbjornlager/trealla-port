@@ -2674,3 +2674,10 @@ option lists. Qualification checks on submitted source remain unchanged.
 Use the conformance repository's scoped ACTOR release gate with two distinct
 execution-only principals; an administrator is an intentional positive authority
 control, not a valid subject for an unauthorized-exit assertion.
+
+Owner deployments can define `distribution:hook_websocket_endpoint/2` to map an
+exact logical node URL to a private WebSocket dial endpoint. The actor PID and
+connection cache keep the public URL; unmapped nodes retain the normal URL
+conversion. Use only owner-controlled mappings: the hook selects transport,
+not a new public node identity. The canonical distribution tests cover exact
+mapping, fallback and preservation of explicit WebSocket endpoints.
