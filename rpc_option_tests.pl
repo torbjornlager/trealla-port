@@ -36,11 +36,11 @@ option_shape_errors :-
 
 option_value_errors :-
     expect_client_error(rpc('http://invalid',true,[once(true),once(maybe)]),
-        type_error(boolean,maybe),rpc:rpc/3),
+        domain_error(boolean,maybe),rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[once(_)]),
         instantiation_error,rpc:rpc/3),
     expect_client_error(promise('http://invalid',true,_,[once(false),once(maybe)]),
-        type_error(boolean,maybe),rpc:promise/4),
+        domain_error(boolean,maybe),rpc:promise/4),
     expect_client_error(promise('http://invalid',true,_,[once(_)]),
         instantiation_error,rpc:promise/4),
     expect_client_error(rpc('http://invalid',true,[limit(1),limit(0)]),
@@ -50,17 +50,17 @@ option_value_errors :-
     expect_client_error(rpc('http://invalid',true,[timeout(bad)]),
         type_error(number,bad),rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[redirect(true),redirect(maybe)]),
-        type_error(boolean,maybe),rpc:rpc/3),
+        domain_error(rpc_option,redirect(true)),rpc:rpc/3),
     expect_client_error(promise('http://invalid',true,_,[max_redirect(-1)]),
-        domain_error(not_less_than_zero,-1),rpc:promise/4),
+        domain_error(promise_option,max_redirect(-1)),rpc:promise/4),
     expect_client_error(rpc('http://invalid',true,[request_header(bad)]),
-        type_error(request_header,bad),rpc:rpc/3),
-    expect_client_error(rpc('http://invalid',true,[authorization(bearer(token))]),
-        domain_error(authorization,bearer(token)),rpc:rpc/3),
+        type_error(http_request_header,bad),rpc:rpc/3),
+    expect_client_error(rpc('http://invalid',true,[authorization(digest(user,password))]),
+        domain_error(http_authorization,digest(user,password)),rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[src_predicates([a/b])]),
         type_error(predicate_indicator,a/b),rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[src_uri(42)]),
-        type_error(text,42),rpc:rpc/3),
+        type_error(atom,42),rpc:rpc/3),
     writeln('values and every duplicate occurrence are validated: ok').
 
 option_no_resource_side_effects :-
@@ -89,29 +89,28 @@ check_invalid_yield(Ref) :-
     yield(Ref,Answer),Answer==success([ok],false).
 
 option_supported_vectors :-
-    Options=[limit(2),limit(3),timeout(infinite),redirect(true),max_redirect(3),
-             request_header('X-Test'=value),request_header('X-Count'=42),
-             authorization(basic(user,password)),user_agent('Trealla test'),cacert_file('ca.pem'),
+    Options=[limit(2),limit(3),timeout(301),
+             request_header('X-Test'=[v,a,l,u,e]),request_header('x-test'=later),request_header('X-Count'='42'),
+             authorization(basic(user,password)),request_header('AUTHORIZATION'=later),user_agent('Trealla test'),request_header('User-Agent'=later),
              src_text('p(a).'),src_text([112,46]),src_list([p(X)]),src_predicates([p/1]),src_uri('http://localhost/source')],
     rpc:validate_client_options(rpc,[once(true),once(false)|Options]),var(X),
     rpc:rpc_http_options([once(true)|Options],OnceHTTP),
     rpc:rpc_http_options(Options,OnceHTTP),
     POptions=[template(X-X),offset(0),once(true),once(false)|Options],
     rpc:validate_client_options(promise,POptions),var(X),
-    rpc:validate_client_options(yield,[timeout(infinite),on_timeout(X=waiting)]),var(X),
+    rpc:validate_client_options(yield,[timeout(301),on_timeout(X=waiting)]),var(X),
     option(limit(First),Options,_),First==2,
     rpc:rpc_http_options(POptions,HTTP),
-    HTTP==[timeout(infinite),redirect(true),max_redirect(3),request_header('X-Test'=value),
-           request_header('X-Count'=42),authorization(basic(user,password)),
-           user_agent('Trealla test'),cacert_file('ca.pem')],
+    HTTP==[request_header('x-test'=value),request_header('x-count'='42'),
+           request_header(authorization='Basic dXNlcjpwYXNzd29yZA=='),user_agent('Trealla test')],
     writeln('documented subset, precedence, source formats and sharing: ok').
 
 rpc_options_live_test(Port) :-
     format(atom(URI),'http://localhost:~w',[Port]),
-    findall(X,rpc(URI,member(X,[a,b,c]),[limit(1),limit(2),timeout(infinite),
-        redirect(false),max_redirect(0),request_header('X-Test'=value),
+    findall(X,rpc(URI,member(X,[a,b,c]),[limit(1),limit(2),timeout(301),
+        request_header('X-Test'=value),
         authorization(basic(test,password)),user_agent('Trealla validation')]),Rows),Rows==[a,b,c],
-    promise(URI,X=ok,Ref,[template(X-X),offset(0),limit(1),timeout(infinite)]),
+    promise(URI,X=ok,Ref,[template(X-X),offset(0),limit(1),timeout(301)]),
     expect_client_error(yield(Ref,_,[timeout(bad)]),type_error(number,bad),rpc:yield/3),
     yield(Ref,Answer),Answer==success([ok-ok],false),var(X),
     format('Live validated RPC paging and promise collection on ~w: ok~n',[Port]).

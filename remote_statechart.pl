@@ -15,6 +15,7 @@ prepare(M,P,Wire,Options,Entry,Prepared,yes) :-
  profile_policy:profile_check_goal(P,statechart_spawn(_,_)),
  statechart_actor:prepare_chart(M,P,user,Source,Trace,Resolved,Entry,Prepared).
 prepare(_,_,_,_,_,_,no).
+entry_source(interpret_document_trace(Trace,Text,Base),Trace,statechart_actor:interpret_document(Text,Base),interpret_document_trace/3).
 entry_source(interpret(URI),true,statechart_actor:interpret(URI),interpret/1).
 entry_source(interpret_text(Text),true,statechart_actor:interpret_text(Text),interpret_text/1).
 entry_source(interpret_trace(Trace,URI),Trace,statechart_actor:interpret(URI),interpret_trace/2).

@@ -11,6 +11,7 @@
       normalize_source_origin/2,
       source_origin_allowed/1,
       resolve_redirect_uri/3,
+      resolve_document_uri/3,
       resolve_source_host/3,
       source_address_allowed/2
     ]).
@@ -147,8 +148,10 @@ resolve_source_options([src_uri(URI)|Options],
 resolve_source_options([Option|Options], [Option|Resolved]) :-
     resolve_source_options(Options, Resolved).
 
+:- multifile document_base_uri/1.
 fetch_source_uri(URI0, Text) :-
-    uri_atom(URI0, URI),
+    uri_atom(URI0, Atom),
+    ( document_base_uri(Base) -> resolve_document_uri(Base, Atom, URI) ; URI=Atom ),
     atom_length(URI, URILength),
     ( URILength =< 4096 -> true
     ; throw(error(resource_error(input_size(src_uri, URILength, 4096)),
@@ -438,6 +441,28 @@ resolve_redirect_uri(Base0, Location0, URI) :-
       )
     ).
 
+% Document references retain their directory and collapse literal dot segments.
+resolve_document_uri(Base, Ref, URI) :-
+    resolve_redirect_uri(Base, Ref, Raw),
+    parse_http_uri(Raw, _, _, _, PathQuery),
+    ( sub_atom(PathQuery, Q, 1, _, '?')
+    -> sub_atom(PathQuery, 0, Q, _, Path), sub_atom(PathQuery, Q, _, 0, Query)
+    ; Path=PathQuery, Query='' ),
+    atomic_list_concat(Segments, '/', Path),
+    document_path_segments(Segments, [], Reversed), reverse(Reversed, Clean),
+    atomic_list_concat(Clean, '/', Normal), base_root(Raw, Root),
+    atom_concat(Root, Normal, Prefix), atom_concat(Prefix, Query, URI).
+document_path_segments([], Acc, Acc).
+document_path_segments(['.'|Rest], Acc, Out) :- !,
+    document_directory_tail(Rest, Acc, Out).
+document_path_segments(['..'|Rest], Acc, Out) :- !,
+    ( Acc=[Head|Tail], Head\=='' -> Next=Tail ; Next=Acc ),
+    document_directory_tail(Rest, Next, Out).
+document_path_segments([Part|Rest], Acc, Out) :-
+    document_path_segments(Rest, [Part|Acc], Out).
+document_directory_tail([], Acc, [''|Acc]) :- !.
+document_directory_tail(Rest, Acc, Out) :- document_path_segments(Rest, Acc, Out).
+
 base_scheme(Base, Scheme) :-
     parse_http_uri(Base, Scheme, _, _, _).
 
@@ -645,12 +670,10 @@ ascii_lower_atom(Atom, Lower) :-
     atom_codes(Atom, Codes), ascii_lower_codes(Codes, LowerCodes),
     atom_codes(Lower, LowerCodes).
 
-% URI representations are text, never numbers or arbitrary terms. Output is
-% an atom; validation does not instantiate caller data.
+% URI values are atoms; validate before binding the output or fetching.
 uri_atom(Input, URI) :-
-    must_be(nonvar, Input),
-    (acyclic_term(Input) -> true ; throw(error(representation_error(cyclic_term),uri_atom/2))),
-    source_text_atom(Input, URI).
+    must_be(atom, Input),
+    URI = Input.
 
 source_text_atom(Text, Text) :- atom(Text), !.
 source_text_atom(Text, Atom) :- string(Text), !, atom_chars(Atom, Text).

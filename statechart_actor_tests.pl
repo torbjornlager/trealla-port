@@ -3,7 +3,7 @@
 :- use_module(actors).
 :- use_module(statechart_actor).
 :- use_module(sandbox_policy,[]).
-run :- actors(Baseline),action_errors,parallel_event_bindings,unspecified_event,pause_resume,isolation_test,action_bindings,timed_transition,postponed,parallel_final,deep_history,source_helpers,datamodel_tests,datamodel_computations,datamodel_shared,cleanup_tests(Baseline),negative_tests,
+run :- document_references,actors(Baseline),action_errors,parallel_event_bindings,unspecified_event,pause_resume,isolation_test,action_bindings,timed_transition,postponed,parallel_final,deep_history,source_helpers,datamodel_tests,datamodel_computations,datamodel_shared,cleanup_tests(Baseline),negative_tests,
  writeln('Statechart execution regressions: all passed').
 text_file(Name,Text) :-
  Name='01 pause-and-resume.xml',File='fixtures/statecharts/pause-and-resume.xml',
@@ -178,3 +178,10 @@ action_errors :-
 read_action_error_template(Template) :-
     setup_call_cleanup(open('fixtures/statecharts/action-errors.statechart',read,Stream),
         read_all(Stream,[],Codes),close(Stream)),atom_codes(Template,Codes).
+
+document_references :-
+ source_policy:resolve_document_uri('http://example.org/docs/root.xml','../shared/./child.xml','http://example.org/shared/child.xml'),
+ source_policy:resolve_document_uri('http://example.org/docs/root.xml','child.xml?rev=1','http://example.org/docs/child.xml?rev=1'),
+ source_policy:resolve_document_uri('http://example.org/docs/root.xml','/other/child.xml','http://example.org/other/child.xml'),
+ source_policy:resolve_document_uri('http://example.org/docs/root.xml','https://other.example/child.xml','https://other.example/child.xml'),
+ writeln('document-relative, parent-directory, root-relative and absolute references: ok').

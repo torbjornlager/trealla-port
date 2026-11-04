@@ -12,7 +12,7 @@ import subprocess
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNTIME_FILES = ['actors.pl', 'isolation.pl', 'receiver_lineage.pl', 'rpc.pl',
+RUNTIME_FILES = ['actors.pl', 'isolation.pl', 'receiver_lineage.pl', 'rpc.pl', 'rpc_http_fields.pl',
                  'web_prolog.pl', 'toplevel_actors.pl']
 sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
 quote = lambda value: "'" + str(value).replace("'", "''") + "'"

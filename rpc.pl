@@ -126,20 +126,19 @@ client_option_type(Kind,Name,Type) :-
     (Kind==rpc;Kind==promise),request_option_type(Name,Type).
 request_option_type(limit,positive_integer).
 request_option_type(once,boolean).
-request_option_type(timeout,timeout).
+request_option_type(timeout,number).
 request_option_type(http_timeout,number).
 request_option_type(src_text,source_text).
 request_option_type(src_list,list).
 request_option_type(src_predicates,predicate_indicators).
-request_option_type(src_uri,source_text).
+request_option_type(src_uri,atom).
 request_option_type(request_header,request_header).
 request_option_type(authorization,authorization).
-request_option_type(user_agent,http_text).
-request_option_type(redirect,boolean).
-request_option_type(max_redirect,nonnegative_integer).
-request_option_type(cacert_file,source_text).
+request_option_type(user_agent,http_field).
 
+validate_client_value(http_field,Value) :- !,rpc_http_validate(user_agent(Value)).
 validate_client_value(template,_) :- !.
+validate_client_value(boolean,Value) :- !, actors:validate_spawn_value(boolean,Value).
 validate_client_value(number,N) :- !, must_be(number,N).
 validate_client_value(positive_integer,N) :- !,
     must_be(integer,N),
@@ -158,16 +157,8 @@ validate_client_value(http_text,Text) :- !,
     (number(Text) -> true ; validate_client_value(source_text,Text)).
 validate_client_value(predicate_indicators,PIs) :- !,
     must_be(list,PIs),validate_client_pis(PIs).
-validate_client_value(request_header,Header) :- !,
-    must_be(nonvar,Header),
-    (Header=(Name=Value) ->
-        validate_client_value(http_text,Name),validate_client_value(http_text,Value)
-    ; throw(error(type_error(request_header,Header),client_option/1))).
-validate_client_value(authorization,Auth) :- !,
-    must_be(nonvar,Auth),
-    (Auth=basic(User,Password) ->
-        validate_client_value(http_text,User),validate_client_value(http_text,Password)
-    ; throw(error(domain_error(authorization,Auth),client_option/1))).
+validate_client_value(request_header,Value) :- !, rpc_http_validate(request_header(Value)).
+validate_client_value(authorization,Value) :- !, rpc_http_validate(authorization(Value)).
 validate_client_value(Type,Value) :- must_be(Type,Value).
 validate_client_pis([]).
 validate_client_pis([PI|PIs]) :-
@@ -267,10 +258,6 @@ rpc(URI0, Goal0, Options) :-
     rpc_page(Template, 0, Limit, GoalAtom, TemplateAtom, URI, Options,
              LoadText).
 
-resolve_rpc_uri(Input, URI) :-
-    nonvar(Input), Input=Host0:Port, !,
-    source_policy:uri_atom(Host0, Host), must_be(integer, Port),
-    format(atom(URI),'http://~w:~w',[Host,Port]).
 resolve_rpc_uri(Input, URI) :- source_policy:uri_atom(Input, URI).
 
 rpc_source_module(Module) :-
@@ -297,10 +284,10 @@ rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options,
     format(atom(URL0),
            '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog&once=~w',
            [RootURI, GoalEnc, TemplEnc, Offset, Limit, Once]),
-    rpc_source_url(URL0, LoadText, URL),
+    rpc_source_url(URL0, LoadText, SourceURL),
+    rpc_execution_url(SourceURL,Options,URL),
     rpc_http_options(Options, HTTPOptions),
-    http_open(URL, S, HTTPOptions),
-    setup_call_cleanup(true, getline(S, BodyChars), close(S)),
+    rpc_read_body(URL,HTTPOptions,BodyChars),
     atom_chars(BodyAtom, BodyChars),
     read_term_from_atom(BodyAtom, Answer, []),
     rpc_answer(Answer, Template, Offset, Limit,
@@ -316,43 +303,17 @@ strip_trailing_slash(URI, Root) :-
     strip_trailing_slash(Root0, Root).
 strip_trailing_slash(URI, URI).
 
-% Explicit transport spelling overrides the legacy timeout/1 independently
-% of list order. Public validation has already checked every occurrence.
+% Execution time is sent to the destination; only http_timeout reaches HTTP.
 rpc_http_options(Options, HTTPOptions) :-
-    rpc_transport_options(Options, Transport),
-    (memberchk(http_timeout(T),Options) ->
-        Timeout is max(0,T),
-        without_legacy_timeouts(Transport, Rest),
-        HTTPOptions=[timeout(Timeout)|Rest]
-    ; HTTPOptions=Transport).
+    rpc_http_fields(Options,Fields),rpc_http_native_options(Fields,Transport),
+    (memberchk(http_timeout(T),Options) -> Timeout is max(0,T),HTTPOptions=[timeout(Timeout)|Transport]
+    ;HTTPOptions=Transport).
 
-without_legacy_timeouts([], []).
-without_legacy_timeouts([timeout(_)|Options], Rest) :- !,
-    without_legacy_timeouts(Options,Rest).
-without_legacy_timeouts([Option|Options], [Option|Rest]) :-
-    without_legacy_timeouts(Options,Rest).
+rpc_execution_url(URL0,Options,URL) :-
+    (memberchk(timeout(T),Options) -> Timeout is max(0,T),
+       format(atom(URL),'~w&timeout=~w',[URL0,Timeout])
+    ; URL=URL0).
 
-rpc_transport_options([http_timeout(_)|Options], HTTPOptions) :- !,
-    rpc_transport_options(Options, HTTPOptions).
-rpc_transport_options([], []).
-rpc_transport_options([limit(_)|Options], HTTPOptions) :- !,
-    rpc_transport_options(Options, HTTPOptions).
-rpc_transport_options([template(_)|Options], HTTPOptions) :- !,
-    rpc_transport_options(Options, HTTPOptions).
-rpc_transport_options([offset(_)|Options], HTTPOptions) :- !,
-    rpc_transport_options(Options, HTTPOptions).
-rpc_transport_options([once(_)|Options], HTTPOptions) :- !,
-    rpc_transport_options(Options, HTTPOptions).
-rpc_transport_options([src_text(_)|Options], HTTPOptions) :- !,
-    rpc_transport_options(Options, HTTPOptions).
-rpc_transport_options([src_list(_)|Options], HTTPOptions) :- !,
-    rpc_transport_options(Options, HTTPOptions).
-rpc_transport_options([src_predicates(_)|Options], HTTPOptions) :- !,
-    rpc_transport_options(Options, HTTPOptions).
-rpc_transport_options([src_uri(_)|Options], HTTPOptions) :- !,
-    rpc_transport_options(Options, HTTPOptions).
-rpc_transport_options([Option|Options], [Option|HTTPOptions]) :-
-    rpc_transport_options(Options, HTTPOptions).
 
 
 %!  rpc_answer(+Answer, +Template, +Offset, +Limit, ...) is nondet.
@@ -414,10 +375,11 @@ promise(URI0, Goal0, Reference, Options) :-
     rpc_source_module(SourceModule),
     load_options_text(SourceModule, Options, LoadText),
     rpc_http_options(Options, HTTPOptions),
+    (option(timeout(RemoteTimeout),Options) -> ExecutionOptions=[timeout(RemoteTimeout)] ; ExecutionOptions=[]),
     make_ref(Reference),
     start_promise(Reference,
         rpc:promise_worker(URI, GoalAtom, TemplateAtom, Offset, Limit,
-                           LoadText, HTTPOptions, Once, Reference), 300).
+                           LoadText, HTTPOptions, Once, ExecutionOptions, Reference), 300).
 
 % Owner identity is resolved before lifecycle locking. Namespace actors share
 % within their client; standalone trusted actors retain process-wide sharing.
@@ -496,10 +458,10 @@ deliver_promise_answer(Ref, Answer) :-
         ; true)).
 
 promise_worker(URI, GoalAtom, TemplateAtom, Offset, Limit, LoadText,
-               HTTPOptions, Once, Reference) :-
+               HTTPOptions, Once, ExecutionOptions, Reference) :-
     promise_worker_run(
         rpc_fetch_answer(URI, GoalAtom, TemplateAtom, Offset, Limit,
-                         LoadText, HTTPOptions, Once, Result), Result, Reference).
+                         LoadText, HTTPOptions, Once, ExecutionOptions, Result), Result, Reference).
 
 % A local request failure is distinct from a remote protocol 'failure'.
 promise_worker_run(Goal, Result, Reference) :-
@@ -510,20 +472,47 @@ promise_worker_run(Goal, Result, Reference) :-
     deliver_promise_answer(Reference, Answer).
 
 rpc_fetch_answer(BaseURI, GoalAtom, TemplateAtom, Offset, Limit, LoadText,
-                 HTTPOptions, Once, Answer) :-
+                 HTTPOptions, Once, ExecutionOptions, Answer) :-
     url_encode(GoalAtom, GoalEnc),
     url_encode(TemplateAtom, TemplateEnc),
     strip_trailing_slash(BaseURI, RootURI),
     format(atom(URL0),
            '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog&once=~w',
            [RootURI, GoalEnc, TemplateEnc, Offset, Limit, Once]),
-    rpc_source_url(URL0, LoadText, URL),
-    setup_call_cleanup(
-        http_open(URL, Stream, HTTPOptions),
-        (getline(Stream, BodyChars),
-         atom_chars(BodyAtom, BodyChars),
-         read_term_from_atom(BodyAtom, Answer, [])),
-        close(Stream)).
+    rpc_source_url(URL0, LoadText, SourceURL),
+    rpc_execution_url(SourceURL,ExecutionOptions,URL),
+    rpc_read_body(URL,HTTPOptions,BodyChars),
+    atom_chars(BodyAtom,BodyChars),read_term_from_atom(BodyAtom,Answer,[]).
+
+% A per-request timer retains its private identity across cleanup. Signals
+% already queued after disarming see no active token and cannot affect later work.
+:- dynamic rpc_transport_active/1.
+rpc_read_body(URL,Options,Body) :-
+    (memberchk(timeout(Seconds),Options) ->
+       (Seconds=<0 -> throw(error(rpc_error(http_timeout),rpc/3))
+       ; make_ref(Token),thread_self(Owner),
+         catch(setup_call_cleanup(
+           (assertz(rpc_transport_active(Token)),
+            thread_create(rpc:rpc_transport_timer(Owner,Token,Seconds),Timer,[])),
+           rpc_read_body_unbounded(URL,Options,Body,Token),
+           (retractall(rpc_transport_active(Token)),
+            catch(thread_send_message(Timer,stop),_,true),thread_join(Timer,_))),
+           '$rpc_transport_timeout'(Token),throw(error(rpc_error(http_timeout),rpc/3))))
+    ; rpc_read_body_unbounded(URL,Options,Body,none)).
+rpc_transport_timer(Owner,Token,Seconds) :-
+    thread_self(Self),
+    (thread_get_message(Self,stop,[timeout(Seconds)]) -> true
+    ; catch(thread_signal(Owner,rpc:expire_rpc_transport(Token)),_,true)).
+expire_rpc_transport(Token) :-
+    (retract(rpc_transport_active(Token)) -> throw('$rpc_transport_timeout'(Token));true).
+rpc_read_body_unbounded(URL,Options,Body,Token) :-
+    Holder=stream(none),exclude(rpc_socket_timeout_option,Options,StreamOptions),
+    catch(call_cleanup((http_open(URL,Stream,StreamOptions),nb_setarg(1,Holder,Stream),getline(Stream,Body)),
+                       (retractall(rpc_transport_active(Token)),close_rpc_stream(Holder))),
+          error(timeout_error(_,_),_),throw(error(rpc_error(http_timeout),rpc/3))).
+rpc_socket_timeout_option(timeout(_)).
+close_rpc_stream(stream(Stream)) :-
+    (Stream==none -> true;close(Stream)).
 
 promise_auto_cleanup(Reference, Seconds) :-
     sleep(Seconds), dispose_promise(Reference).
@@ -725,3 +714,12 @@ promise_queue_wait(Queue, Deadline, Outcome) :-
       ; get_time(After),(After < Deadline -> Again=true ; Again=false)),
       (Again == true -> promise_queue_wait(Queue,Deadline,Outcome)
       ; Outcome=timeout)).
+
+:- include(rpc_http_fields).
+rpc_http_string_chars(_,_) :- fail.
+
+rpc_http_host_utf8(Chars,Bytes) :- rpc_http_utf8(Chars,Bytes).
+
+rpc_http_native_value(Value,Value).
+
+rpc_http_one_char(C,[C]) :- atom(C),atom_length(C,1).

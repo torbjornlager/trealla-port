@@ -47,7 +47,7 @@ rejected(Goal) :- catch(call(Goal),E,true),nonvar(E).
 wire(Start,sup_init([spec(test,Start,temporary,1,worker)],sup(one_for_one,1,5,[],[]))).
 remote_supervisor_policy_tests :-
     forall(member(M,[blacklist,whitelist]),remote_supervisor_tests:policy_mode(M)),
-    callback_execution,
+    callback_execution,nested_preparation,
     wire(true,G),rejected(remote_supervisor:prepare(off,relation,G,[],_,_,_)),
     writeln('Receiver sandbox/profile/fresh-state and nested-source regressions: ok').
 policy_mode(M) :-
@@ -104,3 +104,13 @@ callback_execution :-
     supervisor_which_children(Sup,[info(test,Child,worker,temporary)]),
     server_actor:server_request(Child,hello,Reply,[timeout(2)]),Reply==hello,
     supervisor_halt(Sup),receive({down(Sup,Sup,_) -> true},[timeout(3),on_timeout(fail)]).
+
+% Nested admission must complete while descendant source starts are serialized.
+nested_preparation :-
+    wire(start_sub_supervisor([child(leaf,[start(receive({finish -> true})),restart(temporary)])],[]),Wire),
+    remote_supervisor:prepare(blacklist,actor,Wire,[],Entry,Options,yes),
+    spawn_runtime(Entry,Sup,['$entry_context'(caller),link(false),monitor(true)|Options]),
+    supervisor_which_children(Sup,[info(test,Nested,worker,temporary)]),
+    supervisor_count_children(Nested,[specs-1,active-1,supervisors-0,workers-1]),
+    supervisor_halt(Sup),receive({down(Sup,Sup,_) -> true},[timeout(3),on_timeout(fail)]),
+    writeln('nested receiver preparation admits descendants without holding their source lock: ok').

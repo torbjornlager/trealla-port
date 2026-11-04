@@ -28,8 +28,6 @@ statechart_spawn_in(Mode,Profile,Caller,Pid,Options) :-
  actors:validate_spawn_wrapper_options(Options,public,statechart_spawn/2,[name-atom,trace-boolean]),
  statechart_model:statechart_spawn_source(Options,Source,SpawnOptions0),
  (memberchk(trace(Trace),Options)->true;Trace=true),
- count_trace_options(Options,Count),
- (Count=<1 -> true;throw(error(permission_error(duplicate,statechart_option,trace),statechart_spawn/2))),
  exclude(local_option,SpawnOptions0,SpawnOptions),
  (memberchk(node(Node),Options),Node\==localhost ->
    with_spawn_name(Options,Pid,statechart_actor:create_remote_chart(Mode,Profile,Caller,Source,Trace,Node,SpawnOptions,Pid))
@@ -47,8 +45,9 @@ create_chart(Mode,Profile,Caller,Source,Trace,Options0,Pid,NameOptions) :-
 % Both local construction and the remote receiver prepare one interpreter
 % entry. The actor created by the transport is the chart, not a proxy parent.
 prepare_chart(Mode,Profile,Caller,Source,Trace,Options0,Entry,Options) :-
- must_be(boolean,Trace),
- chart_text(Source,Text),
+ actors:validate_spawn_value(boolean,Trace),
+ materialize_chart_source(Source,Document),
+ chart_text(Document,Text),
  resource_policy:check_source_options_size([src_text(Text)]),
  statechart_model:statechart_compile_text(Text,Model0),
  validate_features(Model0),
@@ -62,7 +61,9 @@ prepare_chart(Mode,Profile,Caller,Source,Trace,Options0,Entry,Options) :-
  maplist(check_model_term(Mode,Profile,SourceModule,AppPIs),ChartModel),
  copy_term(ChartModel-Prepared,Model-Loaded),
  Options=[src_list([])|Loaded],
- Entry=statechart_actor:run_chart(Model,Mode,Profile,AppPIs,Trace).
+ (Document=statechart_actor:interpret_document(_,Base)
+ -> Entry=statechart_actor:run_document(Model,Mode,Profile,AppPIs,Trace,Base)
+ ; Entry=statechart_actor:run_chart(Model,Mode,Profile,AppPIs,Trace)).
 
 chart_caller(Caller,Module) :-
  (nonvar(Caller),Caller\==actor_context -> Module=Caller
@@ -70,12 +71,20 @@ chart_caller(Caller,Module) :-
  ; var(Caller) -> Module=user
  ; throw(error(existence_error(actor_context,source_module),statechart_spawn/2))).
 
+% Fetch in the creating context, then carry text and its origin together.
+materialize_chart_source(statechart_actor:interpret(URI0),statechart_actor:interpret_document(Text,URI)) :- !,
+ resolve_chart_uri(URI0,URI),source_policy:fetch_source_uri(URI,Text).
+materialize_chart_source(statechart_actor:interpret_document(Text,Base),statechart_actor:interpret_document(Text,Base)) :- !,
+ must_be(atom,Base).
+materialize_chart_source(Source,Source).
+chart_text(statechart_actor:interpret_document(Text,_),Text).
 chart_text(statechart_actor:interpret_text(Text),Text).
 chart_text(statechart_actor:interpret(URI0),Text) :-
  resolve_chart_uri(URI0,URI),source_policy:fetch_source_uri(URI,Text).
 resolve_chart_uri(URI0,URI) :-
- source_policy:source_text_atom(URI0,Atom),
- (sub_atom(Atom,0,1,_,'/') ->
+ source_policy:uri_atom(URI0,Atom),
+ (document_base(Base) -> source_policy:resolve_document_uri(Base,Atom,URI)
+ ; sub_atom(Atom,0,1,_,'/') ->
    (catch(web_prolog:current_node_url(Base),_,fail) ->
      source_policy:resolve_redirect_uri(Base,Atom,URI)
    ; throw(error(existence_error(node,public_url),statechart_spawn/2)))
@@ -241,13 +250,12 @@ create_remote_chart(M,P,Caller,Source,Trace,Node,Options0,Pid,NameOptions) :-
  isolation:rewrite_source_options(Options0,Module,Materialized),
  source_policy:resolve_source_options(Materialized,Sources),
  sandbox_policy:sandbox_prepare_options(M,P,Module,Sources,_),
- % URI XML belongs to the destination's fetch policy. Text can also be
- % checked locally without changing the portable payload sent to the peer.
- (Source=statechart_actor:interpret_text(_) ->
-   prepare_chart(M,P,Module,Source,Trace,Sources,_,_);true),
- traced_source_entry(Source,Trace,Entry),
+ materialize_chart_source(Source,Document),
+ prepare_chart(M,P,Module,Document,Trace,Sources,_,_),
+ traced_source_entry(Document,Trace,Entry),
  append(NameOptions,[node(Node)|Sources],Effective),
  spawn_runtime(Entry,Pid,Effective).
+traced_source_entry(statechart_actor:interpret_document(Text,Base),Trace,interpret_document_trace(Trace,Text,Base)).
 traced_source_entry(statechart_actor:interpret(URI),Trace,interpret_trace(Trace,URI)).
 traced_source_entry(statechart_actor:interpret_text(Text),Trace,interpret_text_trace(Trace,Text)).
 
@@ -272,6 +280,13 @@ check_action(M,P,C,A,script(Goal)) :- check_with_policy(M,P,C,A,Goal).
 check_with_policy(M,P,C,A,G) :-
  profile_policy:profile_check_goal(P,G),
  (M==off -> true;sandbox_policy:sandbox_check_goal_(M,P,C,A,G)).
+
+:- thread_local((document_base/1)).
+:- multifile source_policy:document_base_uri/1.
+source_policy:document_base_uri(Base) :- statechart_actor:document_base(Base).
+run_document(Model,Mode,Profile,AppPIs,Trace,Base) :-
+ setup_call_cleanup(assertz(document_base(Base)),
+   run_chart(Model,Mode,Profile,AppPIs,Trace),retractall(document_base(_))).
 
 run_chart(Model,Mode,Profile,AppPIs,Trace) :-
  setup_call_cleanup(

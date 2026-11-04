@@ -118,19 +118,17 @@ first_solution_in(Module, Solution, Goals0, Options) :-
          wait_first(Scope, Pids, Solution, OnFail, OnError))).
 
 validate_first_solution_options([]).
-validate_first_solution_options([on_fail(_)|Options]) :- !,
+validate_first_solution_options([Option|Options]) :-
+    must_be(nonvar, Option),
+    ( compound(Option),functor(Option,Name,1),memberchk(Name,[on_fail,on_error])
+    -> arg(1,Option,Value),valid_stop_policy(Value)
+    ; throw(error(domain_error(first_solution_option,Option),first_solution/3)) ),
     validate_first_solution_options(Options).
-validate_first_solution_options([on_error(_)|Options]) :- !,
-    validate_first_solution_options(Options).
-validate_first_solution_options([Option|_]) :-
-    throw(error(domain_error(first_solution_option, Option),
-                first_solution/3)).
 
-valid_stop_policy(stop) :- !.
-valid_stop_policy(continue) :- !.
 valid_stop_policy(Value) :-
-    throw(error(domain_error(first_solution_policy, Value),
-                first_solution/3)).
+    must_be(atom,Value),
+    (memberchk(Value,[stop,continue]) -> true
+    ; throw(error(domain_error(first_solution_policy,Value),first_solution/3))).
 
 spawn_first_workers(Goals, Solution, Pids) :-
     spawn_first_workers(none, Goals, Solution, Pids).

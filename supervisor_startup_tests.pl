@@ -22,7 +22,7 @@ callback(hold,Observer,ok,Observer) :- !,
 callback(_,State,ok,State).
 
 run :-
-    initial_exception,initial_failure,
+    initial_preparation_barrier,initial_exception,initial_failure,
     provisional_child,
     forall(member(Policy-Reason,[0.1-true,infinity-true,brutal_kill-kill]),
         rollback_policy(Policy,Reason,false)),
@@ -37,14 +37,46 @@ server_spec(Id,Policy,spec(Id,server(supervisor_startup_tests:callback,[]),tempo
 source_error_start(server(supervisor_startup_tests:callback,
     [src_list([(:- throw(source_setup_error))])])).
 
+preparation_gate(Observer) :-
+    thread_self(Thread),thread_send_message(Observer,preparing(Thread)),
+    thread_get_message(Thread,allow_preparation).
+
+create_gated_supervisor(Name,Observer) :-
+    supervisor_spawn(supervisor_startup_tests:[
+      child(gated_child,[start(server(callback,[src_list([
+        (:- supervisor_startup_tests:preparation_gate(Observer))])]))])],
+      Sup,[name(Name)]),
+    thread_send_message(Observer,created(Sup)),
+    receive({finish -> true}),
+    monitor(Sup,Ref),supervisor_halt(Sup),
+    receive({down(Sup,Ref,_) -> true},[timeout(3),on_timeout(throw(gated_halt_timeout))]),
+    demonitor(Ref,[flush]).
+
+initial_preparation_barrier :-
+    thread_self(Observer),
+    setup_call_cleanup(
+      spawn_runtime(supervisor_startup_tests:create_gated_supervisor(gated_supervisor,Observer),Creator,
+        [monitor(true),link(false),'$entry_context'(caller)]),
+      (thread_get_message(Observer,preparing(Preparing),[timeout(3)]),
+       whereis(gated_supervisor,undefined),
+       \+thread_get_message(Observer,created(_),[timeout(0)]),
+       thread_send_message(Preparing,allow_preparation),
+       thread_get_message(Observer,created(Sup),[timeout(3)]),
+       whereis(gated_supervisor,Sup),
+       Creator ! finish,
+       receive({down(Creator,Creator,true) -> true},[timeout(3),on_timeout(fail)])),
+      (exit(Creator,kill),demonitor(Creator,[flush]))),
+    writeln('initial child preparation precedes creation success and name publication: ok').
+
 initial_exception :-
     thread_self(Observer),source_error_start(Bad),
-    supervisor_spawn(supervisor_startup_tests:[
+    catch(supervisor_spawn(supervisor_startup_tests:[
         child(startup_a,[start(server(callback,[])),restart(temporary)]),
         child(startup_b,[start(server(callback,[])),restart(temporary)]),
         child(startup_bad,[start(Bad),restart(temporary)])],Sup,
-        [monitor(true),link(false),src_list([(:- supervisor_startup_tests:enable(Observer))])]),
-    receive({down(Sup,Sup,exception(source_setup_error)) -> true},[timeout(4),on_timeout(throw(initial_exception_missing))]),
+        [name(failed_initial_supervisor),monitor(true),link(false),src_list([(:- supervisor_startup_tests:enable(Observer))])]),Error,true),
+    nonvar(Error),Error=error(supervisor_start_failed(_,source_setup_error),_),var(Sup),
+    whereis(failed_initial_supervisor,undefined),
     reserved([A,B,C]),
     forall(member(P,[A,B,C]),\+actors:actor_thread(P,_)),
     stopped([C,B,A]),

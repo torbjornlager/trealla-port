@@ -34,12 +34,13 @@ bad_options(promise,Options,Formal) :-
     findall(R,rpc:promise_state(R,_,_,_,_,_,_),After),Before==After,
     findall(Q,message_queue_property(Q,size(_)),AfterQueues),Queues==AfterQueues.
 mapping :-
-    rpc:rpc_http_options([timeout(infinite),timeout(6)], [timeout(infinite),timeout(6)]),
+    rpc:rpc_http_options([timeout(4),timeout(6)], []),
+    rpc:rpc_execution_url(base,[timeout(-1),timeout(6)],'base&timeout=0'),
     rpc:rpc_http_options([http_timeout(-2)],[timeout(0)]),
     forall(member(Options,[[timeout(0),http_timeout(5),http_timeout(6)],
                            [http_timeout(5),timeout(0),http_timeout(6)]]),
       rpc:rpc_http_options([request_header('X-Test'=value)|Options],
-                          [timeout(5),request_header('X-Test'=value)])),
+                          [timeout(5),request_header('x-test'=value)])),
     rpc:rpc_http_options([http_timeout(3),http_timeout(5)],[timeout(3)]).
 
 wait_ready(Base,N) :-

@@ -1198,6 +1198,12 @@ actors:hook_exit(RemotePid, Reason) :-
                        reason-string_atom(ReasonText)], JSON),
     Writer ! '$remote_json'(JSON).
 
+% Reject an invalid qualified node before treating an unrouteable target as
+% a missing actor. URI errors must not be hidden by remote_pid_writer/3.
+actors:hook_monitor(_, _@Node, _) :-
+    \+ atom(Node), !,
+    node_url_atom(Node, _).
+
 actors:hook_monitor(Watcher, RemotePid, Ref) :-
     remote_pid_writer(RemotePid, Writer, WirePid),
     self(Caller),

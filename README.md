@@ -1448,10 +1448,16 @@ remote-toplevel check is also included in the interoperability runner.
 
 Supervisor child specifications are validated before source materialization or
 actor creation. The initial specification list must be proper and acyclic,
-contain `child(Id, Options)` terms with ground, unique IDs, and use proper option
+contain `child(Id, Options)` terms with atom, unique IDs, and use proper option
 lists. Dynamic `supervisor_spawn_child/3` applies the same single-child checks
 before sending the request. A valid addition with an existing ID still returns
 `error(already_present)`.
+
+Child management APIs also require atom IDs before contacting a supervisor.
+Inspection returns ordered `info(Id,Pid,Type,Restart)` records, including stopped
+children. Counts have the common form
+`[specs-Specs,active-Active,supervisors-Supervisors,workers-Workers]`; type counts
+include only active children, while specs counts all retained specifications.
 
 Supported child options are required callable `start/1`,
 `restart(permanent|transient|temporary)`, `type(worker|supervisor)`, and
@@ -1605,10 +1611,11 @@ signals from supervisor teardown. If shutdown itself throws, rollback still
 attempts to stop that child and continues through the rest; a primary startup
 exception remains the reported error.
 
-Initial ordinary failure still exits with `init_failed`; an initial startup
-exception retains its original term. Supervisor creation still acknowledges
-actor creation before its children finish starting, so callers use a monitor
-to observe later initialization failure. A dynamic startup exception now returns
+Supervisor creation waits for all initial child preparation and admission before
+publishing its name or reporting success, without waiting for application goals
+to finish. Failure rolls back initial children and raises
+`error(supervisor_start_failed(Pid,Reason),supervisor_spawn/3)`, where Reason is
+`init_failed` for ordinary failure or the original exception. A dynamic startup exception now returns
 `error(Error)` while preserving the supervisor's previous children/state;
 ordinary startup failure retains `error(start_failed)`, duplicate ids retain
 `error(already_present)`, and successful additions retain `ok`. Failed attempts
@@ -1624,7 +1631,7 @@ Explicit respawn and automatic replacement now reuse the startup journal.
 `supervisor_respawn_child/3` rolls back a failed replacement, retains the
 inactive specification and existing siblings, and returns `error(start_failed)`
 for ordinary failure or `error(Error)` for a startup exception. Success still
-returns Trealla's `ok(NewPid)`; `error(running)` and `error(not_found)` are
+returns `ok(NewPid)`; `error(running)` and `error(not_found)` are
 unchanged. The failed id/name can be retried.
 
 All replacements for one automatic restart event share a journal. If one fails,
@@ -1707,8 +1714,8 @@ arrives before that deadline, an observed normal down produces
 `supervisor_call_timeout(Sup, stop)`. Abnormal termination still raises
 `supervisor_down(Reason)` immediately. Only the wait's private monitor is
 withdrawn and flushed; application monitors and unrelated messages remain.
-Success acknowledges acceptance, not completed child shutdown. Shutdown policies
-and other supervisor request waits are unchanged. `supervisor_halt_tests.pl`
+Success acknowledges completed child shutdown, before supervisor termination.
+An available matching acknowledgement takes precedence over a down notification. `supervisor_halt_tests.pl`
 checks both event orders, delayed/missing acknowledgements, the deadline and
 monitor cleanup. The native compatibility smoke test now requires actual
 acknowledgement and separately observes termination, including repeated cycles. Adapter-created
@@ -1839,37 +1846,28 @@ failure/error delivery, and timeout/callback/retry using a gated HTTP reply.
 The same public promise assertions run against native SWI and Trealla through
 the interoperability runner. Ownership, expiry and disposal are unchanged.
 
-The HTTP subset is `http_timeout/1`, legacy `timeout/1`, `request_header(Name=Value)`,
-`authorization(basic(User,Password))`, `user_agent/1`, `redirect/1`,
-`max_redirect/1`, and `cacert_file/1`. Limits are positive integers; redirect
-counts are nonnegative integers; `redirect/1` is boolean. Explicit
-`http_timeout/1` requires a number and normalises negatives to zero, matching
-SWI's option validation. It overrides legacy `timeout/1` regardless of list
-order; the first occurrence of each name wins, and every occurrence is checked
-before source fetching or resource creation. Only one normalised `timeout/1`
-is forwarded when the explicit option is present. Without it, legacy transport
-`timeout/1` handling (nonnegative numbers or `infinite`) is unchanged. Yield
-timeouts govern the local wait. No remote execution timeout option is added.
-CA certificate configuration requires a TLS-enabled Trealla build.
+The RPC execution limit `timeout/1` is sent to the destination, which applies
+the minimum of the request and its owner's limit. `http_timeout/1` independently
+bounds each complete HTTP request, including headers and body; later pages get
+fresh deadlines. Both require numbers, normalize negatives to zero, use the
+first occurrence, and validate every occurrence before source fetching or
+resource creation. Omission leaves the corresponding default unchanged.
+Neither configures source downloads. HTTP expiry raises
+`error(rpc_error(http_timeout),_)`; promises yield
+`error(error(rpc_error(http_timeout),_))` while preserving goal variables.
 
-**Dependency limitation:** Trealla v3.13.10's `http_open/3` sets the stream's
-read timeout, but the runtime stores that value without consulting it in its
-read path. A delayed response can therefore succeed after either transport
-option's interval has elapsed. This batch adds the explicit spelling and
-precedence, not enforcement machinery. `rpc_http_timeout_tests.pl:run/1` checks
-validation, transport mapping, successful requests and promise wait/callback/retry.
-Its separate `diagnose_expiry/1` reproduces the unresolved transport expiry
-problem for both spellings and asynchronous promise collection.
+A private timer covers connection/header/body waits without replacing an
+owner's execution alarm. Cleanup disarms it before closing the stream; late
+signals cannot poison another request. Explicit abort/exit controls retain
+their own semantics. `rpc_http_timeout_tests.pl` checks mapping and precedence;
+`tools/test-http-timeout-enforcement.py --case all` checks delayed headers,
+bodies and partial replies, successful retry, stream cleanup and promise
+resource reclamation. Yield timeouts retain their existing local wait policy.
 
-A [separate upstream v3.14.5 verification](reproducers/port-http-timeout-upstream-2026-10-22/REPORT.md)
-confirms that the newer engine enforces the tested plain-HTTP read timeouts.
-The installed/pinned engine has not been upgraded. The port now acquires promise
-HTTP streams in the setup of `setup_call_cleanup/3`, so successful reads and
-read/parse exceptions close the acquired stream. A local yield timeout still
-leaves the request available for retry. The malformed-reply regression runs in
-the default pinned-engine unit suite; body/partial-read timeout checks pass on
-the separate upstream build. The separate private actor callback hang was
-traced to a module-import regression in that engine.
+Earlier [upstream v3.14.5 read-timeout checks](reproducers/port-http-timeout-upstream-2026-10-22/REPORT.md)
+record the previous stream-timeout limitation. Those reports describe the pinned
+engine at that time; current whole-request checks use the explicitly selected
+released executable, without changing installed engines or deployment pins.
 A [follow-up investigation](reproducers/port-promise-callback-hang-2026-10-22/REPORT.md)
 reduces the apparent callback hang to file-path re-imports clearing framework
 dynamic state on that build. The callback is never reached in the failing run.
@@ -1897,12 +1895,19 @@ explicitly selected engine, retaining failed cleanup assertions rather than
 counting a timeout error alone as success. Destination-side timeout semantics
 are unchanged.
 
-Source text, source URIs and CA filenames accept the existing text formats
-(atoms, strings, or valid character/code lists); `src_list/1` takes a proper
-term list and `src_predicates/1` takes a list of atom/nonnegative-integer
-`Name/Arity` indicators. HTTP text values keep the library's text and numeric
-forms. Only Basic authorization is accepted through `authorization/1`; an
-explicit Authorization request header remains available for bearer tokens.
+Source URIs require atoms. Source text retains its documented text formats;
+`src_list/1` takes a proper term list and `src_predicates/1` takes atom/nonnegative
+integer `Name/Arity` indicators. RPC and promise HTTP options are
+`request_header(Name=Value)`, `authorization(basic(User,Password))`,
+`authorization(bearer(Token))`, and `user_agent(Agent)`. Field names are nonempty
+ASCII HTTP tokens; values and credential arguments accept atoms and character-list
+strings. Numeric and code-list values are rejected. Header values reject control
+characters except horizontal tabs. Field values use UTF-8 bytes. Basic credentials use UTF-8 then Base64.
+Every occurrence is validated before source work. The first field with a given
+case-insensitive name wins, including aliases from authorization and user-agent
+options. RPC fields apply to every page and never configure source fetching.
+Trusted proxy identity fields remain reserved. Redirect and CA-file settings are
+not RPC or promise options; TLS trust belongs to operator configuration.
 
 Unknown options, HTTP response-output options, and ineffective options are
 rejected. In particular, `rpc/3` rejects `template/1` and `offset/1`.
@@ -2303,7 +2308,8 @@ comparison can be repeated after either implementation changes.
 `statechart_spawn(Pid, Options)` starts a local chart actor. Supply exactly one
 XML source, `src_text(Text)` or `src_uri(URI)`, plus optional supplemental Prolog
 `src_list/1` or `src_predicates/1` sources. `trace(true)` is the default;
-`trace(false)` suppresses trace events, and duplicate trace options are rejected.
+`trace(false)` suppresses trace events. Every trace option is validated; the
+first setting takes precedence.
 Ordinary local spawn options, monitors, links, I/O targets and atomic `name/1`
 creation use the existing actor machinery. Remote `node(URL)` creation is also
 supported, as described below.
@@ -2405,17 +2411,20 @@ receiver sandbox rejection, rollback and unrelated monitors.
 
 Remote `statechart_spawn/2` and `<spawn type="statechart">` use the same
 constructor and the SWI-compatible `interpret/1`, `interpret_text/1`,
-`interpret_trace/2` and `interpret_text_trace/2` wire entries. A narrow Trealla
+`interpret_trace/2`, `interpret_text_trace/2` and `interpret_document_trace/3` wire entries. A narrow Trealla
 receiver adapter shares local chart preparation and runs the resulting model
 in the transport-created actor: its returned pid is the actual chart, without
 an extra wrapper actor. Caller-supplied definitions of those entry predicates
 retain ordinary source treatment; qualified private runtime calls are not
 made public.
 
-For remote charts, the destination fetches URI XML and resolves root-relative
-XML URIs against its configured public URL, applying its own fetch limits.
-The sender copies supplemental `src_predicates/1` at invocation and resolves
-supplemental Prolog URI sources under its own policy, as above. Supplemental
+For local and remote charts, the caller fetches initial URI XML under its own
+origin/IP restrictions, deadline and source-size limit. Remote creation carries
+the document text and its absolute URI together; the destination does not
+refetch the initial document. The running chart retains that URI as the base
+for relative document and Prolog-source references. Later fetches run under the
+chart's execution policy, including origin/IP checks on the resolved URI.
+Supplemental sources are copied or fetched by the caller as above. Supplemental
 Prolog precedes the embedded datamodel. The destination independently applies
 its profile/sandbox to those sources, guards and actions; sender module names
 and compiled private guard closures grant no authority there. Text charts are
@@ -2482,8 +2491,9 @@ the receiver prepares and runs the chart in the transport-created actor, so the
 returned pid is the chart rather than a second actor. Its checks independently
 cover XML, supplemental source, embedded datamodel, guards and actions. Sender
 module qualifications and guard closures confer no authority. Supplemental Prolog
-source is materialised by the sender; the destination fetches URI XML using its
-configured public URL and fetch restrictions.
+source and initial URI XML are materialised by the caller. XML travels with its
+absolute document URI; later relative fetches use that base under the running
+chart's access restrictions.
 
 Remote servers use `server_loop/2` through the narrow callback-checking receiver
 adapter; supervisors use the `sup_init/2` adapter with child validation and source
@@ -2572,14 +2582,13 @@ using separate engines and does not update installed runtimes or restart n3/n5.
 
 ### Canonical URI inputs
 
-URI values used internally for routing and fetching are atoms. Public URI inputs
-retain supported text forms and are checked before source loading or dispatch;
-unknown variables are not instantiated by matching the `Host:Port` shorthand.
-RPC/promise accept that shorthand with a text host and integer port. This is
-representation normalization, not a change to URI syntax, relative resolution,
-source origin policy, redirects, TLS or permitted schemes. See the shared manual
-for the runtime-specific text forms. The bounded regression report is in
-`reproducers/uri-options-2026-10-24/REPORT.md`.
+URI and node-address arguments require atoms at every public API boundary,
+including RPC/promise destinations, `node/1`, and `src_uri/1`. A pending value
+raises `instantiation_error`; a non-atom raises `type_error(atom, Value)` before
+fetching, dispatch or actor creation. The `Host:Port` shorthand is no longer
+accepted. URI syntax, relative resolution, origin policies, redirects, TLS and
+permitted schemes retain their own checks. Earlier URI verification reports
+record the superseded representation-conversion rules.
 
 ### Constructed clause-list source admission
 

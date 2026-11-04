@@ -343,7 +343,7 @@ spawn_option_type(target,nonvar).
 spawn_option_type(io_target,nonvar).
 spawn_option_type(node,node).
 spawn_option_type(src_text,text).
-spawn_option_type(src_uri,text).
+spawn_option_type(src_uri,atom).
 spawn_option_type(src_list,list).
 spawn_option_type(src_predicates,predicate_indicators).
 validate_spawn_value(seconds(Kind),Value) :- !,
@@ -358,11 +358,11 @@ validate_spawn_value(oneof(Domain,Values),Value) :- !,
     must_be(nonvar,Value),
     (memberchk(Value,Values) -> true ; throw(error(domain_error(Domain,Value),spawn/3))).
 
-validate_spawn_value(node,Node) :- !,
-    must_be(nonvar,Node),
-    (atom(Node) -> true
-    ; is_list(Node) -> atom_chars(_,Node)
-    ; throw(error(type_error(atom_or_string,Node),spawn/3))).
+validate_spawn_value(boolean,Value) :- !,
+    must_be(atom,Value),
+    (Value==true -> true ; Value==false -> true
+    ; throw(error(domain_error(boolean,Value),spawn/3))).
+validate_spawn_value(node,Node) :- !, must_be(atom,Node).
 validate_spawn_value(text,Text) :- !,
     must_be(nonvar,Text),isolation:source_text_atom(Text,_).
 validate_spawn_value(predicate_indicators,PIs) :- !,

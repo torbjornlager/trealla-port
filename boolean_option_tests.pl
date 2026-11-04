@@ -6,7 +6,7 @@
 
 expect_boolean_error(Goal) :-
     catch(call(Goal),Error,true),nonvar(Error),
-    (Error=error(type_error(boolean,_),_);Error=error(domain_error(boolean,_),_)),!.
+    (Error=error(type_error(atom,_),_);Error=error(domain_error(boolean,_),_)),!.
 
 run :-
     forall(member(V,[1,0,-1,1.0,"true","false",'TRUE',[t,r,u,e],@(true)]),

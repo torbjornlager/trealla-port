@@ -11,11 +11,16 @@ unit :-
  forall(member(Mode,[blacklist,whitelist]),boundaries(Mode,Text)),
  remote_statechart:prepare(blacklist,actor,true,[],_,_,no),
  remote_statechart:prepare(blacklist,actor,interpret_text(a),[src_list([interpret_text(a)])],_,_,no),
+ remote_statechart:prepare(blacklist,actor,interpret_document_trace(false,a,42),[src_list([interpret_document_trace(false,a,42)])],_,_,no),
  writeln('Remote chart entry shapes, shared preparation, sandbox/profile and source boundaries: ok').
 boundaries(Mode,Text) :-
  forall(member(Wire,[interpret_text(Text),interpret_text_trace(false,Text)]),
    (remote_statechart:prepare(Mode,actor,Wire,[src_list([parent_value(shared)])],Entry,Loaded,yes),
     Entry=statechart_actor:run_chart(_,Mode,actor,_,Trace),memberchk(Trace,[true,false]),memberchk(src_list([]),Loaded))),
+ remote_statechart:prepare(Mode,actor,interpret_document_trace(false,Text,'http://example.org/docs/root.xml'),[src_list([parent_value(shared)])],DocumentEntry,_,yes),
+ DocumentEntry=statechart_actor:run_document(_,Mode,actor,_,false,'http://example.org/docs/root.xml'),
+ rejected(remote_statechart:prepare(Mode,actor,interpret_document_trace(false,Text,42),[],_,_,_)),
+ rejected(sandbox_policy:sandbox_prepare_spawn(Mode,actor,actor_context,statechart_actor:run_document([],off,actor,[],false,'http://example.org/'),[],_,_)),
  rejected(remote_statechart:prepare(Mode,actor,interpret_text_trace(bad,Text),[],_,_,_)),
  rejected(remote_statechart:prepare(Mode,isobase,interpret_text(Text),[],_,_,_)),
  rejected(remote_statechart:prepare(Mode,actor,interpret_text('<bad/>'),[],_,_,_)),
@@ -27,6 +32,8 @@ rejected(G) :- catch(call(G),E,true),nonvar(E).
 live(Port,SourcePort) :-
  format(atom(URI),'http://localhost:~w/examples/statecharts/01%20pause-and-resume.xml',[SourcePort]),live_uri(Port,URI).
 live_uri(Port,URI) :-
+ source_policy:base_root(URI,SourceOrigin),
+ source_policy:configure_source_policy([load_uri_allowed_origins([SourceOrigin]),load_uri_allowed_ip_ranges(['127.0.0.0/8'])],_),
  format(atom(URL),'http://localhost:~w',[Port]),
  setup_call_cleanup(true,(text_charts(URL),writeln(text_and_private_data_ok),uri_chart(URL,URI),writeln(uri_ok),nested_chart(URL),writeln(invocation_cleanup_ok),admission(URL),writeln(admission_ok)),remote_drop_connection(URL)),
  format('Remote statechart text/URI, invocation, private data, halt, monitors and rejection on ~w: ok~n',[Port]).

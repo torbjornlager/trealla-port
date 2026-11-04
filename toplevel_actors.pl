@@ -508,7 +508,7 @@ toplevel_call(Pid, Goal0, Options) :-
 validate_once_options(Options) :-
     must_be(list, Options),
     forall((member(Option, Options), nonvar(Option), Option = once(Value)),
-           must_be(boolean, Value)).
+           actors:validate_spawn_value(boolean,Value)).
 
 toplevel_call_validated(Pid, Goal0, Options) :-
     remote_toplevel_route(Pid,Node),!,

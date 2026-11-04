@@ -118,13 +118,25 @@ source_option(src_list(_)).
 callback_goal(CB,Head,Name/Arity) :-
     CB=..[Name|Args],append(Args,[_,_,_,_],Full),Head=..[Name|Full],length(Full,Arity).
 
+% Receiver-generated supervisors use the same pre-publication startup boundary.
+:- multifile isolation:prepare_activation_goal/5.
+isolation:prepare_activation_goal(Pid,remote_supervisor,_Module,Goal0,
+                                  supervisor_actor:sup_loop(State)) :-
+    strip_module(Goal0,_,Goal),nonvar(Goal),Goal=run(Children,Settings),
+    remote_supervisor:initial_state(Children,Settings,Specs,State0),
+    supervisor_actor:prepare_supervisor_state(Pid,Specs,State0,State).
+
 run(Children,Settings) :-
+    initial_state(Children,Settings,Specs,State0),
+    supervisor_actor:sup_init(Specs,State0).
+
+initial_state(Children,Settings,Specs,sup(Strategy,Intensity,Period,[],[])) :-
     option('$remote_policy'(Mode,Profile,Sources),Settings),
     nb_setval('$remote_supervisor_policy',policy(Mode,Profile,Sources)),
     self(Self),actor_module(Self,Module),
     supervisor_actor:normalise_child_specs(Module,Children,Specs),
-    option(strategy(Strategy),Settings),option(intensity(Intensity),Settings),option(period(Period),Settings),
-    supervisor_actor:sup_init(Specs,sup(Strategy,Intensity,Period,[],[])).
+    option(strategy(Strategy),Settings),option(intensity(Intensity),Settings),option(period(Period),Settings).
+
 checked_callback(M,P,App,Closure,Request,State,Reply,Next) :-
     self(Self),actor_module(Self,Module),
     sandbox_policy:sandbox_call(M,P,Module,App,Closure,Request,State,Reply,Next).
@@ -149,8 +161,11 @@ spawn_child_locked(Goal,Sources,Pid) :-
         ['$entry_context'(caller),link(true),src_list([])|CleanSources]).
 run_child(Goal) :-
     self(Self),actor_module(Self,Module),isolation:run_actor_query(Module,Goal).
+% A nested supervisor has no source to materialize here. Its preparation
+% starts descendants, which take the leaf-source lock in their own threads.
+% Holding that lock across this readiness wait would deadlock the tree.
 spawn_nested(Children,Settings,Pid) :-
-    with_mutex('$remote_supervisor_start',remote_supervisor:spawn_nested_locked(Children,Settings,Pid)).
+    spawn_nested_locked(Children,Settings,Pid).
 spawn_nested_locked(Children,Settings,Pid) :-
     copy_term(Children-Settings,CleanChildren-CleanSettings),
     spawn_runtime(remote_supervisor:run(CleanChildren,CleanSettings),Pid,

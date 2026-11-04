@@ -1,12 +1,15 @@
 % SPDX-License-Identifier: MIT
 :- module(swi_remote_chart_interop,[run/4,run_uri/4]).
+:- use_module(library(uri)).
 run(HomePort,PeerPort,SourcePort,NodeFile) :-
  format(atom(URI),'http://localhost:~w/examples/statecharts/01%20pause-and-resume.xml',[SourcePort]),
  run_uri(HomePort,PeerPort,URI,NodeFile).
 run_uri(HomePort,PeerPort,URI,NodeFile) :-
  use_module(NodeFile),file_directory_name(NodeFile,Dir),
  directory_file_path(Dir,'web_prolog/statechart_actor.pl',ChartFile),use_module(ChartFile,[]),
- node:node(HomePort,[profile(actor),auth(open)]),
+ uri_components(URI,Components),uri_data(scheme,Components,Scheme),uri_data(authority,Components,Authority),
+ format(atom(SourceOrigin),'~w://~w',[Scheme,Authority]),
+ node:node(HomePort,[profile(actor),auth(open),load_uri_allowed_origins([SourceOrigin]),load_uri_allowed_ip_ranges(['127.0.0.0/8'])]),
  format(atom(URL),'http://localhost:~w',[PeerPort]),
  thread_create(swi_remote_chart_interop:exercise(URL,URI),T,[]),thread_join(T,Status),
  (Status==true -> true;throw(compatibility_check_failed(Status))).

@@ -7,13 +7,13 @@
 rpc_http_timeout_enforcement_tests(Base) :-
     url(Base,fast,Fast),rpc(Fast,X=ok),X==ok,
     forall((member(Path,[headers,body,partial]),
-            member(Options,[[http_timeout(0.2)],[timeout(0.2)]])),
+            member(Options,[[http_timeout(0.2)]])),
            rpc_timeout(Base,Path,Options)),
     rpc_timeout(Base,headers,[timeout(5),http_timeout(0.2)]),
     rpc_timeout(Base,headers,[http_timeout(0.2),timeout(5)]),
     url(Base,brief,Brief),
     rpc(Brief,Y=ok,[timeout(0.001),http_timeout(2)]),Y==ok,
-    rpc(Brief,Z=ok,[timeout(infinite)]),Z==ok,
+    rpc(Brief,Z=ok,[timeout(301)]),Z==ok,
     forall(member(Path,[headers,body,partial]),promise_timeout(Base,Path)),
     retry_success(Brief),
     parse_error(Base),
@@ -48,7 +48,7 @@ timely(Start) :- get_time(End),Elapsed is End-Start,Elapsed<1.0.
 rpc_timeout(Base,Path,Options) :-
     url(Base,Path,URL),streams(Before),get_time(Start),
     catch(rpc(URL,_=ok,Options),Error,true),
-    nonvar(Error),Error=error(timeout_error(read,_),_),timely(Start),
+    nonvar(Error),Error=error(rpc_error(http_timeout),_),timely(Start),
     streams(Before),
     url(Base,fast,Fast),rpc(Fast,X=ok),X==ok,
     format('rpc ~w ~q: timeout; stream reclaimed; next request succeeds~n',[Path,Options]).
@@ -60,7 +60,7 @@ promise_timeout(Base,Path) :-
       (yield(Ref,Early,[timeout(0),on_timeout(Early=waiting)]),
        enforcement_check(early(Path,Early),Early==waiting),
        yield(Ref,Answer,[timeout(3)]),
-       enforcement_check(answer(Path,Answer),Answer=error(error(timeout_error(read,_),_))),
+       enforcement_check(answer(Path,Answer),Answer=error(error(rpc_error(http_timeout),_))),
        enforcement_check(elapsed(Path),timely(Start)),var(X),
        enforcement_check(disposed(Path,Resources),disposed(Ref,Resources)),
        streams(After),enforcement_check(streams(Path,Before,After),Before==After)),

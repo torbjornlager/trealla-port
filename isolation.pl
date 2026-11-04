@@ -113,6 +113,8 @@ read_stream_bytes(Stream, Bytes) :-
     ; Bytes = [Byte|Rest], read_stream_bytes(Stream, Rest)
     ).
 
+:- multifile prepare_activation_goal/5.
+
 run_actor(Pid, GoalModule, Goal, Options, Parent) :-
     fresh_namespace(Module),
     actors:make_ref(PrepareToken),
@@ -122,8 +124,8 @@ run_actor(Pid, GoalModule, Goal, Options, Parent) :-
             in_temporary_module(
                 Module,
                 isolation:prepare_actor_and_signal(
-                    Pid, GoalModule, Options, Module, Parent, PrepareToken),
-                isolation:run_actor_goal(Module, Goal, Options)),
+                    Pid, GoalModule, Goal, Options, Module, Prepared, Parent, PrepareToken),
+                isolation:run_prepared_actor_goal(Module, Prepared, Options)),
             forget_actor_module(Pid, Module)),
         '$actor_prepare_error'(PrepareToken, Error),
         ( actors:actor_send(
@@ -131,9 +133,11 @@ run_actor(Pid, GoalModule, Goal, Options, Parent) :-
           throw(Error)
         )).
 
-prepare_actor_and_signal(Pid, GoalModule, Options, Module, Parent,
+prepare_actor_and_signal(Pid, GoalModule, Goal, Options, Module, Prepared, Parent,
                          PrepareToken) :-
     catch((prepare_actor_module(Pid, GoalModule, Options, Module),
+           (prepare_activation_goal(Pid,GoalModule,Module,Goal,Continuation)
+           -> Prepared=framework(Continuation);Prepared=application(Goal)),
            actors:publish_spawn_name(Pid,Options),
            actors:signal_actor_started(Pid,Parent)),
           Error,
@@ -181,6 +185,9 @@ prepare_actor_bootstrap(Module, [], none) :- !,
 prepare_actor_bootstrap(Module, _, _) :-
     bootstrap_text(Module, Bootstrap),
     load_text(Bootstrap, [module(Module)]).
+
+run_prepared_actor_goal(_, framework(Continuation), _) :- !, call(Continuation).
+run_prepared_actor_goal(Module, application(Goal), Options) :- run_actor_goal(Module,Goal,Options).
 
 run_actor_goal(Module, Goal0, Options) :-
     ( memberchk('$entry_context'(caller), Options)
