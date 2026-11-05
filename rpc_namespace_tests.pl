@@ -26,6 +26,7 @@ expect_missing(Ref) :- catch(yield(Ref,_),E,true),nonvar(E),E=error(existence_er
 rpc_namespace_tests :-
     namespace_disposal_resources,
     namespace_disposal_collector,
+    namespace_late_completion,
     namespace_disposal_error_continuation,
     forall(between(1,20,_),namespace_creation_race),
     writeln('Namespace promise disposal: all regressions passed').
@@ -56,6 +57,16 @@ namespace_disposal_resources :-
     writeln('pending/ready resources reclaimed; survivors, callbacks, retry and other owners preserved: ok').
 
 has_collector(Ref) :- once(rpc:promise_state(Ref,_,_,_,C,_,_)),C\==none.
+namespace_late_completion :-
+    namespace_tests:new_scope(NS,P),create_in_scope(P,Ref,R),
+    web_prolog:retire_websocket_namespace(NS),
+    % Deliver an answer that escaped cancellation after retirement committed.
+    rpc:deliver_promise_answer(Ref,success([late],false)),
+    assert_disposed(Ref,R),
+    namespace_tests:run_scope(P,rpc_namespace_tests:expect_missing(Ref),ok),
+    web_prolog:retire_websocket_namespace(NS),assert_disposed(Ref,R),
+    namespace_tests:run_scope(P,true,ok),namespace_tests:stop_scope(P),
+    writeln('completion after namespace closure cannot republish; actor survives: ok').
 namespace_disposal_collector :-
     namespace_tests:new_scope(NS,P),create_in_scope(P,Ref,R),make_ref(Request),
     P ! run(Request,yield(Ref,_)),await(rpc_namespace_tests:has_collector(Ref),200),
