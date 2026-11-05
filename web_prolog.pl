@@ -105,6 +105,7 @@ Inference/stack ceilings and OS-level containment remain necessary.
 :- dynamic browser_io_pending/3.
 :- dynamic browser_io_prompt/3.
 :- dynamic browser_actor_capability/3.
+:- dynamic browser_context_transport/1.
 
 :- catch(mutex_create(_, [alias('$browser_terminal_io')]),
          error(permission_error(create, mutex,
@@ -229,6 +230,7 @@ read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
     ).
 
 close_connection(Relay) :-
+    retractall(browser_context_transport(Relay)),
     close_browser_io(Relay),
     connection_owned_actors(Relay, OwnedActors),
     Relay ! '$ws_close',
@@ -326,7 +328,7 @@ dispatch_text(Text, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
 % Correlation belongs to this command, including admission/startup errors.
 % Non-spawn commands and legacy senders keep their original error path.
 spawn_reply_context(Command, JSON, Context) :-
-    ( memberchk(Command, [spawn,toplevel_spawn]),
+    ( memberchk(Command, [spawn,toplevel_spawn,context_close]),
       json_field(JSON, request_id, Value)
     -> ( Value = string(Chars)
        -> atom_chars(Id, Chars), Context = request(Id)
@@ -347,6 +349,9 @@ dispatch_governed(Command, JSON, Relay, Reader, Profile, Sandbox,
     receiver_lineage:with_wire_context(JSON, Relay, Principal, Command,
         web_prolog:dispatch(Command, JSON, Relay, Reader, Profile, Sandbox)).
 
+require_open_browser_context(Relay) :-
+    actors:actor_namespace(Relay,NS),actors:ensure_registry_namespace_open(NS).
+
 enforce_spawn_rate_limit(Command, Principal, Identity) :-
     ( Command == toplevel_spawn
     -> enforce_session_spawn_rate_limit(Principal, Identity)
@@ -356,17 +361,26 @@ enforce_spawn_rate_limit(Command, Principal, Identity) :-
 dispatch(lineage_close, _, _, _, _, _) :- !,
     actors:current_actor_namespace(Namespace),
     receiver_lineage:close_namespace(Namespace).
+dispatch(context_close, JSON, Relay, _, _, _) :- !,
+    json_text_field(JSON,request_id,RequestId),
+    (browser_context_transport(Relay) -> true;
+     throw(error(permission_error(use,browser_context,context_close),_))),
+    actors:actor_namespace(Relay,Namespace),
+    retire_websocket_namespace(Namespace),
+    Relay ! '$context_closed'(RequestId).
 dispatch(transport_hello, JSON, Relay, Reader, Profile, Sandbox) :- !,
     json_integer_default(JSON, version, 1, Version),
     json_boolean_default(JSON, io_ack, false, IoAck),
     json_boolean_default(JSON, answer_terms, false, AnswerTerms),
     ( Version =:= 1 ->
+        (browser_context_transport(Relay) -> true;assertz(browser_context_transport(Relay))),
         relay_request(Relay, '$transport_hello'(Version, IoAck, AnswerTerms, Profile, Sandbox, Reader)),
         thread_get_message(Reader, '$transport_ready'(Relay))
     ; throw(error(domain_error(web_prolog_protocol_version, Version),
                   web_prolog_handler/2))
     ).
 dispatch(toplevel_spawn, JSON, Relay, _, Profile, Sandbox) :- !,
+    require_open_browser_context(Relay),
     json_options(JSON, Options0),
     toplevel_actors:validate_toplevel_spawn_options(Options0,public),
     sandbox_prepare_options(Sandbox, Profile, actor_context,
@@ -403,6 +417,7 @@ dispatch(browser_io_reply, JSON, Relay, _, _, _) :- !,
                   web_prolog_handler/2))
     ).
 dispatch(spawn, JSON, Relay, Reader, Profile, Sandbox) :- !,
+    require_open_browser_context(Relay),
     json_term_field(JSON, goal, Goal0),
     import_browser_pids(Goal0, Relay, Goal),
     json_options(JSON, Options0),
@@ -585,6 +600,13 @@ relay_loop(WS) :-
             )
     }, []).
 
+% Closing scopes stops creation, not interaction with surviving actors.
+relay_scope_admission('$toplevel_call'(_,_,_,_,_),_) :- !.
+relay_scope_admission('$ws_command'(Command,_),_) :-
+    memberchk(Command,[send,monitor,demonitor,exit,toplevel_call,toplevel_next,
+                       toplevel_stop,toplevel_abort,toplevel_halt,toplevel_respond]),!.
+relay_scope_admission(_,Namespace) :- receiver_lineage:ensure_open(Namespace).
+
 relay_message(WS,'$lineage'(NS,transport,Message)) :- !,
     actor_authority:with_transport_authority(
         web_prolog:relay_message(WS,'$lineage'(NS,Message))).
@@ -592,7 +614,7 @@ relay_message(WS,'$lineage'(NS,local,Message)) :- !,
     web_prolog:relay_message(WS,'$lineage'(NS,Message)).
 relay_message(WS, '$lineage'(Namespace,Message)) :- !,
     catch(actors:with_actor_namespace(Namespace,
-              (receiver_lineage:ensure_open(Namespace),
+              (relay_scope_admission(Message,Namespace),
                once(web_prolog:relay_message(WS,Message)))),
           Error, web_prolog:lineage_command_error(WS,Message,Error)).
 relay_message(_, '$ws_close') :- !,
@@ -609,6 +631,8 @@ relay_message(WS, '$transport_hello'(Version, IoAck, AnswerTerms, Profile, Sandb
     relay_set_answer_terms(AnswerTerms),
     send_event(WS, transport_welcome(Version, Profile, Sandbox, AnswerTerms)),
     thread_send_message(Reader, '$transport_ready'(Relay)).
+relay_message(WS, '$context_closed'(RequestId)) :- !,
+    send_event(WS, context_closed(RequestId)).
 relay_message(WS, '$peer_close'(Code, Reason)) :- !,
     catch(ws_send(WS, close(Code, Reason)), _, true),
     true.
@@ -1085,13 +1109,15 @@ event_json(transport_welcome(Version, Profile), JSON) :- !,
 event_json(transport_welcome(Version, Profile, Sandbox), JSON) :- !,
     object([type-string_atom(transport_welcome),
             protocol-string_atom(web_prolog_browser_actor),
-            io_ack-boolean(true), browser_pids-boolean(true),
+            io_ack-boolean(true), browser_pids-boolean(true), context_close-boolean(true),
             profile-string_atom(Profile),
             sandbox-string_atom(Sandbox),
             version-number(Version)], JSON).
 event_json(transport_welcome(Version, Profile, Sandbox, AnswerTerms), JSON) :- !,
     event_json(transport_welcome(Version, Profile, Sandbox), Base),
     json_add_field(Base, answer_terms-boolean(AnswerTerms), JSON).
+event_json(context_closed(RequestId), JSON) :- !,
+    object([type-string_atom(context_closed),request_id-string_atom(RequestId)],JSON).
 event_json(actor_message(Target, Message), JSON) :- !,
     term_wire_atom(Target, TargetText),
     ( nonvar(Message), Message = '$toplevel_reply'(_,_) -> canonical_answer_text(Message, MessageText)
@@ -1271,6 +1297,7 @@ import_browser_pids(Term0, Relay, Term) :-
 
 browser_wire_pid(Id@localhost, Id) :-
     integer(Id), Id >= 1000000000, Id =< 9999999999.
+browser_wire_pid(Id@localhost, Id) :- nonvar(Id),memberchk(Id,[main,statechart]).
 
 local_server_wire_pid(Id@Node, _Relay, RuntimePid) :-
     integer(Id), Id >= 1000000000, Id =< 9999999999,

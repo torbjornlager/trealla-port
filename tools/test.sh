@@ -214,6 +214,8 @@ run_unit() {
         "$TPL" -g "(catch((consult('$ROOT/remote_named_tests.pl'),remote_named_tests:remote_named_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "receiver delegated lineage cleanup" \
         "$TPL" -g "(catch((consult('$ROOT/receiver_lineage_tests.pl'),receiver_lineage_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "browser context transport closure" \
+        "$TPL" -g "(catch((consult('$ROOT/browser_context_tests.pl'),browser_context_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "WebSocket namespace promise disposal" \
         "$TPL" -g "(catch((consult('$ROOT/rpc_namespace_tests.pl'),rpc_namespace_tests:rpc_namespace_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "WebSocket namespace teardown" \

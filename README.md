@@ -497,6 +497,15 @@ Extensions such as `permessage-deflate` remain unsupported.
 
 ## Native Web Prolog protocol
 
+Browser transport welcomes advertise `context_close:true`. A negotiated client
+can retire its own connection's ordinary-name and promise scopes with
+`context_close` plus a request ID; `context_closed` acknowledges retirement.
+The command cannot select another client's namespace. Existing actors and
+interactions survive; late creation is rejected. Browser `main@localhost` and
+`statechart@localhost` recipients use the same connection-bound return route as
+Worker recipients. Closing a transport remains a separate teardown operation.
+
+
 `web_prolog.pl` implements the protocol specified by the Trinity demonstrator
 in `prolog/web_prolog/node_ws.pl`, `remote_protocol.pl`, and
 `docs/CROSS_NODE_ARCHITECTURE.md`.  It is native Trealla code and uses no
