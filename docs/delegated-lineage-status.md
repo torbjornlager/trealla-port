@@ -1,6 +1,7 @@
 # Delegated-lineage receiver status
 
-Checked on 21 October 2026, through commit `5cbb64d`.
+Updated 5 November 2026 for the native retained-context repair.
+The October commit references below record the original receiver implementation.
 This replaces the temporary handover document. The implementation and test
 sources are authoritative; this note records the supported boundary and the
 remaining diagnostics.
@@ -17,7 +18,10 @@ remaining diagnostics.
   late creation, and reclaim local actors on lineage or connection closure.
 - `5cbb64d`: retain the standalone repeated-exit reproducer and raw observations.
 
-Lineage identity is connection-scoped. Explicit closure preserves other lineages,
+Origin-bearing context identity spans transport attachments and remote descendants.
+Returning descendants rejoin the origin namespace; closure rejects late origin
+replay. Outgoing transports and routes are scoped per context. Legacy lineage-only
+traffic remains connection-scoped. Explicit closure preserves other contexts,
 legacy actors on the connection and unrelated monitor references. Local children
 with `link(false)` still belong to their lineage. Children preparing source are
 rejected before activation once preparation finishes under existing loader limits.

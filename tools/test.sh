@@ -12,7 +12,7 @@
 #
 # Select the Trealla executable with TPL=/path/to/tpl.  TEST_TIMEOUT controls
 # the per-process timeout in seconds; interoperability ports can be overridden
-# with TEST_PORT_BASE.
+# with TEST_PORT_BASE; TEST_STARTUP_DELAY controls one-shot listener startup waits.
 
 set -u
 
@@ -20,6 +20,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 TPL=${TPL:-tpl}
 SWIPL=${SWIPL:-swipl}
 TEST_TIMEOUT=${TEST_TIMEOUT:-30}
+TEST_STARTUP_DELAY=${TEST_STARTUP_DELAY:-0.2}
 # Keep listeners below Linux's default ephemeral range so earlier clients
 # cannot take a port that a later fixture still needs to bind.
 TEST_PORT_BASE=${TEST_PORT_BASE:-22060}
@@ -156,6 +157,8 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/first_solution_determinism_tests.pl'),(catch(first_solution_determinism_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "source-less toplevel worker routing" \
         "$TPL" -g "consult('$ROOT/public_worker_routing_tests.pl'),(catch(public_worker_routing_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "owner peer transport configuration" \
+        python3 "$ROOT/tools/test-peer-transport.py" --tpl "$TPL"
     run_with_timeout "retired deployment page cap" \
         env WP_MAX_SOLUTIONS=100 "$TPL" -g "consult('$ROOT/Deployment/start_node.pl'),(catch(deployment_start:reject_retired_page_cap,E,true),E=error(domain_error(retired_environment_variable,'WP_MAX_SOLUTIONS'),_)->halt;halt(1))"
     page_size_port=$((TEST_PORT_BASE + 85))
@@ -343,7 +346,7 @@ run_interop() {
     # This fixture accepts exactly one TCP connection.  A readiness probe
     # would consume it, so give the listener a moment and verify its process
     # is still alive instead.
-    sleep 0.2
+    sleep "$TEST_STARTUP_DELAY"
     kill -0 "$trealla_echo_pid" 2>/dev/null || fail "Trealla echo server did not start on port $reverse_port"
     run_with_timeout "SWI client -> Trealla WebSocket" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
@@ -370,11 +373,11 @@ run_interop() {
     wait_for_port "$source_port" || fail "SWI source fixture did not start on port $source_port"
 
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_protocol_port,[load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8']),max_source_text_bytes(128)]),thread_get_message(stop)"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_protocol_port,[bearer_token(peer,'lineage-test-peer',[execute,internal_transport]),peer_transport_tokens(['http://127.0.0.1:$trealla_remote_port'-'lineage-test-peer']),load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8']),max_source_text_bytes(128)]),thread_get_message(stop)"
     trealla_protocol_pid=$STARTED_PID
     # The native node treats a bare TCP readiness probe as a malformed HTTP
     # request and logs unexpected_eof. Avoid adding noise to successful runs.
-    sleep 0.2
+    sleep "$TEST_STARTUP_DELAY"
     kill -0 "$trealla_protocol_pid" 2>/dev/null || fail "Trealla protocol node did not start on port $trealla_protocol_port"
     run_with_timeout "SWI client -> Trealla protocol node" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
@@ -465,9 +468,9 @@ run_interop() {
     fi
 
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port,[bearer_token(peer,'lineage-test-peer',[execute,internal_transport]),load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8'])]),thread_get_message(stop)"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port,[peer_transport_tokens(['http://127.0.0.1:$trealla_protocol_port'-'lineage-test-peer']),bearer_token(peer,'lineage-test-peer',[execute,internal_transport]),load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8'])]),thread_get_message(stop)"
     trealla_remote_pid=$STARTED_PID
-    sleep 0.2
+    sleep "$TEST_STARTUP_DELAY"
     kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
     if [ -f "$TRINITY_NODE_FILE" ]; then
         run_with_timeout "Browser copied/inline format: Trealla -> SWI" \

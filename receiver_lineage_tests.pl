@@ -28,7 +28,7 @@ expect_error(Goal,Pattern) :- catch(call(Goal),Error,true),nonvar(Error),Error=P
 :- meta_predicate expect_error(0,+).
 
 run :-
-    diagnostic_checks,race_batch(after_prefix,20),
+    diagnostic_checks,stable_contexts,race_batch(after_prefix,20),
     writeln('Receiver delegated lineage: all regressions passed').
 
 race_prefix :-
@@ -88,7 +88,7 @@ namespace_isolation :-
     in_lineage(Relay,a,receiver_lineage:check_actor(Child)),
     receiver_lineage:close_namespace(NS),receiver_lineage:close_namespace(NS),
     receive({down(Root,Root,kill) -> true},[timeout(2),on_timeout(fail)]),assert_gone(Child),
-    whereis(Name,undefined),whereis(OtherName,OtherChild),
+    whereis(Name,undefined),in_lineage(Relay,b,whereis(OtherName,OtherChild)),
     rpc_namespace_tests:assert_disposed(Ref,Resources),rpc:promise_active(Kept),
     actors:actor_thread(Other,_),actors:actor_thread(OtherChild,_),actors:actor_thread(Separate,_),
     expect_error(in_lineage(Relay,a,true),error(permission_error(register,closed_namespace,NS),_)),
@@ -245,3 +245,47 @@ preparation_race(Kind) :-
     receive({unexpected_goal_execution -> fail},[timeout(0),on_timeout(true)]),
     \+ actors:actor_namespace(_,NS),close_relay(Base,Relay),
     format('closure during ~w preparation rejects activation and wakes creator: ok~n',[Kind]).
+
+% Stable context identity is independent of principal and transport identity.
+context_wire(Origin,Token,Account,Default,JSON) :-
+    web_prolog:object([lineage-string_atom(Token),account-string_atom(Account),
+        context_origin-string_atom(Origin),context_default-boolean(Default)],JSON).
+:- meta_predicate context_call(+,+,+,0).
+context_call(Relay,JSON,Command,Goal) :-
+    peer(P),receiver_lineage:with_wire_context(JSON,Relay,P,Command,call(Goal)).
+
+stable_contexts :-
+    new_relay(Base,A),new_relay(OtherBase,B),
+    token(a,T),token(b,Account),Origin='http://foreign-context.test',
+    context_wire(Origin,T,Account,true,JSON),
+    context_call(A,JSON,transport_hello,actors:current_actor_namespace(NS)),
+    context_call(B,JSON,transport_hello,actors:current_actor_namespace(Again)),NS==Again,
+    context_call(A,pairs([]),spawn,actors:current_actor_namespace(NS)),
+    context_wire(Origin,Account,Account,true,Other),
+    expect_error(context_call(A,Other,transport_hello,true),
+        error(permission_error(rebind,client_context,A),_)),
+    context_wire(Origin,T,T,false,WrongAccount),
+    expect_error(context_call(B,WrongAccount,spawn,true),
+        error(permission_error(rebind,client_account,T),_)),
+    context_wire('http://late-context.test',T,Account,false,LateJSON),
+    context_call(A,LateJSON,lineage_close,
+        (actors:current_actor_namespace(Closed),receiver_lineage:close_namespace(Closed))),
+    expect_error(context_call(A,LateJSON,spawn,true),
+        error(permission_error(register,closed_namespace,Closed),_)),
+    close_relay(Base,A),receiver_lineage:ensure_open(NS),
+    close_relay(OtherBase,B),
+    expect_error(receiver_lineage:ensure_open(NS),error(permission_error(register,closed_namespace,NS),_)),
+    new_relay(Root,RootRelay),new_relay(ReturnBase,ReturnRelay),
+    asserta(web_prolog:node_public_url('http://context-origin.test'),URLRef),
+    setup_call_cleanup(true,
+        (receiver_lineage:open_client_namespace(Root,principal(client,[execute])),
+         actors:with_actor_namespace(Root,receiver_lineage:transport_fields(Fields)),
+         web_prolog:object(Fields,ReturnJSON),
+         context_call(ReturnRelay,ReturnJSON,transport_hello,actors:current_actor_namespace(Root)),
+         close_relay(ReturnBase,ReturnRelay),receiver_lineage:ensure_open(Root),
+         close_relay(Root,RootRelay),
+         new_relay(LateBase,LateRelay),
+         expect_error(context_call(LateRelay,ReturnJSON,spawn,true),
+             error(permission_error(use,closed_client_context,_),_)),
+         close_relay(LateBase,LateRelay)),erase(URLRef)),
+    writeln('stable contexts: attachments, defaults, account binding, root return and replay rejection: ok').

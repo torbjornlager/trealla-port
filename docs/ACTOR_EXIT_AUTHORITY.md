@@ -5,13 +5,15 @@ or a distribution hook can take over. WebSocket command authorization alone
 does not protect predicates invoked by an admitted submitted goal.
 
 The policy hook in `actor_authority.pl` uses the actor's inherited client
-namespace, including delegated `ws_lineage` contexts. Siblings in one namespace
+namespace, including foreign delegated contexts. Siblings in one namespace
 can terminate one another. A separate connection is a separate scope even
 when the authenticated account is the same. A known remote route alone does
 not grant termination authority: linked remote work must belong to a parent
 in the caller's scope, or the caller must have node-owner authority.
 
-Authenticated administrator namespaces retain broader authority. Their marker
+Authenticated administrator namespaces retain broader authority for local work.
+Transport commands and their descendants explicitly narrow that authority, even
+when returning to the administrator’s original context. Their marker
 is maintained by trusted connection/request setup, retained while cached HTTP
 actors remain, and retired after their last actor stops. Standalone unscoped
 local callers retain the unrestricted library API. Admission still restricts

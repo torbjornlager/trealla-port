@@ -137,6 +137,7 @@ web_prolog_node(Port, Options) :-
     findall(File, member(load_shared_db_file(File), Options), SharedDBFiles),
     configure_shared_db(SharedDBFiles),
     configure_node_url(Port, Options, PublicURL),
+    receiver_lineage:configure_transport(Options),
     public_url_options(Options, PublicURL, NodeOptions),
     option(websocket_options(WSOptions), NodeOptions, []),
     node(Port, web_prolog_handler(Profile, Sandbox),
@@ -188,7 +189,8 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
     make_ref(NamespaceId),
     Namespace = ws_client(NamespaceId),
     setup_call_cleanup(
-        actor_authority:open_namespace(Namespace, Principal),
+        (actor_authority:open_namespace(Namespace, Principal),
+         receiver_lineage:open_client_namespace(Namespace, Principal)),
         ( actors:spawn_scoped(
               relay_start(WS, Principal, Identity, AnswerTerms), Relay,
               [link(false)], Namespace, internal),
@@ -445,8 +447,8 @@ dispatch(Command, _, _, _, _, _) :-
 % Queue the validated context with the command; the relay multiplexes lineages.
 relay_request(Relay, Message) :-
     actors:current_actor_namespace(Namespace),
-    (Namespace=ws_lineage(_,_) -> Relay ! '$lineage'(Namespace,Message)
-    ; Relay ! Message).
+    (actor_authority:restricted_authority -> Authority=transport ; Authority=local),
+    Relay ! '$lineage'(Namespace,Authority,Message).
 
 relay_command(toplevel_call, JSON, Relay) :- !,
     owned_pid(JSON, Relay, session, Pid),
@@ -550,6 +552,9 @@ send_target(JSON, _Relay, service(Name)) :-
     atom(Name),
     actors:published_service_target(Name, _),
     !.
+send_target(JSON,Relay,actor(Pid)) :-
+    receiver_lineage:transport_connection(Relay),
+    json_pid_field(JSON,pid,Pid),integer(Pid),actors:actor_thread(Pid,_),!.
 send_target(JSON, Relay, actor(Pid)) :-
     owned_pid(JSON, Relay, any, Pid).
 
@@ -582,6 +587,11 @@ relay_loop(WS) :-
             )
     }, []).
 
+relay_message(WS,'$lineage'(NS,transport,Message)) :- !,
+    actor_authority:with_transport_authority(
+        web_prolog:relay_message(WS,'$lineage'(NS,Message))).
+relay_message(WS,'$lineage'(NS,local,Message)) :- !,
+    web_prolog:relay_message(WS,'$lineage'(NS,Message)).
 relay_message(WS, '$lineage'(Namespace,Message)) :- !,
     catch(actors:with_actor_namespace(Namespace,
               (receiver_lineage:ensure_open(Namespace),

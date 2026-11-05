@@ -919,27 +919,31 @@ entering a later spawn wait. The results and remaining repair boundaries are rec
 They do not prevent the local synchronous tutorial example, or the verified
 Trealla-to-SWI and browser-to-SWI paging paths. Native spawn-error selection
 now uses explicit capability negotiation. Receiver-side delegated-lineage cleanup
-is described below; downstream delegation remains separate.
+is described below.
 
-### Receiving delegated lifetimes from native SWI
+### Native retained-context propagation
 
 See [receiver status and verification](docs/delegated-lineage-status.md) for the
 implemented commits, current checks and remaining diagnostics.
 
 An authenticated node transport with `internal_transport` authority may supply
-SWI's existing `lineage` and optional `account` fields. Both identifiers must be
-32 hexadecimal characters. The default open endpoint does not grant this
-authority: configure peer bearer credentials or the existing trusted-header
-boundary explicitly. No deployment credentials or trust policy are changed by
-this repair. Lineage identity is scoped to the accepted connection;
-reusing a token on another connection does not share ownership. The account field
-is validated, but Trealla retains its existing resource accounting rather than
-claiming SWI's aggregate delegated-account implementation.
+`lineage`, `account`, and `context_origin` fields. Both identifiers must be
+32 hexadecimal characters; the origin is the node URI that minted the context.
+The default open endpoint does not grant this authority: configure peer bearer
+credentials with `peer_transport_tokens([NodeURI-Token,...])` and corresponding
+receiver bearer tokens, or use the existing trusted-header boundary.
+
+Context identity is independent of the accepted connection. Descendants preserve
+its origin and token across further nodes, and returning descendants rejoin the
+original namespace. Unknown origin-local tokens are rejected after closure.
+Legacy peers that omit `context_origin` retain connection-scoped lineage identity.
+The account field is validated and preserved; Trealla retains its existing
+resource accounting rather than claiming SWI's aggregate delegated-account policy.
 
 The receiver carries the lineage with queued commands and installs it during
 actor creation. Local descendants inherit that namespace, including children
-created with `link(false)`. Ordinary name lookup and uniqueness remain node-wide;
-registration ownership and promise access distinguish the delegated namespaces.
+created with `link(false)`. Ordinary names, reservations, and promises belong to
+the client context; services remain node-wide.
 Actor control and monitor removal through the relay respect those boundaries.
 
 `lineage_close` closes admission, removes that namespace's registrations and name
@@ -949,7 +953,8 @@ so a racing creation is either included in cleanup or rejected. Children still
 preparing source reach a closed-namespace startup error before entering their
 goal; preparation retains the existing loader limits. Repeated closure
 is harmless; later requests for the closed lineage are rejected. Closing the
-connection closes every delegated namespace on it. Other lineages, connections,
+last attachment closes the foreign delegated namespace. A returning attachment
+does not own the lifetime of the original client namespace. Other contexts,
 legacy actors and unrelated monitor references are preserved by explicit lineage
 closure. Toplevels in the lineage terminate too, whether they are executing a
 query or waiting between pages; termination is reported by the normal `down`
@@ -957,11 +962,13 @@ notification rather than as a query error. The command carries no new
 completion acknowledgement: termination notifications remain the way to observe
 actor termination.
 
-This is **receiver-side support**. Trealla does not yet propagate this ownership
-to further remote nodes or forward lineage closure through them. It provides no
-blanket remote cancellation or no-orphan guarantee. Commands without lineage
-metadata retain the existing connection behaviour; public browser clients cannot
-assert transport lineage authority.
+Outgoing connections and routes are cached per context. A dedicated connection
+binds its default context during authenticated `transport_hello`; later commands
+inherit that binding. Closing a context closes its outgoing routes, propagating
+connection loss to descendants. Transport bindings cannot be rebound, and remote
+descendants never inherit administrator authority. This does not promise remote
+cancellation during a network partition. Public browser clients cannot assert
+transport context authority.
 
 `receiver_lineage_tests.pl` covers validation, sandbox boundaries, context
 restoration, detached descendants, names, promises, repeated closure, queued and

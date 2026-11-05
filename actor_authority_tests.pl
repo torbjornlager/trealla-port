@@ -6,7 +6,7 @@
 
 actor_authority_tests :-
     foreign_exit_is_denied,
-    owner_exit_is_allowed,
+    owner_exit_is_allowed,transport_cannot_borrow_owner_authority,
     trusted_exit_is_allowed,
     remote_route_is_not_authority,
     writeln('Actor exit authority: all regressions passed').
@@ -58,3 +58,17 @@ remote_route_is_not_authority :-
          Outcome==thrown,nonvar(E),E=error(permission_error(exit,actor,Remote),_)),
         (retractall(actors:link(Self,Remote)),
          retractall(actors:actor_namespace(Self,ws_client(remote_owner))))).
+
+transport_cannot_borrow_owner_authority :-
+    make_worker(ws_client(transport_other),Target),
+    NS=ws_client(transport_owner),
+    actor_authority:open_namespace(NS,principal(owner,[admin])),
+    self(Parent),
+    actors:with_actor_namespace(NS,
+        actor_authority:with_transport_authority(
+            spawn((catch(exit(Target,forbidden),E,true),send(Parent,transport_result(E))),P,[monitor(true)]))),
+    receive({transport_result(Error)->true},[timeout(2),on_timeout(fail)]),
+    nonvar(Error),Error=error(permission_error(exit,actor,Target),_),
+    receive({down(P,P,true)->true},[timeout(2),on_timeout(fail)]),
+    actors:actor_thread(Target,_),actor_authority:close_namespace(NS),
+    exit(Target,done),receive({down(Target,Target,done)->true},[timeout(2),on_timeout(fail)]).

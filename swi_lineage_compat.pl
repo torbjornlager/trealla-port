@@ -32,7 +32,7 @@ checks(URL,WSURL,Observer) :-
     setup_call_cleanup(websocket:http_open_websocket(WSURL,WS,Opts),
         swi_lineage_compat:wire_checks(WS,Observer,O.pid),
         catch(websocket:ws_close(WS,1000,"done"),_,true)),
-    eventually_query(Observer,O.pid,"whereis(lineage_child_b,undefined),whereis(lineage_root_b,undefined)",50),
+    eventually_query(Observer,O.pid,"whereis(lineage_child_b,P),P==undefined,whereis(lineage_root_b,Q),Q==undefined",50),
     native_checks(URL,Observer,O.pid),
     writeln('Native SWI -> Trealla delegated lineage compatibility: all checks passed').
 
@@ -41,7 +41,9 @@ wire_checks(WS,Observer,O) :-
     spawn_family(WS,A,"a",RootA),spawn_family(WS,B,"b",RootB),
     send(WS,_{command:spawn,goal:"self(Me),register(lineage_legacy,Me),receive({finish -> true})",request_id:"legacy"}),
     event(WS,spawned,Legacy),
-    eventually_query(Observer,O,"whereis(lineage_child_a,A),A\\==undefined,whereis(lineage_child_b,B),B\\==undefined,whereis(lineage_legacy,L),L\\==undefined",50),
+    query_in_lineage(WS,A,"whereis(lineage_child_a,P),P\\==undefined,whereis(lineage_child_b,Q),Q==undefined"),
+    query_in_lineage(WS,B,"whereis(lineage_child_b,P),P\\==undefined,whereis(lineage_child_a,Q),Q==undefined"),
+    eventually_query(Observer,O,"whereis(lineage_child_a,A),A==undefined,whereis(lineage_child_b,B),B==undefined,whereis(lineage_legacy,L),L==undefined",50),
     send(WS,_{command:exit,pid:RootB,lineage:A,reason:"kill"}),
     event(WS,error,Cross),sub_string(Cross.data,_,_,_,"permission"),
     send(WS,_{command:exit,pid:RootA,reason:"kill"}),
@@ -51,19 +53,22 @@ wire_checks(WS,Observer,O) :-
     send(WS,_{command:demonitor,lineage:A,ref:"kept(b)"}),
     send(WS,_{command:lineage_close,lineage:A}),
     down(WS,RootA,_),
-    eventually_query(Observer,O,"whereis(lineage_root_a,undefined),whereis(lineage_child_a,undefined),whereis(lineage_root_b,B),B\\==undefined,whereis(lineage_legacy,L),L\\==undefined",50),
+    query_in_lineage(WS,B,"whereis(lineage_root_b,P),P\\==undefined,whereis(lineage_child_b,Q),Q\\==undefined"),
+    query_legacy(WS,"whereis(lineage_legacy,P),P\\==undefined"),
+    eventually_query(Observer,O,"whereis(lineage_root_a,P),P==undefined,whereis(lineage_child_a,Q),Q==undefined",50),
     send(WS,_{command:lineage_close,lineage:A}),
     send(WS,_{command:spawn,lineage:A,goal:"true",request_id:"late"}),
     event(WS,error,Late),Late.request_id=="late",sub_string(Late.data,_,_,_,"closed_namespace"),
     send(WS,_{command:exit,lineage:B,pid:RootB,reason:"kill"}),
     down_ref(WS,RootB,"kept(b)"),
     send(WS,_{command:lineage_close,lineage:B}),
-    eventually_query(Observer,O,"whereis(lineage_child_b,undefined),whereis(lineage_legacy,L),L\\==undefined",50),
+    query_legacy(WS,"whereis(lineage_legacy,P),P\\==undefined"),
+    eventually_query(Observer,O,"whereis(lineage_child_b,P),P==undefined",50),
     % Closing either lineage did not end the legacy actor.
     send(WS,_{command:send,pid:Legacy.pid,message:"finish"}),down(WS,Legacy.pid,_),
     % Reopen a different lineage to test connection-wide cleanup too.
     spawn_family(WS,"cccccccccccccccccccccccccccccccc","b",_),
-    eventually_query(Observer,O,"whereis(lineage_child_b,B),B\\==undefined",50),
+    query_in_lineage(WS,"cccccccccccccccccccccccccccccccc","whereis(lineage_child_b,P),P\\==undefined"),
     writeln('Wire authority, multiplexing, late admission, legacy and monitor isolation: ok').
 
 spawn_family(WS,Lineage,Suffix,Pid) :-
@@ -89,12 +94,15 @@ native_owned_spawn(URL,Observer,O) :-
                                            [template(X),limit(1),timeout(3)])),
     (Answer=success(Top,[a],true),var(X) -> true
     ; throw(unexpected_native_toplevel_answer(Answer,X,Top))),
-    eventually_query(Observer,O,"whereis(native_lineage_root,P),P\\==undefined",50),
+    node_lifetime:with_context(Context,
+        toplevel_actors:toplevel_call_synch(Top,(whereis(native_lineage_root,P),P\==undefined),Found,[timeout(3)])),
+    Found=success(Top,_,false),
+    eventually_query(Observer,O,"whereis(native_lineage_root,P),P==undefined",50),
     node_lifetime:with_context(Context,
         distribution:remote_send_command(URL,_{command:lineage_close})),
     actors:receive({down(Pid,Pid,_) -> true},[timeout(5),on_timeout(fail)]),
     actors:receive({down(Top,Top,_) -> true},[timeout(5),on_timeout(fail)]),
-    eventually_query(Observer,O,"whereis(native_lineage_root,undefined)",50),
+    eventually_query(Observer,O,"whereis(native_lineage_root,P),P==undefined",50),
     writeln('Native distribution encoding, spawn-time monitor and lineage_close: ok').
 
 send(WS,Dict) :- websocket:ws_send(WS,json(Dict)).
@@ -114,3 +122,16 @@ query_result(WS,Reply) :-
     websocket:ws_receive(WS,Frame,[format(json)]),
     (memberchk(Frame.data.type,["success","failure","error"]) -> Reply=Frame.data
     ; query_result(WS,Reply)).
+
+% Positive name checks run in their own context; an independent observer must
+% see undefined. Do not constrain whereis/2's output before checking it.
+query_in_lineage(WS,Lineage,Goal) :-
+    send(WS,_{command:toplevel_spawn,lineage:Lineage,options:"[session(false)]"}),
+    event(WS,spawned,Top),
+    send(WS,_{command:toplevel_call,lineage:Lineage,pid:Top.pid,goal:Goal,options:"[template(ok),limit(1)]"}),
+    query_result(WS,R),R.type=="success".
+query_legacy(WS,Goal) :-
+    send(WS,_{command:toplevel_spawn,options:"[session(false)]"}),
+    event(WS,spawned,Top),
+    send(WS,_{command:toplevel_call,pid:Top.pid,goal:Goal,options:"[template(ok),limit(1)]"}),
+    query_result(WS,R),R.type=="success".

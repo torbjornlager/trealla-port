@@ -9,7 +9,7 @@ run :-
     snapshot(Expected),
     check_quoting,
     check_bootstrap_quoting,
-    check_output_export,
+    check_output_export,check_control_export,
     thread_self(Parent),
     setup_call_cleanup(
         thread_create(source_capture_tests:worker(Parent, Expected), Worker, []),
@@ -111,3 +111,20 @@ read_terms(Stream, Terms) :-
     read_term(Stream, Term, []),
     ( Term == end_of_file -> Terms = []
     ; Terms = [Term|Rest], read_terms(Stream, Rest) ).
+
+check_control_export :-
+    G=sandbox_policy:sandbox_control_catch(ctx,
+        sandbox_policy:sandbox_yield(m,p,c,a,Ref,Answer,[timeout(2)]),Error,
+        sandbox_policy:sandbox_spawn(m,p,c,a,send(Target,Error),Child,[])),
+    isolation:restore_actor_goal(G,Public),
+    Public=catch(yield(R,A,[timeout(2)]),E,spawn(send(T,E2),C,[])),
+    (var(Ref),R==Ref,A==Answer,E==Error,E2==Error,T==Target,C==Child
+    -> true ; throw(control_export_variable_sharing)),
+    isolation:source_terms_text([(collect(X,Y):-G)],Text),
+    isolation:restore_actor_options([src_text(Text),template(payload(Ref,Ref))],Options),
+    Options=[src_text(Restored),template(payload(Ref,Ref))],
+    open_string(Restored,In),read_term(In,Clause,[]),close(In),
+    Clause=(collect(_,_):-catch(yield(_,_,[timeout(2)]),V,spawn(send(_,V),_,[]))),
+    (var(X),var(Y) -> true ; throw(source_export_bound_input)),
+    % Source-looking application text is not parsed as a source option.
+    isolation:restore_actor_options([template(Text)],[template(Kept)]),Kept==Text.

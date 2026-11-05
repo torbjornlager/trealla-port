@@ -83,7 +83,9 @@ remote_node_open(URL0, remote_node(URL, Reader, Writer), Options) :-
     node_url_atom(URL0, URL),
     node_websocket_url(URL, WebSocketURL),
     self(Owner),
-    node_connection_options(Options, WebSocketOptions),
+    receiver_lineage:transport_options(URL,TransportOptions),
+    append(TransportOptions,Options,AllOptions),
+    node_connection_options(AllOptions, WebSocketOptions),
     web_prolog_connect(WebSocketURL, WS,
         [optional_subprotocols(['web-prolog-sync-spawn-v1','web-prolog-sync-v1']),selected_subprotocol(Selected)|WebSocketOptions]),
     ( memberchk(Selected,['web-prolog-sync-spawn-v1','web-prolog-sync-v1']) -> Sync = true ; Sync = false ),
@@ -151,7 +153,8 @@ remote_drop_connection(URL0) :-
     node_url_atom(URL0, URL),
     distribution_manager(Manager),
     self(Caller),
-    Manager ! '$node_lookup'(URL, Caller),
+    actors:current_actor_namespace(NS),
+    Manager ! '$node_lookup'(context(NS,URL), Caller),
     receive({ '$node_lookup_reply'(Manager, URL, Node) -> true }, []),
     ( Node == none -> true ; remote_node_close(Node) ).
 
@@ -187,7 +190,8 @@ remote_spawn_mode(Node, Goal0, RemotePid, Options0, Mode) :-
     isolation:rewrite_source_options(Options0, SourceModule, Options1),
     % Local validation may have rewritten both the entry goal and source
     % clauses. Send language terms; the destination installs its own guards.
-    isolation:restore_actor_goal(Goal0-Options1, SourceGoal-SourceOptions),
+    isolation:restore_actor_goal(Goal0-Options1, SourceGoal-Options2),
+    isolation:restore_actor_options(Options2,SourceOptions),
     strip_module(SourceGoal, _, Goal0Plain),
     exclude(local_spawn_option, SourceOptions, Options),
     portable_term_for_writer(Writer, Goal0Plain-Options,
@@ -275,7 +279,9 @@ remote_toplevel_spawn_mode(Node, RemotePid, Options0, Mode) :-
     Node = remote_node(URL, _Reader, Writer),
     self(Target),
     isolation:rewrite_source_options(Options1, SourceModule, Options2),
-    exclude(local_spawn_option, Options2, Options),
+    restore_actor_goal(Options2,Options3),
+    restore_actor_options(Options3,SourceOptions),
+    exclude(local_spawn_option, SourceOptions, Options),
     portable_term_for_writer(Writer,Options,PortableOptions),
     term_wire_atom(PortableOptions, OptionsText),
     add_inherited_io_fields([command-string_atom(toplevel_spawn),
@@ -300,8 +306,10 @@ remote_toplevel_call_routed(Node, RemotePid, Goal0, Options0) :-
 remote_toplevel_call_mode(Node, RemotePid, Goal0, Options0, Routing) :-
     node_wire_pid(Node, RemotePid, WirePid),
     Node = remote_node(_, _, Writer),
-    strip_module(Goal0, _, Goal0Plain),
-    exclude(local_call_option, Options0, Options),
+    restore_actor_goal(Goal0-Options0,RestoredGoal-RestoredOptions),
+    restore_actor_options(RestoredOptions,SourceOptions),
+    strip_module(RestoredGoal, _, Goal0Plain),
+    exclude(local_call_option, SourceOptions, Options),
     portable_term_for_writer(Writer, Goal0Plain-Options,
                              Goal-PortableOptions),
     goal_options_wire_atoms(Goal, PortableOptions, GoalText, OptionsText),
@@ -343,7 +351,9 @@ synchronous_remote(Kind,Node,Pid,Goal,FallbackModule,Answer,Options0,Routing) :-
     (Routing==caller -> RequestRef='$toplevel_sync'(FreshRef) ; RequestRef=FreshRef),
     MonitorRef='$sync_monitor'(RequestRef),
     (Routing==caller -> WireQuery=[target(Self)|Query] ; WireQuery=Query),
-    portable_term_for_writer(Writer,Goal-WireQuery,PortableGoal-PortableOptions),
+    restore_actor_goal(Goal-WireQuery,SourceGoal-SourceQuery0),
+    restore_actor_options(SourceQuery0,SourceQuery),
+    portable_term_for_writer(Writer,SourceGoal-SourceQuery,PortableGoal-PortableOptions),
     ( Kind == call -> Message='$call'(PortableGoal,['$request_ref'(RequestRef)|PortableOptions])
     ; Message='$next'(['$request_ref'(RequestRef)|PortableOptions]) ),
     web_prolog:canonical_answer_text(Message,Text),
@@ -490,9 +500,11 @@ remote_writer_start(WS, URL, Owner, capabilities(Sync,Correlated)) :-
     ( Ready == true -> remote_writer_loop(WS, URL) ; true ).
 
 send_transport_hello(WS) :-
-    web_prolog:object([command-string_atom(transport_hello),
+    receiver_lineage:transport_fields(ContextFields),
+    append(ContextFields,[command-string_atom(transport_hello),
                        version-number(1),browser_pids-boolean(true),
-                       io_ack-boolean(true),answer_terms-boolean(true)], JSON),
+                       io_ack-boolean(true),answer_terms-boolean(true)], Fields),
+    web_prolog:object(Fields, JSON),
     web_prolog_send(WS, JSON).
 
 remote_writer_loop(WS, URL) :-
@@ -1241,7 +1253,8 @@ take_node_option([Option|Options0], URL, [Option|Options]) :-
 transparent_node(URL, Node) :-
     distribution_manager(Manager),
     self(Caller),
-    Manager ! '$node_request'(URL, Caller),
+    actors:current_actor_namespace(NS),
+    Manager ! '$node_request'(context(NS,URL), Caller),
     receive({
         '$node_reply'(Manager, URL, Node) -> true ;
         '$node_error'(Manager, URL, Error) -> throw(Error)
@@ -1252,7 +1265,8 @@ remote_pid_writer(RemotePid, Writer, WirePid) :-
     integer(WirePid),
     distribution_manager(Manager),
     self(Caller),
-    Manager ! '$route_request'(RemotePid, Caller),
+    actors:current_actor_namespace(NS),
+    Manager ! '$route_request'(context(NS,RemotePid), Caller),
     receive({
         '$route_reply'(Manager, RemotePid, Writer) -> true ;
         '$route_missing'(Manager, RemotePid) -> fail
@@ -1274,7 +1288,8 @@ caller_prepare_target(transparent, WirePid, URL, Writer, Target, Options) :-
 manager_register_route(RemotePid, Writer) :-
     distribution_manager(Manager),
     self(Caller),
-    Manager ! '$route_register'(RemotePid, Writer, Caller),
+    actors:current_actor_namespace(NS),
+    Manager ! '$route_register'(context(NS,RemotePid), Writer, Caller),
     receive({ '$route_registered'(Manager, RemotePid) -> true }, []).
 
 manager_forget_node_if_running(URL, Writer) :-
@@ -1323,14 +1338,14 @@ distribution_manager_loop(Nodes, Routes) :-
           ( NextNodes = Nodes, NextRoutes = Routes )),
     distribution_manager_loop(NextNodes, NextRoutes).
 
-manager_message('$node_request'(URL, Caller), Nodes, Routes,
+manager_message('$node_request'(context(NS,URL), Caller), Nodes, Routes,
                 NextNodes, Routes) :- !,
-    ( select(node(URL, Node), Nodes, Rest), node_writer_running(Node) ->
-        NextNodes = [node(URL, Node)|Rest], Error = none
-    ; catch(remote_node_open(URL, Node), OpenError, true),
+    ( select(node(context(NS,URL), Node), Nodes, Rest), node_writer_running(Node) ->
+        NextNodes = [node(context(NS,URL), Node)|Rest], Error = none
+    ; catch(actors:with_actor_namespace(NS,remote_node_open(URL, Node)), OpenError, true),
       ( var(OpenError) ->
-          exclude(manager_node_url(URL), Nodes, OtherNodes),
-          NextNodes = [node(URL, Node)|OtherNodes], Error = none
+          exclude(manager_node_url(context(NS,URL)), Nodes, OtherNodes),
+          NextNodes = [node(context(NS,URL), Node)|OtherNodes], Error = none
       ; NextNodes = Nodes, Error = OpenError
       )
     ),
@@ -1338,26 +1353,31 @@ manager_message('$node_request'(URL, Caller), Nodes, Routes,
     ( Error == none -> Caller ! '$node_reply'(Manager, URL, Node)
     ; Caller ! '$node_error'(Manager, URL, Error)
     ).
-manager_message('$node_lookup'(URL, Caller), Nodes, Routes,
+manager_message('$node_lookup'(context(NS,URL), Caller), Nodes, Routes,
                 Nodes, Routes) :- !,
     manager_identity(Manager),
-    ( member(node(URL, Node0), Nodes), node_writer_running(Node0) -> Node = Node0
+    ( member(node(context(NS,URL), Node0), Nodes), node_writer_running(Node0) -> Node = Node0
     ; Node = none
     ),
     Caller ! '$node_lookup_reply'(Manager, URL, Node).
-manager_message('$route_register'(Pid, Writer, Caller), Nodes, Routes,
-                Nodes, [route(Pid, Writer)|Rest]) :- !,
-    exclude(manager_route_pid(Pid), Routes, Rest),
+manager_message('$route_register'(context(NS,Pid), Writer, Caller), Nodes, Routes,
+                Nodes, [route(context(NS,Pid), Writer)|Rest]) :- !,
+    exclude(manager_route_pid(context(NS,Pid)), Routes, Rest),
     manager_identity(Manager),
     Caller ! '$route_registered'(Manager, Pid).
-manager_message('$route_request'(Pid, Caller), Nodes, Routes, Nodes, Routes) :- !,
+manager_message('$route_request'(context(NS,Pid), Caller), Nodes, Routes, Nodes, Routes) :- !,
     manager_identity(Manager),
-    ( memberchk(route(Pid, Writer), Routes) ->
+    ( memberchk(route(context(NS,Pid), Writer), Routes) ->
         Caller ! '$route_reply'(Manager, Pid, Writer)
     ; Caller ! '$route_missing'(Manager, Pid)
     ).
 manager_message('$route_forget'(Pid), Nodes, Routes, Nodes, Rest) :- !,
     exclude(manager_route_pid(Pid), Routes, Rest).
+manager_message('$context_close'(NS),Nodes,Routes,RestNodes,RestRoutes) :- !,
+    findall(Node,member(node(context(NS,_),Node),Nodes),Closing),
+    exclude(context_node(NS),Nodes,RestNodes),
+    exclude(context_route(NS),Routes,RestRoutes),
+    maplist(close_context_node,Closing).
 manager_message('$node_forget'(_URL, Writer), Nodes, Routes,
                 RestNodes, RestRoutes) :- !,
     remove_writer_nodes(Nodes, Writer, RestNodes),
@@ -1403,7 +1423,8 @@ node_writer_running(remote_node(_, Reader, Writer)) :-
     catch(thread_property(ReaderThread, status(running)), _, fail),
     catch(thread_property(WriterThread, status(running)), _, fail).
 
-manager_route_pid(Pid, route(Pid, _)).
+manager_route_pid(Key,route(Stored,_)) :-
+    (Key==Stored;nonvar(Stored),Stored=context(_,Pid),Key==Pid).
 manager_node_url(URL, node(URL, _)).
 manager_endpoint_target(Target, endpoint(_, _, EndpointTarget)) :-
     EndpointTarget == Target.
@@ -1462,8 +1483,10 @@ notify_node_target_stopped([node(_, remote_node(_, _, Writer))|Nodes], Target) :
 
 portable_term_for_writer(Writer, Term0, Term) :-
     ( local_runtime_pid(Term0) ->
-        endpoint_for_target(Writer, Term0, Id),
-        Term = Id@localhost
+        (web_prolog:current_node_url(Home) -> Term=Term0@Home
+        ;endpoint_for_target(Writer, Term0, Id),Term=Id@localhost)
+    ; nonvar(Term0),Term0='$web_prolog_endpoint'(_,_) ->
+        endpoint_for_target(Writer,Term0,Id),Term=Id@localhost
     ; var(Term0) -> Term = Term0
     ; atomic(Term0) -> Term = Term0
     ; functor(Term0, Name, Arity),
@@ -1510,3 +1533,11 @@ goal_options_wire_atoms(Goal, Options, GoalAtom, OptionsAtom) :-
     WriteOptions = [quoted(true),ignore_ops(false),numbervars(false),variable_names(Names)],
     write_term_to_atom(GoalAtom, Goal, WriteOptions),
     write_term_to_atom(OptionsAtom, Options, WriteOptions).
+
+:- multifile receiver_lineage:hook_context_closed/1.
+receiver_lineage:hook_context_closed(NS) :-
+    (catch(thread_property('$distribution_manager',status(running)),_,fail)
+    -> '$distribution_manager' ! '$context_close'(NS);true).
+context_node(NS,node(context(NS,_),_)).
+context_route(NS,route(context(NS,_),_)).
+close_context_node(Node) :- catch(remote_node_close(Node),_,true).

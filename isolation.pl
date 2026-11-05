@@ -13,6 +13,7 @@
          run_actor_query/2,        % +Module, +Goal
          actor_builtin_goal/1,     % +Goal
          rewrite_source_options/3, % +Options, +SourceModule, -Options
+         restore_actor_options/2,
          restore_actor_goal/2,     % internal outgoing actor goal restoration
          load_options_text/3       % +SourceModule, +Options, -Text
        ]).
@@ -510,17 +511,14 @@ text_source(Text) :- string(Text), !.
 text_source(Text) :- is_list(Text).
 
 % Validation installs a local output bridge even in freshly copied source.
-% Restore just that bridge at export; keep other framework terms untouched.
+% Restore runtime guards to language calls before exporting executable source.
 % functor/3 and arg/3 retain Trealla's callable metadata during reconstruction.
 restore_actor_goal(Term, Term) :- var(Term), !.
 restore_actor_goal(Term0, Goal) :-
     Term0 = M:Inner, M == sandbox_policy, nonvar(Inner),
-    functor(Inner, sandbox_library, 5), !,
-    arg(5, Inner, Original), restore_actor_goal(Original, Goal).
-restore_actor_goal(Term0, format(F,A)) :-
-    Term0 = M:Inner, M == sandbox_policy, nonvar(Inner),
-    functor(Inner, sandbox_format, 2), !,
-    arg(1, Inner, F), arg(2, Inner, A).
+    restored_guard(Inner, Public), !,
+    restore_actor_goal(Public, Goal).
+
 restore_actor_goal(Term, Term) :- atomic(Term), !.
 restore_actor_goal(Term0, Term) :-
     functor(Term0, Name, Arity), functor(Term, Name, Arity),
@@ -529,6 +527,60 @@ restore_actor_args(N, Arity, _, _) :- N > Arity, !.
 restore_actor_args(N, Arity, Term0, Term) :-
     arg(N, Term0, Arg0), restore_actor_goal(Arg0, Arg), arg(N, Term, Arg),
     Next is N+1, restore_actor_args(Next, Arity, Term0, Term).
+
+restored_guard(Inner, Public) :-
+    functor(Inner, Name, Arity),
+    ( Name==sandbox_library ; Name==sandbox_supervisor_call ), Arity==5, !,
+    arg(5, Inner, Public).
+restored_guard(Inner, Public) :-
+    functor(Inner,sandbox_builtin_call,1), !, arg(1,Inner,Public).
+restored_guard(Inner, Public) :-
+    functor(Inner,sandbox_call,N), N>=5, N=<12, !,
+    Inner=..[sandbox_call,_M,_P,_C,_A|Args],Public=..[call|Args].
+restored_guard(Inner, Public) :-
+    functor(Inner,sandbox_toplevel_synch,9),
+    arg(5,Inner,Kind), (Kind==call ; Kind==next), !,
+    Inner=..[_,_M,_P,_C,_A,Kind,Pid,G,R,O],
+    (Kind==call -> Public=toplevel_call_synch(Pid,G,R,O)
+    ;Public=toplevel_next_synch(Pid,R,O)).
+restored_guard(Inner, Public) :-
+    functor(Inner,Name,Arity), guard_public(Name,Arity,Drop,NameOut),
+    Inner=..[_|Args], drop_guard_args(Drop,Args,PublicArgs),
+    Public=..[NameOut|PublicArgs].
+drop_guard_args(0,Args,Args) :- !.
+drop_guard_args(N,[_|Args],Rest) :- K is N-1,drop_guard_args(K,Args,Rest).
+guard_public(sandbox_control_catch,4,1,catch).
+guard_public(sandbox_spawn,7,4,spawn).
+guard_public(sandbox_toplevel_call,7,4,toplevel_call).
+guard_public(sandbox_yield,7,4,yield).
+guard_public(sandbox_clause,6,4,clause).
+guard_public(sandbox_assert,5,4,assert).
+guard_public(sandbox_assert,6,4,assert).
+guard_public(sandbox_asserta,5,4,asserta).
+guard_public(sandbox_asserta,6,4,asserta).
+guard_public(sandbox_assertz,5,4,assertz).
+guard_public(sandbox_assertz,6,4,assertz).
+guard_public(sandbox_retract,5,4,retract).
+guard_public(sandbox_retractall,5,4,retractall).
+guard_public(sandbox_abolish,5,4,abolish).
+guard_public(sandbox_abolish,6,4,abolish).
+guard_public(sandbox_format,2,0,format).
+guard_public(sandbox_sleep,1,0,sleep).
+guard_public(sandbox_between,3,0,between).
+guard_public(sandbox_atom_string,2,0,atom_string).
+guard_public(sandbox_random_member,2,0,random_member).
+guard_public(sandbox_time,2,1,time).
+
+% Source text is executable source only in a source option, never arbitrary
+% application data. Preserve variable sharing within each restored clause.
+restore_actor_options([], []).
+restore_actor_options([src_text(Text0)|Rest0], [src_text(Text)|Rest]) :- !,
+    source_text_atom(Text0,Atom),
+    setup_call_cleanup(open_string(Atom,In),read_source_terms_(In,Terms0),close(In)),
+    restore_actor_goal(Terms0,Terms),source_terms_text(Terms,Text),
+    restore_actor_options(Rest0,Rest).
+restore_actor_options([O|Os],[O|Rest]) :- restore_actor_options(Os,Rest).
+
 
 rewrite_source_options([], _, []).
 rewrite_source_options([src_uri(URI)|Options], Module,

@@ -77,6 +77,7 @@ deployment_options(Port, Options) :-
     env_integer('WP_MAX_AUDIT_LOG_BYTES', 10485760, AuditBytes), positive(max_audit_log_bytes, AuditBytes),
     env_integer('WP_MAX_AUDIT_LOG_BACKUPS', 5, AuditBackups), nonnegative(max_audit_log_backups, AuditBackups),
     env_atom('WP_TOKENS_FILE', '/state/tokens.pl', TokensFile),
+    peer_transport_options(PeerOptions),
     owner_options(Auth, Owner, OwnerOptions),
     shared_db_options(SharedDBFiles, SharedDBOptions),
     Core0 = [bind_address('0.0.0.0'),node_url(PublicURL),profile(Profile),
@@ -103,7 +104,8 @@ deployment_options(Port, Options) :-
     optional_list(ip_allowlist, IPAllowlist, O2, O3),
     optional_list(ip_blocklist, IPBlocklist, O3, O4),
     optional_list(load_uri_allowed_origins, SourceOrigins, O4, O5),
-    optional_list(load_uri_origin_aliases, SourceAliases, O5, Options).
+    optional_list(load_uri_origin_aliases, SourceAliases, O5, O6),
+    append(PeerOptions,O6,Options).
 
 validate_options(Options) :-
     memberchk(profile(Profile), Options), normalize_profile(Profile, _),
@@ -113,7 +115,8 @@ validate_options(Options) :-
     configure_resource_policy(Options, _),
     configure_source_policy(Options, _),
     configure_ip_policy(Options, _),
-    configure_observability(Options, _).
+    configure_observability(Options, _),
+    receiver_lineage:configure_transport(Options).
 
 print_configuration(Port, Options) :-
     memberchk(node_url(URL), Options), memberchk(profile(Profile), Options),
@@ -126,7 +129,9 @@ print_configuration(Port, Options) :-
            [Profile, Sandbox, Auth]),
     format('  max_actors: ~w~n  max_inflight_calls: ~w~n',
            [MaxActors, MaxInflight]),
-    format('  admin token: configured (redacted)~n', []).
+    format('  admin token: configured (redacted)~n', []),
+    (memberchk(peer_transport_tokens(Peers),Options) -> length(Peers,Count) ; Count=0),
+    format('  peer_transport_tokens: ~w peers (redacted)~n',[Count]).
 
 request_maintenance :-
     env_integer('WP_PORT', 3060, Port),
@@ -237,3 +242,15 @@ reject_retired_page_cap :-
                      'page sizes are caller-controlled; remove WP_MAX_SOLUTIONS')))
     ; true
     ).
+
+% Credential files are owner input, not executable configuration. Reject extra
+% terms and malformed values without echoing any credential or file contents.
+peer_transport_options(Options) :-
+    env_atom('WP_PEER_TRANSPORT_TOKENS_FILE','',File),
+    (File=='' -> Options=[]
+    ; (catch(setup_call_cleanup(open(File,read,In),
+           (read_term(In,Pairs,[]),read_term(In,End,[])),close(In)),_,fail),
+       End==end_of_file,is_list(Pairs),ground(Pairs),
+       maplist(receiver_lineage:validate_peer,Pairs)
+      -> Options=[peer_transport_tokens(Pairs)]
+      ;throw(error(invalid_peer_transport_tokens_file,peer_transport_options/1)))).

@@ -38,24 +38,23 @@ namespace_names_and_survivors :-
     run_scope(PA,register(Remote,701@'http://namespace-remote.test'),ok),
     run_scope(PB,register(Other,702@'http://namespace-remote.test'),ok),
     register(Trusted,Self),register_service(Service,Target),
-    % Uniqueness and visibility stay node-wide, regardless of owning scope.
-    run_scope(PB,whereis(Owned,Target),ok),
-    run_scope(PB,register(Owned,703@'http://namespace-remote.test'),Taken),
-    Taken==error(name_is_in_use(Owned)),
+    % Ordinary names are visible and unique within their client context.
+    run_scope(PB,(whereis(Owned,Found),Found==undefined),ok),
+    run_scope(PB,register(Owned,703@'http://namespace-remote.test'),ok),
     retire_registry_namespace(A),retire_registry_namespace(A),
     whereis(Owned,undefined),whereis(Remote,undefined),
-    whereis(Other,702@'http://namespace-remote.test'),whereis(Trusted,Self),
+    run_scope(PB,whereis(Other,702@'http://namespace-remote.test'),ok),whereis(Trusted,Self),
     whereis_service(Service,Target),actors:actor_thread(Target,_),actors:actor_thread(PA,_),
     run_scope(PA,register(Late,704@'http://namespace-remote.test'),Rejected),closed_error(A,Rejected),
     run_scope(PA,namespace_tests:try_named_supervisor(Late),RejectedSpawn),closed_error(A,RejectedSpawn),
-    run_scope(PB,register(Owned,705@'http://namespace-remote.test'),ok),
+    run_scope(PB,(unregister(Owned),register(Owned,705@'http://namespace-remote.test')),ok),
     % A repeated close cannot erase a replacement owned by another client.
-    retire_registry_namespace(A),whereis(Owned,705@'http://namespace-remote.test'),
+    retire_registry_namespace(A),run_scope(PB,whereis(Owned,705@'http://namespace-remote.test'),ok),
     retire_registry_namespace(B),whereis(Owned,undefined),whereis(Other,undefined),
     unregister(Trusted),unregister_service(Service),
     Target ! finish,receive({down(Target,Target,true) -> true},[timeout(2),on_timeout(fail)]),
     stop_scope(PA),stop_scope(PB),
-    writeln('creator ownership, node-wide uniqueness, late admission and surviving actors: ok').
+    writeln('creator ownership, context-local uniqueness, late admission and surviving actors: ok').
 try_named_supervisor(Name) :- supervisor_actor:supervisor_spawn([],_,[name(Name),link(false)]).
 
 reserve_and_wait(Parent,Name) :-
@@ -68,8 +67,8 @@ namespace_reservation_and_publication :-
     new_scope(NS,P),new_name(Name),self(Parent),make_ref(Ref),
     P ! run(Ref,namespace_tests:reserve_and_wait(Parent,Name)),
     receive({reserved(Token) -> true},[timeout(2),on_timeout(fail)]),
-    actors:reserved_spawn_name(Name,Token),retire_registry_namespace(NS),
-    \+ actors:reserved_spawn_name(Name,Token),\+ actors:spawn_name_owner(Token,_),
+    actors:reserved_spawn_name_in(NS,Name,Token),retire_registry_namespace(NS),
+    \+ actors:reserved_spawn_name_in(NS,Name,Token),\+ actors:spawn_name_owner(Token,_),
     % Reuse the freed name while the old creator is still alive.
     register(Name,888@'http://namespace-remote.test'),P ! publish,
     receive({publication(Error) -> true},[timeout(3),on_timeout(fail)]),
@@ -118,7 +117,7 @@ live_namespace_sessions(A,B) :-
     remote_toplevel_spawn(A,TA,[session(true)]),remote_toplevel_spawn(B,TB,[session(true)]),
     new_name(Name),new_name(Other),
     remote_toplevel_call_synch(A,TA,register(Name,901@'http://namespace-remote.test'),_,[timeout(3)]),
-    remote_toplevel_call_synch(B,TB,(whereis(Name,901@'http://namespace-remote.test'),register(Other,902@'http://namespace-remote.test')),Before,[timeout(3)]),
+    remote_toplevel_call_synch(B,TB,(whereis(Name,Found),Found==undefined,register(Other,902@'http://namespace-remote.test')),Before,[timeout(3)]),
     Before=success(_,_,_),remote_node_close(A),
     wait_alias_gone(B,TB,Name,50),
     remote_toplevel_call_synch(B,TB,whereis(Other,902@'http://namespace-remote.test'),After,[timeout(3)]),
