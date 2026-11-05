@@ -154,6 +154,27 @@ The interop runner also applies identical public HTTP assertions to SWI and
 Trealla. Implementation identity remains in diagnostic endpoints and deployment
 metadata.
 
+`node_setting/2` reports the public settings of the listener serving the
+current request. It enumerates an explicit allowlist; unknown, private and
+unavailable keys fail. Connections pass their node identity to retained
+sessions and spawned actors. Resource, source and governance values reflect
+the current process-wide policies. Source-origin allowlists are reported as
+canonical URI atoms with explicit ports. The development `workbench` profile
+is reported by its public profile, `actor`.
+
+The available general keys are `url`, `profile`, `sandbox`, `auth` and
+`rate_window_seconds`. Stateless settings are `max_inflight_calls`,
+`max_term_text_bytes` and `max_call_requests_per_window`; private-source
+settings are `max_load_text_bytes` and `load_uri_allowed_origins`. Session
+profiles add `max_session_spawns_per_window`; ACTOR adds
+`max_ws_actors_per_principal`, `max_ws_frame_bytes` and
+`max_ws_commands_per_window`. The public `max_load_text_bytes` value is the
+enforced `max_source_text_bytes/1` ceiling. There is no separate polling
+`timeout` configuration or per-principal session ceiling in this host, so
+`timeout` and `max_sessions_per_principal` fail. Outside a serving context
+there are no available settings. `node_settings_tests.pl` checks inheritance,
+exception restoration, nested contexts, unavailable keys and actor cleanup.
+
 `server_promise/4` removes and flushes its newly installed monitor when
 subsequent reference setup or sending fails or throws, preserving the original
 outcome. A successful send leaves the monitor for `server_yield/4`.

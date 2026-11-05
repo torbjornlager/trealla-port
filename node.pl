@@ -154,6 +154,8 @@ with_http_promise_namespace(Goal) :-
 :- use_module(sandbox_policy).
 :- use_module(resource_policy).
 :- use_module(source_policy).
+:- use_module(node_settings, [node_setting/2, register_node_settings/5, forget_node_settings/1,
+                              with_node_settings/2]).
 :- use_module(ip_policy).
 :- use_module(websocket).
 :- use_module(isolation, [execution_goal/2]).
@@ -439,8 +441,9 @@ node_serve_tracked(Port, Key, C, Peer, WebSocketHandler, WebSocketOptions,
                    Profile, Sandbox, RelationPatterns) :-
     setup_call_cleanup(
         true,
-        node_serve(Port, C, Peer, WebSocketHandler, WebSocketOptions,
-                   Profile, Sandbox, RelationPatterns),
+        with_node_settings(Port,
+            node_serve(Port, C, Peer, WebSocketHandler, WebSocketOptions,
+                       Profile, Sandbox, RelationPatterns)),
         node_connection_exit(Key,C)).
 
 node_connection_exit(Key, Stream) :-
@@ -484,6 +487,7 @@ register_node_listener(Port, S, BindAddress, SocketOptions,
                        Profile, Sandbox, AuthMode, PublicURL,
                        TutorialSections, WSAllowedOrigins) :-
     ( memberchk(ssl(true), SocketOptions) -> SSL = true ; SSL = false ),
+    node_self_url(PublicURL, BindAddress, Port, SSL, SelfURL),
     with_mutex('$node_lifecycle',
         ( retractall(node_stopping(Port)),
           retractall(node_in_maintenance(Port)),
@@ -492,7 +496,8 @@ register_node_listener(Port, S, BindAddress, SocketOptions,
                                      PublicURL, TutorialSections,
                                      WSAllowedOrigins)),
           retractall(node_listener(Port, _, _, _)),
-          assertz(node_listener(Port, S, BindAddress, SSL)) )).
+          assertz(node_listener(Port, S, BindAddress, SSL)),
+          register_node_settings(Port,SelfURL,Profile,Sandbox,AuthMode) )).
 
 cleanup_node_listener(Port, S) :-
     safe_close_server(S),
@@ -501,7 +506,8 @@ cleanup_node_listener(Port, S) :-
         ( retractall(node_listener(Port, _, _, _)),
           retractall(node_stopping(Port)),
           retractall(node_in_maintenance(Port)),
-          retractall(node_configuration(Port, _, _, _, _, _, _)) )).
+          retractall(node_configuration(Port, _, _, _, _, _, _)),
+          forget_node_settings(Port) )).
 
 register_node_connection(Port, Key, Stream) :-
     with_mutex('$node_lifecycle',
