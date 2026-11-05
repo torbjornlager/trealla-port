@@ -467,3 +467,22 @@ with the 148 passing focused unmodified-upstream checks and their qualifications
 The [verification and closure record](reproducers/upstream-1177-verification-2026-10-23/REPORT.md)
 retains exact outputs, provenance, the published comment and API confirmation.
 Earlier open-status statements are historical. The installed runtime is unchanged.
+
+
+### succ/2 float argument validation (5 November 2026)
+
+With the qualified Trealla 3.14.20 engine, `succ(1.5,X)` and `succ(X,1.5)`
+raise `instantiation_error` rather than `type_error(integer,1.5)`. The engine's
+preliminary `can_be(not_less_than_zero,_)` accepts floats, but its direction
+selection then finds neither argument is an integer. Bound float/integer pairs
+can instead fail without the required type error.
+
+The Web Prolog port supplies a shared integer relation that validates supplied
+arguments before selecting a direction. Node calls (including owner sandbox-off
+calls), private actor modules, callbacks, receive code and copied source use
+that same relation. Integer behavior, zero, domain errors and the
+both-variable instantiation error retain their normal semantics. The installed
+engine/library is unchanged; this is a port-level conformance repair, while the
+standalone engine reproducer remains an upstream issue. `succ_validation_tests.pl`
+and the shared 146-case library fixture cover the repaired paths and original
+culprits without changing sandbox permissions.

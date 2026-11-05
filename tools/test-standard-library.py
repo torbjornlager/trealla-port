@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--tpl',required=True);a=p.parse_args()
 pack=json.loads((ROOT/'standard_library_cases.json').read_text());count=0
-for mode in ['blacklist','whitelist']:
+for mode in ['blacklist','whitelist','off']:
  with socket.socket() as s:s.bind(('127.0.0.1',0));port=s.getsockname()[1]
  env=dict(os.environ,TPL_LIBRARY_PATH=str(Path(a.tpl).parent/'library'))
  with tempfile.TemporaryFile(mode='w+') as log:
@@ -20,19 +20,24 @@ for mode in ['blacklist','whitelist']:
    def query(goal,source=''):
     params=dict(goal='('+goal+'),LibraryCheck=passed',template='LibraryCheck',format='prolog',limit=1,src_text=source)
     with urllib.request.urlopen(f'http://127.0.0.1:{port}/call?'+urllib.parse.urlencode(params),timeout=6) as response:return ''.join(response.read().decode().split())
-   cases=pack['cases'] if mode=='blacklist' else [c for c in pack['cases'] if c['id'] in ['STDLIB-032','STDLIB-034','STDLIB-040','STDLIB-048','STDLIB-054']]
+   if mode=='blacklist':cases=pack['cases']
+   elif mode=='off':cases=[c for c in pack['cases'] if 130 <= int(c['id'].split('-')[1]) <= 138]
+   else:cases=[c for c in pack['cases'] if c['id'] in ['STDLIB-032','STDLIB-034','STDLIB-040','STDLIB-048','STDLIB-054'] or 130 <= int(c['id'].split('-')[1]) <= 138]
    for case in cases:
     body=query(case['goal'],pack['source']);assert body=='success([passed],false).',(mode,case['id'],body);count+=1
+    if mode=='off':
+     body=query(case['goal']);assert body=='success([passed],false).',(mode,'source-free',case['id'],body);count+=1
     if mode=='blacklist':
      body=query('findall(passed,('+case['goal']+'),[passed])',pack['source']);assert body=='success([passed],false).',(mode,'nested',case['id'],body);count+=1
-   for goal in ['maplist(current_prolog_flag,[bounded],[_])',
+   denied_goals=[] if mode=='off' else ['maplist(current_prolog_flag,[bounded],[_])',
                 'G=current_prolog_flag,maplist(G,[bounded],[_])',
                 'G=current_prolog_flag(bounded,_),countall(G,_)',
                 'G=current_prolog_flag(bounded,_),call_nth(G,1)',
-                'foldl(open,[no_such_file],read,_)']:
+                'foldl(open,[no_such_file],read,_)']
+   for goal in denied_goals:
     body=query(goal);assert body.startswith('error(') and ('permission_error' in body or 'instantiation_error' in body),(mode,goal,body);count+=1
   finally:
    node.terminate()
    try:node.wait(timeout=5)
    except subprocess.TimeoutExpired:node.kill();node.wait()
-print('PASS',count,'standard-library and callback controls across blacklist/whitelist')
+print('PASS',count,'standard-library and callback controls across blacklist/whitelist/off')

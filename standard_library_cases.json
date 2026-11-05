@@ -1,10 +1,10 @@
 {
-  "suite": "standard-library-0.1",
-  "baseline": "standard-library-0.1",
+  "suite": "standard-library-0.2",
+  "baseline": "standard-library-0.2",
   "status": "draft",
   "scope": "supporting",
   "minimum_profile": "isobase",
-  "contract": "Appendix B standard library: documented arities, relational modes, callback scope, binding and solution semantics; selected formal errors. No complete ISO certification.",
+  "contract": "Appendix B library forms and semantics, extended with finite relational modes and documented/common formal errors; no exhaustive ISO certification.",
   "source": "lib_eq1(X).\nlib_eq2(X,X).\nlib_eq3(X,X,X).\nlib_eq4(X,X,X,X).\nlib_eq5(X,X,X,X,X).\nlib_eq6(X,X,X,X,X,X).\nlib_eq7(X,X,X,X,X,X,X).\nlib_choice(a,1). lib_choice(a,2). lib_choice(b,3).\nlib_fold(A,S,T):-T is S+A.\nlib_fold2(A,B,S,T):-T is S+A+B.\nlib_fold3(A,B,C,S,T):-T is S+A+B+C.\nlib_fold_choice(X,S,T):-member(T,[X,S]).\nlib_throw(X):-throw(X).\nlib_args1(a1).\nlib_args1(b1).\nlib_args2(a1,a2).\nlib_args2(b1,b2).\nlib_args3(a1,a2,a3).\nlib_args3(b1,b2,b3).\nlib_args4(a1,a2,a3,a4).\nlib_args4(b1,b2,b3,b4).\nlib_args5(a1,a2,a3,a4,a5).\nlib_args5(b1,b2,b3,b4,b5).\nlib_args6(a1,a2,a3,a4,a5,a6).\nlib_args6(b1,b2,b3,b4,b5,b6).\nlib_args7(a1,a2,a3,a4,a5,a6,a7).\nlib_args7(b1,b2,b3,b4,b5,b6,b7).\nlib_record(A,S,step(A,S)). lib_record2(A,B,S,step(A,B,S)). lib_record3(A,B,C,S,step(A,B,C,S)).\n",
   "cases": [
     {
@@ -1107,6 +1107,431 @@
       "requirements": [
         "B-333"
       ]
+    },
+    {
+      "id": "STDLIB-113",
+      "title": "append removes a supplied prefix or fails without a match",
+      "transport": "query",
+      "goal": "append([a],Tail,[a,b,c]),Tail==[b,c],\\+append([x],_,[a,b,c])",
+      "requirements": [
+        "B-363"
+      ],
+      "library_obligations": [
+        "LIB-005"
+      ]
+    },
+    {
+      "id": "STDLIB-114",
+      "title": "length preserves a partial prefix and creates pairwise-distinct fresh positions",
+      "transport": "query",
+      "goal": "length([X|Tail],4),Tail=[A,B,C],var(X),var(A),var(B),var(C),X\\==A,X\\==B,X\\==C,A\\==B,A\\==C,B\\==C",
+      "requirements": [
+        "B-365"
+      ],
+      "library_obligations": [
+        "LIB-007"
+      ]
+    },
+    {
+      "id": "STDLIB-115",
+      "title": "select enumerates all insertion positions in order",
+      "transport": "query",
+      "goal": "findall(L,select(x,L,[a,b]),[[x,a,b],[a,x,b],[a,b,x]])",
+      "requirements": [
+        "B-367"
+      ],
+      "library_obligations": [
+        "LIB-010"
+      ]
+    },
+    {
+      "id": "STDLIB-116",
+      "title": "select insertion preserves variable identity and remainder order",
+      "transport": "query",
+      "goal": "findall(ok,(select(X,[A,X,B],R),R=[A,B],var(A),var(B),var(X),A\\==B,A\\==X,B\\==X),[ok])",
+      "requirements": [
+        "B-367"
+      ],
+      "library_obligations": [
+        "LIB-010"
+      ]
+    },
+    {
+      "id": "STDLIB-117",
+      "title": "nth0/4 constructs every ordered insertion",
+      "transport": "query",
+      "goal": "findall(N-L,nth0(N,L,x,[a,b]),[0-[x,a,b],1-[a,x,b],2-[a,b,x]])",
+      "requirements": [
+        "B-369"
+      ],
+      "library_obligations": [
+        "LIB-012"
+      ]
+    },
+    {
+      "id": "STDLIB-118",
+      "title": "nth1/4 enumerates ordered removals",
+      "transport": "query",
+      "goal": "findall(N-X-R,nth1(N,[a,b,a],X,R),[1-a-[b,a],2-b-[a,a],3-a-[a,b]])",
+      "requirements": [
+        "B-369"
+      ],
+      "library_obligations": [
+        "LIB-012"
+      ]
+    },
+    {
+      "id": "STDLIB-119",
+      "title": "nth0/3 fails for an index past the finite list",
+      "transport": "query",
+      "goal": "\\+nth0(2,[a,b],X),var(X)",
+      "requirements": [
+        "B-369"
+      ],
+      "library_obligations": [
+        "LIB-013"
+      ]
+    },
+    {
+      "id": "STDLIB-120",
+      "title": "nth0/4 fails for an index past the finite list",
+      "transport": "query",
+      "goal": "\\+nth0(2,[a,b],X,R),var(X),var(R)",
+      "requirements": [
+        "B-369"
+      ],
+      "library_obligations": [
+        "LIB-013"
+      ]
+    },
+    {
+      "id": "STDLIB-121",
+      "title": "nth1/3 fails for an index past the finite list",
+      "transport": "query",
+      "goal": "\\+nth1(3,[a,b],X),var(X)",
+      "requirements": [
+        "B-369"
+      ],
+      "library_obligations": [
+        "LIB-013"
+      ]
+    },
+    {
+      "id": "STDLIB-122",
+      "title": "nth1/4 fails for an index past the finite list",
+      "transport": "query",
+      "goal": "\\+nth1(3,[a,b],X,R),var(X),var(R)",
+      "requirements": [
+        "B-369"
+      ],
+      "library_obligations": [
+        "LIB-013"
+      ]
+    },
+    {
+      "id": "STDLIB-123",
+      "title": "between rejects an empty interval without binding its candidate",
+      "transport": "query",
+      "goal": "findall(N,between(2,1,N),[]),\\+between(2,1,1),\\+between(2,1,2)",
+      "requirements": [
+        "B-371"
+      ],
+      "library_obligations": [
+        "LIB-015"
+      ]
+    },
+    {
+      "id": "STDLIB-124",
+      "title": "between requires an instantiated lower bound",
+      "transport": "query",
+      "goal": "catch(between(L,3,N),E,true),nonvar(E),E=error(instantiation_error,_),var(L),var(N)",
+      "requirements": [
+        "B-371",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-016"
+      ]
+    },
+    {
+      "id": "STDLIB-125",
+      "title": "between requires an integer lower bound (bad)",
+      "transport": "query",
+      "goal": "catch(between(bad,3,N),E,true),nonvar(E),E=error(type_error(integer,bad),_),var(N)",
+      "requirements": [
+        "B-371",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-016"
+      ]
+    },
+    {
+      "id": "STDLIB-126",
+      "title": "between requires an integer lower bound (1.5)",
+      "transport": "query",
+      "goal": "catch(between(1.5,3,N),E,true),nonvar(E),E=error(type_error(integer,1.5),_),var(N)",
+      "requirements": [
+        "B-371",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-016"
+      ]
+    },
+    {
+      "id": "STDLIB-127",
+      "title": "between requires an instantiated upper bound",
+      "transport": "query",
+      "goal": "catch(between(1,U,N),E,true),nonvar(E),E=error(instantiation_error,_),var(U),var(N)",
+      "requirements": [
+        "B-371",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-016"
+      ]
+    },
+    {
+      "id": "STDLIB-128",
+      "title": "between requires an integer upper bound (bad)",
+      "transport": "query",
+      "goal": "catch(between(1,bad,N),E,true),nonvar(E),E=error(type_error(integer,bad),_),var(N)",
+      "requirements": [
+        "B-371",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-016"
+      ]
+    },
+    {
+      "id": "STDLIB-129",
+      "title": "between requires an integer upper bound (1.5)",
+      "transport": "query",
+      "goal": "catch(between(1,1.5,N),E,true),nonvar(E),E=error(type_error(integer,1.5),_),var(N)",
+      "requirements": [
+        "B-371",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-016"
+      ]
+    },
+    {
+      "id": "STDLIB-130",
+      "title": "succ checks supplied pairs with at most one answer",
+      "transport": "query",
+      "goal": "findall(ok,succ(3,4),[ok]),\\+succ(3,3),\\+succ(3,5),\\+succ(0,0)",
+      "requirements": [
+        "B-373"
+      ],
+      "library_obligations": [
+        "LIB-018"
+      ]
+    },
+    {
+      "id": "STDLIB-131",
+      "title": "zero has no nonnegative predecessor",
+      "transport": "query",
+      "goal": "\\+succ(P,0),var(P)",
+      "requirements": [
+        "B-373"
+      ],
+      "library_obligations": [
+        "LIB-018"
+      ]
+    },
+    {
+      "id": "STDLIB-132",
+      "title": "succ requires at least one instantiated argument",
+      "transport": "query",
+      "goal": "catch(succ(P,S),E,true),nonvar(E),E=error(instantiation_error,_),var(P),var(S)",
+      "requirements": [
+        "B-373",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-019"
+      ]
+    },
+    {
+      "id": "STDLIB-133",
+      "title": "succ requires an integer predecessor (bad)",
+      "transport": "query",
+      "goal": "catch(succ(bad,V),E,true),nonvar(E),E=error(type_error(integer,bad),_),var(V)",
+      "requirements": [
+        "B-373",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-019"
+      ]
+    },
+    {
+      "id": "STDLIB-134",
+      "title": "succ requires an integer predecessor (1.5)",
+      "transport": "query",
+      "goal": "catch(succ(1.5,V),E,true),nonvar(E),E=error(type_error(integer,1.5),_),var(V)",
+      "requirements": [
+        "B-373",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-019"
+      ]
+    },
+    {
+      "id": "STDLIB-135",
+      "title": "succ rejects a negative predecessor",
+      "transport": "query",
+      "goal": "catch(succ(-1,V),E,true),nonvar(E),E=error(domain_error(Domain,-1),_),atom(Domain),var(V)",
+      "requirements": [
+        "B-373",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-019"
+      ]
+    },
+    {
+      "id": "STDLIB-136",
+      "title": "succ requires an integer successor (bad)",
+      "transport": "query",
+      "goal": "catch(succ(V,bad),E,true),nonvar(E),E=error(type_error(integer,bad),_),var(V)",
+      "requirements": [
+        "B-373",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-019"
+      ]
+    },
+    {
+      "id": "STDLIB-137",
+      "title": "succ requires an integer successor (1.5)",
+      "transport": "query",
+      "goal": "catch(succ(V,1.5),E,true),nonvar(E),E=error(type_error(integer,1.5),_),var(V)",
+      "requirements": [
+        "B-373",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-019"
+      ]
+    },
+    {
+      "id": "STDLIB-138",
+      "title": "succ rejects a negative successor",
+      "transport": "query",
+      "goal": "catch(succ(V,-1),E,true),nonvar(E),E=error(domain_error(Domain,-1),_),atom(Domain),var(V)",
+      "requirements": [
+        "B-373",
+        "B-014"
+      ],
+      "library_obligations": [
+        "LIB-019"
+      ]
+    },
+    {
+      "id": "STDLIB-139",
+      "title": "call_nth rejects a negative index before invoking its goal",
+      "transport": "query",
+      "goal": "catch(call_nth(throw(index_goal_ran),-1),E,true),nonvar(E),E=error(domain_error(not_less_than_one,-1),_)",
+      "requirements": [
+        "B-379"
+      ],
+      "library_obligations": [
+        "LIB-030"
+      ]
+    },
+    {
+      "id": "STDLIB-140",
+      "title": "call_nth rejects a noninteger index before invoking its goal (bad)",
+      "transport": "query",
+      "goal": "catch(call_nth(throw(index_goal_ran),bad),E,true),nonvar(E),E=error(type_error(integer,bad),_)",
+      "requirements": [
+        "B-379"
+      ],
+      "library_obligations": [
+        "LIB-030"
+      ]
+    },
+    {
+      "id": "STDLIB-141",
+      "title": "call_nth rejects a noninteger index before invoking its goal (1.5)",
+      "transport": "query",
+      "goal": "catch(call_nth(throw(index_goal_ran),1.5),E,true),nonvar(E),E=error(type_error(integer,1.5),_)",
+      "requirements": [
+        "B-379"
+      ],
+      "library_obligations": [
+        "LIB-030"
+      ]
+    },
+    {
+      "id": "STDLIB-142",
+      "title": "call_nth rejects a noninteger index before invoking its goal (pair(a,b))",
+      "transport": "query",
+      "goal": "catch(call_nth(throw(index_goal_ran),pair(a,b)),E,true),nonvar(E),E=error(type_error(integer,pair(a,b)),_)",
+      "requirements": [
+        "B-379"
+      ],
+      "library_obligations": [
+        "LIB-030"
+      ]
+    },
+    {
+      "id": "STDLIB-143",
+      "title": "call_nth rejects a noninteger index before invoking its goal ([a])",
+      "transport": "query",
+      "goal": "catch(call_nth(throw(index_goal_ran),[a]),E,true),nonvar(E),E=error(type_error(integer,[a]),_)",
+      "requirements": [
+        "B-379"
+      ],
+      "library_obligations": [
+        "LIB-030"
+      ]
+    },
+    {
+      "id": "STDLIB-144",
+      "title": "call_nth selection does not evaluate later alternatives",
+      "transport": "query",
+      "goal": "findall(X,call_nth((X=a;X=b;throw(later_alternative_ran)),2),[b])",
+      "requirements": [
+        "B-379"
+      ],
+      "library_obligations": [
+        "LIB-031"
+      ]
+    },
+    {
+      "id": "STDLIB-145",
+      "title": "countall isolates a variable shared between goal and count",
+      "transport": "query",
+      "goal": "findall(N,countall((N=1;N=2),N),[2])",
+      "requirements": [
+        "B-381"
+      ],
+      "library_obligations": [
+        "LIB-034"
+      ]
+    },
+    {
+      "id": "STDLIB-146",
+      "title": "countall fails a mismatched prebound count shared with its goal",
+      "transport": "query",
+      "goal": "N=1,\\+countall((N=1;N=1),N),N==1",
+      "requirements": [
+        "B-381"
+      ],
+      "library_obligations": [
+        "LIB-034"
+      ]
     }
-  ]
+  ],
+  "extends": {
+    "manifest": "cases/standard-library-0.1.json",
+    "sha256": "e7a516c7c5e1837e4a23bd50c8e4656b2cabb4877a8518a10400c56206ea9b72"
+  }
 }

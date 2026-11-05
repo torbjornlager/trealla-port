@@ -772,6 +772,8 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
                 SandboxFile, RpcFile, ParallelFile, ServerActorFile,
                 SupervisorActorFile) -->
     bootstrap_line( '%% SPDX-License-Identifier: MIT~n', []),
+    { absolute_file_name('integer_relations.pl',IntegerRelationsFile,[]) },
+    bootstrap_line( ':- use_module(~q, [succ/2]).~n', [IntegerRelationsFile]),
     { absolute_file_name('statechart_actor.pl',StatechartFile,[]) },
     bootstrap_line( ':- use_module(~q).~n',[StatechartFile]),
     bootstrap_line( ':- use_module(~q).~n', [ActorsFile]),
