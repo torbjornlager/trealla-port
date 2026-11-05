@@ -1,0 +1,8 @@
+{
+  "distribution.pl": "fd47a8ad5fff7e1f6d0b5a54685565c17ae36568082c021fe316b47085afb297",
+  "isolation.pl": "05e064a1d638eff4d9d2ac7e4ab7a0370d104e5d5ea7b95edcad59f238346562",
+  "web_prolog.pl": "d0e771ee411b7c157cc20976deb67e387ce3a2b472a3d35fcaa954bccae36b5b",
+  "source_capture_tests.pl": "303faaa8dcb6384ffc66e4ed878c476bc16c33d24d3e7c496c717dea97603135",
+  "swi_websocket_interop.pl": "b139baf21680975325defee35fb219cc1a15a533d06b7ca4fd9480b21415b28f",
+  "tools/test.sh": "59406e52959b9f65c585b954a1d0f46edc24ee44029ab621eb250f77ae11639d"
+}

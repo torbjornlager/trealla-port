@@ -183,9 +183,13 @@ remote_spawn_mode(Node, Goal0, RemotePid, Options0, Mode) :-
     actors:validate_spawn_options(Options0,runtime,distribution:remote_spawn/4),
     Node = remote_node(URL, _Reader, Writer),
     self(Target),
-    strip_module(Goal0, SourceModule, Goal0Plain),
+    strip_module(Goal0, SourceModule, _),
     isolation:rewrite_source_options(Options0, SourceModule, Options1),
-    exclude(local_spawn_option, Options1, Options),
+    % Local validation may have rewritten both the entry goal and source
+    % clauses. Send language terms; the destination installs its own guards.
+    isolation:restore_actor_goal(Goal0-Options1, SourceGoal-SourceOptions),
+    strip_module(SourceGoal, _, Goal0Plain),
+    exclude(local_spawn_option, SourceOptions, Options),
     portable_term_for_writer(Writer, Goal0Plain-Options,
                              Goal-PortableOptions),
     term_wire_atom(Goal, GoalText),

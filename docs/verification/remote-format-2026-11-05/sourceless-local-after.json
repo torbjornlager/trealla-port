@@ -1,0 +1,28 @@
+[
+  {
+    "case": "inline",
+    "event": {
+      "type": "io_request",
+      "request_id": "browser-1000000018",
+      "event": {
+        "type": "output",
+        "pid": "6731278902@'http://localhost:52606'",
+        "data": "remote_inline(ok)"
+      }
+    }
+  },
+  {
+    "case": "inline",
+    "event": {
+      "type": "success",
+      "pid": 1992560890,
+      "data": [
+        {
+          "P": "6731278902@'http://127.0.0.1:52606'",
+          "R": "true"
+        }
+      ],
+      "more": false
+    }
+  }
+]

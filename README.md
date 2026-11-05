@@ -2690,3 +2690,18 @@ connection cache keep the public URL; unmapped nodes retain the normal URL
 conversion. Use only owner-controlled mappings: the hook selects transport,
 not a new public node identity. The canonical distribution tests cover exact
 mapping, fallback and preservation of explicit WebSocket endpoints.
+
+
+`rpc(localhost, ...)` and `promise(localhost, ...)` select this node's local
+stateless HTTP listener, configured at node startup independently of its public
+proxy URL. Source options remain caller-prepared temporary source. The local
+endpoint metadata stays private to the node layer and cannot be supplied by
+sandboxed client goals. The `localhost_rpc_tests.pl` live selection runs in the interop tier.
+
+Remote actor exports restore public `format/1-2` calls after local sandbox
+validation, including copied predicates and inline goals from sourceless
+shells. The receiver applies its own sandbox policy. Formatted SWI output is
+decoded as text at the Trealla browser boundary; `write/1` retains term
+rendering. The interop tier runs the complete three-round ping-pong exchange
+against native SWI, checks all eight output events and normal completion,
+and covers inline output with and without session source.

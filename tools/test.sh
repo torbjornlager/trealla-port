@@ -467,6 +467,13 @@ run_interop() {
     trealla_remote_pid=$STARTED_PID
     sleep 0.2
     kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
+    if [ -f "$TRINITY_NODE_FILE" ]; then
+        run_with_timeout "Browser copied/inline format: Trealla -> SWI" \
+            "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
+            -g "(catch(browser_remote_format_test($trealla_remote_port,$swi_actor_home_port,'$TRINITY_NODE_FILE'),E,(print_message(error,E),fail))->halt;halt(1))"
+    fi
+    run_with_timeout "localhost RPC/promise -> current Trealla node" \
+        "$TPL" -g "consult('$ROOT/localhost_rpc_tests.pl'),(catch(localhost_rpc_tests:run('http://127.0.0.1:$trealla_remote_port','http://127.0.0.1:$source_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Public remote demonitor -> Trealla" \
         "$TPL" -g "consult('$ROOT/remote_demonitor_tests.pl'),(catch(remote_demonitor_tests:live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Termination notifications -> Trealla" \

@@ -142,7 +142,14 @@ web_prolog_node(Port, Options) :-
     node(Port, web_prolog_handler(Profile, Sandbox),
          [websocket_options([optional_subprotocols(['web-prolog-sync-spawn-v1','web-prolog-sync-v1'])|WSOptions])|NodeOptions]).
 
+% Listener metadata belongs to the trusted node layer, not actor API imports.
+:- dynamic local_rpc_uri/1.
+:- multifile rpc:hook_local_rpc_uri/1.
+rpc:hook_local_rpc_uri(URI) :- web_prolog:local_rpc_uri(URI).
+
 configure_node_url(Port, Options, URL) :-
+    format(atom(LocalRPC), 'http://127.0.0.1:~w', [Port]),
+    retractall(local_rpc_uri(_)), asserta(local_rpc_uri(LocalRPC)),
     ( memberchk(node_url(URL0), Options) -> node_url_atom(URL0, URL1)
     ; format(atom(URL1), 'http://127.0.0.1:~w', [Port])
     ),
@@ -755,7 +762,8 @@ wire_event(Relay, terminal_output(RuntimePid,statechart_trace(Data)), statechart
     browser_source_pid(Relay,RuntimePid,WirePid).
 wire_event(Relay, terminal_output(RuntimePid, Data0), output(WirePid, Data)) :- !,
     browser_source_pid(Relay, RuntimePid, WirePid),
-    browser_terminal_output_data(Data0, Data).
+    terminal_text_atom(Data0, Text),
+    browser_terminal_output_data(Text, Data).
 wire_event(Relay, terminal_io_output(RuntimePid, Data0), output(WirePid, Data)) :- !,
     browser_source_pid(Relay, RuntimePid, WirePid),
     browser_terminal_output_data(Data0, Data).
@@ -764,6 +772,13 @@ wire_event(_, Event, Event).
 % Browser terminals add a line ending for each output event. Match the SWI
 % node boundary by removing one line-ending marker already supplied by user
 % code; otherwise format('text~n') renders a blank line after the text.
+% SWI strings arrive as character lists under Trealla's reader policy.
+% Only the formatted-text channel is decoded; write/1 keeps term rendering.
+terminal_text_atom(Text, Text) :- atom(Text), !.
+terminal_text_atom(Chars, Text) :-
+    is_list(Chars), catch(atom_chars(Text, Chars), _, fail), !.
+terminal_text_atom(Term, Term).
+
 browser_terminal_output_data(Data0, Data) :-
     atom(Data0),
     !,

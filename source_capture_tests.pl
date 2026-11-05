@@ -9,6 +9,7 @@ run :-
     snapshot(Expected),
     check_quoting,
     check_bootstrap_quoting,
+    check_output_export,
     thread_self(Parent),
     setup_call_cleanup(
         thread_create(source_capture_tests:worker(Parent, Expected), Worker, []),
@@ -28,6 +29,18 @@ worker(Parent, Expected) :-
     thread_get_message(go),
     catch((repeat_snapshot(100, Expected), Result = ok), E, Result = error(E)),
     thread_send_message(Parent, finished(Result)).
+
+check_output_export :-
+    Guarded = sandbox_policy:sandbox_format('~w-~w', [X,X]),
+    isolation:restore_actor_goal(Guarded, Public),
+    Public = format('~w-~w', [A,B]),
+    ( var(X), A == X, B == X -> true ; throw(output_export_sharing) ),
+    % A partially specified module-qualified data term is not a guard.
+    Data = payload(M:Inner, Y, Y),
+    isolation:restore_actor_goal(Data, Copy),
+    Copy = payload(CM:CI, C,D),
+    ( var(M), var(Inner), M == CM, Inner == CI, var(Y), C == Y, D == Y
+    -> true ; throw(output_export_bound_data) ).
 
 repeat_snapshot(0, _) :- !.
 repeat_snapshot(N, Expected) :-

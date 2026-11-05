@@ -257,7 +257,14 @@ rpc(URI0, Goal0, Options) :-
     rpc_page(Template, 0, Limit, GoalAtom, TemplateAtom, URI, Options,
              LoadText).
 
-resolve_rpc_uri(Input, URI) :- source_policy:uri_atom(Input, URI).
+% The node layer registers trusted listener metadata through a private hook.
+% Standalone clients retain their normal HTTP localhost fallback.
+:- multifile hook_local_rpc_uri/1.
+resolve_rpc_uri(Input, URI) :-
+    source_policy:uri_atom(Input, Atom),
+    ( Atom == localhost ->
+        (hook_local_rpc_uri(Local) -> URI=Local ; URI='http://localhost')
+    ; URI=Atom ).
 
 rpc_source_module(Module) :-
     self(Pid),

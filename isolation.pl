@@ -13,6 +13,7 @@
          run_actor_query/2,        % +Module, +Goal
          actor_builtin_goal/1,     % +Goal
          rewrite_source_options/3, % +Options, +SourceModule, -Options
+         restore_actor_goal/2,     % internal outgoing actor goal restoration
          load_options_text/3       % +SourceModule, +Options, -Text
        ]).
 
@@ -508,6 +509,23 @@ text_source(Text) :- atom(Text), !.
 text_source(Text) :- string(Text), !.
 text_source(Text) :- is_list(Text).
 
+% Validation installs a local output bridge even in freshly copied source.
+% Restore just that bridge at export; keep other framework terms untouched.
+% functor/3 and arg/3 retain Trealla's callable metadata during reconstruction.
+restore_actor_goal(Term, Term) :- var(Term), !.
+restore_actor_goal(Term0, format(F,A)) :-
+    Term0 = M:Inner, M == sandbox_policy, nonvar(Inner),
+    functor(Inner, sandbox_format, 2), !,
+    arg(1, Inner, F), arg(2, Inner, A).
+restore_actor_goal(Term, Term) :- atomic(Term), !.
+restore_actor_goal(Term0, Term) :-
+    functor(Term0, Name, Arity), functor(Term, Name, Arity),
+    restore_actor_args(1, Arity, Term0, Term).
+restore_actor_args(N, Arity, _, _) :- N > Arity, !.
+restore_actor_args(N, Arity, Term0, Term) :-
+    arg(N, Term0, Arg0), restore_actor_goal(Arg0, Arg), arg(N, Term, Arg),
+    Next is N+1, restore_actor_args(Next, Arity, Term0, Term).
+
 rewrite_source_options([], _, []).
 rewrite_source_options([src_uri(URI)|Options], Module,
                        [src_text(Text)|Rewritten]) :-
@@ -876,6 +894,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0), clause(Head,Body)) :- !, \'$actor_strip_source_module\'(Head0,Head), \'$actor_strip_source_module\'(Body0,Body).~n', []),
     % Export source goals, not the private primitive bridge installed for guard execution.
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_builtin_call(Goal0), Goal) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
+    bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_format(Format,Args), format(Format,Args)) :- !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_sleep(Seconds), sleep(Seconds)) :- !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_atom_string(Atom,String), atom_string(Atom,String)) :- !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_random_member(Element,List), random_member(Element,List)) :- !.~n', []),

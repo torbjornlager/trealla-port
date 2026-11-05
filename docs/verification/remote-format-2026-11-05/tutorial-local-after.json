@@ -1,0 +1,135 @@
+[
+  {
+    "case": "tutorial",
+    "event": {
+      "type": "io_request",
+      "request_id": "browser-1000000020",
+      "event": {
+        "type": "output",
+        "pid": "6918660150@'http://localhost:52591'",
+        "data": "Pong received ping."
+      }
+    }
+  },
+  {
+    "case": "tutorial",
+    "event": {
+      "type": "io_request",
+      "request_id": "browser-1000000021",
+      "event": {
+        "type": "output",
+        "pid": 2436520776,
+        "data": "Ping received pong."
+      }
+    }
+  },
+  {
+    "case": "tutorial",
+    "event": {
+      "type": "io_request",
+      "request_id": "browser-1000000022",
+      "event": {
+        "type": "output",
+        "pid": "6918660150@'http://localhost:52591'",
+        "data": "Pong received ping."
+      }
+    }
+  },
+  {
+    "case": "tutorial",
+    "event": {
+      "type": "io_request",
+      "request_id": "browser-1000000023",
+      "event": {
+        "type": "output",
+        "pid": 2436520776,
+        "data": "Ping received pong."
+      }
+    }
+  },
+  {
+    "case": "tutorial",
+    "event": {
+      "type": "io_request",
+      "request_id": "browser-1000000024",
+      "event": {
+        "type": "output",
+        "pid": "6918660150@'http://localhost:52591'",
+        "data": "Pong received ping."
+      }
+    }
+  },
+  {
+    "case": "tutorial",
+    "event": {
+      "type": "io_request",
+      "request_id": "browser-1000000025",
+      "event": {
+        "type": "output",
+        "pid": 2436520776,
+        "data": "Ping received pong."
+      }
+    }
+  },
+  {
+    "case": "tutorial",
+    "event": {
+      "type": "io_request",
+      "request_id": "browser-1000000026",
+      "event": {
+        "type": "output",
+        "pid": 2436520776,
+        "data": "Ping finished."
+      }
+    }
+  },
+  {
+    "case": "tutorial",
+    "event": {
+      "type": "io_request",
+      "request_id": "browser-1000000027",
+      "event": {
+        "type": "output",
+        "pid": "6918660150@'http://localhost:52591'",
+        "data": "Pong finished."
+      }
+    }
+  },
+  {
+    "case": "tutorial",
+    "event": {
+      "type": "success",
+      "pid": 1393128380,
+      "data": [
+        {}
+      ],
+      "more": false
+    }
+  },
+  {
+    "case": "inline",
+    "event": {
+      "type": "io_request",
+      "request_id": "browser-1000000037",
+      "event": {
+        "type": "output",
+        "pid": "4623064864@'http://localhost:52591'",
+        "data": "remote_inline(ok)"
+      }
+    }
+  },
+  {
+    "case": "inline",
+    "event": {
+      "type": "success",
+      "pid": 1256772217,
+      "data": [
+        {
+          "P": "4623064864@'http://127.0.0.1:52591'",
+          "R": "true"
+        }
+      ],
+      "more": false
+    }
+  }
+]

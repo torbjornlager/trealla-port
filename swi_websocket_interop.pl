@@ -28,6 +28,7 @@
             promise_yield_client_test/3,
             remote_spawn_echo_client_test/3,
             browser_distributed_io_client_test/2,
+            browser_remote_format_test/3,
             trinity_service_node/2,
             trinity_terminal_client_test/3,
             trinity_actor_contract_client_test/3
@@ -980,6 +981,74 @@ remote_spawn_echo_client_test(URL, OpenOptions, RemoteURL) :-
     receive_type(WS, "halted", _Halted),
     ws_close(WS, 1000, done),
     format('SWI browser -> Trealla sandboxed remote spawn test: ok~n').
+
+% A browser session on Trealla copies ping/pong clauses to a native SWI
+% peer. Local sandbox output helpers must not cross that runtime boundary.
+browser_remote_format_test(Port, PeerPort, NodeFile) :-
+    use_module(NodeFile),
+    format(atom(Home), 'http://127.0.0.1:~w', [Port]),
+    node:node(PeerPort, [profile(actor),auth(open),
+                        peer_transport_tokens([Home-'lineage-test-peer'])]),
+    format(atom(Peer), 'http://127.0.0.1:~w', [PeerPort]),
+    format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),
+    remote_format_source(Peer, Source),
+    format(string(Options), '[session(true),src_text(~q)]', [Source]),
+    setup_call_cleanup(http_open_websocket(URL, WS, []),
+        ( browser_format_shell(WS, Options, Pid),
+          browser_format_call(WS, Pid, "ping_pong_remote", Outputs),
+          msort(Outputs, Sorted),
+          msort(["Pong received ping.","Pong received ping.","Pong received ping.",
+                 "Ping received pong.","Ping received pong.","Ping received pong.",
+                 "Ping finished.","Pong finished."], Sorted),
+          browser_inline_format(WS, Pid, Peer),
+          browser_format_call(WS, Pid, "write([a,b])", ["[a,b]"]),
+          browser_format_halt(WS,Pid)
+        ), ws_close(WS,1000,done)),
+    % The inline path also works without a source-bearing session/bootstrap.
+    setup_call_cleanup(http_open_websocket(URL, BareWS, []),
+        ( browser_format_shell(BareWS, "[]", BarePid),
+          browser_inline_format(BareWS, BarePid, Peer),
+          receive_type(BareWS,"down",_)
+        ), ws_close(BareWS,1000,done)),
+    format('Browser Trealla -> SWI copied and inline format: ok~n').
+
+browser_format_halt(WS,Pid) :-
+    send_json(WS,json{command:"toplevel_halt",pid:Pid}),
+    receive_type(WS,"halted",_).
+
+browser_format_shell(WS, Options, Pid) :-
+    send_json(WS, json{command:"transport_hello",version:1,browser_pids:true,io_ack:true}),
+    receive_type(WS,"transport_welcome",_),
+    send_json(WS, json{command:"toplevel_spawn",options:Options}),
+    receive_type(WS,"spawned",Spawned), Pid=Spawned.pid.
+
+browser_inline_format(WS, Pid, Peer) :-
+    format(string(Goal),
+           "spawn((format('inline(~~w)~~n',[ok]),format('second~~n')),P,[node(~q),monitor(true)]),receive({down(P,_,R)->(R==true->true;throw(remote_failed(R)))},[timeout(5),on_timeout(throw(remote_timeout))])",
+           [Peer]),
+    browser_format_call(WS,Pid,Goal,["inline(ok)","second"]).
+
+browser_format_call(WS, Pid, Goal, Outputs) :-
+    send_json(WS,json{command:"toplevel_call",pid:Pid,goal:Goal,options:"[]"}),
+    browser_format_result(WS,Outputs).
+
+browser_format_result(WS, Outputs) :-
+    receive_json(WS, Event),
+    ( Event.type == "io_request"
+    -> Event.event.type == "output", Outputs=[Event.event.data|Rest],
+       acknowledge_browser_output(WS,Event),browser_format_result(WS,Rest)
+    ; Event.type == "success"
+    -> Outputs=[],Event.more == false
+    ; throw(error(remote_format_event(Event),browser_remote_format_test/3))
+    ).
+
+remote_format_source(Peer, Source) :-
+    format(atom(Source),
+           'ping(0,P):-P!finished,format(\'Ping finished.~~n\',[]).~n\c
+            ping(N,P):-self(S),P!ping(S),receive({pong->format(\'Ping received pong.~~n\')}),N1 is N-1,ping(N1,P).~n\c
+            pong:-receive({finished->format(\'Pong finished.~~n\');ping(P)->format(\'Pong received ping.~~n\'),P!pong,pong}).~n\c
+            ping_pong_remote:-spawn(pong,P,[node(~q),src_predicates([pong/0]),monitor(true)]),spawn(ping(3,P),Q,[src_predicates([ping/2]),monitor(true)]),receive({down(P,_,true)->true}),receive({down(Q,_,true)->true}).',
+           [Peer]).
 
 browser_distributed_io_client_test(Port, RemoteURL) :-
     format(atom(URL), 'ws://127.0.0.1:~w/ws', [Port]),

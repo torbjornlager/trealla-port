@@ -1,0 +1,95 @@
+[
+  {
+    "name": "local_output",
+    "goal": "format('local_before~n',[])",
+    "events": [
+      {
+        "type": "io_request",
+        "request_id": "browser-1000001829",
+        "event": {
+          "type": "output",
+          "pid": 2672386674,
+          "data": "local_before"
+        }
+      },
+      {
+        "type": "success",
+        "pid": 2672386674,
+        "data": [
+          {}
+        ],
+        "more": false
+      }
+    ]
+  },
+  {
+    "name": "remote_spawn",
+    "goal": "format('before_spawn~n',[]),spawn(true,P,[node('https://n4.elfenbenstornet.se'),monitor(true)]),format('after_spawn(~q)~n',[P]),receive({down(P,P,R)->true},[timeout(3),on_timeout(throw(no_down))])",
+    "events": [
+      {
+        "type": "io_request",
+        "request_id": "browser-1000001838",
+        "event": {
+          "type": "output",
+          "pid": 1152214204,
+          "data": "before_spawn"
+        }
+      },
+      {
+        "type": "io_request",
+        "request_id": "browser-1000001840",
+        "event": {
+          "type": "output",
+          "pid": 1152214204,
+          "data": "after_spawn(1456631180@'https://n4.elfenbenstornet.se')"
+        }
+      },
+      {
+        "type": "success",
+        "pid": 1152214204,
+        "data": [
+          {
+            "P": "1456631180@'https://n4.elfenbenstornet.se'",
+            "R": "true"
+          }
+        ],
+        "more": false
+      }
+    ]
+  },
+  {
+    "name": "remote_roundtrip",
+    "goal": "self(S),spawn((receive({ping(From)->send(From,pong)})),P,[node('https://n4.elfenbenstornet.se'),monitor(true)]),send(P,ping(S)),receive({pong->true},[timeout(3),on_timeout(throw(no_pong))]),receive({down(P,P,true)->true},[timeout(3),on_timeout(throw(no_down))])",
+    "events": [
+      {
+        "type": "success",
+        "pid": 1235066263,
+        "data": [
+          {
+            "S": "1235066263@'https://n5.elfenbenstornet.se'",
+            "From": "From",
+            "P": "9669233618@'https://n4.elfenbenstornet.se'"
+          }
+        ],
+        "more": false
+      }
+    ]
+  },
+  {
+    "name": "remote_output",
+    "goal": "spawn(format('remote_output~n',[]),P,[node('https://n4.elfenbenstornet.se'),monitor(true)]),receive({down(P,P,R)->true},[timeout(3),on_timeout(throw(no_down))])",
+    "events": [
+      {
+        "type": "success",
+        "pid": 1481633707,
+        "data": [
+          {
+            "P": "5699284767@'https://n4.elfenbenstornet.se'",
+            "R": "exception(error(existence_error(procedure,sandbox_format/2),_))"
+          }
+        ],
+        "more": false
+      }
+    ]
+  }
+]
