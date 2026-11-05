@@ -23,6 +23,8 @@ for mode in ['blacklist','whitelist']:
    cases=pack['cases'] if mode=='blacklist' else [c for c in pack['cases'] if c['id'] in ['STDLIB-032','STDLIB-034','STDLIB-040','STDLIB-048','STDLIB-054']]
    for case in cases:
     body=query(case['goal'],pack['source']);assert body=='success([passed],false).',(mode,case['id'],body);count+=1
+    if mode=='blacklist':
+     body=query('findall(passed,('+case['goal']+'),[passed])',pack['source']);assert body=='success([passed],false).',(mode,'nested',case['id'],body);count+=1
    for goal in ['maplist(current_prolog_flag,[bounded],[_])',
                 'G=current_prolog_flag,maplist(G,[bounded],[_])',
                 'G=current_prolog_flag(bounded,_),countall(G,_)',

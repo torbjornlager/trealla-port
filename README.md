@@ -2724,3 +2724,7 @@ with the original culprit. Empty iteration and vacuous `forall` tests leave unus
 callbacks alone, and application exceptions propagate unchanged. ISO `call/N`
 keeps the underlying runtime's existing error contract. The shared fixture
 includes exact callback errors for every required `maplist` and `foldl` arity.
+
+Nested library controls also run every shared assertion inside `findall/3`.
+The source rewriter expands `forall/2` to double negation so unused callbacks
+remain lazy in nested meta-calls on the deployed engine.

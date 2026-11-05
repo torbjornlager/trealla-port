@@ -714,7 +714,9 @@ rewrite_goal_(M,P,C,A,catch(X0,E,H0),
     rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,H0,H).
 rewrite_goal_(M,P,C,A,setup_call_cleanup(S0,X0,K0),setup_call_cleanup(S,X,K)) :- rewrite_goal(M,P,C,A,S0,S), rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,K0,K).
 rewrite_goal_(M,P,C,A,call_cleanup(X0,K0),call_cleanup(X,K)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,K0,K).
-rewrite_goal_(M,P,C,A,forall(X0,Y0),forall(X,Y)) :- rewrite_goal(M,P,C,A,X0,X), rewrite_goal(M,P,C,A,Y0,Y).
+% Guard both callbacks at invocation, including under nested meta-calls.
+rewrite_goal_(M,P,C,A,forall(X,Y),
+              sandbox_policy:sandbox_library(M,P,C,A,forall(X,Y))).
 rewrite_goal_(M,P,C,A,findall(T,X0,B),findall(T,X,B)) :- rewrite_goal(M,P,C,A,X0,X).
 rewrite_goal_(M,P,C,A,findnsols(N,T,X0,B),findnsols(N,T,X,B)) :- rewrite_goal(M,P,C,A,X0,X).
 rewrite_goal_(M,P,C,A,bagof(T,X0,B),bagof(T,X,B)) :- rewrite_goal(M,P,C,A,X0,X).
@@ -776,6 +778,9 @@ library_closure_goal(Closure, Extra, Goal) :-
     must_be(callable, Closure), Closure =.. Parts,
     length(Args, Extra), append(Parts, Args, Full), Goal =.. Full.
 
+sandbox_library(M,P,C,A,forall(Generate,Test)) :- !,
+    \+ (sandbox_library_call(M,P,C,A,Generate),
+        \+ sandbox_library_call(M,P,C,A,Test)).
 sandbox_library(M,P,C,A,Goal0) :-
     library_callback(Goal0, Closure, _),
     ( Goal0 = call_nth(_, N), nonvar(N)
