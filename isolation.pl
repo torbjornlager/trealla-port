@@ -266,6 +266,18 @@ sourceless_worker_goal(first_solution(S,Goals),
                        toplevel_actors:first_solution(S,Goals)) :- !.
 sourceless_worker_goal(first_solution(S,Goals,Options),
                        toplevel_actors:first_solution(S,Goals,Options)) :- !.
+sourceless_worker_goal(runtime_property(P), rpc:runtime_property(P)) :- !.
+sourceless_worker_goal(rpc(U,G), rpc:rpc(U,G)) :- !.
+sourceless_worker_goal(rpc(U,G,O), rpc:rpc(U,G,O)) :- !.
+sourceless_worker_goal(promise(U,G,R), rpc:promise(U,G,R)) :- !.
+sourceless_worker_goal(promise(U,G,R,O), rpc:promise(U,G,R,O)) :- !.
+sourceless_worker_goal(yield(R,A), rpc:yield(R,A)) :- !.
+sourceless_worker_goal(yield(R,A,O), rpc:yield(R,A,O)) :- !.
+sourceless_worker_goal(promise_cleanup(R), rpc:promise_cleanup(R)) :- !.
+sourceless_worker_goal(receive(C0), receive(C)) :- !,
+    sourceless_receive_clauses(C0,C).
+sourceless_worker_goal(receive(C0,O0), receive(C,O)) :- !,
+    sourceless_receive_clauses(C0,C), sourceless_receive_options(O0,O).
 sourceless_worker_goal((A0,B0), (A,B)) :- !,
     sourceless_worker_goal(A0,A), sourceless_worker_goal(B0,B).
 sourceless_worker_goal((A0;B0), (A;B)) :- !,
@@ -282,6 +294,27 @@ sourceless_worker_goal(once(G0), once(G)) :- !, sourceless_worker_goal(G0,G).
 sourceless_worker_goal(ignore(G0), ignore(G)) :- !, sourceless_worker_goal(G0,G).
 sourceless_worker_goal((\+G0), (\+G)) :- !, sourceless_worker_goal(G0,G).
 sourceless_worker_goal(Goal, Goal).
+
+% Lower callbacks of submitted receive terms through the same API dispatcher
+% as the enclosing goal. Patterns are data and are never rewritten. Native
+% compiled receive clauses keep their original predicate/cut context.
+sourceless_receive_clauses(C,C) :- var(C), !.
+sourceless_receive_clauses({C0},{C}) :- !, sourceless_receive_clauses(C0,C).
+sourceless_receive_clauses((A0;B0),(A;B)) :- !,
+    sourceless_receive_clauses(A0,A), sourceless_receive_clauses(B0,B).
+sourceless_receive_clauses((H0->B0),(H->B)) :- !,
+    sourceless_receive_head(H0,H), sourceless_worker_goal(B0,B).
+sourceless_receive_clauses(C,C).
+sourceless_receive_head(H0,H) :- nonvar(H0), H0=if(P,G0), !,
+    H=if(P,G), sourceless_worker_goal(G0,G).
+sourceless_receive_head(H,H).
+sourceless_receive_options(O,O) :- var(O), !.
+sourceless_receive_options([],[]) :- !.
+sourceless_receive_options([O0|Os0],[O|Os]) :- !,
+    (nonvar(O0),O0=on_timeout(G0) -> O=on_timeout(G),sourceless_worker_goal(G0,G) ; O=O0),
+    sourceless_receive_options(Os0,Os).
+sourceless_receive_options(O,O).
+
 
 
 run_actor_query(Module, Goal0) :-
@@ -759,7 +792,7 @@ minimal_bootstrap_text(_Module, Text) :-
     actors_library_file(ActorsFile),
     actor_api_library_file(ActorApiFile),
     format(atom(Text),
-           ':- use_module(~q).~n:- use_module(~q).~n\'$actor_call\'(Goal) :- call(Goal).~n',
+           ':- use_module(~q).~n:- use_module(~q).~n\'$actor_call\'(Goal0) :- isolation:sourceless_worker_goal(Goal0,Goal), call(Goal).~n',
            [ActorsFile, ActorApiFile]).
 
 % Each fragment is formatted into a query-local atom. Trealla's
@@ -844,6 +877,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_qualify_receive_guard\'(Qualified:Goal, Qualified:Goal) :- atom(Qualified), !.~n', []),
     bootstrap_line( '\'$actor_qualify_receive_guard\'(between(Low,High,Value), sandbox_policy:sandbox_between(Low,High,Value)) :- !.~n', []),
     bootstrap_line( '\'$actor_qualify_receive_guard\'(Goal, sandbox_policy:sandbox_builtin_call(Goal)) :- isolation:actor_builtin_goal(Goal), !.~n', []),
+    bootstrap_line( '\'$actor_qualify_receive_guard\'(Goal, Qualified) :- nonvar(Goal), !, isolation:actor_query_goal(~q,Goal,Qualified).~n', [Module]),
     bootstrap_line( '\'$actor_qualify_receive_guard\'(Goal, ~q:Goal).~n', [Module]),
     bootstrap_line( '\'$actor_qualify_receive_options\'(Options, Options) :- var(Options), !.~n', []),
     bootstrap_line( '\'$actor_qualify_receive_options\'([], []) :- !.~n', []),

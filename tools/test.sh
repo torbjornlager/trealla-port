@@ -134,6 +134,8 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/answer_negotiation_tests.pl'),(catch(answer_negotiation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Concurrent bootstrap and reply serialization" \
         "$TPL" -g "consult('$ROOT/source_capture_tests.pl'),(catch(source_capture_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Receive caller modules and private API dispatch" \
+        "$TPL" -g "consult('$ROOT/receive_caller_tests.pl'),(catch(receive_caller_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Owned remote demonitor acknowledgement and flush" \
         "$TPL" -g "consult('$ROOT/remote_demonitor_tests.pl'),(catch(remote_demonitor_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Independent termination notification references" \
