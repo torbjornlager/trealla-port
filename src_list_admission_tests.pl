@@ -13,7 +13,7 @@ run :-
         forbidden_source(Mode), forbidden_runtime_goal(Mode),
         forbidden_static_goal(Mode), unknown_whitelist_goal(Mode),
         computed_source(Mode), partial_source(Mode), constructed_clause(Mode),
-        literal_source(Mode) )),
+        literal_source(Mode), forbidden_literal_source(Mode) )),
     opaque_whitelist_options,
     lower_profile,
     write('Constructed src_list admission: all regressions passed'),nl.
@@ -108,6 +108,11 @@ literal_source(Mode) :-
     execute(Mode,
       (spawn(true,P,[src_list([data([97,98],[a,b])]),monitor(true)]),
        receive({down(P,P,true)->true},[timeout(2),on_timeout(throw(missing_literal_child))]))).
+
+forbidden_literal_source(Mode) :-
+    execute(Mode,
+      (catch(spawn(ha_bad,Pid,[src_text('ha_bad :- current_prolog_flag(bounded,_).')]),Error,true),
+       nonvar(Error),Error=error(permission_error(call,sandboxed,_),_),var(Pid))).
 
 opaque_whitelist_options :-
     expect_error(sandbox_prepare_goal(whitelist,actor,src_list_admission_tests,

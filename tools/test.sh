@@ -110,6 +110,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Whitelist private helper admission" \
+        "$TPL" -g "(catch((consult('$ROOT/whitelist_helper_tests.pl'),whitelist_helper_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Public node settings and serving context" \
         "$TPL" -g "(catch((consult('$ROOT/node_settings_tests.pl'),node_settings_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Idempotent connection shutdown" \

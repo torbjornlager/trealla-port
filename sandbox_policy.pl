@@ -5,6 +5,7 @@
          sandbox_check_goal/4,
          sandbox_prepare_goal/5,
          sandbox_prepare_spawn/7,
+         sandbox_prepare_session_call/7,
          sandbox_prepare_options/5,
          sandbox_call/5,
          sandbox_call/6,
@@ -132,6 +133,27 @@ sandbox_prepare_options(Mode0, Profile, _Module, Options0, Options) :-
     ; prepare_source_options(Mode, Profile, ResolvedOptions, Options, _),
       check_spawn_options(Options0)
     ).
+
+% Called only after the transport resolves and authorizes the target session.
+% A call does not install source: its whitelist comes from that session's
+% validated private definitions, never declarations supplied in call options.
+sandbox_prepare_session_call(Mode0, Profile, Pid, Goal0, Options, Goal, Options) :-
+    normalize_sandbox_mode(Mode0, Mode),
+    must_be(list, Options),
+    forall(member(Option,Options),check_session_call_option(Option)),
+    profile_check_goal(Profile, Goal0),
+    ( Mode == off -> Goal = Goal0
+    ; isolation:actor_application_predicates(Pid, AppPIs),
+      sandbox_check_goal_(Mode, Profile, actor_context, AppPIs, Goal0),
+      rewrite_goal(Mode, Profile, actor_context, AppPIs, Goal0, Goal)
+    ).
+
+check_session_call_option(Option) :-
+    must_be(nonvar,Option),
+    ( compound(Option),functor(Option,Name,_),
+      memberchk(Name,[src_text,src_list,src_predicates,src_uri])
+    -> throw(error(domain_error(toplevel_call_option,Option),toplevel_call/3))
+    ; true ).
 
 
                  /*******************************
@@ -306,6 +328,10 @@ nested_source_admission_options([], [], false).
 nested_source_admission_options([Option|Options], [Admission|Rest], Deferred) :-
     ( nonvar(Option), Option = src_list(Terms), \+ ground(Terms)
     -> Admission = src_list([]), Deferred = true
+    ; nonvar(Option), Option = src_text(Text), var(Text)
+    -> Admission = src_text(''), Deferred = true
+    ; nonvar(Option), Option = src_uri(_)
+    -> Admission = Option, Deferred = true
     ; Admission = Option, Deferred = TailDeferred
     ),
     nested_source_admission_options(Options, Rest, TailDeferred).
@@ -316,8 +342,20 @@ nested_source_predicate_indicators([src_predicates(PIs)|Options], All) :- !,
     maplist(check_declared_pi, PIs),
     append(PIs, Rest, All),
     nested_source_predicate_indicators(Options, Rest).
+nested_source_predicate_indicators([src_text(Text)|Options], All) :- !,
+    source_text_terms(Text,Terms),
+    nested_literal_predicate_indicators(Terms,Options,All).
+nested_source_predicate_indicators([src_list(Terms)|Options], All) :- !,
+    must_be(list,Terms),
+    nested_literal_predicate_indicators(Terms,Options,All).
 nested_source_predicate_indicators([_|Options], PIs) :-
     nested_source_predicate_indicators(Options, PIs).
+
+nested_literal_predicate_indicators(Terms0,Options,All) :-
+    normalize_source_terms(Terms0,Terms),
+    source_predicate_indicators(Terms,Here),
+    nested_source_predicate_indicators(Options,Rest),
+    append(Here,Rest,All).
 
 check_receive(Mode, Profile, Module, AppPIs, Braced, Options) :-
     receive_term(Braced, Clauses),

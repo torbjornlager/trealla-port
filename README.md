@@ -175,6 +175,21 @@ enforced `max_source_text_bytes/1` ceiling. There is no separate polling
 there are no available settings. `node_settings_tests.pl` checks inheritance,
 exception restoration, nested contexts, unavailable keys and actor cleanup.
 
+Whitelist session calls admit the target session's installed private helpers.
+Ownership is checked before consulting its source metadata; imported runtime
+predicates and shared owner definitions do not add whitelist entries. Private
+source that shadows a shared definition remains callable. `toplevel_call/3`
+does not load source, so source options on a WebSocket session call raise
+`domain_error(toplevel_call_option, Option)` without fetching a URI.
+
+Child admission recognizes names in literal `src_text` and `src_list` sources,
+as well as copied predicate indicators. Constructed text and URI source keep
+their runtime source checks: preflight does not fetch a URI, and the actual
+caller resolves and validates the source before creating the child. Forbidden
+goals remain rejected when source is deferred. `whitelist_helper_tests.pl` and
+`src_list_admission_tests.pl` cover private-target membership, shared shadows,
+nonbinding preparation, call-source rejection and forbidden child bodies.
+
 `server_promise/4` removes and flushes its newly installed monitor when
 subsequent reference setup or sending fails or throws, preserving the original
 outcome. A successful send leaves the monitor for `server_yield/4`.
