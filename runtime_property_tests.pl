@@ -1,18 +1,18 @@
 % SPDX-License-Identifier: MIT
-:- module(runtime_property_tests,[run/0,live/2]).
+:- module(runtime_property_tests,[run/0,live/1]).
 :- use_module(actor_api).
 :- use_module(actors).
 :- use_module(isolation,[]).
 :- use_module(sandbox_policy,[]).
 
-expected([implementation(trealla_native),persistent(true),
-          inbound_addressable(true),dom(false),actor_isolation(native_thread),
+expected([persistent(true),
+          inbound_addressable(true),dom(false),actor_isolation(independent),
           hard_termination(true)]).
 
 run :-
     expected(Expected),
     findall(P,runtime_property(P),Expected),
-    findall(I,runtime_property(implementation(I)),[trealla_native]),
+    \+runtime_property(implementation(I)),var(I),
     runtime_property(persistent(true)),
     \+runtime_property(persistent(false)),
     \+runtime_property(implementation(swi_native)),
@@ -49,23 +49,23 @@ toplevel_check(Options,Expected) :-
 
 child_check :-
     self(Self),
-    spawn((runtime_property(implementation(I)),Self ! implementation(I)),Pid,
+    spawn((runtime_property(actor_isolation(I)),Self ! isolation(I)),Pid,
           [monitor(true),link(false),src_text('probe(ok).')]),
-    receive({implementation(trealla_native) -> true},
+    receive({isolation(independent) -> true},
             [timeout(3),on_timeout(throw(runtime_property_child_timeout))]),
     receive({down(Pid,Pid,true) -> true},[timeout(3),on_timeout(fail)]).
 
-% Identical public HTTP assertions on both native runtimes; only identity varies.
-live(Node,Implementation) :-
-    Expected=[implementation(Implementation),persistent(true),
-              inbound_addressable(true),dom(false),actor_isolation(native_thread),
+% Identical public HTTP capability assertions on both native runtimes.
+live(Node) :-
+    Expected=[persistent(true),
+              inbound_addressable(true),dom(false),actor_isolation(independent),
               hard_termination(true)],
     rpc(Node,findall(P,runtime_property(P),Properties)),Properties==Expected,
     rpc(Node,findall(P,runtime_property(P),Private),[src_text('probe(ok).')]),
     Private==Expected,
-    findall(I,rpc(Node,runtime_property(implementation(I))),[Implementation]),
+    findall(I,rpc(Node,runtime_property(implementation(I))),[]),
     rpc(Node,runtime_property(persistent(true))),
     \+rpc(Node,runtime_property(persistent(false))),
     \+rpc(Node,runtime_property(unknown(_))),
     \+rpc(Node,runtime_property(42)),
-    format('Public runtime properties on ~w: passed~n',[Implementation]).
+    format('Public runtime properties on ~w: passed~n',[Node]).
