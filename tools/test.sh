@@ -456,7 +456,7 @@ run_interop() {
         run_with_timeout "Public synchronous wrappers -> SWI" \
             "$TPL" -g "consult('$ROOT/synchronous_toplevel_tests.pl'),(catch(synchronous_toplevel_tests:live('http://127.0.0.1:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Public runtime properties (swi_native)" \
-            "$TPL" -g "consult('$ROOT/runtime_property_tests.pl'),(catch(runtime_property_tests:live('http://127.0.0.1:$swi_actor_port',swi_native),E,(writeq(E),nl,fail))->halt;halt(1))"
+            "$TPL" -g "consult('$ROOT/runtime_property_tests.pl'),(catch(runtime_property_tests:live('http://127.0.0.1:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Trealla first-slice RPC -> SWI" \
             "$TPL" -g "consult('$ROOT/rpc_once_tests.pl'),(catch(rpc_once_tests:live('http://127.0.0.1:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "HTTP first-slice responses -> SWI" \
@@ -531,7 +531,7 @@ run_interop() {
     run_with_timeout "Public synchronous wrappers -> Trealla" \
         "$TPL" -g "consult('$ROOT/synchronous_toplevel_tests.pl'),(catch(synchronous_toplevel_tests:live('http://127.0.0.1:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Public runtime properties (trealla_native)" \
-        "$TPL" -g "consult('$ROOT/runtime_property_tests.pl'),(catch(runtime_property_tests:live('http://127.0.0.1:$trealla_remote_port',trealla_native),E,(writeq(E),nl,fail))->halt;halt(1))"
+        "$TPL" -g "consult('$ROOT/runtime_property_tests.pl'),(catch(runtime_property_tests:live('http://127.0.0.1:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Trealla first-slice RPC -> Trealla" \
         "$TPL" -g "consult('$ROOT/rpc_once_tests.pl'),(catch(rpc_once_tests:live('http://127.0.0.1:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "HTTP first-slice responses -> Trealla" \

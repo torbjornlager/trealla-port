@@ -65,11 +65,10 @@ is fetched automatically on backtracking.
 %! runtime_property(?Property) is nondet.
 % Host capabilities, matching the native SWI surface. Forced termination
 % does not guarantee execution of Prolog cleanup handlers.
-runtime_property(implementation(trealla_native)).
 runtime_property(persistent(true)).
 runtime_property(inbound_addressable(true)).
 runtime_property(dom(false)).
-runtime_property(actor_isolation(native_thread)).
+runtime_property(actor_isolation(independent)).
 runtime_property(hard_termination(true)).
 
 :- use_module(library(http)).
