@@ -123,6 +123,8 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/cyclic_answer_tests.pl'),(catch(cyclic_answer_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Canonical URI inputs" \
         "$TPL" -g "consult('$ROOT/uri_option_tests.pl'),(catch(uri_option_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Required standard library and callback guards" \
+        python3 "$ROOT/tools/test-standard-library.py" --tpl "$TPL"
     run_with_timeout "Strict Boolean language options" \
         "$TPL" -g "consult('$ROOT/boolean_option_tests.pl'),(catch(boolean_option_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Canonical answer negotiation context" \

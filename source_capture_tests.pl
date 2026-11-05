@@ -35,6 +35,10 @@ check_output_export :-
     isolation:restore_actor_goal(Guarded, Public),
     Public = format('~w-~w', [A,B]),
     ( var(X), A == X, B == X -> true ; throw(output_export_sharing) ),
+    Library = countall(member(Shared,[a,b]),Count),
+    isolation:restore_actor_goal(
+        sandbox_policy:sandbox_library(blacklist,actor,actor_context,[],Library), Restored),
+    (Restored == Library, var(Shared), var(Count) -> true ; throw(library_export_sharing)),
     % A partially specified module-qualified data term is not a guard.
     Data = payload(M:Inner, Y, Y),
     isolation:restore_actor_goal(Data, Copy),

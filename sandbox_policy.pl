@@ -15,6 +15,7 @@
          sandbox_call/11,
          sandbox_call/12,
          sandbox_spawn/7,
+         sandbox_library/5,
          sandbox_supervisor_call/5,
          sandbox_toplevel_call/7,
          sandbox_toplevel_synch/9,
@@ -208,6 +209,15 @@ sandbox_check_goal_(Mode, Profile, Module, AppPIs, spawn(Goal,_Pid)) :- !,
     sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal).
 sandbox_check_goal_(Mode, Profile, Module, AppPIs, spawn(Goal,_Pid,Options)) :- !,
     check_nested_spawn(Mode, Profile, Module, AppPIs, Goal, Options).
+sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal) :-
+    library_callback(Goal, Closure, Extra), !,
+    ( var(Closure) -> check_meta_instantiation(Mode, Goal, [Closure])
+    ; callable(Closure) ->
+      copy_term(Closure, Check), library_closure_goal(Check, Extra, Call),
+      profile_check_goal(Profile, Call),
+      sandbox_check_goal_(Mode, Profile, Module, AppPIs, Call)
+    ; true % An unused closure on empty lists is never called.
+    ).
 sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal) :-
     meta_goal_parts(Goal, Nested),
     !,
@@ -562,6 +572,8 @@ reserved_source_name(supervisor_count_children).
 reserved_source_name(supervisor_halt).
 reserved_source_name(supervisor_stop).
 reserved_source_name(sandbox_call).
+reserved_source_name(sandbox_library).
+reserved_source_name(sandbox_library_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_supervisor_call).
 reserved_source_name(sandbox_toplevel_call).
@@ -614,6 +626,8 @@ rewrite_goal(Mode, Profile, Module, AppPIs, Goal0, Goal) :-
     rewrite_goal_(Mode, Profile, Module, AppPIs, Goal0, Goal), !.
 rewrite_goal(_, _, _, _, Goal, Goal).
 
+rewrite_goal_(M,P,C,A,Goal,sandbox_policy:sandbox_library(M,P,C,A,Goal)) :-
+    library_callback(Goal, _, _), !.
 rewrite_goal_(Mode, Profile, Module, AppPIs, Var,
               sandbox_policy:sandbox_call(Mode,Profile,Module,AppPIs,Var)) :- var(Var).
 % Options can be computed at runtime; check and prepare callback goals then,
@@ -748,6 +762,49 @@ rewrite_receive_option_list(M,P,C,A,[on_timeout(G0)|Os0],[on_timeout(G)|Os]) :- 
     rewrite_goal(M,P,C,A,G0,G), rewrite_receive_option_list(M,P,C,A,Os0,Os).
 rewrite_receive_option_list(M,P,C,A,[O|Os0],[O|Os]) :- rewrite_receive_option_list(M,P,C,A,Os0,Os).
 
+% Guard callbacks after the library supplies their extra arguments. Preserve
+% the caller's source namespace even when the closure is computed at runtime.
+library_callback(Goal, Closure, Extra) :-
+    nonvar(Goal), functor(Goal, Name, Arity),
+    ( Name == maplist, Arity >= 2, Arity =< 8 -> Extra is Arity-1
+    ; Name == foldl, Arity >= 4, Arity =< 6 -> Extra is Arity-1
+    ; memberchk(Name/Arity, [countall/2,call_nth/2]) -> Extra=0
+    ; fail ),
+    arg(1, Goal, Closure).
+
+library_closure_goal(Closure, Extra, Goal) :-
+    must_be(callable, Closure), Closure =.. Parts,
+    length(Args, Extra), append(Parts, Args, Full), Goal =.. Full.
+
+sandbox_library(M,P,C,A,Goal0) :-
+    library_callback(Goal0, Closure, _),
+    ( Goal0 = call_nth(_, N), nonvar(N)
+    -> must_be(integer, N),
+       ( N > 0 -> true
+       ; throw(error(domain_error(not_less_than_one,N),call_nth/2)) )
+    ; true ),
+    Goal0 =.. [Name,_|Args],
+    Guard = sandbox_policy:sandbox_library_call(M,P,C,A,Closure),
+    Goal =.. [Name,Guard|Args], call(Goal).
+
+% Library callback types differ from the ISO call/N atom requirement.
+sandbox_library_call(M,P,C,A,X) :-
+    must_be(callable, X), guarded_call(M,P,C,A,X,[]).
+sandbox_library_call(M,P,C,A,X,B0) :-
+    must_be(callable, X), guarded_call(M,P,C,A,X,[B0]).
+sandbox_library_call(M,P,C,A,X,B0,B1) :-
+    must_be(callable, X), guarded_call(M,P,C,A,X,[B0,B1]).
+sandbox_library_call(M,P,C,A,X,B0,B1,B2) :-
+    must_be(callable, X), guarded_call(M,P,C,A,X,[B0,B1,B2]).
+sandbox_library_call(M,P,C,A,X,B0,B1,B2,B3) :-
+    must_be(callable, X), guarded_call(M,P,C,A,X,[B0,B1,B2,B3]).
+sandbox_library_call(M,P,C,A,X,B0,B1,B2,B3,B4) :-
+    must_be(callable, X), guarded_call(M,P,C,A,X,[B0,B1,B2,B3,B4]).
+sandbox_library_call(M,P,C,A,X,B0,B1,B2,B3,B4,B5) :-
+    must_be(callable, X), guarded_call(M,P,C,A,X,[B0,B1,B2,B3,B4,B5]).
+sandbox_library_call(M,P,C,A,X,B0,B1,B2,B3,B4,B5,B6) :-
+    must_be(callable, X), guarded_call(M,P,C,A,X,[B0,B1,B2,B3,B4,B5,B6]).
+
 sandbox_call(Mode,Profile,Module,AppPIs,Closure) :-
     guarded_call(Mode,Profile,Module,AppPIs,Closure,[]).
 sandbox_call(M,P,C,A,X,B) :- guarded_call(M,P,C,A,X,[B]).
@@ -759,11 +816,21 @@ sandbox_call(M,P,C,A,X,B,D,E,F,G,H) :- guarded_call(M,P,C,A,X,[B,D,E,F,G,H]).
 sandbox_call(M,P,C,A,X,B,D,E,F,G,H,I) :- guarded_call(M,P,C,A,X,[B,D,E,F,G,H,I]).
 
 guarded_call(Mode, Profile, Module, AppPIs, Closure, Extra) :-
-    must_be(callable, Closure),
+    ( callable(Closure) -> true
+    ; Extra = [_|_], atomic(Closure) -> must_be(atom, Closure)
+    ; must_be(callable, Closure) ),
     Closure =.. [Name|Args0], append(Args0, Extra, Args), Goal0 =.. [Name|Args],
+    profile_check_goal(Profile, Goal0),
     sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal0),
     rewrite_goal(Mode, Profile, Module, AppPIs, Goal0, Goal),
-    call_in_context(Module, Goal).
+    call_guarded_context(Module, Goal).
+
+% The isolation runner preserves inline control scope. Dynamically qualifying
+% an entire conjunction in a private module can turn its cut into call(!).
+call_guarded_context(actor_context, Goal) :- !,
+    context_module(actor_context, RuntimeModule),
+    isolation:run_actor_query(RuntimeModule, Goal).
+call_guarded_context(Module, Goal) :- call_in_context(Module, Goal).
 
 %!  sandbox_control_catch(+Module, :Goal, ?Catcher, :Recover) is nondet.
 %

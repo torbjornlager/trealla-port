@@ -2705,3 +2705,22 @@ decoded as text at the Trealla browser boundary; `write/1` retains term
 rendering. The interop tier runs the complete three-round ping-pong exchange
 against native SWI, checks all eight output events and normal completion,
 and covers inline output with and without session source.
+
+
+Required standard-library callbacks (`maplist/2-8`, `foldl/4-6`, `countall/2`
+and `call_nth/2`) pass through the active profile and sandbox even when the
+closure is computed at runtime. The isolation runner preserves native control
+scope for private-source callbacks, including a generator's cut inside
+`countall/2`. `call_nth/2` rejects nonpositive integer ordinals with
+`domain_error(not_less_than_one, N)`. Source copying and remote spawn restore
+public calls before dispatch. The unit tier runs `tools/test-standard-library.py`;
+the interop tier covers copied and inline library calls on native SWI peers.
+The shared JSON fixture mirrors `trinity-conformance/cases/standard-library-0.1.json`.
+This is a development repair; release pins and live nodes are unchanged.
+
+Library callbacks validate callable values when invoked. Uninstantiated values
+raise `instantiation_error`; invalid values raise `type_error(callable, Value)`
+with the original culprit. Empty iteration and vacuous `forall` tests leave unused
+callbacks alone, and application exceptions propagate unchanged. ISO `call/N`
+keeps the underlying runtime's existing error contract. The shared fixture
+includes exact callback errors for every required `maplist` and `foldl` arity.

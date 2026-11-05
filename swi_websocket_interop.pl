@@ -1001,6 +1001,9 @@ browser_remote_format_test(Port, PeerPort, NodeFile) :-
                  "Ping received pong.","Ping received pong.","Ping received pong.",
                  "Ping finished.","Pong finished."], Sorted),
           browser_inline_format(WS, Pid, Peer),
+          format(string(LibraryGoal),
+              "spawn(library_export,P,[node(~q),src_predicates([library_export/0]),monitor(true)]),receive({down(P,_,R)->(R==true->true;throw(remote_failed(R)))},[timeout(5),on_timeout(throw(remote_timeout))])",[Peer]),
+          browser_format_call(WS,Pid,LibraryGoal,[]),
           browser_format_call(WS, Pid, "write([a,b])", ["[a,b]"]),
           browser_format_halt(WS,Pid)
         ), ws_close(WS,1000,done)),
@@ -1024,7 +1027,7 @@ browser_format_shell(WS, Options, Pid) :-
 
 browser_inline_format(WS, Pid, Peer) :-
     format(string(Goal),
-           "spawn((format('inline(~~w)~~n',[ok]),format('second~~n')),P,[node(~q),monitor(true)]),receive({down(P,_,R)->(R==true->true;throw(remote_failed(R)))},[timeout(5),on_timeout(throw(remote_timeout))])",
+           "spawn((format('inline(~~w)~~n',[ok]),maplist(=(a),[a]),countall(member(_,[a,b]),2),format('second~~n')),P,[node(~q),monitor(true)]),receive({down(P,_,R)->(R==true->true;throw(remote_failed(R)))},[timeout(5),on_timeout(throw(remote_timeout))])",
            [Peer]),
     browser_format_call(WS,Pid,Goal,["inline(ok)","second"]).
 
@@ -1044,7 +1047,8 @@ browser_format_result(WS, Outputs) :-
 
 remote_format_source(Peer, Source) :-
     format(atom(Source),
-           'ping(0,P):-P!finished,format(\'Ping finished.~~n\',[]).~n\c
+           'library_export:-maplist(=(a),[a]),countall(member(_,[a,b]),2).~n\c
+            ping(0,P):-P!finished,format(\'Ping finished.~~n\',[]).~n\c
             ping(N,P):-self(S),P!ping(S),receive({pong->format(\'Ping received pong.~~n\')}),N1 is N-1,ping(N1,P).~n\c
             pong:-receive({finished->format(\'Pong finished.~~n\');ping(P)->format(\'Pong received ping.~~n\'),P!pong,pong}).~n\c
             ping_pong_remote:-spawn(pong,P,[node(~q),src_predicates([pong/0]),monitor(true)]),spawn(ping(3,P),Q,[src_predicates([ping/2]),monitor(true)]),receive({down(P,_,true)->true}),receive({down(Q,_,true)->true}).',
