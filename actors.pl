@@ -699,12 +699,10 @@ actor_thread(Pid, Thread) :-
 
 :- dynamic(monitor/3).
 
-monitor(Name, Ref) :-
-    atom(Name),
-    whereis(Name, Pid),
-    !,
-    monitor(Pid, Ref).
-monitor(Pid, Ref) :-
+monitor(Target, Ref) :-
+    must_be(nonvar, Target),
+    validate_monitor_node(Target),
+    (atom(Target), registered(Target, NamedPid) -> Pid=NamedPid ; Pid=Target),
     self(Self),
     make_ref(Ref),
     ( with_mutex('$actor_registry', install_local_monitor(Self, Pid, Ref))
@@ -715,6 +713,15 @@ monitor(Pid, Ref) :-
     ),
     !.
 
+% Validate before allocating the reference or consulting routing state. Keep
+% the complete culprit in the language error, including long character lists.
+validate_monitor_node(Target) :-
+    (Target = _@Node ->
+        (var(Node) -> throw(error(instantiation_error,monitor/2))
+        ; atom(Node) -> true
+        ; throw(error(type_error(atom,Node),monitor/2)))
+    ; true).
+
 install_local_monitor(Self, Pid, Ref) :-
     actor_alive(Pid),
     assertz(monitor(Self, Pid, Ref)).
@@ -724,6 +731,12 @@ demonitor(Ref) :-
     demonitor(Ref, []).
 
 demonitor(Ref, Options) :-
+    must_be(ground, Ref),
+    % Host type diagnostics can abbreviate a long list. The public formal
+    % error must retain the complete supplied value.
+    catch(must_be(list, Options),error(type_error(list,_),Context),
+          throw(error(type_error(list,Options),Context))),
+    maplist(validate_demonitor_option, Options),
     self(Self),
     with_mutex('$actor_registry',
         (monitor(Self, _, Ref) -> Owned=true ; Owned=false)),
@@ -737,6 +750,11 @@ demonitor(Ref, Options) :-
     ->  flush_monitor_messages(Ref)
     ;   true
     ).
+
+validate_demonitor_option(Option) :-
+    must_be(nonvar, Option),
+    (Option == flush -> true
+    ; throw(error(domain_error(demonitor_option,Option),demonitor/2))).
 
 flush_monitor_messages(Ref) :-
     receive({
