@@ -563,6 +563,11 @@ text_source(Text) :- is_list(Text).
 % functor/3 and arg/3 retain Trealla's callable metadata during reconstruction.
 restore_actor_goal(Term, Term) :- var(Term), !.
 restore_actor_goal(Term0, Goal) :-
+    Term0 = Qualified:Inner, Qualified == isolation, nonvar(Inner),
+    functor(Inner, call_actor_leaf, 2), !,
+    arg(2, Inner, Public),
+    restore_actor_goal(Public, Goal).
+restore_actor_goal(Term0, Goal) :-
     Term0 = M:Inner, M == sandbox_policy, nonvar(Inner),
     restored_guard(Inner, Public), !,
     restore_actor_goal(Public, Goal).
@@ -1003,6 +1008,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_strip_source_module\'(Term, Term) :- var(Term), !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0), clause(Head,Body)) :- !, \'$actor_strip_source_module\'(Head0,Head), \'$actor_strip_source_module\'(Body0,Body).~n', []),
     % Export source goals, not the private primitive bridge installed for guard execution.
+    bootstrap_line( '\'$actor_strip_source_module\'(Term0, Goal) :- Term0 = Qualified:Inner, Qualified == isolation, nonvar(Inner), functor(Inner,call_actor_leaf,2), !, arg(2,Inner,Goal0), \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_builtin_call(Goal0), Goal) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_library(_M,_P,_C,_A,Goal0), Goal) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_format(Format,Args), format(Format,Args)) :- !.~n', []),

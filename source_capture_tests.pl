@@ -39,6 +39,11 @@ check_output_export :-
     isolation:restore_actor_goal(
         sandbox_policy:sandbox_library(blacklist,actor,actor_context,[],Library), Restored),
     (Restored == Library, var(Shared), var(Count) -> true ; throw(library_export_sharing)),
+    Leaf = husband(Wife,Husband),
+    isolation:restore_actor_goal(
+        isolation:call_actor_leaf(private_parent,Leaf), RestoredLeaf),
+    (RestoredLeaf == Leaf, var(Wife), var(Husband), Wife \== Husband
+    -> true ; throw(receive_guard_export_sharing)),
     % A partially specified module-qualified data term is not a guard.
     Data = payload(M:Inner, Y, Y),
     isolation:restore_actor_goal(Data, Copy),
