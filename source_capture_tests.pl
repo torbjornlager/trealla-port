@@ -31,6 +31,17 @@ worker(Parent, Expected) :-
     thread_send_message(Parent, finished(Result)).
 
 check_output_export :-
+    forall(member(Kind,[write,writeln]),
+        ( Term=pair(V,V),
+          Input=..[Kind,Term],
+          sandbox_policy:sandbox_prepare_goal(blacklist,actor,actor_context,Input,Prepared),
+          (Kind==writeln -> (Prepared==Input -> true ; throw(public_writeln_was_rewritten)) ; true),
+          isolation:restore_actor_goal(Prepared,Call),
+          Call=..[Kind,Restored],Restored=pair(L,R),
+          (var(V),L==V,R==V -> true ; throw(write_export_sharing)),
+          sandbox_policy:restore_clause_body(actor_context,
+              Prepared,Visible),
+          (Visible==Call -> true ; throw(write_clause_visibility)) )),
     Guarded = sandbox_policy:sandbox_format('~w-~w', [X,X]),
     isolation:restore_actor_goal(Guarded, Public),
     Public = format('~w-~w', [A,B]),

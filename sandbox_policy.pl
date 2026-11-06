@@ -23,6 +23,7 @@
          sandbox_yield/7,
          sandbox_control_catch/4,
          sandbox_format/2,
+         sandbox_write/1,
          sandbox_time/2,
          sandbox_sleep/1,
          sandbox_between/3,
@@ -174,6 +175,8 @@ sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
     % when its parent session loaded them.  This one qualified runtime helper
     % is capability-free and applies its own runtime format guard.
     reject_format_meta_call(Format).
+sandbox_check_goal_(_Mode,_Profile,_Module,_AppPIs,
+                    sandbox_policy:sandbox_write(_Term)) :- !.
 sandbox_check_goal_(_Mode, _Profile, _Module, _AppPIs,
                     sandbox_policy:sandbox_sleep(_Seconds)) :-
     !.
@@ -620,6 +623,7 @@ reserved_source_name(sandbox_toplevel_call).
 reserved_source_name(sandbox_toplevel_synch).
 reserved_source_name(sandbox_yield).
 reserved_source_name(sandbox_format).
+reserved_source_name(sandbox_write).
 reserved_source_name(sandbox_time).
 reserved_source_name(sandbox_sleep).
 reserved_source_name(sandbox_between).
@@ -680,12 +684,15 @@ rewrite_goal_(_,_,_,_,raise(E),statechart_actor:raise(E)) :- !.
 rewrite_goal_(_,_,_,_,in(S),statechart_actor:in(S)) :- !.
 rewrite_goal_(M,P,C,_A,statechart_spawn(Pid,Options),
               statechart_actor:statechart_spawn_in(M,P,C,Pid,Options)) :- !.
-% Match the SWI actor I/O prelude without requiring Trealla to redefine a
-% built-in predicate. Stream-specific write/2, writeln/2 and nl/1 remain forbidden.
-rewrite_goal_(_M,_P,_C,_A,write(Term),
-              actors:terminal_output(Term,[source(io)])).
-rewrite_goal_(_M,_P,_C,_A,writeln(Term),
-              actors:terminal_output(Term,[source(io)])).
+% writeln/1 stays a public call and resolves through the actor I/O prelude.
+% Trealla 3.14.20 protects write/1 against redefinition after imports, so its
+% small adapter retains a reversible public write/1 source representation.
+% Stream-specific write/2, writeln/2 and nl/1 remain forbidden.
+rewrite_goal_(_M,_P,_C,_A,write(Term),sandbox_policy:sandbox_write(Term)).
+rewrite_goal_(_M,_P,_C,_A,writeln(Term),Public) :-
+    % The source reader attaches an earlier builtin binding. A fresh public
+    % call lets clause compilation bind to the private actor I/O prelude.
+    Public=..[writeln,Term].
 rewrite_goal_(_M,_P,_C,_A,nl,
               sandbox_policy:sandbox_format('~n',[])).
 % The SWI actor I/O prelude redefines the non-stream format predicates.  A
@@ -874,6 +881,10 @@ guarded_call(Mode, Profile, Module, AppPIs, Closure, Extra) :-
 
 % The isolation runner preserves inline control scope. Dynamically qualifying
 % an entire conjunction in a private module can turn its cut into call(!).
+call_guarded_context(_,Goal) :-
+    nonvar(Goal),functor(Goal,writeln,1),
+    actors:self(Pid),actors:actor_alive(Pid),!,
+    context_module(actor_context,Module),isolation:run_actor_query(Module,Goal).
 call_guarded_context(actor_context, Goal) :- !,
     context_module(actor_context, RuntimeModule),
     isolation:run_actor_query(RuntimeModule, Goal).
@@ -1191,6 +1202,8 @@ sandbox_format(Format, Args) :-
     format(atom(Text), Format, Args),
     actors:terminal_output(Text, [source(io)]).
 
+sandbox_write(Term) :- actors:terminal_output(Term,[source(io)]).
+
 sandbox_time(Module, Goal) :-
     get_time(Wall0),
     statistics(cputime, CPU0),
@@ -1299,6 +1312,7 @@ restore_clause_body(Module, Module:Inner0, Inner) :-
 restore_clause_body(Module, sandbox_policy:sandbox_builtin_call(Goal0), Goal) :-
     !,
     restore_clause_body(Module, Goal0, Goal).
+restore_clause_body(_Module,sandbox_policy:sandbox_write(Term),write(Term)) :- !.
 restore_clause_body(_Module, sandbox_policy:sandbox_sleep(Seconds),
                     sleep(Seconds)) :- !.
 restore_clause_body(_Module,

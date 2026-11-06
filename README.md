@@ -1,5 +1,11 @@
 # Porting `library(actors)` (and friends) to Trealla Prolog
 
+For shared Web Prolog behavior, native SWI is the design reference and Appendix B
+is the contract. Departures require a concrete engine constraint, a small private
+adaptation, and shared behavioral regressions run against both implementations.
+Captured source must contain public language calls, leaving each destination to
+install its own runtime guards and I/O bridge.
+
 Status report on porting the simple node from SWI-Prolog to
 [Trealla Prolog](https://github.com/trealla-prolog/trealla)
 (currently tested on v3.14.20; earlier actor/RPC work was also tested on
@@ -1306,9 +1312,20 @@ containment.
 
 `distribution.pl` adds the client-side distribution layer.  Each
 remote node uses one persistent WebSocket with separate reader and writer
-actors.  A node-manager thread caches connections and maps canonical
+workers. These native threads retain internal actor mailbox and monitor
+bookkeeping, but are excluded from `actors/1`, both inside a browser session
+and in an unscoped call. A node-manager thread caches connections and maps canonical
 `Pid@Node` values to their writer.  The writer serializes frames and spawn
 replies; the reader routes events to the local actors that own monitors.
+
+`transport_visibility_tests.pl` checks that a completed remote ping-pong
+returns the public actor list to its baseline, preserves an unrelated live
+actor, reuses the connection and reconnects after closure. The unit and
+interoperability runners include these checks. The optional
+`tools/test-ping-pong-browser.cjs` exercises the actual tutorial controls
+twice and checks the session's actor baseline and a fresh query. It requires
+Playwright and `CHROME_PATH`; `ACTOR_URL` defaults to public N5, and
+`NATIVE_WS_URL` can redirect its actor socket to a disposable candidate.
 
 Loading `distribution.pl` installs transparent routing hooks in `actors.pl`.
 Ordinary actor syntax can therefore target a remote node:

@@ -3,28 +3,37 @@
 :- use_module(actors).
 :- use_module(sandbox_policy).
 :- use_module(toplevel_actors,[]).
+:- use_module(isolation,[]).
 
 run :-
+    terminal_case(writeln(raw_actor),[],[raw_actor]),
+    terminal_case(writeln(source_actor),[src_text('loaded.')],[source_actor]),
     forall(member(Mode,[blacklist,whitelist]),
            (checks(Mode),newline_checks(Mode),linda_output_checks(Mode))),
     receive({_ -> fail},[timeout(0)]),
     writeln('Actor write/1 output: all regressions passed').
 checks(Mode) :-
-    sandbox_prepare_goal(Mode,actor,user,write(pair(X,X)),Guarded),
-    Guarded=actors:terminal_output(pair(A,B),[source(io)]),var(X),A==X,B==X,
-    self(Self),spawn(Guarded,P,[monitor(true),io_target(Self),link(false)]),
-    receive({terminal_io_output(P,pair(U,V)) -> var(U),U==V},[timeout(2),on_timeout(fail)]),
-    receive({down(P,P,true) -> true},[timeout(2),on_timeout(fail)]),var(X),
-    sandbox_prepare_goal(Mode,actor,user,call(write(abc)),Closure),
-    spawn(call(Closure),C,[monitor(true),io_target(Self),link(false)]),
-    receive({terminal_io_output(C,abc) -> true},[timeout(2),on_timeout(fail)]),
-    receive({down(C,C,true) -> true},[timeout(2),on_timeout(fail)]),
+    forall(member(Kind,[write,writeln]),write_checks(Mode,Kind)),
     catch(sandbox_prepare_goal(Mode,actor,user,write(user_output,abc),_),Error,true),
     nonvar(Error),Error=error(permission_error(call,sandboxed,_),_),
     catch(sandbox_policy:sandbox_call(Mode,actor,user,[],write(user_output,abc)),
           RuntimeError,true),nonvar(RuntimeError),
     RuntimeError=error(permission_error(call,sandboxed,_),_),
-    format('~w: sharing, inherited terminal, higher-order call and stream denial: ok~n',[Mode]).
+    format('~w: write/writeln sharing, inherited terminal, higher-order calls and stream denial: ok~n',[Mode]).
+
+write_checks(Mode,Kind) :-
+    Input=..[Kind,pair(X,X)],
+    sandbox_prepare_goal(Mode,actor,user,Input,Guarded),
+    isolation:restore_actor_goal(Guarded,Public),
+    Public=..[Kind,pair(A,B)],var(X),A==X,B==X,
+    self(Self),spawn(Guarded,P,[monitor(true),io_target(Self),link(false)]),
+    receive({terminal_io_output(P,pair(U,V)) -> var(U),U==V},[timeout(2),on_timeout(fail)]),
+    receive({down(P,P,true) -> true},[timeout(2),on_timeout(fail)]),var(X),
+    WriteABC=..[Kind,abc],
+    sandbox_prepare_goal(Mode,actor,user,call(WriteABC),Closure),
+    spawn(call(Closure),C,[monitor(true),io_target(Self),link(false)]),
+    receive({terminal_io_output(C,abc) -> true},[timeout(2),on_timeout(fail)]),
+    receive({down(C,C,true) -> true},[timeout(2),on_timeout(fail)]).
 
 newline_checks(Mode) :-
     atom_codes(Newline,[10]),

@@ -179,6 +179,7 @@ Reply = hello.
     hook_local_registration_pid/2.
 
 :- dynamic actor_alive/1.
+:- dynamic actor_internal/1.
 :- dynamic pid_thread/2.
 :- dynamic thread_pid/2.
 :- dynamic issued_pid/1.
@@ -376,7 +377,7 @@ validate_spawn_pis([PI|PIs]) :-
 
 % Internal entry point used by connection runtimes.  An internal actor still
 % carries Namespace so actors that it spawns inherit the browser session's
-% scope, but it is deliberately omitted from actors/1 in that scope.
+% scope, but it is deliberately omitted from actors/1 in every scope.
 spawn_scoped(Goal, Pid, Options, Namespace, Visibility) :-
     validate_spawn_options(Options,runtime),
     valid_actor_visibility(Visibility),
@@ -435,6 +436,7 @@ rollback_spawn(Parent, Pid) :-
     retractall(link(Parent, Pid)),
     retractall(monitor(Parent, Pid, Pid)),
     retractall(actor_alive(Pid)),
+    retractall(actor_internal(Pid)),
     retractall(lineage_preparing(Pid)),
     retractall(actor_namespace(Pid, _)),
     retractall(actor_public_namespace(Pid, _)).
@@ -454,11 +456,11 @@ current_actor_namespace(Namespace) :-
 current_actor_namespace(none).
 
 remember_actor_namespace(Visibility, Pid, Namespace) :-
-    Namespace \== none,
-    !,
-    assertz(actor_namespace(Pid, Namespace)),
-    remember_public_actor_namespace(Visibility, Pid, Namespace).
-remember_actor_namespace(_, _, _).
+    ( Visibility == internal -> assertz(actor_internal(Pid)) ; true ),
+    ( Namespace \== none ->
+        assertz(actor_namespace(Pid, Namespace)),
+        remember_public_actor_namespace(Visibility, Pid, Namespace)
+    ; true ).
 
 remember_public_actor_namespace(public, Pid, Namespace) :- !,
     assertz(actor_public_namespace(Pid, Namespace)).
@@ -566,6 +568,7 @@ stop(Pid, Parent) :-
           remove_local_registrations(Pid),
           retractall(registered_service(_Name, Pid)),
           retractall(actor_alive(Pid)),
+          retractall(actor_internal(Pid)),
           retractall(lineage_preparing(Pid)),
           retractall(actor_namespace(Pid, _)),
           retractall(actor_public_namespace(Pid, _)),
@@ -605,8 +608,8 @@ live_actor_count_unlocked(Count) :-
 %
 %   Return a snapshot of live public actor PIDs.  Inside a WebSocket actor,
 %   the snapshot is restricted to that connection's namespace and omits the
-%   internal relay.  Outside a scoped runtime it retains the local diagnostic
-%   behaviour of returning every actor.  Non-actor threads that merely
+%   internal workers. Outside a scoped runtime it returns every public
+%   actor. Non-actor threads that merely
 %   acquired an identity through self/1 are always excluded.
 
 actors(Pids) :-
@@ -615,7 +618,7 @@ actors(Pids) :-
     !.
 
 actors_unlocked(none, Pids) :-
-    findall(Pid, actor_alive(Pid), Pids).
+    findall(Pid, (actor_alive(Pid), \+actor_internal(Pid)), Pids).
 actors_unlocked(Namespace, Pids) :-
     findall(Pid,
             ( actor_alive(Pid),

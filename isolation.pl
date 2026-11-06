@@ -334,6 +334,11 @@ execution_goal(Goal, Qualified) :-
     % after the goal has crossed the toplevel state machine unchanged.
     Qualified = isolation:run_actor_query(Module, Goal).
 execution_goal(Goal, Qualified) :-
+    actors:self(Pid),actor_module(Pid,Module),!,
+    % Protocol-spawned actors without source still own a private I/O prelude.
+    % Use the same fixed entry point as an ordinary source-less actor.
+    Qualified = isolation:call_actor_leaf(Module,Goal).
+execution_goal(Goal, Qualified) :-
     sourceless_worker_goal(Goal, Prepared),
     ( Goal == Prepared -> Qualified = Goal
     ; Qualified = toplevel_actors:run_worker_query(Prepared)
@@ -351,6 +356,8 @@ sourceless_worker_goal(first_solution(S,Goals,Options),
 sourceless_worker_goal(runtime_property(P), rpc:runtime_property(P)) :- !.
 sourceless_worker_goal(node_setting(K,V), node_settings:node_setting(K,V)) :- !.
 sourceless_worker_goal(rpc(U,G), rpc:rpc(U,G)) :- !.
+sourceless_worker_goal(sandbox_write(Term),sandbox_policy:sandbox_write(Term)) :- !.
+sourceless_worker_goal(writeln(Term),Public) :- !, Public=..[writeln,Term].
 sourceless_worker_goal(rpc(U,G,O), rpc:rpc(U,G,O)) :- !.
 sourceless_worker_goal(promise(U,G,R), rpc:promise(U,G,R)) :- !.
 sourceless_worker_goal(promise(U,G,R,O), rpc:promise(U,G,R,O)) :- !.
@@ -518,6 +525,9 @@ actor_query_goal(_, supervisor_stop(Sup),
 actor_query_goal(Module,statechart_spawn(Pid,Options),statechart_actor:statechart_spawn(Pid,Module:Options)) :- !.
 actor_query_goal(_,statechart_halt(Pid,Reply),statechart_actor:statechart_halt(Pid,Reply)) :- !.
 actor_query_goal(_,statechart_halt(Pid,Reply,T),statechart_actor:statechart_halt(Pid,Reply,T)) :- !.
+actor_query_goal(Module,writeln(Term),isolation:call_actor_leaf(Module,Public)) :-
+    !, Public=..[writeln,Term].
+actor_query_goal(Module,call(Goal),isolation:actor_meta_call(Module,Goal)) :- !.
 actor_query_goal(_, Qualified:Goal, Qualified:Goal) :-
     atom(Qualified),
     !.
@@ -542,6 +552,10 @@ actor_builtin_goal(Goal) :-
 
 call_actor_leaf(Module, Goal) :-
     call_in_module(Module, '$actor_call'(Goal)).
+
+actor_meta_call(Module,Goal) :-
+    must_be(callable,Goal),
+    run_actor_query(Module,Goal).
 
 actor_identical(Left, Right) :-
     Left == Right.
@@ -687,6 +701,7 @@ guard_public(sandbox_retractall,5,4,retractall).
 guard_public(sandbox_abolish,5,4,abolish).
 guard_public(sandbox_abolish,6,4,abolish).
 guard_public(sandbox_format,2,0,format).
+guard_public(sandbox_write,1,0,write).
 guard_public(sandbox_sleep,1,0,sleep).
 guard_public(sandbox_between,3,0,between).
 guard_public(sandbox_atom_string,2,0,atom_string).
@@ -881,7 +896,7 @@ minimal_bootstrap_text(_Module, Text) :-
     actors_library_file(ActorsFile),
     actor_api_library_file(ActorApiFile),
     format(atom(Text),
-           ':- use_module(~q).~n:- use_module(~q).~n\'$actor_call\'(Goal0) :- isolation:sourceless_worker_goal(Goal0,Goal), call(Goal).~n',
+           ':- use_module(~q).~n:- use_module(~q).~nwriteln(Term) :- actors:terminal_output(Term,[source(io)]).~n\'$actor_call\'(Goal0) :- isolation:sourceless_worker_goal(Goal0,Goal), call(Goal).~n',
            [ActorsFile, ActorApiFile]).
 
 % Each fragment is formatted into a query-local atom. Trealla's
@@ -899,6 +914,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     { absolute_file_name('statechart_actor.pl',StatechartFile,[]) },
     bootstrap_line( ':- use_module(~q).~n',[StatechartFile]),
     bootstrap_line( ':- use_module(~q).~n', [ActorsFile]),
+    bootstrap_line( 'writeln(Term) :- actors:terminal_output(Term,[source(io)]).~n', []),
     bootstrap_line( ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_call_synch/3,toplevel_call_synch/4,toplevel_next_synch/2,toplevel_next_synch/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
     bootstrap_line( ':- use_module(~q, [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,yield/2,yield/3,runtime_property/1]).~n', [RpcFile]),
     { absolute_file_name('node_settings.pl',NodeSettingsFile,[]) },
@@ -909,7 +925,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( 'parallel(Goals) :- parallel:parallel_in(~q,Goals).~n', [Module]),
     bootstrap_line( 'first_solution(Solution,Goals) :- parallel:first_solution_in(~q,Solution,Goals,[on_fail(continue),on_error(stop)]).~n', [Module]),
     bootstrap_line( 'first_solution(Solution,Goals,Options) :- parallel:first_solution_in(~q,Solution,Goals,Options).~n', [Module]),
-    bootstrap_line( ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_toplevel_synch/9,sandbox_control_catch/4,sandbox_format/2,sandbox_sleep/1,sandbox_between/3,sandbox_atom_string/2,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
+    bootstrap_line( ':- use_module(~q, [sandbox_call/5,sandbox_call/6,sandbox_call/7,sandbox_call/8,sandbox_call/9,sandbox_call/10,sandbox_call/11,sandbox_call/12,sandbox_spawn/7,sandbox_toplevel_call/7,sandbox_toplevel_synch/9,sandbox_control_catch/4,sandbox_format/2,sandbox_write/1,sandbox_sleep/1,sandbox_between/3,sandbox_atom_string/2,sandbox_clause/6,sandbox_assert/5,sandbox_assert/6,sandbox_asserta/5,sandbox_asserta/6,sandbox_assertz/5,sandbox_assertz/6,sandbox_retract/5,sandbox_retractall/5,sandbox_abolish/5,sandbox_abolish/6]).~n', [SandboxFile]),
     bootstrap_line( ':- dynamic \'$actor_source_pi\'/1.~n', []),
     bootstrap_line( ':- dynamic \'$actor_dynamic_pi\'/1.~n', []),
     bootstrap_line( ':- dynamic \'$actor_discontiguous_pi\'/1.~n', []),
@@ -1081,6 +1097,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_builtin_call(Goal0), Goal) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_library(_M,_P,_C,_A,Goal0), Goal) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_format(Format,Args), format(Format,Args)) :- !.~n', []),
+    bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_write(Term), write(Term)) :- !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_sleep(Seconds), sleep(Seconds)) :- !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_atom_string(Atom,String), atom_string(Atom,String)) :- !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_random_member(Element,List), random_member(Element,List)) :- !.~n', []),

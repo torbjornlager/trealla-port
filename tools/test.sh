@@ -220,6 +220,8 @@ run_unit() {
         "$TPL" -g "(catch((consult('$ROOT/receiver_lineage_tests.pl'),receiver_lineage_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "browser context transport closure" \
         "$TPL" -g "(catch((consult('$ROOT/browser_context_tests.pl'),browser_context_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "internal transport worker visibility" \
+        "$TPL" -g "(catch((consult('$ROOT/transport_visibility_tests.pl'),transport_visibility_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "WebSocket namespace promise disposal" \
         "$TPL" -g "(catch((consult('$ROOT/rpc_namespace_tests.pl'),rpc_namespace_tests:rpc_namespace_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "WebSocket namespace teardown" \
@@ -459,6 +461,8 @@ run_interop() {
             "$TPL" -g "(catch((consult('$ROOT/remote_statechart_invocation_tests.pl'),remote_statechart_invocation_tests:live($swi_actor_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Trealla -> SWI actor semantic contracts" \
             "$TPL" -g "(catch((consult('$ROOT/distribution_tests.pl'),cross_runtime_actor_contract_test($swi_actor_port)),_,fail)->halt(0);halt(1))"
+        run_with_timeout "remote ping-pong actor baseline -> SWI" \
+            "$TPL" -g "(catch((consult('$ROOT/transport_visibility_tests.pl'),transport_visibility_tests:live('http://127.0.0.1:$swi_actor_port')),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "SWI -> Trealla actor semantic contracts" \
             "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
             -g "trinity_actor_contract_client_test($swi_actor_home_port,'http://127.0.0.1:$trealla_protocol_port','$TRINITY_NODE_FILE'),halt"
@@ -558,6 +562,8 @@ run_interop() {
         "$TPL" -g "(catch((consult('$ROOT/remote_alias_tests.pl'),remote_alias_tests:remote_alias_live_test($trealla_remote_port)),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Trealla canonical outbound -> Trealla" \
         "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(canonical_outbound_test($trealla_remote_port)->halt;halt(1))"
+    run_with_timeout "remote ping-pong actor baseline -> Trealla" \
+        "$TPL" -g "(catch((consult('$ROOT/transport_visibility_tests.pl'),transport_visibility_tests:live('http://127.0.0.1:$trealla_remote_port')),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Trealla synchronous outbound -> Trealla" \
         "$TPL" -g "consult('$ROOT/distribution_tests.pl'),(sync_outbound_test($trealla_remote_port),sync_explicit_close_test($trealla_remote_port)->halt;halt(1))"
     run_with_timeout "SWI browser terminal -> remote Trealla actor" \

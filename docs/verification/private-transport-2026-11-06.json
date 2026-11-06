@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-06",
+  "status": "verified_locally_not_deployed",
+  "base_revision": "0cecd38a3e2bddd0af23f875ade624d8c4ecb036",
+  "changes": [
+    "Distribution reader/writer threads use the internal worker visibility and caller execution context.",
+    "Internal workers are omitted from public actor snapshots, including unscoped calls; their namespace, mailbox, monitor and close handling remain intact.",
+    "Private visibility markers are withdrawn on rollback and termination."
+  ],
+  "source_sha256": {
+    "actors.pl": "6e6ae621f68d922ee455744d0a39aef7b290c9e43a77560001e207e63d6f7d4a",
+    "distribution.pl": "c951960566922a82129e472b99407e160a9d1f9eb9d65f21b7b7b75b9cf093e2",
+    "transport_visibility_tests.pl": "64ce69e71fa333e90fe7d520c93164cf58fda0f43eda88e2e966cc95e028d3f9",
+    "tools/test-ping-pong-browser.cjs": "78eaa60c33ab2bad098658b25738f1d6b7f7f16b504afe7f0db3984b0f262bc3"
+  },
+  "validation": {
+    "engine": "Trealla 3.14.20",
+    "unit_groups": 98,
+    "interop_groups": 73,
+    "interop_result": "ALL interop TESTS PASSED",
+    "peer_regressions": [
+      "Trealla to native SWI",
+      "Trealla to Trealla"
+    ],
+    "browser_before": {
+      "origin": "https://n5.elfenbenstornet.se",
+      "candidate": "",
+      "rounds": [],
+      "baseline": "[2582883899@'https://n5.elfenbenstornet.se']",
+      "status": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Public actor list changed after ping-pong: [2582883899@'https://n5.elfenbenstornet.se',1262546279@'https://n5.elfenbenstornet.se',2420447125@'https://n5.elfenbenstornet.se']\n+ actual - expected\n\n+ \"[2582883899@'https://n5.elfenbenstornet.se',1262546279@'https://n5.elfenbenstornet.se',2420447125@'https://n5.elfenbenstornet.se']\"\n- \"[2582883899@'https://n5.elfenbenstornet.se']\"\n"
+    },
+    "browser_after": {
+      "origin": "https://n5.elfenbenstornet.se",
+      "candidate": "ws://127.0.0.1:24996/ws",
+      "rounds": [
+        {
+          "round": 1,
+          "status": "pass",
+          "actors": "[1141839922@'http://127.0.0.1:24996']"
+        },
+        {
+          "round": 2,
+          "status": "pass",
+          "actors": "[1141839922@'http://127.0.0.1:24996']"
+        }
+      ],
+      "baseline": "[1141839922@'http://127.0.0.1:24996']",
+      "fresh_query": true,
+      "status": "pass"
+    },
+    "notes": [
+      "The first full run completed all unit groups, then its one-shot WebSocket fixture was not listening after the default 0.2-second startup wait. Only interoperability was rerun, with TEST_STARTUP_DELAY=2, and passed.",
+      "The browser candidate uses the patched Linux Trealla runtime, public N5 tutorial UI, a private authenticated SWI peer, and test-only endpoint routing; public runtime configuration was not changed."
+    ]
+  },
+  "separate_findings": [
+    {
+      "title": "Trailing slash in a node URI",
+      "status": "open_outside_this_patch",
+      "observation": "The supplied example on native N3 treats its own URI with a trailing slash as a remote node and reports a transport-lineage permission error. Removing the slash completes it on N3."
+    },
+    {
+      "title": "Copied writeln from Trealla to SWI",
+      "status": "open_outside_this_patch",
+      "observation": "On public N5, the added writeln(Self) is exported as the Trealla-specific actors:terminal_output(...,[source(io)]) rewrite and rejected by native N3. Replacing it with format('~w~n',[Self]) and using the node URI without a trailing slash completes all three rounds on public N5. format/1 itself is supported."
+    }
+  ]
+}

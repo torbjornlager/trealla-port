@@ -8,6 +8,7 @@
       resolve_source_options/2,
       fetch_source_uri/2,
       uri_atom/2,
+      node_uri_atom/2,
       normalize_source_origin/2,
       source_origin_allowed/1,
       resolve_redirect_uri/3,
@@ -674,6 +675,12 @@ ascii_lower_atom(Atom, Lower) :-
 uri_atom(Input, URI) :-
     must_be(atom, Input),
     URI = Input.
+
+% Node identity uses the same trailing-slash normalization as native SWI.
+% Source/document URIs continue to use uri_atom/2: their paths are significant.
+node_uri_atom(Input, Node) :-
+    uri_atom(Input, URI),
+    ( atom_concat(Base, '/', URI) -> Node=Base ; Node=URI ).
 
 source_text_atom(Text, Text) :- atom(Text), !.
 source_text_atom(Text, Atom) :- string(Text), !, atom_chars(Atom, Text).

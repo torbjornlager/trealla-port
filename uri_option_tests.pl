@@ -10,6 +10,8 @@ run :-
     URI='https://example.org/é?x=%2F',
     source_policy:uri_atom(URI,URI),
     rpc:resolve_rpc_uri(URI,URI),distribution:node_url_atom(URI,URI),
+    source_policy:uri_atom('https://example.org/','https://example.org/'),
+    distribution:node_url_atom('https://example.org/','https://example.org'),
     forall(member(V,[42,1.5,foo(bar),[h,t,t,p],[104,116,116,112],localhost:3053,host:bad]),
       (catch(rpc:rpc(V,true,[src_uri('https://invalid.example/source')]),A,true),nonvar(A),A=error(type_error(atom,V),_),
        catch(rpc:promise(V,true,R,[src_uri('https://invalid.example/source')]),B,true),nonvar(B),B=error(type_error(atom,V),_),var(R))),

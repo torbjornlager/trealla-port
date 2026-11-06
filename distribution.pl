@@ -29,9 +29,11 @@
 
 This module keeps one version-1 Web Prolog WebSocket open per remote node.
 A named node-manager caches connections, reconnects them lazily, and maps
-canonical PID and published `Name@Node` routes.  A writer
-actor serializes frames and spawn rendezvous; an independent reader actor
+canonical PID and published `Name@Node` routes. A private writer
+worker serializes frames and spawn rendezvous; an independent reader worker
 turns inbound JSON events into the same Prolog messages used by local actors.
+These native threads retain internal actor mailbox/monitor bookkeeping, but
+are not public actors and never appear in actors/1.
 Remote pids are represented as `WirePid@NodeURL` and ordinary actor operations
 route them transparently after this module is loaded.
 
@@ -90,10 +92,19 @@ remote_node_open(URL0, remote_node(URL, Reader, Writer), Options) :-
         [optional_subprotocols(['web-prolog-sync-spawn-v1','web-prolog-sync-v1']),selected_subprotocol(Selected)|WebSocketOptions]),
     ( memberchk(Selected,['web-prolog-sync-spawn-v1','web-prolog-sync-v1']) -> Sync = true ; Sync = false ),
     ( Selected == 'web-prolog-sync-spawn-v1' -> Correlated = true ; Correlated = false ),
-    spawn(remote_writer_start(WS, URL, Owner, capabilities(Sync,Correlated)), Writer, [link(false)]),
-    spawn(remote_reader_loop(WS, URL, Writer), Reader, [link(false)]).
+    actors:current_actor_namespace(Namespace),
+    actors:spawn_scoped(
+        distribution:remote_writer_start(WS, URL, Owner, capabilities(Sync,Correlated)),
+        Writer, [link(false),'$entry_context'(caller)], Namespace, internal),
+    actors:spawn_scoped(distribution:remote_reader_loop(WS, URL, Writer),
+        Reader, [link(false),'$entry_context'(caller)], Namespace, internal).
 
-node_url_atom(Input, URL) :- source_policy:uri_atom(Input, URL).
+node_url_atom(Input, URL) :- source_policy:node_uri_atom(Input, URL).
+
+local_node_url(Node0) :-
+    node_url_atom(Node0, Node),
+    web_prolog:current_node_url(Self0),
+    node_url_atom(Self0, Node).
 
 % An owner mapping changes only the dial endpoint, never the logical node URL.
 node_websocket_url(URL, Endpoint) :-
@@ -1153,7 +1164,7 @@ io_request_error(Reason) :-
 actors:hook_local_registration_pid(Pid@Node0,Pid) :-
     integer(Pid), nonvar(Node0),
     ( Node0 == localhost -> true
-    ; catch((node_url_atom(Node0,URL),web_prolog:current_node_url(URL)),_,fail) ).
+    ; catch(local_node_url(Node0),_,fail) ).
 
 actors:hook_spawn(Goal, RemotePid, Options0) :-
     take_node_option(Options0, URL0, Options),
@@ -1188,7 +1199,7 @@ actors:hook_send(WirePid@Node0, Message) :-
     integer(WirePid),
     !,
     node_url_atom(Node0, URL),
-    ( ( URL == localhost ; web_prolog:current_node_url(URL) ) ->
+    ( ( URL == localhost ; local_node_url(URL) ) ->
         actors:send(WirePid, Message)
     ; transparent_node(URL, remote_node(_, _, Writer)),
       portable_term_for_writer(Writer, Message, PortableMessage),

@@ -995,7 +995,7 @@ t115 :-
             [timeout(1),on_timeout(fail)]),
     Visible == [Child],
     actors(All),
-    memberchk(Relay, All),
+    \+ memberchk(Relay, All),
     memberchk(Child, All),
     Relay ! finish,
     receive({down(Relay, Relay, true) -> true},
@@ -1567,9 +1567,9 @@ t47 :-
 
 t48 :-
     sandbox_prepare_goal(blacklist, actor, user, writeln(hello), OutputGoal),
-    OutputGoal = actors:terminal_output(hello, [source(io)]),
+    isolation:restore_actor_goal(OutputGoal,writeln(hello)),
     sandbox_prepare_goal(whitelist, actor, user, writeln(hello), WhiteOutputGoal),
-    WhiteOutputGoal = actors:terminal_output(hello, [source(io)]),
+    isolation:restore_actor_goal(WhiteOutputGoal,writeln(hello)),
     CatchAll0 = receive({Message -> true}),
     sandbox_prepare_goal(whitelist, actor, user, CatchAll0, CatchAll),
     CatchAll = receive({RewrittenMessage -> true}),
