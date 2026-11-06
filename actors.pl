@@ -21,6 +21,7 @@
          unregister/1,           % +Name
          whereis/2,              % +Name, -Pid
          register_service/2,     % +Name, +Pid
+         published_service_names/1, % -LivePublishedNames
          unregister_service/1,   % +Name
          whereis_service/2,      % +Name, -Pid
          exit/1,                 % +Reason
@@ -902,6 +903,13 @@ register_service(Name, Pid) :-
                     register_service/2))
     ; asserta(registered_service(Name, Pid))
     ).
+
+% Ordinary actor aliases are private; advertise only live published services.
+published_service_names(Names) :-
+    findall(Name,
+            ( registered_service(Name, Pid), actor_thread(Pid, Thread),
+              catch(thread_property(Thread, status(running)), _, fail) ), Raw),
+    sort(Raw, Names).
 
 %!  unregister_service(+Name) is det.
 

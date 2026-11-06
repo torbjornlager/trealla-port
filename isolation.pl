@@ -7,6 +7,7 @@
          cleanup_actor/1,          % +Pid
          configure_shared_db/1,    % +Files
          clear_shared_db/0,
+         shared_db_predicates/1,   % -OwnerDefinedOrImportedPIs
          actor_module/2,           % +Pid, -Module
          actor_source_module/2,    % +Pid, -Module
          actor_application_predicates/2, % +Pid, -PrivateSourcePIs
@@ -43,6 +44,7 @@ policy before actor creation.
 :- dynamic actor_namespace/2.
 :- dynamic actor_source_namespace/2.
 :- dynamic shared_db_text/1.
+:- dynamic shared_db_predicate_cache/1.
 
 :- catch(mutex_create(_, [alias('$isolation_listing')]),
          error(permission_error(create, mutex, '$isolation_listing'), _),
@@ -88,11 +90,78 @@ actor_api_library_file(ActorApiFile) :-
 configure_shared_db(Files) :-
     must_be(list, Files),
     shared_files_text(Files, '', Text),
+    shared_source_predicates(Text, Predicates),
     retractall(shared_db_text(_)),
+    retractall(shared_db_predicate_cache(_)),
+    assertz(shared_db_predicate_cache(Predicates)),
     ( Text == '' -> true ; assertz(shared_db_text(Text)) ).
 
 clear_shared_db :-
-    retractall(shared_db_text(_)).
+    retractall(shared_db_text(_)),
+    retractall(shared_db_predicate_cache(_)).
+
+shared_db_predicates(Predicates) :-
+    ( shared_db_predicate_cache(Cached) -> Predicates = Cached
+    ; Predicates = []
+    ).
+
+% Inspect owner source once at configuration time. Do not execute its
+% initialization or ordinary directives just to answer /node_info. Imports
+% and operators use the same namespace/prelude as the actor source loader.
+shared_source_predicates('', []) :- !.
+shared_source_predicates(Text, Predicates) :-
+    flag('$shared_metadata_namespace', Id, Id+1),
+    format(atom(Module), '$trealla_metadata_~w', [Id]),
+    in_temporary_module(Module,
+        isolation:prepare_actor_bootstrap(Module, [metadata], none),
+        isolation:shared_source_predicates_in(Module, Text, Predicates)).
+
+shared_source_predicates_in(Module, Text, Predicates) :-
+    findall(PI, current_predicate(Module:PI), Baseline),
+    setup_call_cleanup(open_string(Text, Stream),
+                       shared_source_terms(Module, Stream, Defined), close(Stream)),
+    findall(PI, (current_predicate(Module:PI), \+ memberchk(PI, Baseline)), Imported),
+    append(Defined, Imported, Raw),
+    findall(Name/Arity,
+            ( member(Name/Arity, Raw), atom(Name),
+              \+ memberchk(Name/Arity, Baseline),
+              \+ sub_atom(Name, 0, 1, _, '$'),
+              \+ memberchk(Name/Arity, [provides/1,relation_filter/1]),
+              functor(Head, Name, Arity),
+              \+ predicate_property(Module:Head, built_in) ), PIs),
+    sort(PIs, Predicates).
+
+shared_source_terms(Module, Stream, Predicates) :-
+    call_in_module(Module, read_term(Stream, Term, [])),
+    ( Term == end_of_file -> Predicates = []
+    ; shared_source_term(Module, Term, Here),
+      shared_source_terms(Module, Stream, Rest),
+      append(Here, Rest, Predicates)
+    ).
+
+shared_source_term(Module, (:- use_module(File)), []) :- !,
+    call_in_module(Module, use_module(File)).
+shared_source_term(Module, (:- use_module(File, Imports)), []) :- !,
+    call_in_module(Module, use_module(File, Imports)).
+shared_source_term(Module, (:- op(Priority, Type, Name)), []) :- !,
+    call_in_module(Module, op(Priority, Type, Name)).
+shared_source_term(_, (:- dynamic(Declaration)), PIs) :- !,
+    discontiguous_pis(Declaration, PIs).
+shared_source_term(_, (:- discontiguous(Declaration)), PIs) :- !,
+    discontiguous_pis(Declaration, PIs).
+shared_source_term(_, (:- _), []) :- !.
+shared_source_term(Module, Term, PIs) :-
+    call_in_module(Module, expand_term(Term, Expanded)),
+    shared_expanded_predicates(Expanded, PIs).
+
+shared_expanded_predicates([], []) :- !.
+shared_expanded_predicates([Term|Terms], PIs) :- !,
+    shared_expanded_predicates(Term, Here),
+    shared_expanded_predicates(Terms, Rest), append(Here, Rest, PIs).
+shared_expanded_predicates((:- _), []) :- !.
+shared_expanded_predicates((Head :- _), PIs) :- !,
+    shared_expanded_predicates(Head, PIs).
+shared_expanded_predicates(Head, [Name/Arity]) :- functor(Head, Name, Arity).
 
 shared_files_text([], Text, Text).
 shared_files_text([File0|Files], Acc, Text) :-
