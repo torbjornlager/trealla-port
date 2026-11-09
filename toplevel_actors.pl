@@ -19,7 +19,7 @@
          (!)/2,                  % +Pid, +Message
          input/2,                % +Prompt, -Answer
          input/3,                % +Prompt, -Answer, +Options
-         respond/2,              % +Pid, +Answer
+         respond/3,              % +Pid, +Ref, +Answer
          output/1,               % +Term
          output/2,               % +Term, +Options
          actors/1,              % -Pids
@@ -235,7 +235,10 @@ session(Pid, Target, Continue, TimeLimit, IdleLimit) :-
 session_running(Pid, Target, Continue, TimeLimit, IdleLimit) :-
     catch(state_1(Pid, Target, Continue, TimeLimit, IdleLimit),
           '$abort_goal',
-          session_running(Pid, Target, Continue, TimeLimit, IdleLimit)).
+          ( forall(hook_abort_ack(Pid, Target), true),
+            session_running(Pid, Target, Continue, TimeLimit, IdleLimit) )).
+
+:- multifile hook_abort_ack/2.
 
 
 %!  state_1(+Pid, +Target0, +Continue) is det.
@@ -280,6 +283,7 @@ drain_stale_commands :-
 stale_command('$next'(_)).
 stale_command('$stop').
 stale_command('$input'(_, _)).
+stale_command('$input'(_, _, _)).
 
 receive_with_idle_limit(Clauses, infinite) :- !, receive(Clauses).
 receive_with_idle_limit(Clauses, IdleLimit) :-

@@ -21,7 +21,7 @@
       remote_toplevel_stop/2,
       remote_toplevel_abort/2,
       remote_toplevel_halt/2,
-      remote_toplevel_respond/3,
+      remote_toplevel_respond/4,
       op(200, xfx, @)
     ]).
 
@@ -454,12 +454,14 @@ remote_toplevel_abort(Node, RemotePid) :-
 remote_toplevel_halt(Node, RemotePid) :-
     pid_command(Node, RemotePid, toplevel_halt).
 
-remote_toplevel_respond(Node, RemotePid, Input) :-
+remote_toplevel_respond(Node, RemotePid, Ref, Input) :-
     node_wire_pid(Node, RemotePid, WirePid),
     Node = remote_node(_, _, Writer),
     portable_term_for_writer(Writer, Input, PortableInput),
     term_wire_atom(PortableInput, InputText),
+    term_wire_atom(Ref, RefText),
     web_prolog:object([command-string_atom(toplevel_respond),
+                       prompt_ref-string_atom(RefText),
                        pid-number(WirePid), input-string_atom(InputText)], JSON),
     enqueue_json(Node, JSON).
 
@@ -998,8 +1000,12 @@ remote_event(statechart_trace,JSON,Pid,terminal_output(Pid,statechart_trace(Data
     json_event_term(JSON,data,Data).
 remote_event(output, JSON, Pid, output(Pid, Data)) :- !,
     json_event_term(JSON, data, Data).
-remote_event(prompt, JSON, Pid, prompt(Pid, Prompt)) :- !,
-    web_prolog:json_text_default(JSON, data, '', Prompt).
+remote_event(prompt, JSON, Pid, prompt(Pid, prompt_ref(Ref, Prompt))) :- !,
+    web_prolog:json_term_field(JSON, prompt_ref, Ref),
+    ground(Ref),
+    ( json_event_term(JSON, data, Parsed), ground(Parsed) -> Prompt = Parsed
+    ; web_prolog:json_text_default(JSON, data, '', Prompt)
+    ).
 remote_event(stop, _, Pid, stop(Pid)) :- !.
 remote_event(abort, _, Pid, abort(Pid)) :- !.
 remote_event(responded, _, Pid, responded(Pid)) :- !.
@@ -1112,14 +1118,17 @@ deliver_terminal_target(Target, Message) :-
 deliver_terminal_target(Target, Message) :-
     actors:actor_thread(Target, Thread),
     catch(thread_property(Thread, status(running)), _, fail),
-    Target ! Message.
+    ( Message = '$input_prompt'(Pid, Ref, Prompt) ->
+        Target ! prompt(Pid, prompt_ref(Ref, Prompt))
+    ; Target ! Message
+    ).
 
 web_prolog:hook_close_browser_io(Relay) :-
     forget_io_endpoints_for_target('$browser_io'(Relay)).
 
 io_protocol_message(terminal_output(_, _)).
 io_protocol_message(terminal_io_output(_, _)).
-io_protocol_message(prompt(_, _)).
+io_protocol_message('$input_prompt'(_, Ref, _)) :- ground(Ref).
 
 route_io_endpoint(Token, HomeNode, Message) :-
     io_protocol_message(Message),
@@ -1134,13 +1143,14 @@ route_io_endpoint(_, _, _).
 
 remote_io_request(HomeNode, Token, Message0) :-
     transparent_node(HomeNode, remote_node(_, _, Writer)),
-    portable_term_for_writer(Writer, Message0, Message),
+    portable_term_for_writer(Writer, Message0, Portable),
+    io_wire_message(Portable, Message, PromptFields),
     term_wire_atom(Message, MessageText),
     fresh_io_token(RequestId),
-    web_prolog:object([command-string_atom(io_request),
-                       token-string_atom(Token),
-                       message-string_atom(MessageText),
-                       request_id-string_atom(RequestId)], JSON),
+    append([command-string_atom(io_request), token-string_atom(Token),
+            message-string_atom(MessageText), request_id-string_atom(RequestId)],
+           PromptFields, Fields),
+    web_prolog:object(Fields, JSON),
     setup_call_cleanup(
         message_queue_create(ReplyQueue),
         ( Writer ! '$io_request'(JSON, RequestId, ReplyQueue),
@@ -1152,6 +1162,10 @@ remote_io_request(HomeNode, Token, Message0) :-
         ( Writer ! '$cancel_io_request'(RequestId),
           catch(message_queue_destroy(ReplyQueue), _, true)
         )).
+
+io_wire_message('$input_prompt'(Pid, Ref, Prompt), prompt(Pid, prompt_ref(Ref, Prompt)),
+                [prompt_mode-string_atom(correlated)]) :- !.
+io_wire_message(Message, Message, []).
 
 io_request_result(ok) :- !.
 io_request_result(Reason) :- io_request_error(Reason).

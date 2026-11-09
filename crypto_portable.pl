@@ -4,6 +4,7 @@
     [ secure_random_bytes/2,
       bytes_hex/2,
       sha256_hex/2,
+      hmac_sha256_hex/3,
       secure_equal/2
     ]).
 
@@ -38,6 +39,26 @@ sha256_hex(Text, Hex) :-
     -> text_atom(Native, Hex)
     ; sha256_bytes(Bytes, Digest), bytes_hex(Digest, Hex)
     ).
+
+% Visitor cookies use a fixed 256-bit key. Trealla's native SHA-256
+% primitive does not take an HMAC option.
+hmac_sha256_hex(Key, Text, Hex) :-
+    length(Key, 32),
+    zeros(32, Padding),
+    append(Key, Padding, Block),
+    hmac_pad(Block, 0x36, InnerPad),
+    hmac_pad(Block, 0x5c, OuterPad),
+    text_bytes(Text, Bytes),
+    append(InnerPad, Bytes, Inner),
+    sha256_bytes(Inner, Digest),
+    append(OuterPad, Digest, Outer),
+    sha256_bytes(Outer, Mac),
+    bytes_hex(Mac, Hex).
+
+hmac_pad([], _, []).
+hmac_pad([Byte|Bytes], Mask, [Padded|Tail]) :-
+    Padded is xor(Byte, Mask),
+    hmac_pad(Bytes, Mask, Tail).
 
 text_bytes(Text, Bytes) :- atom(Text), !, atom_codes(Text, Bytes).
 text_bytes(Text, Bytes) :- string(Text), !, string_codes(Text, Bytes).
