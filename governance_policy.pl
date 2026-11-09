@@ -11,6 +11,7 @@
       enforce_ws_command_rate_limit/3,
       with_inflight_call_limit/3,
       reserve_ws_actor_capacity/3,
+      reserve_http_session_capacity/3,
       commit_ws_actor_capacity/2,
       release_capacity_reservation/1,
       forget_ws_actor_owner/1,
@@ -203,6 +204,9 @@ with_inflight_call_limit(Principal, Identity, Goal) :-
 reserve_ws_actor_capacity(Principal, Identity, Reservation) :-
     reserve_capacity(Principal, Identity, ws_actor, Reservation).
 
+reserve_http_session_capacity(Principal, Identity, Reservation) :-
+    reserve_capacity(Principal, Identity, http_session, Reservation).
+
 reserve_capacity(Principal, _, _, none) :- quota_exempt(Principal), !.
 reserve_capacity(_, Identity, Kind, reservation(Kind, Token)) :-
     current_governance_policy(Policy),
@@ -216,6 +220,9 @@ capacity_spec(inflight_call, governance_policy(_,_,_,_,Limit,_),
               Limit, inflight_calls).
 capacity_spec(ws_actor, governance_policy(_,_,_,_,_,Limit),
               Limit, ws_actors).
+% Apply the existing per-principal actor budget independently to HTTP sessions.
+capacity_spec(http_session, governance_policy(_,_,_,_,_,Limit),
+              Limit, http_sessions).
 
 reserve_capacity_locked(Kind, Identity, Limit, Resource, Token) :-
     findall(T, capacity_reservation(Kind, Identity, T, _), Reservations),

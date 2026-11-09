@@ -33,7 +33,7 @@
          (!)/2,                  % +Pid, +Message
          input/2,                % +Prompt, -Answer
          input/3,                % +Prompt, -Answer, +Options
-         respond/2,              % +Pid, +Answer
+         respond/3,              % +Pid, +Ref, +Answer
          output/1,               % +Term
          output/2,               % +Term, +Options
          terminal_output/1,      % +Term
@@ -1575,9 +1575,8 @@ current_io_target(Target) :-
 %!  input(+Prompt, -Answer) is det.
 %!  input(+Prompt, -Answer, +Options) is det.
 %
-%   Request input from the target process.  Sends `prompt(Self, Prompt)`
-%   to the target, then blocks until the target replies with
-%   `'$input'(From, Answer)`.  The sender is intentionally not required to be
+%   Request input from the target with a fresh reference, then wait for
+%   a reply with that reference.  The sender is intentionally not required to be
 %   identical to the terminal target: distributed terminal endpoints return a
 %   connection-scoped actor capability.  Options:
 %
@@ -1594,10 +1593,14 @@ input(Prompt, Answer, Options) :-
     ; current_io_target(Target) -> true
     ; get_parent(Target)
     ),
-    Target ! prompt(Self, Prompt),
-    receive({
-        '$input'(_From, Answer) -> true
-    }).
+    make_ref(Ref),
+    ( nonvar(Target), hook_prompt_relay(Target) ->
+        Target ! '$input_prompt'(Self, Ref, Prompt)
+    ; Target ! prompt(Self, prompt_ref(Ref, Prompt))
+    ),
+    receive({'$input'(_, Ref, Answer) -> true}).
+
+:- multifile hook_prompt_relay/1.
 
 actor_input_target(_Self, Target) :-
     nb_current('$actor_input_target', Target).
@@ -1607,11 +1610,10 @@ set_input_target(Target) :-
 
 
 
-%!  respond(+Pid, +Answer) is det.
+%!  respond(+Pid, +Ref, +Answer) is det.
 %
-%   Reply to an actor Pid that is blocked in input/2,3.  Sends
-%   `'$input'(Self, Answer)` to Pid.
-
-respond(Pid, Answer) :-
+%   Reply to the input call that issued Ref.
+respond(Pid, Ref, Answer) :-
+    ( ground(Ref) -> true ; throw(error(instantiation_error, respond/3)) ),
     self(Self),
-    Pid ! '$input'(Self, Answer).
+    Pid ! '$input'(Self, Ref, Answer).
