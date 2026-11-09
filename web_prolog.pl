@@ -102,6 +102,8 @@ Inference/stack ceilings and OS-level containment remain necessary.
 
 :- dynamic node_public_url/1.
 :- dynamic browser_io_enabled/1.
+:- dynamic browser_relay/1.
+:- multifile actors:hook_terminal_stream/1.
 :- dynamic browser_io_pending/3.
 :- dynamic browser_io_prompt/3.
 :- dynamic browser_actor_capability/3.
@@ -587,7 +589,13 @@ relay_start(WS, Principal, Identity, AnswerTerms) :-
     relay_set_halts([]),
     relay_set_governance(Principal, Identity),
     relay_set_answer_terms(AnswerTerms),
-    relay_loop(WS).
+    self(Relay),
+    setup_call_cleanup(assertz(browser_relay(Relay)),
+                       relay_loop(WS),
+                       retractall(browser_relay(Relay))).
+
+actors:hook_terminal_stream('$browser_io'(_)) :- !.
+actors:hook_terminal_stream(Relay) :- browser_relay(Relay).
 
 relay_loop(WS) :-
     receive({
@@ -798,9 +806,8 @@ wire_event(Relay, terminal_output(RuntimePid, Data0), output(WirePid, Data)) :- 
     browser_source_pid(Relay, RuntimePid, WirePid),
     terminal_text_atom(Data0, Text),
     browser_terminal_output_data(Text, Data).
-wire_event(Relay, terminal_io_output(RuntimePid, Data0), output(WirePid, Data)) :- !,
-    browser_source_pid(Relay, RuntimePid, WirePid),
-    browser_terminal_output_data(Data0, Data).
+wire_event(Relay, terminal_io_output(RuntimePid, Data), terminal_io_output(WirePid, Data)) :- !,
+    browser_source_pid(Relay, RuntimePid, WirePid).
 wire_event(_, Event, Event).
 
 % Browser terminals add a line ending for each output event. Match the SWI
@@ -1080,6 +1087,14 @@ event_json(error(Error), JSON) :- !,
 event_json(statechart_trace(Pid,Data),JSON) :- !,
     term_wire_atom(Data,Text),
     object([type-string_atom(statechart_trace),pid-json_pid(Pid),data-string_atom(Text)],JSON).
+event_json(terminal_io_output(Pid, Value), JSON) :- !,
+    actors:terminal_stream_payload(Value, Term, Ending),
+    display_atom(Term, Raw),
+    atom_concat(Raw, Ending, Stdout),
+    browser_terminal_output_data(Term, Legacy),
+    display_atom(Legacy, Data),
+    object([type-string_atom(output), pid-json_pid(Pid), data-string_atom(Data),
+            stdout-string_atom(Stdout)], JSON).
 event_json(output(Pid, Data0), JSON) :- !,
     display_atom(Data0, Data),
     object([type-string_atom(output), pid-json_pid(Pid), data-string_atom(Data)], JSON).

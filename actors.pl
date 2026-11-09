@@ -1549,10 +1549,22 @@ terminal_output(Term, Options) :-
     ; current_io_target(Target) -> true
     ; get_parent(Target)
     ),
-    ( memberchk(source(io), Options) ->
-        Target ! terminal_io_output(Self, Term)
+    ( option(source(Source), Options), memberchk(Source, [io,io_line]) ->
+        ( hook_terminal_stream(Target) ->
+            Data = '$terminal_stream'(Source, Term)
+        ; Data = Term
+        ),
+        Target ! terminal_io_output(Self, Data)
     ; Target ! terminal_output(Self, Term)
     ).
+
+:- multifile hook_terminal_stream/1.
+
+terminal_stream_payload(Value, Term, Ending) :-
+    ( nonvar(Value), Value = '$terminal_stream'(Source, Term) -> true
+    ; Source = io, Term = Value
+    ),
+    ( Source == io_line -> Ending = '\n' ; Ending = '' ).
 
 %!  current_io_target(-Target) is semidet.
 

@@ -896,7 +896,7 @@ minimal_bootstrap_text(_Module, Text) :-
     actors_library_file(ActorsFile),
     actor_api_library_file(ActorApiFile),
     format(atom(Text),
-           ':- use_module(~q).~n:- use_module(~q).~nwriteln(Term) :- actors:terminal_output(Term,[source(io)]).~n\'$actor_call\'(Goal0) :- isolation:sourceless_worker_goal(Goal0,Goal), call(Goal).~n',
+           ':- use_module(~q).~n:- use_module(~q).~nwriteln(Term) :- actors:terminal_output(Term,[source(io_line)]).~n\'$actor_call\'(Goal0) :- isolation:sourceless_worker_goal(Goal0,Goal), call(Goal).~n',
            [ActorsFile, ActorApiFile]).
 
 % Each fragment is formatted into a query-local atom. Trealla's
@@ -914,7 +914,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     { absolute_file_name('statechart_actor.pl',StatechartFile,[]) },
     bootstrap_line( ':- use_module(~q).~n',[StatechartFile]),
     bootstrap_line( ':- use_module(~q).~n', [ActorsFile]),
-    bootstrap_line( 'writeln(Term) :- actors:terminal_output(Term,[source(io)]).~n', []),
+    bootstrap_line( 'writeln(Term) :- actors:terminal_output(Term,[source(io_line)]).~n', []),
     bootstrap_line( ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_call_synch/3,toplevel_call_synch/4,toplevel_next_synch/2,toplevel_next_synch/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
     bootstrap_line( ':- use_module(~q, [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,yield/2,yield/3,runtime_property/1]).~n', [RpcFile]),
     { absolute_file_name('node_settings.pl',NodeSettingsFile,[]) },
