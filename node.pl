@@ -1537,8 +1537,13 @@ compute_request_answer(Scope,Goal,Template,Offset,Limit,true,Source,Answer) :-
     spawn_http_page_producer(Scope,Goal,Template,Maximum,Source,Pid),
     self(Self),
     stream_skip(Pid,Self,Offset,Ended),
-    (Ended==true -> Slice=[];stream_collect(Pid,Self,Limit,none,Slice,_)),
-    (Slice==[] -> Answer=failure;Answer=success(Slice,false)).
+    (Ended==true -> Slice=[];stream_collect(Pid,Self,Limit,none,Slice,Completion)),
+    (   nonvar(Completion), Completion = pending_error(Error)
+    ->  throw(Error)
+    ;   Slice == []
+    ->  Answer = failure
+    ;   Answer = success(Slice, false)
+    ).
 compute_request_answer(Scope,Goal,Template,Offset,Limit,false,Source,Answer) :-
     compute_owned_answer(Scope,Goal,Template,Offset,Limit,Source,Answer).
 
@@ -1571,23 +1576,30 @@ compute_owned_answer(Scope,Goal,Template,Offset,Limit,Source,Answer) :-
         (Offset > 0 -> stream_skip(ProducerPid, Self, Offset) ; true),
         Lookahead = none
     ),
-    stream_collect(ProducerPid, Self, Limit, Lookahead, Slice, Exhausted),
-    (   Exhausted == true
+    stream_collect(ProducerPid, Self, Limit, Lookahead, Slice, Completion),
+    (   Completion = pending_error(Error)
+    ->  publish_next_http_page(Scope, Gid, Offset, ProducerPid,
+                               Slice, pending_error(Error), Answer)
+    ;   Completion == true
     ->  (Slice == [] -> Answer = failure ; Answer = success(Slice, false))
     ;   % Probe for one extra solution to set the More flag accurately
         ProducerPid ! '$request'(Self),
         receive({
             '$http_page_reply'(ProducerPid,sol(Extra)) ->
-                length(Slice, Count),
-                NextOffset is Offset + Count,
-                publish_http_page(Scope,Gid, NextOffset, ProducerPid, lookahead(Extra)),
-                Answer = success(Slice, true)
+                publish_next_http_page(Scope, Gid, Offset, ProducerPid,
+                                       Slice, lookahead(Extra), Answer)
             ; '$http_page_reply'(ProducerPid,eos) ->
                 (Slice == [] -> Answer = failure ; Answer = success(Slice, false))
             ; '$http_page_reply'(ProducerPid,producer_error(Error)) ->
-                throw(Error)
+                publish_next_http_page(Scope, Gid, Offset, ProducerPid,
+                                       Slice, pending_error(Error), Answer)
         })
     ).
+
+publish_next_http_page(Scope, Gid, Offset, Pid, Slice, Lookahead, success(Slice, true)) :-
+    length(Slice, Count),
+    NextOffset is Offset + Count,
+    publish_http_page(Scope, Gid, NextOffset, Pid, Lookahead).
 
 
 %!  run_goal_producer(+Goal, +Template) is det.
@@ -1704,7 +1716,8 @@ producer_error_reply(Error) :-
 %   original solution order).  Lookahead is `none` or `lookahead(T)`
 %   for a pre-fetched solution from the previous page's probe.
 %   Exhausted = true if the producer sent `eos` before N solutions were
-%   collected.
+%   collected. A pending_error(Error) keeps a nonempty slice available
+%   before the exception is delivered on the next request.
 
 stream_collect(Pid, Self, N, Lookahead, Slice, Exhausted) :-
     stream_collect_(Pid, Self, N, Lookahead, [], RevSlice, Exhausted),
@@ -1723,6 +1736,7 @@ stream_collect(Pid, Self, N, Lookahead, Slice, Exhausted) :-
 
 stream_collect_(_, _, 0, _, Acc, Acc, false) :- !.
 stream_collect_(_, _, _, eos, Acc, Acc, true) :- !.
+stream_collect_(_, _, _, pending_error(Error), _, _, _) :- !, throw(Error).
 stream_collect_(Pid, Self, N, lookahead(T), Acc, List, Exh) :- !,
     N1 is N - 1,
     stream_collect_(Pid, Self, N1, none, [T|Acc], List, Exh).
@@ -1736,7 +1750,8 @@ stream_collect_(Pid, Self, N, none, Acc, List, Exh) :-
         ; '$http_page_reply'(Pid,eos) ->
             List = Acc, Exh = true
         ; '$http_page_reply'(Pid,producer_error(Error)) ->
-            throw(Error)
+            ( Acc == [] -> throw(Error)
+            ; List = Acc, Exh = pending_error(Error) )
     }).
 
 
