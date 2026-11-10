@@ -240,6 +240,7 @@ actor_predicate(monitor, 2).
 actor_predicate(demonitor, 1).
 actor_predicate(demonitor, 2).
 actor_predicate(flush, 0).
+actor_predicate(make_ref, 1).
 actor_predicate(register, 2).
 actor_predicate(whereis, 2).
 actor_predicate(unregister, 1).
