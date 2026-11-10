@@ -328,7 +328,7 @@ distribution_terminal_input_test(HomePort, RemotePort) :-
     self(Parent),
     spawn(distributed_terminal_input_worker(RemoteURL, Parent), _,
           [target(Parent),link(false)]),
-    receive({prompt(Source, remote_prompt) -> respond(Source, hello)},
+    receive({prompt(Source, prompt_ref(Ref, remote_prompt)) -> respond(Source, Ref, hello)},
             [timeout(8),on_timeout(fail)]),
     receive({terminal_output(_Source, answer(hello)) -> true ;
              distributed_terminal_input_done -> fail},
