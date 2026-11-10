@@ -1219,17 +1219,27 @@ receive_qualified(Clauses, Options) :-
 %     - no timeout / `infinite` -- block forever (receive_loop_blocking/4).
 
 receive_loop(Mailbox, Clauses, Options, Deferred) :-
+    must_be(list, Options),
+    forall((member(Option, Options), nonvar(Option), Option = deadline(D)),
+           validate_receive_deadline(D)),
     (   option(timeout(T), Options)
     ->  receive_loop_timeout(T, Mailbox, Clauses, Options, Deferred)
     ;   option(deadline(Deadline), Options)
-    ->  (   number(Deadline)
-        ->  receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline)
-        ;   throw(error(type_error(number, Deadline), receive/2))
-        )
+    ->  receive_loop_timed_(Mailbox, Clauses, Options, Deferred, Deadline)
     ;   receive_loop_blocking(Mailbox, Clauses, Options, Deferred)
     ).
 
-receive_loop_timeout(0, Mailbox, Clauses, Options, Deferred) :-
+validate_receive_deadline(Deadline) :-
+    (   var(Deadline)
+    ->  throw(error(instantiation_error, receive/2))
+    ;   number(Deadline)
+    ->  true
+    ;   throw(error(type_error(number, Deadline), receive/2))
+    ).
+
+receive_loop_timeout(T, Mailbox, Clauses, Options, Deferred) :-
+    number(T),
+    T =:= 0,
     !,
     receive_loop_poll(Mailbox, Clauses, Options, Deferred).
 receive_loop_timeout(T, Mailbox, Clauses, Options, Deferred) :-
