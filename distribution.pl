@@ -361,12 +361,17 @@ synchronous_remote(Kind,Node,Pid,Goal,FallbackModule,Answer,Options0,Routing) :-
     make_ref(FreshRef),
     (Routing==caller -> RequestRef='$toplevel_sync'(FreshRef) ; RequestRef=FreshRef),
     MonitorRef='$sync_monitor'(RequestRef),
-    (Routing==caller -> WireQuery=[target(Self)|Query] ; WireQuery=Query),
-    restore_actor_goal(Goal-WireQuery,SourceGoal-SourceQuery0),
+    restore_actor_goal(Goal-Query,SourceGoal-SourceQuery0),
     restore_actor_options(SourceQuery0,SourceQuery),
     portable_term_for_writer(Writer,SourceGoal-SourceQuery,PortableGoal-PortableOptions),
-    ( Kind == call -> Message='$call'(PortableGoal,['$request_ref'(RequestRef)|PortableOptions])
-    ; Message='$next'(['$request_ref'(RequestRef)|PortableOptions]) ),
+    % The peer can reply on this connection even when our public address is
+    % reachable only through a proxy, or is unavailable to the peer.
+    ( Routing==caller ->
+        endpoint_for_target(Writer,'$toplevel_endpoint'(Self,Pid),Endpoint),
+        WireOptions=[target(Endpoint@localhost)|PortableOptions]
+    ; WireOptions=PortableOptions ),
+    ( Kind == call -> Message='$call'(PortableGoal,['$request_ref'(RequestRef)|WireOptions])
+    ; Message='$next'(['$request_ref'(RequestRef)|WireOptions]) ),
     web_prolog:canonical_answer_text(Message,Text),
     web_prolog:object([command-string_atom(send),pid-number(WirePid),message-string_atom(Text)],JSON),
     setup_call_cleanup(monitor(Writer,LocalRef),
@@ -1383,7 +1388,10 @@ manager_message('$route_request'(context(NS,Pid), Caller), Nodes, Routes, Nodes,
     ; Caller ! '$route_missing'(Manager, Pid)
     ).
 manager_message('$route_forget'(Pid), Nodes, Routes, Nodes, Rest) :- !,
-    exclude(manager_route_pid(Pid), Routes, Rest).
+    exclude(manager_route_pid(Pid), Routes, Rest),
+    manager_endpoints(Endpoints),
+    exclude(manager_toplevel_endpoint(Pid), Endpoints, Remaining),
+    nb_setval('$distribution_endpoints', Remaining).
 manager_message('$context_close'(NS),Nodes,Routes,RestNodes,RestRoutes) :- !,
     findall(Node,member(node(context(NS,_),Node),Nodes),Closing),
     exclude(context_node(NS),Nodes,RestNodes),
@@ -1418,10 +1426,18 @@ manager_message('$endpoint_deliver'(Writer, Id, Message),
                 Nodes, Routes, Nodes, Routes) :- !,
     manager_endpoints(Endpoints),
     ( endpoint_lookup_id(Endpoints, Writer, Id, Target) ->
-        Target ! Message
+        deliver_endpoint(Target, Message)
     ; true
     ).
 manager_message(_, Nodes, Routes, Nodes, Routes).
+
+deliver_endpoint('$toplevel_endpoint'(Caller,WirePid@URL), Message) :- !,
+    % An asynchronous next can still use the answer target installed by the
+    % synchronous call. Return the same pid the caller received at spawn.
+    ( endpoint_sync_answer(Message,WirePid,URL,Answer) -> Caller ! Answer
+    ; Caller ! Message ).
+deliver_endpoint(Target, Message) :-
+    Target ! Message.
 
 % The manager is deliberately a raw Trealla thread alias rather than an
 % actor. Its request/reply protocol therefore identifies it by that stable
@@ -1438,7 +1454,11 @@ manager_route_pid(Key,route(Stored,_)) :-
     (Key==Stored;nonvar(Stored),Stored=context(_,Pid),Key==Pid).
 manager_node_url(URL, node(URL, _)).
 manager_endpoint_target(Target, endpoint(_, _, EndpointTarget)) :-
-    EndpointTarget == Target.
+    ( EndpointTarget = '$toplevel_endpoint'(Caller,_) -> Caller == Target
+    ; EndpointTarget == Target ).
+
+manager_toplevel_endpoint(Pid, endpoint(_, _, '$toplevel_endpoint'(_, RemotePid))) :-
+    RemotePid == Pid.
 
 remove_writer_nodes([], _, []).
 remove_writer_nodes([Node|Nodes], Writer, Rest) :-
