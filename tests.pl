@@ -1527,6 +1527,11 @@ t44 :-
                                                 (true, assertz(tmp_fact))),
                              isobase, goal(assertz(tmp_fact))),
     profile_check_goal(isotope, assertz(tmp_fact)),
+    profile_check_goal(isobase, sleep(0.01)),
+    profile_check_goal(isotope, sleep(0)),
+    caught_profile_violation(profile_check_goal(isotope, make_ref(_)),
+                             isotope, goal(make_ref(_))),
+    profile_check_goal(actor, make_ref(_)),
     format("44. nested goal profile enforcement ok~n").
 
 t45 :-
