@@ -1018,8 +1018,8 @@ exit_actor(Pid, Reason) :-
 %   PidOrName may be either a logical PID or an atom previously bound with
 %   register/2.  Native handles remain accepted only for internal runtime
 %   aliases and queues. Returns immediately; delivery is reliable
-%   within a single Prolog process.  If the target actor does not
-%   exist (or has already exited), the message is silently dropped.
+%   within a single Prolog process. An unknown actor PID is silently
+%   ignored, while an unregistered local name raises an existence error.
 
 Pid ! Message :-
     send(Pid, Message).
@@ -1079,8 +1079,15 @@ actor_send(Pid, Message) :-
         catch(thread_send_message(Thread, Message), _, true)
     ; logical_pid(Pid) ->
         true
+    ; atom(Pid), Pid \== main, \+ native_send_alias(Pid) ->
+        throw(error(existence_error(actor_name, Pid),
+                    context(actor:send/2, 'no actor registered under name')))
     ; catch(thread_send_message(Pid, Message), _, true)
     ).
+
+native_send_alias(Alias) :-
+    ( message_queue_property(Alias, size(_)) -> true
+    ; thread_property(Alias, status(_)) ).
 
 logical_pid(Pid) :-
     integer(Pid),
