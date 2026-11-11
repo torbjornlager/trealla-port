@@ -612,7 +612,7 @@ synchronous_toplevel(Kind,Pid0,Goal0,Answer,Options0) :-
 synchronous_pid(Pid0,Pid) :-
     must_be(nonvar,Pid0),
     (atom(Pid0) -> whereis(Pid0,Pid),
-        (Pid==undefined -> throw(toplevel_down(no_process)) ; true)
+        (Pid==undefined -> throw(error(existence_error(actor_name,Pid0),context(toplevel_actors:toplevel_call_synch/4,'no actor registered under name'))) ; true)
     ; integer(Pid0) -> Pid=Pid0
     ; compound(Pid0),functor(Pid0,@,2) -> Pid=Pid0
     ; throw(error(domain_error(toplevel_pid,Pid0),synchronous_toplevel/5))).

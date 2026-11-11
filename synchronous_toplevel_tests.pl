@@ -124,6 +124,8 @@ termination :-
     self(Self),findall(R,actors:monitor(Self,_,R),Before),
     catch(toplevel_call_synch(999999999999,true,_,[timeout(1)]),Missing,true),
     Missing==toplevel_down(no_process),
+    catch(toplevel_call_synch(error_test_unknown_name,true,_,[timeout(1)]),NamedMissing,true),
+    nonvar(NamedMissing),NamedMissing=error(existence_error(actor_name,error_test_unknown_name),_),
     dies,
     findall(R,actors:monitor(Self,_,R),After),Before==After,
     writeln('termination fails fast and private monitors are removed: ok').

@@ -21,7 +21,7 @@ child_invalid_specs :-
     expect_child_error(supervisor_spawn([child(a,[start(true)])|bad],_),type_error(list,_),supervisor_actor:supervisor_spawn/3),
     expect_child_error(supervisor_spawn([wrong],_),type_error(supervisor_child_spec,wrong),supervisor_actor:supervisor_spawn/3),
     expect_child_error(supervisor_spawn([child(_,[start(true)])],_),instantiation_error,supervisor_actor:supervisor_spawn/3),
-    expect_child_error(supervisor_spawn([child(a,[])],_),missing_start_option(a),supervisor_actor:supervisor_spawn/3),
+    expect_child_error(supervisor_spawn([child(a,[])],_),existence_error(option,start(a)),supervisor_actor:supervisor_spawn/3),
     expect_child_error(supervisor_spawn([child(a,[start(true)|bad])],_),type_error(list,_),supervisor_actor:supervisor_spawn/3),
     expect_child_error(supervisor_spawn([child(a,[start(true),_])],_),instantiation_error,supervisor_actor:supervisor_spawn/3),
     expect_child_error(supervisor_spawn([child(a,[start(true),unknown(1)])],_),domain_error(supervisor_child_option,unknown(1)),supervisor_actor:supervisor_spawn/3),
@@ -43,8 +43,8 @@ child_nested_and_early_rejection :-
     actors(Before),
     expect_child_error(supervisor_spawn([
         child(waiter,[start(receive({stop -> true}))]),child(bad,[])],Pid,
-        [src_uri('http://invalid/source')]),missing_start_option(bad),supervisor_actor:supervisor_spawn/3),var(Pid),
-    expect_child_error(supervisor_spawn([child(outer,[start(start_sub_supervisor([child(inner,[])],[]))])],_),missing_start_option(inner),supervisor_actor:supervisor_spawn/3),
+        [src_uri('http://invalid/source')]),existence_error(option,start(bad)),supervisor_actor:supervisor_spawn/3),var(Pid),
+    expect_child_error(supervisor_spawn([child(outer,[start(start_sub_supervisor([child(inner,[])],[]))])],_),existence_error(option,start(inner)),supervisor_actor:supervisor_spawn/3),
     expect_child_error(supervisor_spawn([child(outer,[start(supervisor_actor:start_sub_supervisor([],[period(0)]))])],_),domain_error(supervisor_period,0),supervisor_actor:supervisor_spawn/3),
     expect_child_error(supervisor_spawn([child(outer,[start(start_sub_supervisor([child(x,[start(true)]),child(x,[start(true)])],[]))])],_),permission_error(duplicate,supervisor_child_id,x),supervisor_actor:supervisor_spawn/3),
     actors(After),sort(Before,Sorted),sort(After,Sorted),
@@ -74,7 +74,7 @@ child_wait :- receive({stop -> true}).
 
 child_dynamic_validation :-
     supervisor_spawn([],Sup,[monitor(true),link(false)]),
-    expect_child_error(supervisor_spawn_child(Sup,child(bad,[]),_),missing_start_option(bad),supervisor_actor:supervisor_spawn_child/3),
+    expect_child_error(supervisor_spawn_child(Sup,child(bad,[]),_),existence_error(option,start(bad)),supervisor_actor:supervisor_spawn_child/3),
     supervisor_count_children(Sup,Counts),memberchk(specs-0,Counts),memberchk(active-0,Counts),
     supervisor_spawn_child(Sup,child(waiter,[start(child_wait),restart(temporary),restart(permanent)]),Added),Added==ok,
     supervisor_spawn_child(Sup,child(waiter,[start(true)]),Duplicate),Duplicate==error(already_present),

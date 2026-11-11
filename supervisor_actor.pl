@@ -63,7 +63,7 @@ normalise_child_spec(Caller, ChildSpec,
     maplist(validate_child_option(Caller,Id), Options),
     ( option(start(Start0), Options)
     -> qualify_start_term(Caller, Start0, Start)
-    ; throw(error(missing_start_option(Id), supervisor))
+    ; throw(error(existence_error(option,start(Id)), supervisor))
     ),
     option(restart(Restart), Options, permanent),
     option(type(Type), Options, worker),

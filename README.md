@@ -1474,7 +1474,7 @@ variables. Errors carry the calling API context and
 Local `server_spawn/4` and `supervisor_spawn/3` with `name(Name)` reserve the
 ordinary name under the actor-registry mutex before callback/source preparation
 or actor creation. Competing creation or `register/2` gets the existing
-`name_is_in_use(Name)` exception. A pending reservation is not returned by
+`error(permission_error(register,actor_name,Name),_)` exception. A pending reservation is not returned by
 `whereis/2`, and `unregister/1` does not cancel it. After the child's source is
 prepared, startup publishes its PID under that name before acknowledging
 startup and running the child's goal. Failure or exception during creation

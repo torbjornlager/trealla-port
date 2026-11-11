@@ -41,7 +41,7 @@ namespace_names_and_survivors :-
     % Uniqueness and visibility stay node-wide, regardless of owning scope.
     run_scope(PB,whereis(Owned,Target),ok),
     run_scope(PB,register(Owned,703@'http://namespace-remote.test'),Taken),
-    Taken==error(name_is_in_use(Owned)),
+    nonvar(Taken),Taken=error(error(permission_error(register,actor_name,Owned),_)),
     retire_registry_namespace(A),retire_registry_namespace(A),
     whereis(Owned,undefined),whereis(Remote,undefined),
     whereis(Other,702@'http://namespace-remote.test'),whereis(Trusted,Self),
