@@ -510,8 +510,11 @@ relay_command(send, JSON, Relay) :- !,
 
 reply_to_browser_prompt(JSON, Relay, WirePid, Input) :-
     json_text_field(JSON, prompt_ref, Token),
-    browser_io_prompt(Relay, WirePid, Pid, correlated(Ref, Token)),
-    actors:respond(Pid, Ref, Input).
+    with_mutex('$browser_terminal_io',
+        ( browser_io_prompt(Relay, WirePid, Pid, correlated(Ref, Token)),
+          actors:respond(Pid, Ref, Input),
+          retractall(browser_io_prompt(Relay, WirePid, Pid, correlated(Ref, Token)))
+        )).
 
 correlated_return_target(JSON, Relay, Message, '$call'(Goal,Routed)) :-
     nonvar(Message), Message = '$call'(Goal,Options),
