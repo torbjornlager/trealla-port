@@ -374,9 +374,7 @@ dispatch(toplevel_call, JSON, Relay, _, Profile, Sandbox) :- !,
     json_text_default(JSON, format, options, Format),
     read_goal_options(GoalText, OptionsText, Format, Goal0, Options0),
     import_browser_pids(Goal0-Options0, Relay, Goal-Options),
-    sandbox_prepare_spawn(Sandbox, Profile, actor_context, Goal, Options,
-                          GuardedGoal, PreparedOptions),
-    relay_request(Relay, '$toplevel_call'(JSON, GuardedGoal, PreparedOptions)).
+    relay_request(Relay, '$toplevel_call'(JSON, Goal, Options, Profile, Sandbox)).
 dispatch(toplevel_next, JSON, Relay, _, _, _) :- !,
     relay_request(Relay, '$ws_command'(toplevel_next, JSON)).
 dispatch(toplevel_stop, JSON, Relay, _, _, _) :- !,
@@ -601,11 +599,13 @@ relay_message(WS, '$ws_command'(Command, JSON)) :- !,
     self(Relay),
     catch(relay_command(Command, JSON, Relay), Error,
           send_event(WS, error(Error))).
-relay_message(WS, '$toplevel_call'(JSON, Goal, Options0)) :- !,
+relay_message(WS, '$toplevel_call'(JSON, Goal0, Options0, Profile, Sandbox)) :- !,
     self(Relay),
     catch(
         ( owned_pid(JSON, Relay, session, Pid),
-          safe_call_options(Options0, Options),
+          sandbox_prepare_session_call(Sandbox, Profile, Pid, Goal0, Options0,
+                                       Goal, PreparedOptions),
+          safe_call_options(PreparedOptions, Options),
           toplevel_call(Pid, Goal, [target(Relay)|Options])
         ),
         Error,

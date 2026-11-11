@@ -114,6 +114,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Whitelist private helper admission" \
+        "$TPL" -g "(catch((consult('$ROOT/whitelist_helper_tests.pl'),whitelist_helper_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Successor validation across admitted actor paths" \
         "$TPL" -g "consult('$ROOT/succ_validation_tests.pl'),(catch(succ_validation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Monitor preflight bindings and observation preservation" \
