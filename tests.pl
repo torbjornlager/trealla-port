@@ -1532,6 +1532,11 @@ t44 :-
     caught_profile_violation(profile_check_goal(isotope, make_ref(_)),
                              isotope, goal(make_ref(_))),
     profile_check_goal(actor, make_ref(_)),
+    caught_profile_violation(profile_check_goal(isobase, respond(1,42,hello)),
+                             isobase, goal(respond(1,42,hello))),
+    caught_profile_violation(profile_check_goal(isotope, respond(1,42,hello)),
+                             isotope, goal(respond(1,42,hello))),
+    profile_check_goal(actor, respond(1,42,hello)),
     format("44. nested goal profile enforcement ok~n").
 
 t45 :-
