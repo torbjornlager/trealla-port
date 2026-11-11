@@ -54,9 +54,9 @@ option_value_errors :-
     expect_client_error(promise('http://invalid',true,_,[max_redirect(-1)]),
         domain_error(not_less_than_zero,-1),rpc:promise/4),
     expect_client_error(rpc('http://invalid',true,[request_header(bad)]),
-        type_error(request_header,bad),rpc:rpc/3),
-    expect_client_error(rpc('http://invalid',true,[authorization(bearer(token))]),
-        domain_error(authorization,bearer(token)),rpc:rpc/3),
+        type_error(http_request_header,bad),rpc:rpc/3),
+    expect_client_error(rpc('http://invalid',true,[authorization(digest(user,password))]),
+        domain_error(http_authorization,digest(user,password)),rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[src_predicates([a/b])]),
         type_error(predicate_indicator,a/b),rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[src_uri(42)]),
@@ -90,7 +90,7 @@ check_invalid_yield(Ref) :-
 
 option_supported_vectors :-
     Options=[limit(2),limit(3),timeout(infinite),redirect(true),max_redirect(3),
-             request_header('X-Test'=value),request_header('X-Count'=42),
+             request_header('X-Test'=value),request_header('X-Count'='42'),
              authorization(basic(user,password)),user_agent('Trealla test'),cacert_file('ca.pem'),
              src_text('p(a).'),src_text([112,46]),src_list([p(X)]),src_predicates([p/1]),src_uri('http://localhost/source')],
     rpc:validate_client_options(rpc,[once(true),once(false)|Options]),var(X),
@@ -101,9 +101,9 @@ option_supported_vectors :-
     rpc:validate_client_options(yield,[timeout(infinite),on_timeout(X=waiting)]),var(X),
     option(limit(First),Options,_),First==2,
     rpc:rpc_http_options(POptions,HTTP),
-    HTTP==[timeout(infinite),redirect(true),max_redirect(3),request_header('X-Test'=value),
-           request_header('X-Count'=42),authorization(basic(user,password)),
-           user_agent('Trealla test'),cacert_file('ca.pem')],
+    HTTP==[request_header('x-test'=value),request_header('x-count'='42'),
+           request_header(authorization='Basic dXNlcjpwYXNzd29yZA=='),user_agent('Trealla test'),
+           timeout(infinite),redirect(true),max_redirect(3),cacert_file('ca.pem')],
     writeln('documented subset, precedence, source formats and sharing: ok').
 
 rpc_options_live_test(Port) :-

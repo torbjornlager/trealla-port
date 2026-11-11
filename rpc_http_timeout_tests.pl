@@ -39,7 +39,7 @@ mapping :-
     forall(member(Options,[[timeout(0),http_timeout(5),http_timeout(6)],
                            [http_timeout(5),timeout(0),http_timeout(6)]]),
       rpc:rpc_http_options([request_header('X-Test'=value)|Options],
-                          [timeout(5),request_header('X-Test'=value)])),
+                          [timeout(5),request_header('x-test'=value)])),
     rpc:rpc_http_options([http_timeout(3),http_timeout(5)],[timeout(3)]).
 
 wait_ready(Base,N) :-

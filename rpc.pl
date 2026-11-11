@@ -133,7 +133,7 @@ request_option_type(src_predicates,predicate_indicators).
 request_option_type(src_uri,source_text).
 request_option_type(request_header,request_header).
 request_option_type(authorization,authorization).
-request_option_type(user_agent,http_text).
+request_option_type(user_agent,http_field).
 request_option_type(redirect,boolean).
 request_option_type(max_redirect,nonnegative_integer).
 request_option_type(cacert_file,source_text).
@@ -157,16 +157,9 @@ validate_client_value(http_text,Text) :- !,
     (number(Text) -> true ; validate_client_value(source_text,Text)).
 validate_client_value(predicate_indicators,PIs) :- !,
     must_be(list,PIs),validate_client_pis(PIs).
-validate_client_value(request_header,Header) :- !,
-    must_be(nonvar,Header),
-    (Header=(Name=Value) ->
-        validate_client_value(http_text,Name),validate_client_value(http_text,Value)
-    ; throw(error(type_error(request_header,Header),client_option/1))).
-validate_client_value(authorization,Auth) :- !,
-    must_be(nonvar,Auth),
-    (Auth=basic(User,Password) ->
-        validate_client_value(http_text,User),validate_client_value(http_text,Password)
-    ; throw(error(domain_error(authorization,Auth),client_option/1))).
+validate_client_value(request_header,Value) :- !, rpc_http_validate(request_header(Value)).
+validate_client_value(authorization,Value) :- !, rpc_http_validate(authorization(Value)).
+validate_client_value(http_field,Value) :- !, rpc_http_validate(user_agent(Value)).
 validate_client_value(Type,Value) :- must_be(Type,Value).
 validate_client_pis([]).
 validate_client_pis([PI|PIs]) :-
@@ -318,12 +311,19 @@ strip_trailing_slash(URI, URI).
 % Explicit transport spelling overrides the legacy timeout/1 independently
 % of list order. Public validation has already checked every occurrence.
 rpc_http_options(Options, HTTPOptions) :-
-    rpc_transport_options(Options, Transport),
+    rpc_transport_options(Options, Transport0),
+    exclude(rpc_http_field_option,Transport0,Other),
+    rpc_http_fields(Options,Fields),rpc_http_native_options(Fields,FieldOptions),
+    append(FieldOptions,Other,Transport),
     (memberchk(http_timeout(T),Options) ->
         Timeout is max(0,T),
         without_legacy_timeouts(Transport, Rest),
         HTTPOptions=[timeout(Timeout)|Rest]
     ; HTTPOptions=Transport).
+
+rpc_http_field_option(request_header(_)).
+rpc_http_field_option(authorization(_)).
+rpc_http_field_option(user_agent(_)).
 
 without_legacy_timeouts([], []).
 without_legacy_timeouts([timeout(_)|Options], Rest) :- !,
@@ -724,3 +724,13 @@ promise_queue_wait(Queue, Deadline, Outcome) :-
       ; get_time(After),(After < Deadline -> Again=true ; Again=false)),
       (Again == true -> promise_queue_wait(Queue,Deadline,Outcome)
       ; Outcome=timeout)).
+
+:- include(rpc_http_fields).
+rpc_http_string_chars(_,_) :- fail.
+
+rpc_http_host_utf8(Chars,Bytes) :- rpc_http_utf8(Chars,Bytes).
+
+% Trealla http_open already emits UTF-8; byte-atom conversion would double encode.
+rpc_http_native_value(Value,Value).
+
+rpc_http_one_char(C,[C]) :- atom(C),atom_length(C,1).
