@@ -120,6 +120,7 @@ waits for their normal cleanup under a bounded timeout.
 :- use_module(answer_terms,[check_answer_term/1,finite_query_error/2]).
 :- use_module(actor_authority, []).
 :- use_module(rpc).
+:- use_module(integer_relations,[succ/2]).
 
 :- multifile rpc:hook_promise_owner/1.
 rpc:hook_promise_owner(client_namespace(Namespace)) :-
