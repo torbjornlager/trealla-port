@@ -22,8 +22,8 @@ remote_named_publication :-
     rollback_remote_spawn_name(Pid,Options),actors:release_spawn_name(Token),
     new_name(Occupied),self(Self),register(Occupied,Self),
     catch(server_spawn(no_such_callback,[],_,[name(Occupied),node('http://invalid'),src_uri('http://invalid/source')]),E,true),
-    E==name_is_in_use(Occupied),
-    catch(supervisor_spawn([],_,[name(Occupied),node('http://invalid')]),SE,true),SE==name_is_in_use(Occupied),
+    nonvar(E),E=error(permission_error(register,actor_name,Occupied),_),
+    catch(supervisor_spawn([],_,[name(Occupied),node('http://invalid')]),SE,true),nonvar(SE),SE=error(permission_error(register,actor_name,Occupied),_),
     unregister(Occupied),
     writeln('caller-side publication/rollback and pre-I/O wrapper name conflicts: ok').
 remote_named_closed_namespace :-
@@ -107,7 +107,7 @@ live_competition(URL) :-
     thread_send_message(Gate,go),thread_send_message(Gate,go),
     thread_get_message(Replies,R1),thread_get_message(Replies,R2),thread_join(A,_),thread_join(B,_),
     message_queue_property(Attempts,size(1)),
-    sort([R1,R2],Results),sort([won(P),lost(name_is_in_use(Name))],Results),whereis(Name,P),
+    sort([R1,R2],Results),sort([won(P),lost(error(permission_error(register,actor_name,Name),_))],Results),whereis(Name,P),
     % The creator's thread owns its spawn-time monitor; install our own monitor.
     monitor(P,Ref),P ! finish,receive({down(P,Ref,true) -> true},[timeout(4),on_timeout(fail)]),
     whereis(Name,undefined),message_queue_destroy(Gate),message_queue_destroy(Replies),message_queue_destroy(Attempts).

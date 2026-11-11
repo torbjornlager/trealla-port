@@ -69,7 +69,7 @@ named_checks(URL) :-
     supervisor_actor:supervisor_spawn([],Sup,[node(URL),name(Name),link(false),monitor(true)]),
     actors:whereis(Name,Sup),
     catch(supervisor_actor:supervisor_spawn([],_,[node(URL),name(Name),link(false)]),Duplicate,true),
-    Duplicate==name_is_in_use(Name),
+    nonvar(Duplicate),Duplicate=error(permission_error(register,actor_name,Name),_),
     supervisor_actor:supervisor_count_children(Sup,Counts),memberchk(active-0,Counts),
     stop_supervisor(Sup),actors:whereis(Name,undefined),
     % A rejected source must release the alias; the same name can be reused.

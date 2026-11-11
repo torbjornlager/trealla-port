@@ -22,7 +22,7 @@ registration_tests :-
 
 registration_live_and_dead :-
     fresh_name(Name),waiter(P),register(Name,P),whereis(Name,P),
-    fresh_name(Other),catch(register(Other,P),Already,true),Already==process_already_has_a_name(P),
+    fresh_name(Other),catch(register(Other,P),Already,true),nonvar(Already),Already=error(permission_error(register,process,P),_),
     stop_waiter(P),whereis(Name,undefined),expect_missing(Name,P),
     fresh_name(Missing),expect_missing(Missing,999999999999),
     self(Self),register(Name,Self),whereis(Name,Self),unregister(Name),
@@ -59,7 +59,7 @@ qualified_checks :-
     waiter(R),Remote=R@'http://registration-remote.test',register(Name,Remote),
     stop_waiter(R),whereis(Name,Kept),Kept==Remote,unregister(Name),
     register(Name,Remote),whereis(Name,Remote),
-    catch(register(Name,999999999999),Taken,true),Taken==name_is_in_use(Name),
+    catch(register(Name,999999999999),Taken,true),nonvar(Taken),Taken=error(permission_error(register,actor_name,Name),_),
     unregister(Name),
     writeln('qualified local aliases checked/cleaned; remote alias identity and precedence preserved: ok').
 

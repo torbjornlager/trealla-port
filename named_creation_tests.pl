@@ -6,7 +6,7 @@
 
 named_echo(Request,State,Request,State).
 name_for(Prefix,Name) :- make_ref(Id),format(atom(Name),'~w_~w',[Prefix,Id]).
-expect_taken(Goal,Name) :- catch(call(Goal),Error,true),Error==name_is_in_use(Name).
+expect_taken(Goal,Name) :- catch(call(Goal),Error,true),nonvar(Error),Error=error(permission_error(register,actor_name,Name),_).
 :- meta_predicate expect_taken(0,+).
 
 named_creation_tests :-
@@ -87,7 +87,7 @@ named_publication_conflict :-
     catch(with_spawn_name([name(Name)],_,named_creation_tests:create_test_actor(true,_,
         [link(false),monitor(true),src_list([
             (:- (actors:self(Me),actors:register(Other,Me)))])])),Error,true),
-    nonvar(Error),Error=process_already_has_a_name(Dead),
+    nonvar(Error),Error=error(permission_error(register,process,Dead),_),
     receive({down(Dead,Dead,_) -> true},[timeout(2),on_timeout(fail)]),
     whereis(Name,undefined),whereis(Other,undefined),
     supervisor_spawn([],Sup,[name(Name),monitor(true),link(false)]),
@@ -106,6 +106,6 @@ named_concurrent :-
     thread_send_message(Gate,go),thread_send_message(Gate,go),
     thread_get_message(Results,R1),thread_get_message(Results,R2),
     thread_join(A,_),thread_join(B,_),
-    sort([R1,R2],Replies),sort([won(P),lost(name_is_in_use(Name))],Replies),
+    sort([R1,R2],Replies),sort([won(P),lost(error(permission_error(register,actor_name,Name),_))],Replies),
     whereis(Name,P),supervisor_halt(P),
     message_queue_destroy(Gate),message_queue_destroy(Results).

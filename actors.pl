@@ -246,7 +246,7 @@ reserve_spawn_name(Name, Token) :-
     with_mutex('$actor_registry',
         ( ensure_registry_namespace_open(Namespace),
           ( (registered(Name,_) ; reserved_spawn_name(Name,_))
-        -> throw(name_is_in_use(Name))
+        -> throw(error(permission_error(register,actor_name,Name),context(actors:register/2,'ordinary registration conflict')))
         ; assertz(reserved_spawn_name(Name,Token)),
           assertz(spawn_name_owner(Token,Namespace)) ))).
 
@@ -261,7 +261,7 @@ publish_spawn_name(Pid, Options) :-
        with_mutex('$actor_registry',
            ( ensure_registry_namespace_open(CurrentNamespace),
              actor_alive(Pid),
-             ( registered(_,Pid) -> throw(process_already_has_a_name(Pid)) ; true ),
+             ( registered(_,Pid) -> throw(error(permission_error(register,process,Pid),context(actors:register/2,'ordinary registration conflict'))) ; true ),
              ( retract(reserved_spawn_name(Name,Token))
              -> (retract(spawn_name_owner(Token,Namespace)) -> true ; Namespace=none),
                 ensure_registry_namespace_open(Namespace),
@@ -274,7 +274,7 @@ publish_remote_spawn_name(Pid,Options) :-
         registration_namespace(Current),
         with_mutex('$actor_registry',
             (ensure_registry_namespace_open(Current),
-             (registered(_,Pid) -> throw(process_already_has_a_name(Pid)) ; true),
+             (registered(_,Pid) -> throw(error(permission_error(register,process,Pid),context(actors:register/2,'ordinary registration conflict'))) ; true),
              (reserved_spawn_name(Name,Token),spawn_name_owner(Token,Owner) -> true
              ; throw(error(existence_error(name_reservation,Token),spawn/3))),
              ensure_registry_namespace_open(Owner),
@@ -766,8 +766,8 @@ flush_monitor_messages(Ref) :-
 %!  register(+Name, +Pid) is det.
 %
 %   Register the given Pid under the atom Name.  Throws
-%   `process_already_has_a_name(Pid)` if Pid is already registered
-%   under any name, or `name_is_in_use(Name)` if Name is already
+%   `error(permission_error(register,process,Pid),_)` if Pid is already registered
+%   under any name, or `error(permission_error(register,actor_name,Name),_)` if Name is already
 %   taken by another Pid. Missing or terminating local PIDs raise
 %   error(existence_error(process, Pid), context(actors:register/2, _)).
 
@@ -784,9 +784,9 @@ register(Name, Pid) :-
     with_mutex('$actor_registry',
         ( ensure_registry_namespace_open(Namespace),
           ( registered(_, Pid)
-        -> throw(process_already_has_a_name(Pid))
+        -> throw(error(permission_error(register,process,Pid),context(actors:register/2,'ordinary registration conflict')))
         ; (registered(Name, _) ; reserved_spawn_name(Name,_))
-        -> throw(name_is_in_use(Name))
+        -> throw(error(permission_error(register,actor_name,Name),context(actors:register/2,'ordinary registration conflict')))
         ; ensure_registerable_local_pid(Pid),
           asserta(registered(Name, Pid)),
           assertz(registration_owner(Name,Pid,Namespace)) ))).
