@@ -2704,3 +2704,10 @@ variable sharing; client start goals and source retain their sandbox checks.
 Halt acknowledges after child shutdown, and a queued acknowledgement takes
 precedence over the matching termination notice. Shared native qualification
 lives in `trinity-conformance/cases/native-supervisor-lifecycle-0.1.json`.
+
+Supervisor child labels in `child(Id, Options)` must be atoms. Creation and
+terminate/delete/respawn validate them before effects, preserving the original
+invalid culprit. `supervisor_count_children/2` counts supervisor and worker
+subtypes from active records; stopped children can retain their specifications
+without contributing to active counts. Shared cases are in
+`trinity-conformance/cases/native-supervisor-id-counts-0.1.json`.

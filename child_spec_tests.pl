@@ -10,6 +10,7 @@ expect_child_error(Goal,Formal,PI) :-
 
 child_spec_tests :-
     child_invalid_specs,
+    atom_id_boundaries,
     child_nested_and_early_rejection,
     child_defaults_and_sharing,
     child_dynamic_validation,
@@ -80,3 +81,15 @@ child_dynamic_validation :-
     supervisor_count_children(Sup,After),memberchk(specs-1,After),memberchk(active-1,After),
     supervisor_halt(Sup),receive({down(Sup,Sup,_) -> true},[timeout(2),on_timeout(fail)]),
     writeln('dynamic rejection preserves state and valid duplicate reply: ok').
+
+atom_id_boundaries :-
+    expect_child_error(supervisor_spawn([child(worker(X),[start(true)])],Pid),
+      type_error(atom,worker(X)),supervisor_actor:supervisor_spawn/3),var(X),var(Pid),
+    expect_child_error(supervisor_spawn([child(42,[start(true)])],_),
+      type_error(atom,42),supervisor_actor:supervisor_spawn/3),
+    catch(supervisor_terminate_child(missing,worker(1),_),E,true),
+    nonvar(E),E=error(type_error(atom,worker(1)),_),
+    catch(supervisor_delete_child(missing,Id,_),E2,true),
+    nonvar(E2),E2=error(instantiation_error,_),var(Id),
+    catch(supervisor_respawn_child(missing,42,_),E3,true),
+    nonvar(E3),E3=error(type_error(atom,42),_).
