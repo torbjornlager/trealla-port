@@ -251,7 +251,7 @@ actor_predicate(output, 1).
 actor_predicate(output, 2).
 actor_predicate(input, 2).
 actor_predicate(input, 3).
-actor_predicate(respond, 2).
+actor_predicate(respond, 3).
 actor_predicate(toplevel_spawn, 1).
 actor_predicate(toplevel_spawn, 2).
 actor_predicate(toplevel_call, 2).
