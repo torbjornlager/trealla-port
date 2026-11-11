@@ -339,6 +339,8 @@ execution_goal(Goal, Qualified) :-
 % Keep worker entries explicit when native control constructs change the
 % meta-call context. Rebuild native controls rather than interpreting them,
 % preserving variable sharing and their existing cut/exception scopes.
+sourceless_worker_goal(Goal, isolation:actor_library(toplevel_actors,Goal)) :-
+    library_callback(Goal,_,_), !.
 sourceless_worker_goal(Goal, Goal) :- var(Goal), !.
 % Parser builtin metadata can bypass imports in source-free owner queries.
 sourceless_worker_goal(succ(A,B), integer_relations:succ(A,B)) :- !.
@@ -438,10 +440,8 @@ actor_query_goal(Module, (Left0 ; Right0), (Left ; Right)) :- !,
 actor_query_goal(Module, (If0 -> Then0), (If -> Then)) :- !,
     actor_query_goal(Module, If0, If),
     actor_query_goal(Module, Then0, Then).
-actor_query_goal(Module, forall(Generate0, Test0),
-                 (\+ (Generate, \+ Test))) :- !,
-    actor_query_goal(Module, Generate0, Generate),
-    actor_query_goal(Module, Test0, Test).
+actor_query_goal(Module, Goal, isolation:actor_library(Module, Goal)) :-
+    library_callback(Goal, _, _), !.
 actor_query_goal(Module, (\+ Goal0), (\+ Goal)) :- !,
     actor_query_goal(Module, Goal0, Goal).
 actor_query_goal(_, !, !) :- !.
@@ -562,6 +562,61 @@ call_actor_callback(Module, Goal) :-
 
 call_actor_leaf(Module, Goal) :-
     call_in_module(Module, '$actor_call'(Goal)).
+
+% Both callbacks of forall are checked at invocation, not before its generator.
+actor_library(Module, forall(Generate,Test)) :- !,
+    \+ (actor_library_call(Module,Generate), \+ actor_library_call(Module,Test)).
+actor_library(Module, Goal0) :-
+    check_library_index(Goal0),
+    library_callback(Goal0,Closure,_), Goal0 =.. [Name,_|Args],
+    Guard = isolation:actor_library_call(Module,Closure),
+    Goal =.. [Name,Guard|Args], call(Goal).
+
+library_callback(Goal, Closure, Extra) :-
+    nonvar(Goal), functor(Goal,Name,Arity),
+    ( Name == maplist, Arity >= 2, Arity =< 8 -> Extra is Arity-1
+    ; Name == foldl, Arity >= 4, Arity =< 6 -> Extra is Arity-1
+    ; memberchk(Name/Arity,[call_nth/2,countall/2]) -> Extra=0
+    ; Name == forall, Arity == 2 -> Extra=0
+    ; fail ), arg(1,Goal,Closure).
+
+actor_library_call(Module, Closure) :-
+    library_callable(Closure), sandbox_policy:completed_call_goal(Closure,[],Goal),
+    call_library_context(Module,Goal).
+actor_library_call(Module, Closure ,A1) :-
+    library_callable(Closure), sandbox_policy:completed_call_goal(Closure,[A1],Goal),
+    call_library_context(Module,Goal).
+actor_library_call(Module, Closure ,A1,A2) :-
+    library_callable(Closure), sandbox_policy:completed_call_goal(Closure,[A1,A2],Goal),
+    call_library_context(Module,Goal).
+actor_library_call(Module, Closure ,A1,A2,A3) :-
+    library_callable(Closure), sandbox_policy:completed_call_goal(Closure,[A1,A2,A3],Goal),
+    call_library_context(Module,Goal).
+actor_library_call(Module, Closure ,A1,A2,A3,A4) :-
+    library_callable(Closure), sandbox_policy:completed_call_goal(Closure,[A1,A2,A3,A4],Goal),
+    call_library_context(Module,Goal).
+actor_library_call(Module, Closure ,A1,A2,A3,A4,A5) :-
+    library_callable(Closure), sandbox_policy:completed_call_goal(Closure,[A1,A2,A3,A4,A5],Goal),
+    call_library_context(Module,Goal).
+actor_library_call(Module, Closure ,A1,A2,A3,A4,A5,A6) :-
+    library_callable(Closure), sandbox_policy:completed_call_goal(Closure,[A1,A2,A3,A4,A5,A6],Goal),
+    call_library_context(Module,Goal).
+actor_library_call(Module, Closure ,A1,A2,A3,A4,A5,A6,A7) :-
+    library_callable(Closure), sandbox_policy:completed_call_goal(Closure,[A1,A2,A3,A4,A5,A6,A7],Goal),
+    call_library_context(Module,Goal).
+
+call_library_context(toplevel_actors,Goal) :- !,
+    sourceless_worker_goal(Goal,Prepared), call(Prepared).
+call_library_context(Module,Goal) :- run_actor_query(Module,Goal).
+
+check_library_index(call_nth(_,N)) :- nonvar(N), !,
+    must_be(integer,N),
+    (N>0 -> true;throw(error(domain_error(not_less_than_one,N),call_nth/2))).
+check_library_index(_).
+
+library_callable(Qualified) :-
+    nonvar(Qualified), Qualified = _Module:Closure, !, library_callable(Closure).
+library_callable(Closure) :- must_be(callable,Closure).
 
 actor_identical(Left, Right) :-
     Left == Right.
@@ -876,6 +931,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_qualify_source\'([Term0|Terms0], [Term|Terms]) :- !, \'$actor_qualify_source\'(Term0, Term), \'$actor_qualify_source\'(Terms0, Terms).~n', []),
     bootstrap_line( '\'$actor_qualify_source\'((Head :- Body0), (Head :- Body)) :- !, \'$actor_qualify_goal\'(Body0, Body).~n', []),
     bootstrap_line( '\'$actor_qualify_source\'(Term, Term).~n', []),
+    bootstrap_line( '\'$actor_qualify_goal\'(Goal, isolation:actor_library(~q,Goal)) :- isolation:library_callback(Goal,_,_), !.~n', [Module]),
     bootstrap_line( '\'$actor_qualify_goal\'((A0,B0), (A,B)) :- !, \'$actor_qualify_goal\'(A0,A), \'$actor_qualify_goal\'(B0,B).~n', []),
     bootstrap_line( '\'$actor_qualify_goal\'((A0;B0), (A;B)) :- !, \'$actor_qualify_goal\'(A0,A), \'$actor_qualify_goal\'(B0,B).~n', []),
     bootstrap_line( '\'$actor_qualify_goal\'((A0->B0), (A->B)) :- !, \'$actor_qualify_goal\'(A0,A), \'$actor_qualify_goal\'(B0,B).~n', []),
@@ -1021,6 +1077,8 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0), clause(Head,Body)) :- !, \'$actor_strip_source_module\'(Head0,Head), \'$actor_strip_source_module\'(Body0,Body).~n', []),
     % Export source goals, not the private primitive bridge installed for guard execution.
     bootstrap_line( '\'$actor_strip_source_module\'(Term0, Goal) :- Term0 = Qualified:Inner, Qualified == isolation, nonvar(Inner), functor(Inner,Bridge,2), memberchk(Bridge,[call_actor_leaf,call_actor_callback]), !, arg(2,Inner,Goal0), \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
+    bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_library(_M,_P,_C,_A,Goal0), Goal) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
+    bootstrap_line( '\'$actor_strip_source_module\'(isolation:actor_library(_M,Goal0), Goal) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_builtin_call(Goal0), Goal) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_sleep(Seconds), sleep(Seconds)) :- !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_atom_string(Atom,String), atom_string(Atom,String)) :- !.~n', []),

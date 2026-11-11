@@ -16,6 +16,7 @@
          sandbox_call/11,
          sandbox_call/12,
          sandbox_spawn/7,
+         sandbox_library/5,
          sandbox_supervisor_call/5,
          sandbox_toplevel_call/7,
          sandbox_toplevel_synch/9,
@@ -231,6 +232,20 @@ sandbox_check_goal_(Mode, Profile, Module, AppPIs, spawn(Goal,_Pid)) :- !,
     sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal).
 sandbox_check_goal_(Mode, Profile, Module, AppPIs, spawn(Goal,_Pid,Options)) :- !,
     check_nested_spawn(Mode, Profile, Module, AppPIs, Goal, Options).
+% Library arities refer to the completed closure, not its prefix predicate.
+sandbox_check_goal_(Mode,Profile,Module,AppPIs,forall(Generate,Test)) :- !,
+    check_library_callback(Mode,Profile,Module,AppPIs,Generate),
+    ( Generate == fail -> true
+    ; check_library_callback(Mode,Profile,Module,AppPIs,Test) ).
+sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal) :-
+    isolation:library_callback(Goal,Closure,Extra), !,
+    ( var(Closure) -> check_meta_instantiation(Mode,Goal,[Closure])
+    ; callable(Closure) ->
+      copy_term(Closure,Checked), length(Arguments,Extra),
+      completed_call_goal(Checked,Arguments,Complete),
+      profile_check_goal(Profile,Complete),
+      sandbox_check_goal_(Mode,Profile,Module,AppPIs,Complete)
+    ; true ).
 % call/N appends arguments before selecting the admitted predicate. Inspect a
 % copy so checking a closure never instantiates application arguments.
 sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal) :-
@@ -261,6 +276,11 @@ completed_call_goal(Module:Closure, Extra, Module:Complete) :- !,
     ; Complete=Closure).
 completed_call_goal(Closure, Extra, Complete) :-
     Closure =.. Parts, append(Parts,Extra,Full), Complete =.. Full.
+
+check_library_callback(Mode,Profile,Module,AppPIs,Goal) :-
+    ( var(Goal) -> check_meta_instantiation(Mode,forall(Goal,_),[Goal])
+    ; callable(Goal) -> sandbox_check_goal_(Mode,Profile,Module,AppPIs,Goal)
+    ; true ).
 
 check_nested(_, _, _, _, []).
 check_nested(Mode, Profile, Module, AppPIs, [Goal|Goals]) :-
@@ -624,6 +644,8 @@ reserved_source_name(supervisor_count_children).
 reserved_source_name(supervisor_halt).
 reserved_source_name(supervisor_stop).
 reserved_source_name(sandbox_call).
+reserved_source_name(sandbox_library).
+reserved_source_name(sandbox_library_call).
 reserved_source_name(sandbox_spawn).
 reserved_source_name(sandbox_supervisor_call).
 reserved_source_name(sandbox_toplevel_call).
@@ -676,6 +698,8 @@ rewrite_goal(Mode, Profile, Module, AppPIs, Goal0, Goal) :-
     rewrite_goal_(Mode, Profile, Module, AppPIs, Goal0, Goal), !.
 rewrite_goal(_, _, _, _, Goal, Goal).
 
+rewrite_goal_(M,P,C,A,Goal,sandbox_policy:sandbox_library(M,P,C,A,Goal)) :-
+    isolation:library_callback(Goal,_,_), !.
 rewrite_goal_(Mode, Profile, Module, AppPIs, Var,
               sandbox_policy:sandbox_call(Mode,Profile,Module,AppPIs,Var)) :- var(Var).
 % Options can be computed at runtime; check and prepare callback goals then,
@@ -812,6 +836,31 @@ rewrite_receive_option_list(M,P,C,A,[on_timeout(G0)|Os0],[on_timeout(G)|Os]) :- 
     rewrite_goal(M,P,C,A,G0,G), rewrite_receive_option_list(M,P,C,A,Os0,Os).
 rewrite_receive_option_list(M,P,C,A,[O|Os0],[O|Os]) :- rewrite_receive_option_list(M,P,C,A,Os0,Os).
 
+sandbox_library(M,P,C,A,forall(Generate,Test)) :- !,
+    \+ (sandbox_library_call(M,P,C,A,Generate),
+        \+ sandbox_library_call(M,P,C,A,Test)).
+sandbox_library(M,P,C,A,Goal0) :-
+    isolation:check_library_index(Goal0),
+    isolation:library_callback(Goal0,Closure,_), Goal0 =.. [Name,_|Args],
+    Guard = sandbox_policy:sandbox_library_call(M,P,C,A,Closure),
+    Goal =.. [Name,Guard|Args], call(Goal).
+sandbox_library_call(M,P,C,A,Closure) :-
+    isolation:library_callable(Closure), guarded_call(M,P,C,A,Closure,[]).
+sandbox_library_call(M,P,C,A,Closure,A1) :-
+    isolation:library_callable(Closure), guarded_call(M,P,C,A,Closure,[A1]).
+sandbox_library_call(M,P,C,A,Closure,A1,A2) :-
+    isolation:library_callable(Closure), guarded_call(M,P,C,A,Closure,[A1,A2]).
+sandbox_library_call(M,P,C,A,Closure,A1,A2,A3) :-
+    isolation:library_callable(Closure), guarded_call(M,P,C,A,Closure,[A1,A2,A3]).
+sandbox_library_call(M,P,C,A,Closure,A1,A2,A3,A4) :-
+    isolation:library_callable(Closure), guarded_call(M,P,C,A,Closure,[A1,A2,A3,A4]).
+sandbox_library_call(M,P,C,A,Closure,A1,A2,A3,A4,A5) :-
+    isolation:library_callable(Closure), guarded_call(M,P,C,A,Closure,[A1,A2,A3,A4,A5]).
+sandbox_library_call(M,P,C,A,Closure,A1,A2,A3,A4,A5,A6) :-
+    isolation:library_callable(Closure), guarded_call(M,P,C,A,Closure,[A1,A2,A3,A4,A5,A6]).
+sandbox_library_call(M,P,C,A,Closure,A1,A2,A3,A4,A5,A6,A7) :-
+    isolation:library_callable(Closure), guarded_call(M,P,C,A,Closure,[A1,A2,A3,A4,A5,A6,A7]).
+
 sandbox_call(Mode,Profile,Module,AppPIs,Closure) :-
     guarded_call(Mode,Profile,Module,AppPIs,Closure,[]).
 sandbox_call(M,P,C,A,X,B) :- guarded_call(M,P,C,A,X,[B]).
@@ -824,10 +873,15 @@ sandbox_call(M,P,C,A,X,B,D,E,F,G,H,I) :- guarded_call(M,P,C,A,X,[B,D,E,F,G,H,I])
 
 guarded_call(Mode, Profile, Module, AppPIs, Closure, Extra) :-
     must_be(callable, Closure),
-    Closure =.. [Name|Args0], append(Args0, Extra, Args), Goal0 =.. [Name|Args],
+    completed_call_goal(Closure,Extra,Goal0),
+    profile_check_goal(Profile,Goal0),
     sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal0),
     rewrite_goal(Mode, Profile, Module, AppPIs, Goal0, Goal),
-    call_in_context(Module, Goal).
+    call_guarded_context(Module, Goal).
+
+call_guarded_context(actor_context, Goal) :- !,
+    context_module(actor_context,RuntimeModule), isolation:run_actor_query(RuntimeModule,Goal).
+call_guarded_context(Module,Goal) :- call_in_context(Module,Goal).
 
 %!  sandbox_control_catch(+Module, :Goal, ?Catcher, :Recover) is nondet.
 %
@@ -1237,6 +1291,10 @@ allow_application_clause_goal(Head, Body) :-
 % inside an ordinary body such as human(X) unifies with one of the internal
 % wrapper patterns below, commits at its cut, and expands recursively forever.
 restore_clause_body(_Module, Term, Term) :- var(Term), !.
+restore_clause_body(Module,sandbox_policy:sandbox_library(_M,_P,_C,_A,Goal0),Goal) :- !,
+    restore_clause_body(Module,Goal0,Goal).
+restore_clause_body(Module,isolation:actor_library(_M,Goal0),Goal) :- !,
+    restore_clause_body(Module,Goal0,Goal).
 restore_clause_body(Module,
                     sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0),
                     clause(Head,Body)) :-

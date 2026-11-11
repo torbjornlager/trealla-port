@@ -2681,3 +2681,16 @@ connection cache keep the public URL; unmapped nodes retain the normal URL
 conversion. Use only owner-controlled mappings: the hook selects transport,
 not a new public node identity. The canonical distribution tests cover exact
 mapping, fallback and preservation of explicit WebSocket endpoints.
+
+### Native library callback boundary
+
+Known private `maplist/2–8` and `foldl/4–6` closures are admitted at their
+completed arities. Invocation retains private source context and validates the
+actual target under the original sandbox policy. Unknown and forbidden targets
+remain denied.
+
+Trealla's native `forall/2` checks both arguments before its generator runs.
+The actor runtime defers callback checks until invocation, including in
+owner-off mode and nested private source. Source export restores public library
+calls rather than copying runtime bridges. Shared native regressions live in
+`trinity-conformance/cases/native-library-callbacks-0.1.json`.

@@ -114,6 +114,8 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Library callbacks and source copying" \
+        "$TPL" -g "consult('$ROOT/library_callback_tests.pl'),(catch(library_callback_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Static call/N arity admission" \
         "$TPL" -g "consult('$ROOT/call_arity_admission_tests.pl'),(catch(call_arity_admission_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Whitelist private helper admission" \
