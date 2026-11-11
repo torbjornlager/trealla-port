@@ -36,11 +36,11 @@ option_shape_errors :-
 
 option_value_errors :-
     expect_client_error(rpc('http://invalid',true,[once(true),once(maybe)]),
-        type_error(boolean,maybe),rpc:rpc/3),
+        domain_error(boolean,maybe),rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[once(_)]),
         instantiation_error,rpc:rpc/3),
     expect_client_error(promise('http://invalid',true,_,[once(false),once(maybe)]),
-        type_error(boolean,maybe),rpc:promise/4),
+        domain_error(boolean,maybe),rpc:promise/4),
     expect_client_error(promise('http://invalid',true,_,[once(_)]),
         instantiation_error,rpc:promise/4),
     expect_client_error(rpc('http://invalid',true,[limit(1),limit(0)]),

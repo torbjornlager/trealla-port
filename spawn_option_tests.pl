@@ -19,8 +19,8 @@ spawn_option_tests :-
 spawn_invalid_options :-
     expect_spawn_error(spawn(true,_,[unknown(1)]),domain_error(spawn_option,unknown(1)),actors:spawn/3),
     expect_spawn_error(spawn(true,_,[name(example)]),domain_error(spawn_option,name(example)),actors:spawn/3),
-    expect_spawn_error(spawn(true,_,[link(true),link(maybe)]),type_error(boolean,maybe),actors:spawn/3),
-    expect_spawn_error(spawn(true,_,[monitor(1)]),type_error(boolean,1),actors:spawn/3),
+    expect_spawn_error(spawn(true,_,[link(true),link(maybe)]),domain_error(boolean,maybe),actors:spawn/3),
+    expect_spawn_error(spawn(true,_,[monitor(1)]),type_error(atom,1),actors:spawn/3),
     expect_spawn_error(spawn(true,_,[node(42)]),type_error(atom_or_string,42),actors:spawn/3),
     expect_spawn_error(spawn(true,_,[target(_)]),instantiation_error,actors:spawn/3),
     expect_spawn_error(spawn(true,_,[io_target(_)]),instantiation_error,actors:spawn/3),
@@ -37,7 +37,7 @@ spawn_rejection_before_side_effects :-
         [src_uri('http://invalid/source'),unknown(1)]),domain_error(spawn_option,unknown(1)),actors:spawn/3),var(Pid),
     % Validation must precede the transparent connection hook.
     expect_spawn_error(spawn(true,Remote,[node('http://127.0.0.1:1'),monitor(bad)]),
-        type_error(boolean,bad),actors:spawn/3),var(Remote),
+        domain_error(boolean,bad),actors:spawn/3),var(Remote),
     expect_spawn_error(remote_spawn(not_a_connection,true,Explicit,[unknown(1)]),
         domain_error(spawn_option,unknown(1)),distribution:remote_spawn/4),var(Explicit),
     actors(After),sort(Before,S),sort(After,S),
@@ -81,7 +81,7 @@ spawn_options_live_session(Node,URL) :-
     receive({shared_pid(Seen) -> user:matching_remote_self(Seen,Pid)},[timeout(3),on_timeout(fail)]),
     receive({down(Pid,Pid,true) -> true},[timeout(3),on_timeout(fail)]),
     expect_spawn_error(remote_spawn(Node,true,Unbound,[link(true),link(bad)]),
-        type_error(boolean,bad),distribution:remote_spawn/4),var(Unbound).
+        domain_error(boolean,bad),distribution:remote_spawn/4),var(Unbound).
 
 % Existing peers report self either as the wire id or its canonical address.
 matching_remote_self(Seen,Pid) :-

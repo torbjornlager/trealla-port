@@ -373,7 +373,7 @@ sync_options([Option|Options],Kind,Self,Query,Wait) :-
     sync_options(Options,Kind,Self,RestQuery,RestWait).
 sync_query_option(_,limit(N)) :- !,must_be(integer,N),(N>0->true;throw(error(domain_error(positive_integer,N),sync_options/5))).
 sync_query_option(call,offset(N)) :- !,must_be(integer,N),(N>=0->true;throw(error(domain_error(not_less_than_zero,N),sync_options/5))).
-sync_query_option(call,once(B)) :- !,must_be(boolean,B).
+sync_query_option(call,once(B)) :- !,actors:validate_spawn_value(boolean,B).
 sync_query_option(call,template(_)) :- !.
 sync_query_option(_,Option) :- throw(error(domain_error(synchronous_toplevel_option,Option),sync_options/5)).
 
