@@ -251,8 +251,12 @@ state_1(Pid, Target0, Continue, TimeLimit, IdleLimit) :-
             set_request_reference(Options),
             option(template(Template), Options, Goal),
             option(offset(Offset),     Options, 0),
-            option(limit(RequestedLimit), Options, 1000000000),
-            effective_solution_limit(RequestedLimit, Limit0),
+            % Keep an omitted limit distinct from every finite integer: only
+            % finite pages may deliver a prefix before an ordinary exception.
+            ( option(limit(RequestedLimit), Options)
+            -> effective_solution_limit(RequestedLimit, Limit0)
+            ; Limit0 = all
+            ),
             option(once(Once),          Options, false),
             option(target(Target1),    Options, Target0),
             isolation:execution_goal(Goal, ExecutionGoal),
@@ -300,19 +304,19 @@ receive_with_idle_limit(Clauses, IdleLimit) :-
 
 run_call(Pid, Goal, Template, Offset, Limit0, Target1,
          TimeLimit, IdleLimit) :-
+    % Keep the page state bound across exception unwinding.
+    % Explicitly construct mutable cells for Trealla's paging runtime.
+    functor(PageCount, count, 1),
+    arg(1, PageCount, Limit0),
+    functor(Target, target, 1),
+    arg(1, Target, Target1),
+    nb_setval('$ptcp_answer_target', Target1),
+    functor(PageState, count, 1),
+    arg(1, PageState, 0),
+    page_values_put([]),
+    resource_timer_put(none),
     catch(
-        ( % Compound-literal cells still retain cross-thread state in v3.13.10;
-          % explicit construction is covered by the paging regression suite.
-          functor(PageCount, count, 1),
-          arg(1, PageCount, Limit0),
-          functor(Target, target, 1),
-          arg(1, Target, Target1),
-          nb_setval('$ptcp_answer_target', Target1),
-          functor(PageState, count, 1),
-          arg(1, PageState, 0),
-          page_values_put([]),
-          resource_timer_put(none),
-          arm_call_timer(TimeLimit),
+        ( arm_call_timer(TimeLimit),
           drive(Pid, Goal, Template, Offset, PageCount, PageState, Target,
                 TimeLimit, IdleLimit),
           disarm_call_timer
@@ -321,7 +325,7 @@ run_call(Pid, Goal, Template, Offset, Limit0, Target1,
         ( disarm_call_timer,
           finite_query_error(Error0, FiniteError),
           normalize_resource_exception(FiniteError, Error),
-          handle_error(Pid, Target, Target1, Error) )),
+          handle_error(Pid, PageCount, PageState, Target, Target1, IdleLimit, Error) )),
     !.
 
 arm_call_timer(TimeLimit) :-
@@ -341,21 +345,42 @@ resource_timer_put(Timer) :-
 resource_timer_get(Timer) :-
     nb_current('$ptcp_resource_timer', Timer).
 
-handle_error(_Pid, _Target, _Orig, '$abort_goal') :- !,
+handle_error(_, _, _, _, _, _, '$abort_goal') :- !,
     throw('$abort_goal').
-handle_error(_Pid, _Target, _Orig, '$resource_idle') :- !,
+handle_error(_, _, _, _, _, _, '$resource_idle') :- !,
     throw('$resource_idle').
 % Only an exit already committed by actors:exit/1 escapes to start/5. A user
 % goal throwing the same atom remains an ordinary query error.
-handle_error(_Pid, _Target, _Orig, actor_exit) :-
+handle_error(_, _, _, _, _, _, actor_exit) :-
     actor_terminating, !,
     throw(actor_exit).
-handle_error(Pid, Target, Orig, Error) :-
+handle_error(Pid, Count, State, Target, _, IdleLimit, Error) :-
+    arg(1, Count, Limit), Limit \== all,
+    nonvar(State),
+    arg(1, State, Got), Got > 0,
+    \+ resource_time_error(Error),
+    !,
+    page_values(State, Slice),
+    clear_page(State),
+    answer_target(Target, Out),
+    send_answer(Out, success(Pid, Slice, true)),
+    receive_with_idle_limit({
+        '$next'(Options) ->
+            apply_next(Options, Count, Target),
+            answer_target(Target, Next),
+            send_answer(Next, error(Pid, Error))
+        ; '$stop' -> true
+    }, IdleLimit).
+handle_error(Pid, _, _, Target, Orig, _, Error) :-
     (   nonvar(Target), Target = target(_)
     ->  answer_target(Target, Out)
     ;   Out = Orig
     ),
     send_answer(Out, error(Pid, Error)).
+
+resource_time_error(Error) :-
+    nonvar(Error),
+    Error = error(resource_error(time), _).
 
 
 %!  drive(+Pid, +Goal, +Template, +Offset, +PageCount, +PageState,
@@ -382,7 +407,7 @@ drive_solution(Pid, Template, Det, PageCount, PageState, Target,
     copy_term(Template, Value),
     page_add(PageState, Value, Got),
     arg(1, PageCount, Limit),
-    ( Got >= Limit
+    ( Limit \== all, Got >= Limit
     -> page_values(PageState, Slice),
        answer_target(Target, Out),
        ( nonvar(Det)

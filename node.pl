@@ -1201,7 +1201,7 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     param(goal,     Params, GoalAtom,     ''),
     param(template, Params, TemplateAtom, GoalAtom),
     param(offset,   Params, OffsetAtom,   '0'),
-    param(limit,    Params, LimitAtom,    '1000000000'),
+    param(limit,    Params, LimitAtom,    ''),
     param(format,   Params, Format,       prolog),
     param(src_text, Params, SourceText, ''),
     forall(member(once=Value,Params),http_once_value(Value,_)),
@@ -1210,11 +1210,11 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     check_term_text_size(goal, GoalAtom),
     check_term_text_size(template, TemplateAtom),
     (OffsetAtom == '' -> Offset = 0         ; atom_number(OffsetAtom, Offset)),
-    (LimitAtom  == '' -> RequestedLimit = 1000000000
-    ; atom_number(LimitAtom, RequestedLimit)),
+    (LimitAtom  == '' -> Limit = all
+    ; atom_number(LimitAtom, RequestedLimit),
+      effective_solution_limit(RequestedLimit, Limit)),
     ( integer(Offset), Offset >= 0 -> true
     ; throw(error(domain_error(offset, Offset), node:handle_call/6)) ),
-    effective_solution_limit(RequestedLimit, Limit),
     % Parse Goal and Template as a single term so variables are shared
     atomic_list_concat(['(',GoalAtom,')+(',TemplateAtom,')'], QTAtom),
     read_term_from_atom(QTAtom, Goal+Template0, [variable_names(Bindings0)]),
@@ -1533,12 +1533,18 @@ compute_answer(Goal,Template,Offset,Limit,Once,Source,Answer) :-
 % A one-slice request never checks out or publishes an ordinary continuation.
 % Bound the producer too: it normally evaluates ahead of its next request.
 compute_request_answer(Scope,Goal,Template,Offset,Limit,true,Source,Answer) :-
-    Maximum is Offset+Limit,
+    (Limit == all -> Maximum = infinite ; Maximum is Offset+Limit),
     spawn_http_page_producer(Scope,Goal,Template,Maximum,Source,Pid),
     self(Self),
     stream_skip(Pid,Self,Offset,Ended),
-    (Ended==true -> Slice=[];stream_collect(Pid,Self,Limit,none,Slice,_)),
-    (Slice==[] -> Answer=failure;Answer=success(Slice,false)).
+    (Ended==true -> Slice=[];stream_collect(Pid,Self,Limit,none,Slice,_Completion)),
+    % once(true) delivers the collected first slice and discards its pending
+    % ordinary exception, just as SWI's apply_once_answer/3 does. Exceptions
+    % before the first solution still escape stream_collect/7 immediately.
+    (   Slice == []
+    ->  Answer = failure
+    ;   Answer = success(Slice, false)
+    ).
 compute_request_answer(Scope,Goal,Template,Offset,Limit,false,Source,Answer) :-
     compute_owned_answer(Scope,Goal,Template,Offset,Limit,Source,Answer).
 
@@ -1571,23 +1577,30 @@ compute_owned_answer(Scope,Goal,Template,Offset,Limit,Source,Answer) :-
         (Offset > 0 -> stream_skip(ProducerPid, Self, Offset) ; true),
         Lookahead = none
     ),
-    stream_collect(ProducerPid, Self, Limit, Lookahead, Slice, Exhausted),
-    (   Exhausted == true
+    stream_collect(ProducerPid, Self, Limit, Lookahead, Slice, Completion),
+    (   Completion = pending_error(Error)
+    ->  publish_next_http_page(Scope, Gid, Offset, ProducerPid,
+                               Slice, pending_error(Error), Answer)
+    ;   Completion == true
     ->  (Slice == [] -> Answer = failure ; Answer = success(Slice, false))
     ;   % Probe for one extra solution to set the More flag accurately
         ProducerPid ! '$request'(Self),
         receive({
             '$http_page_reply'(ProducerPid,sol(Extra)) ->
-                length(Slice, Count),
-                NextOffset is Offset + Count,
-                publish_http_page(Scope,Gid, NextOffset, ProducerPid, lookahead(Extra)),
-                Answer = success(Slice, true)
+                publish_next_http_page(Scope, Gid, Offset, ProducerPid,
+                                       Slice, lookahead(Extra), Answer)
             ; '$http_page_reply'(ProducerPid,eos) ->
                 (Slice == [] -> Answer = failure ; Answer = success(Slice, false))
             ; '$http_page_reply'(ProducerPid,producer_error(Error)) ->
-                throw(Error)
+                publish_next_http_page(Scope, Gid, Offset, ProducerPid,
+                                       Slice, pending_error(Error), Answer)
         })
     ).
+
+publish_next_http_page(Scope, Gid, Offset, Pid, Slice, Lookahead, success(Slice, true)) :-
+    length(Slice, Count),
+    NextOffset is Offset + Count,
+    publish_http_page(Scope, Gid, NextOffset, Pid, Lookahead).
 
 
 %!  run_goal_producer(+Goal, +Template) is det.
@@ -1704,7 +1717,8 @@ producer_error_reply(Error) :-
 %   original solution order).  Lookahead is `none` or `lookahead(T)`
 %   for a pre-fetched solution from the previous page's probe.
 %   Exhausted = true if the producer sent `eos` before N solutions were
-%   collected.
+%   collected. A pending_error(Error) keeps a nonempty slice available
+%   before the exception is delivered on the next request.
 
 stream_collect(Pid, Self, N, Lookahead, Slice, Exhausted) :-
     stream_collect_(Pid, Self, N, Lookahead, [], RevSlice, Exhausted),
@@ -1723,21 +1737,30 @@ stream_collect(Pid, Self, N, Lookahead, Slice, Exhausted) :-
 
 stream_collect_(_, _, 0, _, Acc, Acc, false) :- !.
 stream_collect_(_, _, _, eos, Acc, Acc, true) :- !.
+stream_collect_(_, _, _, pending_error(Error), _, _, _) :- !, throw(Error).
 stream_collect_(Pid, Self, N, lookahead(T), Acc, List, Exh) :- !,
-    N1 is N - 1,
+    remaining_page_limit(N, N1),
     stream_collect_(Pid, Self, N1, none, [T|Acc], List, Exh).
 stream_collect_(Pid, Self, N, none, Acc, List, Exh) :-
-    N > 0,
+    (N == all -> true ; N > 0),
     Pid ! '$request'(Self),
     receive({
         '$http_page_reply'(Pid,sol(T)) ->
-            N1 is N - 1,
+            remaining_page_limit(N, N1),
             stream_collect_(Pid, Self, N1, none, [T|Acc], List, Exh)
         ; '$http_page_reply'(Pid,eos) ->
             List = Acc, Exh = true
         ; '$http_page_reply'(Pid,producer_error(Error)) ->
-            throw(Error)
+            ( Acc == [] -> throw(Error)
+            ; N == all -> throw(Error)
+            % A cyclic answer cannot cross the actor boundary safely, even
+            % when once would discard an ordinary pending exception.
+            ; Error = error(representation_error(cyclic_term),_) -> throw(Error)
+            ; List = Acc, Exh = pending_error(Error) )
     }).
+
+remaining_page_limit(all, all) :- !.
+remaining_page_limit(N, N1) :- N1 is N - 1.
 
 
 %!  stream_skip(+Pid, +Self, +N) is det.
