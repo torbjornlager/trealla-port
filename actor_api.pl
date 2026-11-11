@@ -1,7 +1,8 @@
 % SPDX-License-Identifier: MIT
 
 :- module(actor_api,
-       [ statechart_spawn/2, statechart_halt/2, statechart_halt/3, raise/1, in/1,
+       [ succ/2,
+         statechart_spawn/2, statechart_halt/2, statechart_halt/3, raise/1, in/1,
          offset/2,
          toplevel_spawn/1, toplevel_spawn/2,
          toplevel_call/2, toplevel_call/3,
@@ -46,6 +47,7 @@
                 toplevel_stop/1, toplevel_abort/1
               ]).
 :- use_module(rpc).
+:- use_module(integer_relations,[succ/2]).
 :- use_module(parallel, [parallel/1,first_solution/2,first_solution/3]).
 :- use_module(server_actor).
 :- use_module(supervisor_actor).

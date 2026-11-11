@@ -162,6 +162,7 @@ Reply = hello.
 :- meta_predicate(discard_deferred(1)).
 
 :- use_module(isolation).
+:- use_module(integer_relations,[succ/2]).
 :- use_module(resource_policy).
 
 :- multifile

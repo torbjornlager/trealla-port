@@ -258,6 +258,10 @@ execution_goal(Goal, Qualified) :-
 % meta-call context. Rebuild native controls rather than interpreting them,
 % preserving variable sharing and their existing cut/exception scopes.
 sourceless_worker_goal(Goal, Goal) :- var(Goal), !.
+% Parser builtin metadata can bypass imports in source-free owner queries.
+sourceless_worker_goal(succ(A,B), integer_relations:succ(A,B)) :- !.
+sourceless_worker_goal(call(Closure,A,B), integer_relations:succ(A,B)) :-
+    Closure == succ, !.
 % Trealla's host nl/0 cannot be redefined in an actor module. Route it at
 % the runtime entry boundary, as native SWI does through its I/O template.
 sourceless_worker_goal(nl, actors:terminal_output(Newline,[source(io)])) :- !,
@@ -293,6 +297,10 @@ run_actor_query(Module, Goal0) :-
 % actor's private module. Interpreting ';'/2 recursively would run the Else
 % branch after a successful If whose Then later failed. Native control terms
 % and primitives stay in one call/1 scope, so !/0 can prune repeat/0.
+actor_query_goal(_, Goal, integer_relations:succ(A,B)) :-
+    nonvar(Goal), Goal=succ(A,B), !.
+actor_query_goal(_, Goal, integer_relations:succ(A,B)) :-
+    nonvar(Goal), Goal=call(Closure,A,B), Closure == succ, !.
 actor_query_goal(Module, (Left0, Right0), (Left, Right)) :- !,
     actor_query_goal(Module, Left0, Left),
     actor_query_goal(Module, Right0, Right).
@@ -705,6 +713,8 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
                 SandboxFile, RpcFile, ParallelFile, ServerActorFile,
                 SupervisorActorFile) -->
     bootstrap_line( '%% SPDX-License-Identifier: MIT~n', []),
+    { absolute_file_name('integer_relations.pl',IntegerRelationsFile,[]) },
+    bootstrap_line( ':- use_module(~q, [succ/2]).~n', [IntegerRelationsFile]),
     { absolute_file_name('statechart_actor.pl',StatechartFile,[]) },
     bootstrap_line( ':- use_module(~q).~n',[StatechartFile]),
     bootstrap_line( ':- use_module(~q).~n', [ActorsFile]),

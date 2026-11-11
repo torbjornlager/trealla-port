@@ -55,6 +55,7 @@ still required for an internet-facing node.
 */
 
 :- use_module(library(error)).
+:- use_module(integer_relations,[succ/2]).
 :- use_module(supervisor_admission,[supervisor_spec_goals/2]).
 :- use_module(library(sandbox), []).
 :- use_module(profile_policy).
