@@ -594,6 +594,7 @@ safe_source_head_pi(Name/_Arity) :- atom(Name), \+ sub_atom(Name, 0, 1, _, '$'),
     \+ reserved_source_name(Name).
 
 reserved_source_name(statechart_spawn).
+reserved_source_name(node_setting).
 reserved_source_name(statechart_halt).
 reserved_source_name(raise).
 reserved_source_name(in).
@@ -1079,6 +1080,7 @@ safe_pi(rpc/2). safe_pi(rpc/3).
 safe_pi(promise/3). safe_pi(promise/4). safe_pi(promise_cleanup/1).
 safe_pi(yield/2). safe_pi(yield/3).
 safe_pi(runtime_property/1).
+safe_pi(node_setting/2).
 
 actor_safe_pi(self/1). actor_safe_pi(spawn/1). actor_safe_pi(spawn/2). actor_safe_pi(spawn/3).
 actor_safe_pi(send/2). actor_safe_pi(send/3). actor_safe_pi(cancel/1). actor_safe_pi(! / 2).

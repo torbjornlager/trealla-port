@@ -374,6 +374,7 @@ relation_check_goal(Goal, Patterns) :-
                           'relation is not served by this node')))
     ).
 
+relation_goal_allowed(node_setting(_,_), _) :- !.
 relation_goal_allowed(Goal, Patterns) :-
     member(Pattern0, Patterns),
     copy_term(Pattern0, Pattern),
