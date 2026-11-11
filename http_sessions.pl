@@ -75,7 +75,8 @@ session_worker(Port, Owner, Reply) :-
     self(Relay),
     setup_call_cleanup(
         assertz(session_relay(Relay)),
-        ( catch(toplevel_spawn(Pid, [session(true), target(Relay), monitor(true)]),
+        % Every HTTP session owns a private module, including sessions without source.
+        ( catch(toplevel_spawn(Pid, [session(true), target(Relay), monitor(true), src_text('')]),
                 Error, (thread_send_message(Reply, Error), fail)),
           setup_call_cleanup(
               assertz(session(Port, Pid, Owner, Relay)),
