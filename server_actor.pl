@@ -58,13 +58,25 @@ create_named_server(Callback0, State, Pid, Options, NameOptions) :-
     % qualified call.  Copying the indicator makes it acceptable to listing/1
     % and the src_predicates materialiser.
     copy_term(PI0, PI),
-    rewrite_source_options([src_predicates([PI])|Options], SourceModule,
-                           Materialized0),
+    callback_head(PlainCallback, Head),
+    ( predicate_property(SourceModule:Head, number_of_clauses(Count)), Count > 0
+    -> SourceOptions = [src_predicates([PI])|Options]
+    ; member(SourceOption, Options), explicit_callback_source(SourceOption)
+    -> SourceOptions = Options
+    ; SourceOptions = [src_predicates([PI])|Options] ),
+    rewrite_source_options(SourceOptions, SourceModule, Materialized0),
     copy_term(Materialized0, MaterializedOptions),
     server_spawn_options(MaterializedOptions, SpawnOptions),
     append(NameOptions,SpawnOptions,EffectiveOptions),
     spawn_runtime(server_actor:server_loop(SourceModule:PlainCallback, State),
           Pid, EffectiveOptions).
+
+% Explicit source may define a callback that does not exist in the caller.
+% Do not attempt to list that missing predicate before loading its source.
+explicit_callback_source(src_text(_)).
+explicit_callback_source(src_list(_)).
+explicit_callback_source(src_uri(_)).
+explicit_callback_source(src_predicates(_)).
 
 server_spawn_options(Options, SpawnOptions) :-
     non_server_options(Options, PlainOptions),

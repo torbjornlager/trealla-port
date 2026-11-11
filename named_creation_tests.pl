@@ -34,16 +34,19 @@ named_occupied :-
     writeln('occupied names reject before source/actor work; scalar precedence preserved: ok').
 
 named_probe(Parent,Name) :-
-    self(Me),whereis(Name,Found),Parent ! observed(Me,Found),receive({stop -> true}).
+    self(Me),Parent ! child_ready(Me),receive({inspect_name -> true}),
+    whereis(Name,Found),Parent ! observed(Me,Found),receive({stop -> true}).
 named_first_goal :-
     self(Parent),name_for(named_first,Name),
     supervisor_spawn([child(probe,[start(named_probe(Parent,Name))])],Sup,
         [name(Name),monitor(true),link(false)]),
+    receive({child_ready(Child) -> true},[timeout(2),on_timeout(fail)]),
+    whereis(Name,Sup),send(Child,inspect_name),
     receive({observed(Child,Found) -> true},[timeout(2),on_timeout(fail)]),
     Child \== Sup,Found==Sup,
     supervisor_halt(Sup),receive({down(Sup,Sup,_) -> true},[timeout(2),on_timeout(fail)]),
     whereis(Name,undefined),
-    writeln('supervisor name visible before its first child goal: ok').
+    writeln('supervisor name visible after successful initial preparation: ok').
 
 create_test_actor(Goal,Pid,Options,NameOptions) :-
     append(NameOptions,Options,All),spawn_runtime(Goal,Pid,All).

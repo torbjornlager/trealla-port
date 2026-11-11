@@ -183,6 +183,8 @@ read_stream_bytes(Stream, Bytes) :-
     ; Bytes = [Byte|Rest], read_stream_bytes(Stream, Rest)
     ).
 
+:- multifile prepare_activation_goal/5.
+
 run_actor(Pid, GoalModule, Goal, Options, Parent) :-
     fresh_namespace(Module),
     actors:make_ref(PrepareToken),
@@ -192,8 +194,8 @@ run_actor(Pid, GoalModule, Goal, Options, Parent) :-
             in_temporary_module(
                 Module,
                 isolation:prepare_actor_and_signal(
-                    Pid, GoalModule, Options, Module, Parent, PrepareToken),
-                isolation:run_actor_goal(Module, Goal, Options)),
+                    Pid, GoalModule, Goal, Options, Module, Prepared, Parent, PrepareToken),
+                isolation:run_prepared_actor_goal(Module, Prepared, Options)),
             forget_actor_module(Pid, Module)),
         '$actor_prepare_error'(PrepareToken, Error),
         ( actors:actor_send(
@@ -201,9 +203,11 @@ run_actor(Pid, GoalModule, Goal, Options, Parent) :-
           throw(Error)
         )).
 
-prepare_actor_and_signal(Pid, GoalModule, Options, Module, Parent,
+prepare_actor_and_signal(Pid, GoalModule, Goal, Options, Module, Prepared, Parent,
                          PrepareToken) :-
     catch((prepare_actor_module(Pid, GoalModule, Options, Module),
+           (prepare_activation_goal(Pid,GoalModule,Module,Goal,Continuation)
+           -> Prepared=framework(Continuation);Prepared=application(Goal)),
            actors:publish_spawn_name(Pid,Options),
            actors:signal_actor_started(Pid,Parent)),
           Error,
@@ -251,6 +255,11 @@ prepare_actor_bootstrap(Module, [], none) :- !,
 prepare_actor_bootstrap(Module, _, _) :-
     bootstrap_text(Module, Bootstrap),
     load_text(Bootstrap, [module(Module)]).
+
+% Framework preparation owns this continuation; public goals keep all guards.
+run_prepared_actor_goal(_, framework(Continuation), _) :- !, call(Continuation).
+run_prepared_actor_goal(Module, application(Goal), Options) :-
+    run_actor_goal(Module, Goal, Options).
 
 % Preserve the trusted formatter's module when a prepared child entry crosses
 % into its private namespace. Stripping it would leave an undefined helper.
@@ -341,6 +350,18 @@ execution_goal(Goal, Qualified) :-
 % preserving variable sharing and their existing cut/exception scopes.
 sourceless_worker_goal(Goal, isolation:actor_library(toplevel_actors,Goal)) :-
     library_callback(Goal,_,_), !.
+sourceless_worker_goal(Goal, Prepared) :-
+    nonvar(Goal), functor(Goal,Name,Arity),
+    memberchk(Name/Arity,[server_spawn/3,server_spawn/4,server_request/3,server_request/4,
+      server_promise/3,server_promise/4,server_yield/2,server_yield/3,server_yield/4,server_yield/5,
+      server_upgrade/2,server_upgrade/3,server_halt/2,server_stop/1,
+      supervisor_spawn/2,supervisor_spawn/3,
+      supervisor_spawn_child/3,supervisor_terminate_child/3,supervisor_delete_child/3,
+      supervisor_respawn_child/3,supervisor_which_children/2,supervisor_count_children/2,
+      supervisor_halt/1,supervisor_stop/1]), !,
+    actors:self(Pid),
+    (actor_namespace(Pid,Module)->true;Module=toplevel_actors),
+    actor_query_goal(Module,Goal,Prepared).
 sourceless_worker_goal(Goal, Goal) :- var(Goal), !.
 % Parser builtin metadata can bypass imports in source-free owner queries.
 sourceless_worker_goal(succ(A,B), integer_relations:succ(A,B)) :- !.

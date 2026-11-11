@@ -2694,3 +2694,13 @@ The actor runtime defers callback checks until invocation, including in
 owner-off mode and nested private source. Source export restores public library
 calls rather than copying runtime bridges. Shared native regressions live in
 `trinity-conformance/cases/native-library-callbacks-0.1.json`.
+
+### Supervisor activation and shutdown
+
+Supervisor readiness and name publication follow initial child preparation.
+A failed initial start reclaims provisional children and leaves no published
+supervisor. Trusted framework continuations retain the prepared state and its
+variable sharing; client start goals and source retain their sandbox checks.
+Halt acknowledges after child shutdown, and a queued acknowledgement takes
+precedence over the matching termination notice. Shared native qualification
+lives in `trinity-conformance/cases/native-supervisor-lifecycle-0.1.json`.
