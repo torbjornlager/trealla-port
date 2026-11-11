@@ -1,7 +1,14 @@
 % SPDX-License-Identifier: MIT
 :- use_module(distribution).
 
+:- multifile distribution:hook_websocket_endpoint/2.
+distribution:hook_websocket_endpoint('https://mapped.example', 'ws://private-peer:3053/ws').
+
 distribution_canonical_tests :-
+    distribution:node_websocket_url('https://mapped.example','ws://private-peer:3053/ws'),
+    distribution:node_websocket_url('https://other.example','wss://other.example/ws'),
+    distribution:node_websocket_url('wss://other.example/custom','wss://other.example/custom'),
+    distribution:node_websocket_url('https://mapped.example.invalid','wss://mapped.example.invalid/ws'),
     distribution:goal_options_wire_atoms((L='$VAR'(1)),
         [template(row(pair(X,X),pair(Y,Z),L))],G,O),
     var(X), var(Y), var(Z), var(L),

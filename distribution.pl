@@ -59,6 +59,7 @@ no Logtalk or foreign code.
 
 :- multifile web_prolog:hook_io_request/2.
 :- multifile web_prolog:hook_close_browser_io/1.
+:- multifile hook_websocket_endpoint/2. % +LogicalNodeURL, -ConnectionURL (owner topology)
 :- multifile hook_transport_error/2. % +NodeURL, +Error (not a spawn reply)
 
 :- dynamic io_endpoint_target/2.
@@ -92,6 +93,9 @@ remote_node_open(URL0, remote_node(URL, Reader, Writer), Options) :-
 
 node_url_atom(Input, URL) :- source_policy:uri_atom(Input, URL).
 
+% An owner mapping changes only the dial endpoint, never the logical node URL.
+node_websocket_url(URL, Endpoint) :-
+    once(hook_websocket_endpoint(URL, Endpoint)), !.
 node_websocket_url(URL, URL) :-
     ( sub_atom(URL, 0, 5, _, 'ws://')
     ; sub_atom(URL, 0, 6, _, 'wss://')
