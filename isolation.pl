@@ -271,6 +271,20 @@ sourceless_worker_goal(first_solution(S,Goals),
                        toplevel_actors:first_solution(S,Goals)) :- !.
 sourceless_worker_goal(first_solution(S,Goals,Options),
                        toplevel_actors:first_solution(S,Goals,Options)) :- !.
+sourceless_worker_goal(runtime_property(P), rpc:runtime_property(P)) :- !.
+sourceless_worker_goal(rpc(U,G), rpc:rpc(U,G)) :- !.
+sourceless_worker_goal(rpc(U,G,O), rpc:rpc(U,G,O)) :- !.
+sourceless_worker_goal(promise(U,G,R), rpc:promise(U,G,R)) :- !.
+sourceless_worker_goal(promise(U,G,R,O), rpc:promise(U,G,R,O)) :- !.
+sourceless_worker_goal(yield(R,A), rpc:yield(R,A)) :- !.
+sourceless_worker_goal(yield(R,A,O), rpc:yield(R,A,O)) :- !.
+sourceless_worker_goal(promise_cleanup(R), rpc:promise_cleanup(R)) :- !.
+sourceless_worker_goal(receive(C0), receive(C)) :- !,
+    sourceless_receive_clauses(C0,C).
+sourceless_worker_goal(receive(C0,O0), receive(C,O)) :- !,
+    sourceless_receive_clauses(C0,C), sourceless_receive_options(O0,O).
+sourceless_worker_goal(findall(T,G0,L), findall(T,G,L)) :- !,
+    sourceless_worker_goal(G0,G).
 sourceless_worker_goal((A0,B0), (A,B)) :- !,
     sourceless_worker_goal(A0,A), sourceless_worker_goal(B0,B).
 sourceless_worker_goal((A0;B0), (A;B)) :- !,
@@ -287,6 +301,27 @@ sourceless_worker_goal(once(G0), once(G)) :- !, sourceless_worker_goal(G0,G).
 sourceless_worker_goal(ignore(G0), ignore(G)) :- !, sourceless_worker_goal(G0,G).
 sourceless_worker_goal((\+G0), (\+G)) :- !, sourceless_worker_goal(G0,G).
 sourceless_worker_goal(Goal, Goal).
+
+% Lower callbacks of submitted receive terms through the same API dispatcher
+% as the enclosing goal. Patterns are data and are never rewritten. Native
+% compiled receive clauses keep their original predicate/cut context.
+sourceless_receive_clauses(C,C) :- var(C), !.
+sourceless_receive_clauses({C0},{C}) :- !, sourceless_receive_clauses(C0,C).
+sourceless_receive_clauses((A0;B0),(A;B)) :- !,
+    sourceless_receive_clauses(A0,A), sourceless_receive_clauses(B0,B).
+sourceless_receive_clauses((H0->B0),(H->B)) :- !,
+    sourceless_receive_head(H0,H), sourceless_worker_goal(B0,B).
+sourceless_receive_clauses(C,C).
+sourceless_receive_head(H0,H) :- nonvar(H0), H0=if(P,G0), !,
+    H=if(P,G), sourceless_worker_goal(G0,G).
+sourceless_receive_head(H,H).
+sourceless_receive_options(O,O) :- var(O), !.
+sourceless_receive_options([],[]) :- !.
+sourceless_receive_options([O0|Os0],[O|Os]) :- !,
+    (nonvar(O0),O0=on_timeout(G0) -> O=on_timeout(G),sourceless_worker_goal(G0,G) ; O=O0),
+    sourceless_receive_options(Os0,Os).
+sourceless_receive_options(O,O).
+
 
 
 run_actor_query(Module, Goal0) :-
@@ -435,6 +470,11 @@ actor_builtin_goal(Goal) :-
     nonvar(Goal),
     functor(Goal, Name, Arity),
     actor_direct_builtin_pi(Name/Arity).
+
+% Keep the public callback term in compiled/copyable source. Resolve the API
+% only at execution, through the same dispatcher as the enclosing query.
+call_actor_callback(Module, Goal) :-
+    actor_query_goal(Module, Goal, Prepared), call(Prepared).
 
 call_actor_leaf(Module, Goal) :-
     call_in_module(Module, '$actor_call'(Goal)).
@@ -700,7 +740,7 @@ minimal_bootstrap_text(_Module, Text) :-
     actors_library_file(ActorsFile),
     actor_api_library_file(ActorApiFile),
     format(atom(Text),
-           ':- use_module(~q).~n:- use_module(~q).~n\'$actor_call\'(Goal) :- call(Goal).~n',
+           ':- use_module(~q).~n:- use_module(~q).~n\'$actor_call\'(Goal0) :- isolation:sourceless_worker_goal(Goal0,Goal), call(Goal).~n',
            [ActorsFile, ActorApiFile]).
 
 % Each fragment is formatted into a query-local atom. Trealla's
@@ -785,6 +825,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_qualify_receive_guard\'(Qualified:Goal, Qualified:Goal) :- atom(Qualified), !.~n', []),
     bootstrap_line( '\'$actor_qualify_receive_guard\'(between(Low,High,Value), sandbox_policy:sandbox_between(Low,High,Value)) :- !.~n', []),
     bootstrap_line( '\'$actor_qualify_receive_guard\'(Goal, sandbox_policy:sandbox_builtin_call(Goal)) :- isolation:actor_builtin_goal(Goal), !.~n', []),
+    bootstrap_line( '\'$actor_qualify_receive_guard\'(Goal, isolation:call_actor_callback(~q,Goal)) :- nonvar(Goal), !.~n', [Module]),
     bootstrap_line( '\'$actor_qualify_receive_guard\'(Goal, ~q:Goal).~n', [Module]),
     bootstrap_line( '\'$actor_qualify_receive_options\'(Options, Options) :- var(Options), !.~n', []),
     bootstrap_line( '\'$actor_qualify_receive_options\'([], []) :- !.~n', []),
@@ -892,6 +933,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_strip_source_module\'(Term, Term) :- var(Term), !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0), clause(Head,Body)) :- !, \'$actor_strip_source_module\'(Head0,Head), \'$actor_strip_source_module\'(Body0,Body).~n', []),
     % Export source goals, not the private primitive bridge installed for guard execution.
+    bootstrap_line( '\'$actor_strip_source_module\'(Term0, Goal) :- Term0 = Qualified:Inner, Qualified == isolation, nonvar(Inner), functor(Inner,Bridge,2), memberchk(Bridge,[call_actor_leaf,call_actor_callback]), !, arg(2,Inner,Goal0), \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_builtin_call(Goal0), Goal) :- !, \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_sleep(Seconds), sleep(Seconds)) :- !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_atom_string(Atom,String), atom_string(Atom,String)) :- !.~n', []),
