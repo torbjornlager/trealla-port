@@ -251,8 +251,12 @@ state_1(Pid, Target0, Continue, TimeLimit, IdleLimit) :-
             set_request_reference(Options),
             option(template(Template), Options, Goal),
             option(offset(Offset),     Options, 0),
-            option(limit(RequestedLimit), Options, 1000000000),
-            effective_solution_limit(RequestedLimit, Limit0),
+            % Keep an omitted limit distinct from every finite integer: only
+            % finite pages may deliver a prefix before an ordinary exception.
+            ( option(limit(RequestedLimit), Options)
+            -> effective_solution_limit(RequestedLimit, Limit0)
+            ; Limit0 = all
+            ),
             option(once(Once),          Options, false),
             option(target(Target1),    Options, Target0),
             isolation:execution_goal(Goal, ExecutionGoal),
@@ -351,6 +355,7 @@ handle_error(_, _, _, _, _, _, actor_exit) :-
     actor_terminating, !,
     throw(actor_exit).
 handle_error(Pid, Count, State, Target, _, IdleLimit, Error) :-
+    arg(1, Count, Limit), Limit \== all,
     nonvar(State),
     arg(1, State, Got), Got > 0,
     \+ resource_time_error(Error),
@@ -402,7 +407,7 @@ drive_solution(Pid, Template, Det, PageCount, PageState, Target,
     copy_term(Template, Value),
     page_add(PageState, Value, Got),
     arg(1, PageCount, Limit),
-    ( Got >= Limit
+    ( Limit \== all, Got >= Limit
     -> page_values(PageState, Slice),
        answer_target(Target, Out),
        ( nonvar(Det)

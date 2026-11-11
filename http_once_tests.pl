@@ -19,6 +19,9 @@ run(Port) :-
     setup_call_cleanup(wait_listening(Port,100),(live(URL),validation(URL)),
       (stop_node(Port),thread_join(Listener,Status),(Status==true;Status==false))),
     all_stopped,\+node:http_page_claim(_,_),\+node:cache(_,_,_,_),
+    catch(node:compute_answer((Z=a;throw(unbounded_error)),Z,0,all,true,_),
+          Unbounded,true),
+    Unbounded==unbounded_error,all_stopped,\+node:http_page_claim(_,_),
     receive({_ -> fail},[timeout(0)]),
     writeln('HTTP server once: all regressions passed').
 
@@ -76,6 +79,11 @@ blocked(Parent,X) :-
 terminal_cleanup :-
     node:compute_answer(fail,x,0,2,true,failure),
     node:compute_answer(true,ok,0,2,true,success([ok],false)),
+    node:compute_answer((X=a;X=b;throw(once_pending)),X,0,5,true,
+                        success([a,b],false)),
+    node:compute_answer((Y=a;Y=b;throw(once_pending)),Y,1,5,true,
+                        success([b],false)),
+    all_stopped,\+node:http_page_claim(_,_),\+node:cache(_,_,_,_),
     node:compute_answer(member(X,[a]),X,3,2,true,failure),
     catch(node:compute_answer(throw(once_error),x,0,2,true,_),Error,true),
     Error==once_error,
@@ -102,6 +110,10 @@ live(URL) :-
          success([c,d],false)),
     page(URL,'(X=a;X=b;throw(after_slice))','X',0,2,'&once=true',
          success([a,b],false)),
+    page(URL,'(X=a;X=b;throw(after_slice))','X',0,5,'&once=true',
+         success([a,b],false)),
+    page(URL,'(X=a;X=b;throw(after_slice))','X',1,5,'&once=true',
+         success([b],false)),
     page(URL,'fail','true',0,2,'&once=true',failure),
     page(URL,'throw(once_error)','true',0,2,'&once=true',error(once_error)),
     page(URL,'member(X,[a,b,c,d,e])','X',0,2,'&once=false',success([a,b],true)),
