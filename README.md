@@ -431,6 +431,36 @@ Clients can then use `http://localhost:3060/call?...` and
 validates the already-parsed upgrade headers, sends the HTTP 101 response, and
 returns the WebSocket handle without closing the stream.
 
+The initial native semi-stateful HTTP binding is enabled with
+`http_sessions(true)`. For a disposable local node, run
+
+```prolog
+?- web_prolog_node(18090, [bind_address('127.0.0.1'), profile(isotope),
+                           auth(dev), http_sessions(true)]).
+```
+
+The JSON binding supports session spawn, call, next, poll, stop, Abort,
+respond and halt. Session creation accepts `options` with `[session(true)]`
+and every prompt carries a fresh `prompt_ref`. Echo it unchanged in
+`/toplevel_respond`. Abort revokes the old reference before acknowledging
+the request. Missing, stale, duplicate and wrong-session references return
+HTTP 400 with code `invalid_prompt_ref`. Each session serializes ordinary
+commands through its relay. Abort can interrupt a call that is waiting for
+its next event. Both HTTP requests receive the Abort acknowledgement, and
+the next call can reuse the session. Halt retires the session before replying.
+Later requests to that PID and requests still queued at retirement return
+HTTP 404 with code `session_lost`.
+Halt also interrupts an in-flight Call, Next or Poll. The waiting request
+returns HTTP 404 with code `session_lost`.
+Open HTTP sessions belong to the visitor cookie issued by `/node_info` or
+`/toplevel_spawn`. Clients must keep that cookie for subsequent requests.
+Authenticated sessions belong to the authenticated principal. The existing
+per-principal actor limit also bounds simultaneous HTTP sessions, with
+anonymous admission grouped by client IP. Deployments can enable these
+routes with `WP_HTTP_SESSIONS=true`.
+
+Broader semi-stateful compatibility, including source options, remains open.
+
 `wss://` is supported natively when Trealla was built with OpenSSL.  A secure
 node uses the same handler and adds socket options:
 
@@ -837,6 +867,10 @@ node-to-node `io_request` command.  It emits Trinity's
 `transport_hello` / `transport_welcome` exchange is also implemented,
 including connection-scoped browser/local PID capabilities and
 `actor_message` return traffic, plus acknowledged `io_reply` terminal traffic.
+Every prompt carries a fresh `prompt_ref`, and `toplevel_respond` must echo
+it. Actor handlers receive `prompt(Pid, prompt_ref(Ref, Question))` and use
+`respond(Pid, Ref, Answer)`.
+
 
 PID conversion preserves variable sharing across goals and answer templates,
 and recursively converts nested pids without changing their existing mappings.

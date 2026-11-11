@@ -45,6 +45,9 @@ deployment_options(Port, Options) :-
     env_integer('WP_PORT', 3060, Port), positive(port, Port),
     env_atom('WP_PUBLIC_URL', 'http://localhost:8080', PublicURL),
     env_choice('WP_PROFILE', [relation,isobase,isotope,actor], actor, Profile),
+    env_choice('WP_HTTP_SESSIONS', [true,false], false, SessionSetting),
+    % getenv/2 returns atoms; use the literal boolean in the node options.
+    ( SessionSetting == true -> HTTPSessions = true ; HTTPSessions = false ),
     env_choice('WP_AUTH', [open,private,dev], private, Auth),
     env_atom('WP_OWNER', '', Owner),
     env_choice('WP_SANDBOX', [whitelist,blacklist], whitelist, Sandbox),
@@ -80,6 +83,7 @@ deployment_options(Port, Options) :-
     owner_options(Auth, Owner, OwnerOptions),
     shared_db_options(SharedDBFiles, SharedDBOptions),
     Core0 = [bind_address('0.0.0.0'),node_url(PublicURL),profile(Profile),
+            http_sessions(HTTPSessions),
             sandbox(Sandbox),auth(Auth),
             bearer_token(pilot_admin,AdminToken,[execute,admin]),
             tutorial_sections(TutorialSections),

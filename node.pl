@@ -144,6 +144,8 @@ with_http_promise_namespace(Goal) :-
 :- use_module(library(sockets)).
 :- use_module(library(json), [json_chars//1]).
 :- use_module(json_wire,[decode_json_atom/2]).
+:- use_module(http_sessions, [session_route/2, session_request/8, close_sessions/1]).
+:- use_module(http_session_identity, [session_owner/5]).
 :- use_module(library(uri), [www_form_encode/2]).
 :- use_module(actors).
 :- use_module(profile_policy).
@@ -172,6 +174,7 @@ with_http_promise_namespace(Goal) :-
 :- dynamic node_stopping/1.
 :- dynamic node_configuration/7.
 :- dynamic node_in_maintenance/1.
+:- dynamic node_http_sessions/1.
 
 :- catch(mutex_create(_, [alias('$node_lifecycle')]),
          error(permission_error(create, mutex, '$node_lifecycle'), _),
@@ -301,6 +304,8 @@ node(Port, WebSocketHandler, Options) :-
     node_server(Port, WebSocketHandler, Options).
 
 node_server(Port, WebSocketHandler, Options) :-
+    option(http_sessions(HttpSessions), Options, false),
+    must_be(boolean, HttpSessions),
     option(profile(Profile0), Options, workbench),
     normalize_profile(Profile0, Profile),
     option(sandbox(Sandbox0), Options, blacklist),
@@ -327,9 +332,10 @@ node_server(Port, WebSocketHandler, Options) :-
                              TutorialSections),
     socket_server_open(BindAddress:Port, S, SocketOptions),
     setup_call_cleanup(
-        register_node_listener(Port, S, BindAddress, SocketOptions,
+        ( register_node_listener(Port, S, BindAddress, SocketOptions,
                                Profile, Sandbox, AuthMode, PublicURL,
                                TutorialSections, WSAllowedOrigins),
+          ( HttpSessions == true -> assertz(node_http_sessions(Port)) ; true ) ),
         ( format("Node listening on port ~w (profile ~w, sandbox ~w, auth ~w)~n",
                  [Port, Profile, Sandbox, AuthMode]),
           catch(node_loop(Port, S, WebSocketHandler, WebSocketOptions,
@@ -502,6 +508,8 @@ register_node_listener(Port, S, BindAddress, SocketOptions,
 cleanup_node_listener(Port, S) :-
     safe_close_server(S),
     close_node_connections(Port),
+    retractall(node_http_sessions(Port)),
+    close_sessions(Port),
     with_mutex('$node_lifecycle',
         ( retractall(node_listener(Port, _, _, _)),
           retractall(node_stopping(Port)),
@@ -697,6 +705,8 @@ handle_connection(Port, C, Peer, WebSocketHandler, WebSocketOptions,
     ; Method == get, PathAtom == '/call'
     -> handle_call_route(Port, C, Path, Ver, Peer, Headers,
                          Profile, Sandbox, RelationPatterns)
+    ; Method == post, node_http_sessions(Port), session_route(PathAtom, Command)
+    -> handle_session_route(Port, C, Ver, Peer, Headers, Profile, Sandbox, Command)
     ; Method == get, PathAtom == '/ws', WebSocketHandler \== none
     -> handle_ws_route(Port, C, Ver, Peer, Headers, WebSocketHandler,
                        WebSocketOptions, Profile, PathAtom)
@@ -712,6 +722,95 @@ handle_connection(Port, C, Peer, WebSocketHandler, WebSocketOptions,
     -> handle_admin_maintenance(Port, C, Method, Ver, Peer, Headers)
     ;  http_reply(C, Ver, 404, 'Not Found',
                   'text/plain', 'Not found\n')
+    ).
+
+handle_session_route(Port, C, Ver, Peer, Headers, Profile, Sandbox, Command) :-
+    ( node_accepting_work(Port) ->
+        catch(( require_ip_access(Peer, Headers, ClientIP),
+                request_principal(Peer, Headers, Principal),
+                require_route_access(Principal, Command),
+                profile_check_route(Profile, Command) ), Denied, true),
+        ( var(Denied) ->
+            node_configuration(Port, _, _, _, PublicURL, _, _),
+            node_listener(Port, _, BindAddress, SSL),
+            node_self_url(PublicURL, BindAddress, Port, SSL, SelfURL),
+            session_owner(SelfURL, Principal, Headers, Owner, ResponseHeaders),
+            quota_identity(Principal, ClientIP, http, Identity),
+            Access = session_access(Owner, Principal, Identity),
+            catch(( ( Command == toplevel_spawn ->
+                        enforce_session_spawn_rate_limit(Principal, Identity), read_json_request(C, Headers, Fields)
+                      ; ( read_session_form(C, Headers, Fields) -> true
+                        ; throw(error(invalid_request, node))
+                        )
+                      ),
+                      ( session_request(Port, Access, Profile, Sandbox, Command, Fields, Code, Event) -> true
+                      ; Code = 400, Event = error(invalid_request) )
+                    ), Error, (session_error_status(Error, Code), Event = error(Error))),
+            session_event_json(Event, JSON),
+            session_status(Code, Reason),
+            reply_json_status(C, Ver, Code, Reason, JSON, ResponseHeaders)
+        ; reply_policy_denied(C, Ver, Denied) )
+    ; reply_draining(C, Ver) ).
+
+read_session_form(C, Headers, Fields) :-
+    memberchk('content-length'-Text, Headers),
+    atom_number(Text, Length), integer(Length), Length >= 0,
+    current_resource_policy(resource_policy(_,_,_,MaxBytes,_,_)),
+    Length =< MaxBytes,
+    read_exact_bytes(C, Length, Bytes),
+    atom_codes(Atom, Bytes), atom_chars(Atom, Chars),
+    parse_pairs(Chars, Fields).
+
+session_error_status(error(rate_limit_exceeded(_,_,_,_), _), 429) :- !.
+session_error_status(error(resource_limit_exceeded(_,_,_), _), 429) :- !.
+session_error_status(_, 400).
+
+session_status(200, 'OK').
+session_status(400, 'Bad Request').
+session_status(404, 'Not Found').
+session_status(429, 'Too Many Requests').
+session_status(504, 'Gateway Timeout').
+
+session_event_json(invalid_prompt_ref(Pid), JSON) :- !,
+    node_json_object([type-string_atom(error), pid-number(Pid), code-string_atom(invalid_prompt_ref),
+                      data-string_atom('Expected the reference from the current prompt')], JSON).
+session_event_json(error(existence_error(http_session, Pid)), JSON) :- !,
+    term_json_string(existence_error(http_session, Pid), Text),
+    node_json_object([type-string_atom(error), code-string_atom(session_lost),
+                      data-string_atom(Text)], JSON).
+session_event_json(success(Pid, Rows, More), pairs([Key-Value|Fields])) :- !,
+    answer_json(success(Rows, More), pairs(Fields)),
+    atom_chars(pid, Chars), Key = string(Chars), Value = number(Pid).
+session_event_json(prompt(Pid, Prompt, Ref), JSON) :- !,
+    session_text(Prompt, Text),
+    node_json_object([type-string_atom(prompt), pid-number(Pid), data-string_atom(Text),
+                      prompt_ref-string_atom(Ref)], JSON).
+session_event_json(prompt(Pid, Prompt), JSON) :- !,
+    session_text(Prompt, Text),
+    node_json_object([type-string_atom(prompt), pid-number(Pid), data-string_atom(Text)], JSON).
+session_event_json(terminal_io_output(Pid, Value), JSON) :- !,
+    actors:terminal_stream_payload(Value, Term, Ending),
+    session_text(Term, Text),
+    atom_concat(Text, Ending, Stdout),
+    node_json_object([type-string_atom(output), pid-number(Pid),
+                      data-string_atom(Text), stdout-string_atom(Stdout)], JSON).
+session_event_json(output(Pid, Value), JSON) :- !,
+    session_text(Value, Text),
+    node_json_object([type-string_atom(output), pid-number(Pid), data-string_atom(Text)], JSON).
+session_event_json(halted(Pid, true), JSON) :- !,
+    node_json_object([type-string_atom(halted), pid-number(Pid), reply-string_atom(true)], JSON).
+session_event_json(error(Pid, Error), JSON) :- !,
+    term_json_string(Error, Text),
+    node_json_object([type-string_atom(error), pid-number(Pid), data-string_atom(Text)], JSON).
+session_event_json(error(Error), JSON) :- !, answer_json(error(Error), JSON).
+session_event_json(Event, JSON) :-
+    Event =.. [Type, Pid],
+    node_json_object([type-string_atom(Type), pid-number(Pid)], JSON).
+
+session_text(Value, Text) :-
+    ( atom(Value) -> Text = Value
+    ; is_list(Value), catch(atom_chars(Text, Value), _, fail) -> true
+    ; term_json_string(Value, Text)
     ).
 
 handle_call_route(Port, C, _Path, Ver, _Peer, _Headers,
@@ -843,7 +942,11 @@ handle_node_info(Port, C, Ver, Peer, Headers) :-
          ws_allowed_origins-list(WSAllowedOriginsJSON),
          tutorial_sections-list(TutorialSectionsJSON)],
         JSON),
-    reply_json(C, Ver, JSON).
+    ( node_http_sessions(Port), Execution == true ->
+        session_owner(SelfURL, Principal, Headers, _, ResponseHeaders)
+    ; ResponseHeaders = []
+    ),
+    reply_json_status(C, Ver, 200, 'OK', JSON, ResponseHeaders).
 
 node_self_url(PublicURL, _, _, _, PublicURL) :- PublicURL \== none, !.
 node_self_url(_, BindAddress, Port, SSL, URL) :-
@@ -1043,8 +1146,11 @@ reply_json(C, Ver, JSON) :-
     reply_json_status(C, Ver, 200, 'OK', JSON).
 
 reply_json_status(C, Ver, Code, Reason, JSON) :-
+    reply_json_status(C, Ver, Code, Reason, JSON, []).
+
+reply_json_status(C, Ver, Code, Reason, JSON, Headers) :-
     phrase(json_chars(JSON), Chars), atom_chars(Body, Chars),
-    http_reply(C, Ver, Code, Reason, 'application/json; charset=UTF-8', Body).
+    http_reply(C, Ver, Code, Reason, 'application/json; charset=UTF-8', Body, Headers).
 
 reply_admin_error(C, Ver, Error) :-
     format(atom(Body), '~q.\n', [error(Error)]),

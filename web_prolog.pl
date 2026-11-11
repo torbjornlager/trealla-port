@@ -102,8 +102,10 @@ Inference/stack ceilings and OS-level containment remain necessary.
 
 :- dynamic node_public_url/1.
 :- dynamic browser_io_enabled/1.
+:- dynamic browser_relay/1.
 :- dynamic browser_io_pending/3.
-:- dynamic browser_io_prompt/3.
+:- dynamic browser_io_prompt/4.
+:- multifile actors:hook_prompt_relay/1.
 :- dynamic browser_actor_capability/3.
 
 :- catch(mutex_create(_, [alias('$browser_terminal_io')]),
@@ -459,6 +461,7 @@ relay_command(toplevel_stop, JSON, Relay) :- !,
     Relay ! stop(WirePid).
 relay_command(toplevel_abort, JSON, Relay) :- !,
     owned_pid(JSON, Relay, session, WirePid, Pid),
+    forget_browser_prompt(Relay, WirePid),
     toplevel_abort(Pid),
     Relay ! abort(WirePid).
 relay_command(toplevel_halt, JSON, Relay) :- !,
@@ -469,18 +472,24 @@ relay_command(toplevel_respond, JSON, Relay) :- !,
     json_pid_field(JSON, pid, WirePid),
     json_term_field(JSON, input, Input0),
     import_browser_pids(Input0, Relay, Input),
-    ( take_browser_prompt(Relay, WirePid, PromptPid) ->
-        actors:actor_send(PromptPid, '$input'(Relay, Input))
-    ; owned_pid(JSON, Relay, session, WirePid, Pid),
-      actors:actor_send(Pid, '$input'(Relay, Input))
-    ),
-    Relay ! responded(WirePid).
+    ( reply_to_browser_prompt(JSON, Relay, WirePid, Input) ->
+        Relay ! responded(WirePid)
+    ; Relay ! invalid_prompt_ref(WirePid)
+    ).
 relay_command(send, JSON, Relay) :- !,
     send_target(JSON, Relay, Target),
     json_term_field(JSON, message, Message0),
     import_browser_pids(Message0, Relay, Message),
     correlated_return_target(JSON, Relay, Message, Routed),
     send_to_target(Target, Routed).
+
+reply_to_browser_prompt(JSON, Relay, WirePid, Input) :-
+    json_text_field(JSON, prompt_ref, Token),
+    with_mutex('$browser_terminal_io',
+        ( browser_io_prompt(Relay, WirePid, Pid, correlated(Ref, Token)),
+          actors:respond(Pid, Ref, Input),
+          retractall(browser_io_prompt(Relay, WirePid, Pid, correlated(Ref, Token)))
+        )).
 
 correlated_return_target(JSON, Relay, Message, '$call'(Goal,Routed)) :-
     nonvar(Message), Message = '$call'(Goal,Options),
@@ -560,7 +569,14 @@ relay_start(WS, Principal, Identity, AnswerTerms) :-
     relay_set_halts([]),
     relay_set_governance(Principal, Identity),
     relay_set_answer_terms(AnswerTerms),
-    relay_loop(WS).
+    self(Relay),
+    setup_call_cleanup(assertz(browser_relay(Relay)),
+                       relay_loop(WS),
+                       retractall(browser_relay(Relay))).
+
+actors:hook_prompt_relay('$browser_io'(_)) :- !.
+actors:hook_prompt_relay(Endpoint) :- valid_io_endpoint(Endpoint), !.
+actors:hook_prompt_relay(Relay) :- browser_relay(Relay).
 
 relay_loop(WS) :-
     receive({
@@ -688,10 +704,9 @@ relay_message(WS, '$browser_io_request'(RequestId, Message)) :- !,
     wire_event(Relay, Message, Event),
     send_event(WS, browser_io_request(RequestId, Event)).
 relay_message(WS, '$browser_terminal'(prompt(RuntimePid, Data))) :- !,
-    self(Relay),
-    browser_source_pid(Relay, RuntimePid, WirePid),
-    remember_browser_prompt(Relay, WirePid, RuntimePid),
-    send_event(WS, prompt(WirePid, Data)).
+    relay_message(WS, prompt(RuntimePid, Data)).
+relay_message(WS, '$browser_terminal'('$input_prompt'(RuntimePid, Ref, Data))) :- !,
+    relay_message(WS, '$input_prompt'(RuntimePid, Ref, Data)).
 relay_message(WS, '$browser_terminal'(Message)) :- !,
     self(Relay),
     wire_event(Relay, Message, Event),
@@ -702,7 +717,7 @@ relay_message(WS, '$io_request'(JSON)) :- !,
     json_term_field(JSON, message, Message0),
     self(Relay),
     import_browser_pids(Message0, Relay, Message),
-    ( catch(once(hook_io_request(Token, Message)), _, fail) -> Status = ok
+    ( catch((io_wire_event(JSON, Message, Event), once(hook_io_request(Token, Event))), _, fail) -> Status = ok
     ; Status = endpoint_unavailable
     ),
     send_event(WS, io_reply(RequestId, Status)).
@@ -717,6 +732,8 @@ relay_message(WS, down(RuntimePid, _DefaultRef, Reason)) :- !,
             send_event(WS, halted(HaltWirePid, true))
         ; true
         ),
+        self(Relay),
+        forget_browser_prompt(Relay, WirePid),
         relay_remove_actor(WirePid),
         forget_ws_actor_owner(RuntimePid),
         actor_activity_kind(ActorKind, ActivityKind),
@@ -730,12 +747,26 @@ relay_message(WS, protocol_error(Error)) :- !,
 relay_message(WS, prompt(RuntimePid, Data)) :- !,
     self(Relay),
     browser_source_pid(Relay, RuntimePid, WirePid),
-    remember_browser_prompt(Relay, WirePid, RuntimePid),
     send_event(WS, prompt(WirePid, Data)).
+relay_message(WS, '$input_prompt'(RuntimePid, Ref, Data)) :- !,
+    self(Relay),
+    browser_source_pid(Relay, RuntimePid, WirePid),
+    term_wire_atom(Ref, Token),
+    remember_browser_prompt(Relay, WirePid, RuntimePid, correlated(Ref, Token)),
+    send_event(WS, prompt(WirePid, Data, Token)).
 relay_message(WS, Event) :-
     self(Relay),
     wire_event(Relay, Event, WireEvent),
     send_event(WS, WireEvent).
+
+io_wire_event(JSON, Message, Event) :-
+    ( json_field(JSON, prompt_mode, _) ->
+        json_text_field(JSON, prompt_mode, correlated),
+        Message = prompt(Pid, prompt_ref(Ref, Prompt)),
+        ground(Ref),
+        Event = '$input_prompt'(Pid, Ref, Prompt)
+    ; Event = Message
+    ).
 
 wire_event(Relay, success(RuntimePid, Rows0, More),
            success(WirePid, Rows, More)) :- !,
@@ -1037,6 +1068,14 @@ event_json(output(Pid, Data0), JSON) :- !,
 event_json(prompt(Pid, Data0), JSON) :- !,
     display_atom(Data0, Data),
     object([type-string_atom(prompt), pid-json_pid(Pid), data-string_atom(Data)], JSON).
+event_json(invalid_prompt_ref(Pid), JSON) :- !,
+    object([type-string_atom(error), pid-json_pid(Pid),
+            code-string_atom(invalid_prompt_ref),
+            data-string_atom('Invalid or missing prompt reference')], JSON).
+event_json(prompt(Pid, Data0, Token), JSON) :- !,
+    display_atom(Data0, Data),
+    object([type-string_atom(prompt), pid-json_pid(Pid), data-string_atom(Data),
+            prompt_ref-string_atom(Token)], JSON).
 event_json(spawned(Pid), JSON) :- !,
     object([type-string_atom(spawned), pid-json_pid(Pid)], JSON).
 event_json(stop(Pid), JSON) :- !,
@@ -1098,6 +1137,9 @@ actors:hook_send(WirePid, Message) :-
     integer(WirePid),
     WirePid >= 1000000000,
     WirePid =< 9999999999,
+    % Real local actor PIDs need no legacy browser alias lookup. In particular,
+    % interruptible local I/O must not enter the browser-capability mutex.
+    \+ actors:actor_thread(WirePid, _),
     with_mutex('$browser_actor_capabilities',
                browser_actor_capability(_, WirePid, RuntimePid)),
     WirePid \== RuntimePid,
@@ -1107,6 +1149,9 @@ actors:hook_exit(WirePid, Reason) :-
     integer(WirePid),
     WirePid >= 1000000000,
     WirePid =< 9999999999,
+    % Real local actor PIDs need no legacy browser alias lookup. In particular,
+    % interruptible local I/O must not enter the browser-capability mutex.
+    \+ actors:actor_thread(WirePid, _),
     with_mutex('$browser_actor_capabilities',
                browser_actor_capability(_, WirePid, RuntimePid)),
     WirePid \== RuntimePid,
@@ -1180,20 +1225,20 @@ browser_io_reply(Relay, RequestId, Status) :-
         ; true
         )).
 
-remember_browser_prompt(Relay, WirePid, RuntimePid) :-
+remember_browser_prompt(Relay, WirePid, RuntimePid, Mode) :-
     with_mutex('$browser_terminal_io',
-        ( retractall(browser_io_prompt(Relay, WirePid, _)),
-          assertz(browser_io_prompt(Relay, WirePid, RuntimePid))
+        ( retractall(browser_io_prompt(Relay, WirePid, _, _)),
+          assertz(browser_io_prompt(Relay, WirePid, RuntimePid, Mode))
         )).
 
-take_browser_prompt(Relay, WirePid, RuntimePid) :-
+forget_browser_prompt(Relay, WirePid) :-
     with_mutex('$browser_terminal_io',
-               retract(browser_io_prompt(Relay, WirePid, RuntimePid))).
+               retractall(browser_io_prompt(Relay, WirePid, _, _))).
 
 close_browser_io(Relay) :-
     with_mutex('$browser_terminal_io',
         ( retractall(browser_io_enabled(Relay)),
-          retractall(browser_io_prompt(Relay, _, _)),
+          retractall(browser_io_prompt(Relay, _, _, _)),
           findall(ReplyQueue,
                   retract(browser_io_pending(Relay, _, ReplyQueue)),
                   ReplyQueues)

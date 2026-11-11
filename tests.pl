@@ -800,15 +800,15 @@ t27 :-
 %!  t28 is det.
 %
 %   Toplevel input/respond roundtrip.  The actor's input/2 sends a
-%   `prompt(Pid, 'Input')` message and blocks; the test replies
-%   with respond(Pid, hello); the goal succeeds with X = hello.
+%   `prompt(Pid, prompt_ref(Ref, 'Input'))` message and blocks; the test replies
+%   with respond(Pid, Ref, hello); the goal succeeds with X = hello.
 %   Mirrors SWI plunit `toplevels:shell_input_roundtrip`.
 
 t28 :-
     self(Me),
     toplevel_spawn(Pid, [target(Me), session(true)]),
     toplevel_call(Pid, input('Input', _X)),
-    receive({ prompt(Pid, 'Input') -> respond(Pid, hello) },
+    receive({ prompt(Pid, prompt_ref(Ref, 'Input')) -> respond(Pid, Ref, hello) },
             [ timeout(1), on_timeout(fail) ]),
     receive({ success(Pid, [input('Input', hello)], false) -> true },
             [ timeout(1), on_timeout(fail) ]),
@@ -818,7 +818,7 @@ t28 :-
 %
 %   A nested toplevel may inherit a browser terminal from its caller, but its
 %   input prompt belongs to the actor using the PTCP protocol. The caller must
-%   receive prompt/2 and be able to complete the goal with respond/2.
+%   receive prompt/2 and be able to complete the goal with respond/3.
 
 t123 :-
     self(Me),
@@ -869,9 +869,9 @@ nested_input_sink(Parent) :-
 nested_input_owner(Parent) :-
     toplevel_spawn(Child, [session(true),link(false)]),
     toplevel_call(Child, input('Input', X)),
-    receive({prompt(Child, Prompt) ->
+    receive({prompt(Child, prompt_ref(Ref, Prompt)) ->
                  Parent ! nested_input_prompt(Child, Prompt),
-                 respond(Child, hello)
+                 respond(Child, Ref, hello)
             }, [timeout(1),on_timeout(throw(nested_input_prompt_timeout))]),
     receive({success(Child, [input('Input', X)], false) ->
                  Parent ! nested_input_success(
@@ -1440,7 +1440,7 @@ t109 :-
 
 answer_expert_prompts(_, 0) :- !.
 answer_expert_prompts(Session, N) :-
-    receive({ prompt(Session, '|:') -> respond(Session, yes)
+    receive({ prompt(Session, prompt_ref(Ref, '|:')) -> respond(Session, Ref, yes)
             ; error(Session, Error) -> throw(Error)
             ; failure(Session) -> throw(t109_unexpected_failure)
             }, [timeout(1), on_timeout(throw(t109_prompt_timeout(N)))]),
@@ -1530,6 +1530,11 @@ t44 :-
     caught_profile_violation(profile_check_goal(isotope, make_ref(_)),
                              isotope, goal(make_ref(_))),
     profile_check_goal(actor, make_ref(_)),
+    caught_profile_violation(profile_check_goal(isobase, respond(1,42,hello)),
+                             isobase, goal(respond(1,42,hello))),
+    caught_profile_violation(profile_check_goal(isotope, respond(1,42,hello)),
+                             isotope, goal(respond(1,42,hello))),
+    profile_check_goal(actor, respond(1,42,hello)),
     format("44. nested goal profile enforcement ok~n").
 
 t45 :-
