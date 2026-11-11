@@ -1137,6 +1137,9 @@ actors:hook_send(WirePid, Message) :-
     integer(WirePid),
     WirePid >= 1000000000,
     WirePid =< 9999999999,
+    % Real local actor PIDs need no legacy browser alias lookup. In particular,
+    % interruptible local I/O must not enter the browser-capability mutex.
+    \+ actors:actor_thread(WirePid, _),
     with_mutex('$browser_actor_capabilities',
                browser_actor_capability(_, WirePid, RuntimePid)),
     WirePid \== RuntimePid,
@@ -1146,6 +1149,9 @@ actors:hook_exit(WirePid, Reason) :-
     integer(WirePid),
     WirePid >= 1000000000,
     WirePid =< 9999999999,
+    % Real local actor PIDs need no legacy browser alias lookup. In particular,
+    % interruptible local I/O must not enter the browser-capability mutex.
+    \+ actors:actor_thread(WirePid, _),
     with_mutex('$browser_actor_capabilities',
                browser_actor_capability(_, WirePid, RuntimePid)),
     WirePid \== RuntimePid,

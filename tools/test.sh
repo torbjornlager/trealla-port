@@ -114,6 +114,9 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "HTTP session and native actor routing lock order" \
+        "$TPL" -g "consult('$ROOT/http_session_route_tests.pl'),(http_session_route_tests:run->halt;halt(1))"
+
     run_with_timeout "Library callbacks and source copying" \
         "$TPL" -g "consult('$ROOT/library_callback_tests.pl'),(catch(library_callback_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Static call/N arity admission" \

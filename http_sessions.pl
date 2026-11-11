@@ -6,6 +6,7 @@
                                 toplevel_abort/1, toplevel_stop/1, toplevel_halt/1,
                                 toplevel_halt/2]).
 :- use_module(sandbox_policy, [sandbox_prepare_session_call/7]).
+:- use_module(isolation, [actor_module/2]).
 :- use_module(resource_policy, [check_term_text_size/2]).
 :- use_module(governance_policy, [reserve_http_session_capacity/3,
                                    release_capacity_reservation/1]).
@@ -44,7 +45,13 @@ session_request(Port, session_access(Owner, _, _), Profile, Sandbox, Command, Fi
     setup_call_cleanup(message_queue_create(Reply),
         ( with_mutex('$http_session_routes',
               ( session(Port, Pid, Owner, Relay),
-                send(Relay, '$http_session_request'(Reply, Command, Fields, Profile, Sandbox)) )) ->
+                % This is our private relay, not a browser wire PID. General
+                % send/2 takes the browser-capability lock; teardown can hold
+                % that lock while retiring a route, reversing this lock order.
+                actors:actor_thread(Relay, RelayThread),
+                catch(thread_send_message(RelayThread,
+                    '$http_session_request'(Reply, Command, Fields, Profile, Sandbox)),
+                    _, fail) )) ->
             ( thread_get_message(Reply, reply(Status, Event), [timeout(10)]) -> true
             ; Status = 504, Event = error(timeout) )
         ; Status = 404, Event = error(existence_error(http_session, Pid))
@@ -75,8 +82,7 @@ session_worker(Port, Owner, Reply) :-
     self(Relay),
     setup_call_cleanup(
         assertz(session_relay(Relay)),
-        % Every HTTP session owns a private module, including sessions without source.
-        ( catch(toplevel_spawn(Pid, [session(true), target(Relay), monitor(true), src_text('')]),
+        ( catch(toplevel_spawn(Pid, [session(true), target(Relay), monitor(true)]),
                 Error, (thread_send_message(Reply, Error), fail)),
           setup_call_cleanup(
               assertz(session(Port, Pid, Owner, Relay)),
@@ -115,7 +121,12 @@ session_command(toplevel_call, Pid, none, Fields, Profile, Sandbox, Status, Even
     ( memberchk(limit=LimitText, Fields) -> atom_number(LimitText, Limit), integer(Limit), Limit > 0
     ; Limit = 1
     ),
-    toplevel_call(Pid, Goal, [template(json_bindings(Bindings)), limit(Limit)]),
+    % A source-less actor already has a private module. Use the fixed runtime
+    % dispatcher so assertions and later calls share that module without
+    % Trealla treating a dynamic Module:Goal term as nested meta-goals.
+    actor_module(Pid, QueryModule),
+    RuntimeGoal = isolation:run_actor_query(QueryModule, Goal),
+    toplevel_call(Pid, RuntimeGoal, [template(json_bindings(Bindings)), limit(Limit)]),
     await_session_event(Pid, Status, Event, Next).
 session_command(toplevel_next, Pid, none, _, _, _, Status, Event, Next) :-
     toplevel_next(Pid, []),
