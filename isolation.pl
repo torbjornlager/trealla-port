@@ -9,6 +9,7 @@
          clear_shared_db/0,
          actor_module/2,           % +Pid, -Module
          actor_source_module/2,    % +Pid, -Module
+         actor_application_predicates/2, % +Pid, -PrivateSourcePIs
          execution_goal/2,         % +Goal, -QualifiedGoal
          run_actor_query/2,        % +Module, +Goal
          actor_builtin_goal/1,     % +Goal
@@ -213,6 +214,18 @@ actor_module(Pid, Module) :-
 
 actor_source_module(Pid, Module) :-
     actor_source_namespace(Pid, Module).
+
+% Only actor-local submitted definitions have passed public source validation.
+% Shared owner code and imported/bootstrap predicates confer no whitelist
+% membership. A private shadow withdraws its shared marker when installed.
+actor_application_predicates(Pid, PIs) :-
+    ( actor_source_module(Pid, Module)
+    -> findall(PI,
+           (call_in_module(Module, '$actor_source_pi'(PI)),
+            \+call_in_module(Module, '$actor_shared_pi'(PI))), Raw),
+       sort(Raw, PIs)
+    ; PIs = []
+    ).
 
 execution_goal(Goal, Qualified) :-
     Goal = rpc(URI, RemoteGoal),
