@@ -1575,9 +1575,9 @@ t47 :-
 
 t48 :-
     sandbox_prepare_goal(blacklist, actor, user, writeln(hello), OutputGoal),
-    OutputGoal = actors:terminal_output(hello, [source(io)]),
+    OutputGoal = actors:terminal_output(hello, [source(io_line)]),
     sandbox_prepare_goal(whitelist, actor, user, writeln(hello), WhiteOutputGoal),
-    WhiteOutputGoal = actors:terminal_output(hello, [source(io)]),
+    WhiteOutputGoal = actors:terminal_output(hello, [source(io_line)]),
     CatchAll0 = receive({Message -> true}),
     sandbox_prepare_goal(whitelist, actor, user, CatchAll0, CatchAll),
     CatchAll = receive({RewrittenMessage -> true}),
