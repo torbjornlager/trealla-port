@@ -9,7 +9,7 @@ run :-
     actors(Before),
     catch(toplevel_spawn(Bad,[node('http://127.0.0.1:1'),
           src_uri('http://invalid/source'),session(true),session(bad)]),Error,true),
-    Error=error(type_error(boolean,bad),_),var(Bad),
+    Error=error(domain_error(boolean,bad),_),var(Bad),
     actors(After),sort(Before,Sorted),sort(After,Sorted),
     toplevel_spawn(Local,[node(localhost),session(false),session(true),
                          link(false),monitor(true)]),

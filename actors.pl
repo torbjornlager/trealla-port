@@ -360,6 +360,13 @@ validate_spawn_value(oneof(Domain,Values),Value) :- !,
     must_be(nonvar,Value),
     (memberchk(Value,Values) -> true ; throw(error(domain_error(Domain,Value),spawn/3))).
 
+% Match SWI atom typing explicitly: Trealla must_be(atom,...) also accepts
+% character strings. Keep this host adaptation inside runtime validation.
+validate_spawn_value(boolean,Value) :- !,
+    must_be(nonvar,Value),
+    (atom(Value),Value\==[] -> true ; throw(error(type_error(atom,Value),spawn/3))),
+    (Value==true -> true ; Value==false -> true
+    ; throw(error(domain_error(boolean,Value),spawn/3))).
 validate_spawn_value(node,Node) :- !,
     must_be(nonvar,Node),
     (atom(Node) -> true

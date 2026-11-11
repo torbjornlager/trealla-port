@@ -18,7 +18,7 @@ wrapper_option_tests :-
 
 wrapper_invalid_values :-
     expect_wrapper_error(toplevel_spawn(_,[session(true),session(maybe)]),
-        type_error(boolean,maybe),toplevel_actors:toplevel_spawn/2),
+        domain_error(boolean,maybe),toplevel_actors:toplevel_spawn/2),
     expect_wrapper_error(toplevel_spawn(_,[time_limit(0)]),
         domain_error(time_limit,0),toplevel_actors:toplevel_spawn/2),
     expect_wrapper_error(toplevel_spawn(_,[idle_limit(_)]),
@@ -46,13 +46,13 @@ wrapper_invalid_values :-
 wrapper_early_rejection :-
     actors(Before),
     expect_wrapper_error(toplevel_spawn(P,[src_uri('http://invalid/source'),session(bad)]),
-        type_error(boolean,bad),toplevel_actors:toplevel_spawn/2),var(P),
+        domain_error(boolean,bad),toplevel_actors:toplevel_spawn/2),var(P),
     expect_wrapper_error(server_spawn(no_such_callback,[],S,
         [src_uri('http://invalid/source'),name(42)]),type_error(atom,42),server_actor:server_spawn/4),var(S),
     expect_wrapper_error(supervisor_spawn([child(bad,[])],Sup,[period(0)]),
         domain_error(supervisor_period,0),supervisor_actor:supervisor_spawn/3),var(Sup),
     expect_wrapper_error(remote_toplevel_spawn(not_a_connection,R,
-        [src_uri('http://invalid/source'),session(bad)]),type_error(boolean,bad),distribution:remote_toplevel_spawn/3),var(R),
+        [src_uri('http://invalid/source'),session(bad)]),domain_error(boolean,bad),distribution:remote_toplevel_spawn/3),var(R),
     actors(After),sort(Before,Sorted),sort(After,Sorted),
     writeln('validation precedes callback/source/child work and actor creation: ok').
 
@@ -84,7 +84,7 @@ wrapper_options_live_test(Port) :-
     format('Live validated toplevel wrapper on ~w: ok~n',[Port]).
 wrapper_live_session(Node) :-
     expect_wrapper_error(remote_toplevel_spawn(Node,P,[session(maybe)]),
-        type_error(boolean,maybe),distribution:remote_toplevel_spawn/3),var(P),
+        domain_error(boolean,maybe),distribution:remote_toplevel_spawn/3),var(P),
     remote_toplevel_spawn(Node,Top,[session(true),time_limit(infinite),idle_limit(infinite)]),
     remote_toplevel_call_synch(Node,Top,X=ok,A,[template(X),timeout(3)]),
     A==success(Top,[ok],false),

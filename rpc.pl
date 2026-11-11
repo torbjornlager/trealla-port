@@ -124,7 +124,7 @@ client_option_type(promise,offset,nonnegative_integer).
 client_option_type(Kind,Name,Type) :-
     (Kind==rpc;Kind==promise),request_option_type(Name,Type).
 request_option_type(limit,positive_integer).
-request_option_type(once,boolean).
+request_option_type(once,language_boolean).
 request_option_type(timeout,timeout).
 request_option_type(http_timeout,number).
 request_option_type(src_text,source_text).
@@ -139,6 +139,7 @@ request_option_type(max_redirect,nonnegative_integer).
 request_option_type(cacert_file,source_text).
 
 validate_client_value(template,_) :- !.
+validate_client_value(language_boolean,Value) :- !, actors:validate_spawn_value(boolean,Value).
 validate_client_value(number,N) :- !, must_be(number,N).
 validate_client_value(positive_integer,N) :- !,
     must_be(integer,N),

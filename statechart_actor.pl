@@ -28,16 +28,12 @@ statechart_spawn_in(Mode,Profile,Caller,Pid,Options) :-
  actors:validate_spawn_wrapper_options(Options,public,statechart_spawn/2,[name-atom,trace-boolean]),
  statechart_model:statechart_spawn_source(Options,Source,SpawnOptions0),
  (memberchk(trace(Trace),Options)->true;Trace=true),
- count_trace_options(Options,Count),
- (Count=<1 -> true;throw(error(permission_error(duplicate,statechart_option,trace),statechart_spawn/2))),
  exclude(local_option,SpawnOptions0,SpawnOptions),
  (memberchk(node(Node),Options),Node\==localhost ->
    with_spawn_name(Options,Pid,statechart_actor:create_remote_chart(Mode,Profile,Caller,Source,Trace,Node,SpawnOptions,Pid))
  ; with_spawn_name(Options,Pid,statechart_actor:create_chart(Mode,Profile,Caller,Source,Trace,SpawnOptions,Pid))),!.
 local_option(name(_)).
 local_option(node(_)).
-count_trace_options([],0).
-count_trace_options([O|Os],N) :- count_trace_options(Os,N0),(O=trace(_)->N is N0+1;N=N0).
 
 create_chart(Mode,Profile,Caller,Source,Trace,Options0,Pid,NameOptions) :-
  prepare_chart(Mode,Profile,Caller,Source,Trace,Options0,Entry,Options),
@@ -47,7 +43,7 @@ create_chart(Mode,Profile,Caller,Source,Trace,Options0,Pid,NameOptions) :-
 % Both local construction and the remote receiver prepare one interpreter
 % entry. The actor created by the transport is the chart, not a proxy parent.
 prepare_chart(Mode,Profile,Caller,Source,Trace,Options0,Entry,Options) :-
- must_be(boolean,Trace),
+ actors:validate_spawn_value(boolean,Trace),
  chart_text(Source,Text),
  resource_policy:check_source_options_size([src_text(Text)]),
  statechart_model:statechart_compile_text(Text,Model0),
