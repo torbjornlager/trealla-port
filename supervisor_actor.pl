@@ -58,7 +58,7 @@ normalise_child_spec(Caller, ChildSpec,
     ( compound(ChildSpec), functor(ChildSpec,child,2)
     -> arg(1,ChildSpec,Id), arg(2,ChildSpec,Options)
     ; throw(error(type_error(supervisor_child_spec,ChildSpec),supervisor)) ),
-    must_be(ground, Id),
+    must_be(atom, Id),
     must_be(list, Options),
     maplist(validate_child_option(Caller,Id), Options),
     ( option(start(Start0), Options)
@@ -209,12 +209,15 @@ supervisor_spawn_child(Supervisor, ChildSpec0, Reply) :-
     sup_call(Supervisor, start_child(Spec), Reply).
 
 supervisor_terminate_child(Supervisor, Id, Reply) :-
+    must_be(atom, Id),
     sup_call(Supervisor, terminate_child(Id), Reply).
 
 supervisor_delete_child(Supervisor, Id, Reply) :-
+    must_be(atom, Id),
     sup_call(Supervisor, delete_child(Id), Reply).
 
 supervisor_respawn_child(Supervisor, Id, Reply) :-
+    must_be(atom, Id),
     sup_call(Supervisor, restart_child(Id), Reply).
 
 supervisor_which_children(Supervisor, Children) :-
@@ -776,7 +779,7 @@ handle_call(count_children, From, Ref, State, State) :-
     length(Children, Specs),
     include(running_child, Children, Running),
     length(Running, Active),
-    include(supervisor_child, Children, Supervisors0),
+    include(supervisor_child, Running, Supervisors0),
     length(Supervisors0, Supervisors),
     Workers is Active - Supervisors,
     sup_reply(From, Ref,
