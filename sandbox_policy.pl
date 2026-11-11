@@ -627,11 +627,13 @@ rewrite_goal_(_,_,_,_,in(S),statechart_actor:in(S)) :- !.
 rewrite_goal_(M,P,C,_A,statechart_spawn(Pid,Options),
               statechart_actor:statechart_spawn_in(M,P,C,Pid,Options)) :- !.
 % Match the SWI actor I/O prelude without requiring Trealla to redefine a
-% built-in predicate. Stream-specific write/2 and writeln/2 remain forbidden.
+% built-in predicate. Stream-specific write/2, writeln/2 and nl/1 remain forbidden.
 rewrite_goal_(_M,_P,_C,_A,write(Term),
               actors:terminal_output(Term,[source(io)])).
 rewrite_goal_(_M,_P,_C,_A,writeln(Term),
               actors:terminal_output(Term,[source(io)])).
+rewrite_goal_(_M,_P,_C,_A,nl,
+              sandbox_policy:sandbox_format('~n',[])).
 % The SWI actor I/O prelude redefines the non-stream format predicates.  A
 % private Trealla source module cannot redefine built-ins, so route those two
 % forms through an explicitly imported sandbox helper instead.  format/3 is
@@ -942,7 +944,7 @@ forbidden_pi(writeln/2,stream_io).
 forbidden_pi(writeq/1,stream_io). forbidden_pi(writeq/2,stream_io).
 forbidden_pi(write_term/2,stream_io). forbidden_pi(write_term/3,stream_io).
 forbidden_pi(format/3,stream_io).
-forbidden_pi(nl/0,stream_io). forbidden_pi(nl/1,stream_io).
+forbidden_pi(nl/1,stream_io).
 forbidden_pi(consult/1,module_loading). forbidden_pi(reconsult/1,module_loading).
 forbidden_pi((ensure_loaded)/1,module_loading). forbidden_pi(load_files/1,module_loading).
 forbidden_pi(load_files/2,module_loading). forbidden_pi((use_module)/1,module_loading).
@@ -1027,7 +1029,7 @@ actor_safe_pi(unregister/1). actor_safe_pi(output/1). actor_safe_pi(output/2).
 % terminal bridge produced by the writeln/1 rewrite.  It is capability-free:
 % output is still confined to the actor's inherited terminal target.
 actor_safe_pi(terminal_output/1). actor_safe_pi(terminal_output/2).
-actor_safe_pi(write/1). actor_safe_pi(writeln/1).
+actor_safe_pi(write/1). actor_safe_pi(writeln/1). actor_safe_pi(nl/0).
 actor_safe_pi(format/1). actor_safe_pi(format/2).
 actor_safe_pi(input/2). actor_safe_pi(input/3). actor_safe_pi(respond/2).
 actor_safe_pi(make_ref/1). actor_safe_pi(flush/0).
