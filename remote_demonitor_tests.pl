@@ -9,6 +9,7 @@ run :-
     must_pass(writer_ownership),
     must_pass(stopped_writer),
     must_pass(unresponsive_writer),
+    must_pass(timeout_then_retry),
     writeln('Remote demonitor: lock, acknowledgement, ownership, flush and writer failures: ok').
 
 % Preserve the stage when a nondeterministic native failure is reported.
@@ -73,6 +74,34 @@ unresponsive_writer :-
       (catch(demonitor(Ref,[flush]),Error,true),
        Error==error(remote_demonitor_timeout(P),demonitor/2),
        actors:monitor(Self,P,Ref),\+actors:monitor(Self,Writer,_)),
+      (retractall(actors:monitor(Self,P,_)),
+       distribution:manager_forget_route_if_running(P),exit(Writer,kill))).
+
+% A timed-out removal preserves both the observation and queued notifications.
+% The same reference can subsequently be withdrawn through the real writer.
+timeout_then_retry :-
+    self(Self),make_ref(Ref),make_ref(Keep),P=91005@'http://demonitor-fixture.test',
+    spawn((nb_setval('$distribution_monitors',[monitor(91005,Ref,Self),monitor(91005,Keep,Self)]),
+           receive({enable -> true}),
+           repeat,receive({'$transparent_demonitor'(R,W,T) ->
+             distribution:writer_message('$transparent_demonitor'(R,W,T),unused,unused,true),
+             nb_getval('$distribution_monitors',Left),send(Self,retry_writer_state(Left))}),fail),
+          Writer,[link(false)]),
+    distribution:manager_register_route(P,Writer),
+    assertz(actors:monitor(Self,P,Ref)),assertz(actors:monitor(Self,P,Keep)),
+    setup_call_cleanup(true,
+      (send(Self,down(P,Ref,before_timeout)),
+       catch(demonitor(Ref,[flush]),Error,true),
+       Error==error(remote_demonitor_timeout(P),demonitor/2),
+       actors:monitor(Self,P,Ref),actors:monitor(Self,P,Keep),
+       receive({down(P,Ref,before_timeout) -> true},[timeout(0),on_timeout(fail)]),
+       send(Writer,enable),demonitor(Ref,[flush]),demonitor(Ref,[flush]),
+       \+actors:monitor(Self,P,Ref),actors:monitor(Self,P,Keep),
+       receive({retry_writer_state(State) -> State==[monitor(91005,Keep,Self)]},
+               [timeout(1),on_timeout(fail)]),
+       send(Self,down(P,Keep,already_queued)),demonitor(Keep),
+       receive({down(P,Keep,already_queued) -> true},[timeout(0),on_timeout(fail)]),
+       \+actors:monitor(Self,P,Keep)),
       (retractall(actors:monitor(Self,P,_)),
        distribution:manager_forget_route_if_running(P),exit(Writer,kill))).
 
