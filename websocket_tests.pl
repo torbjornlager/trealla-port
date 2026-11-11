@@ -255,8 +255,14 @@ trealla_client_test(Port) :-
     ws_close(WS, 1000, done),
     format('Trealla client interoperability test: ok~n').
 
-trealla_server_once(Port) :-
+trealla_server_once(Port) :- trealla_server_once(Port, none).
+
+trealla_server_once(Port, ReadyFile) :-
     websocket_server_open(Port, Server),
+    ( ReadyFile == none -> true
+    ; setup_call_cleanup(open(ReadyFile, write, Ready),
+                         write(Ready, ready), close(Ready))
+    ),
     websocket_server_accept(Server, WS, '/echo'),
     ws_receive(WS, First), ws_send(WS, First),
     ws_receive(WS, Second), ws_send(WS, Second),
