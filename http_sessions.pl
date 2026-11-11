@@ -182,7 +182,7 @@ await_session_event(Pid, Status, Event, Pending) :-
             reply_to_request(HaltReply, 200, halted(Pid, true)),
             Event = error(existence_error(http_session, Pid)), Pending = retired
       ; '$input_prompt'(Pid, Ref, Prompt) ->
-            term_to_atom(Ref, Token), Event = prompt(Pid, Prompt, Token), Pending = correlated(Ref)
+            term_to_atom(Ref, Token), Event = prompt(Pid, Token, Prompt), Pending = correlated(Ref)
       ; terminal_output(Pid, Data) -> Event = output(Pid, Data), Pending = none
       ; terminal_io_output(Pid, Data) -> Event = terminal_io_output(Pid, Data), Pending = none
       ; output(Pid, Data) -> Event = output(Pid, Data), Pending = none

@@ -862,7 +862,7 @@ nested_toplevel_binding_test(URL, OpenOptions) :-
     get_dict('Answer', NextRow, AnswerText),
     sub_string(AnswerText, 0, _, _, "success("),
     format(string(InputGoal),
-           "toplevel_call(~s,input('Input',X)),receive({prompt(P,prompt_ref(Ref,Question))->Answer=prompt(P,Question)})",
+           "toplevel_call(~s,input('Input',X)),receive({prompt(P, Ref, Question)->Answer=prompt(P,Question)})",
            [ChildText]),
     send_json(WS, json{command:"toplevel_call", pid:Shell,
                        goal:InputGoal, options:"[limit(1)]"}),

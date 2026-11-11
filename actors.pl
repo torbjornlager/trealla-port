@@ -1605,7 +1605,7 @@ input(Prompt, Answer, Options) :-
     make_ref(Ref),
     ( nonvar(Target), hook_prompt_relay(Target) ->
         Target ! '$input_prompt'(Self, Ref, Prompt)
-    ; Target ! prompt(Self, prompt_ref(Ref, Prompt))
+    ; Target ! prompt(Self, Ref, Prompt)
     ),
     receive({'$input'(_, Ref, Answer) -> true}).
 

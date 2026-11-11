@@ -232,7 +232,7 @@ run_test_group(actors) :-
     t140, t141, t142, t143, t154, t155.
 run_test_group(toplevel) :-
     t11, t12, t13, t14, t15, t16, t17, t18,
-    t22, t27, t28, t29, t99, t100, t101, t111, t112, t123, t131, t152.
+    t22, t27, t28, t29, t99, t100, t101, t111, t112, t123, t131, t152, flat_correlated_prompt_roundtrip.
 run_test_group(parallel) :-
     t8, t9, t10, t30, t136, t137, t138, t139.
 run_test_group(isolation) :-
@@ -800,7 +800,7 @@ t27 :-
 %!  t28 is det.
 %
 %   Toplevel input/respond roundtrip.  The actor's input/2 sends a
-%   `prompt(Pid, prompt_ref(Ref, 'Input'))` message and blocks; the test replies
+%   `prompt(Pid, Ref, 'Input')` message and blocks; the test replies
 %   with respond(Pid, Ref, hello); the goal succeeds with X = hello.
 %   Mirrors SWI plunit `toplevels:shell_input_roundtrip`.
 
@@ -808,7 +808,7 @@ t28 :-
     self(Me),
     toplevel_spawn(Pid, [target(Me), session(true)]),
     toplevel_call(Pid, input('Input', _X)),
-    receive({ prompt(Pid, prompt_ref(Ref, 'Input')) -> respond(Pid, Ref, hello) },
+    receive({ prompt(Pid, Ref, 'Input') -> respond(Pid, Ref, hello) },
             [ timeout(1), on_timeout(fail) ]),
     receive({ success(Pid, [input('Input', hello)], false) -> true },
             [ timeout(1), on_timeout(fail) ]),
@@ -818,7 +818,7 @@ t28 :-
 %
 %   A nested toplevel may inherit a browser terminal from its caller, but its
 %   input prompt belongs to the actor using the PTCP protocol. The caller must
-%   receive prompt/2 and be able to complete the goal with respond/3.
+%   receive prompt/3 and be able to complete the goal with respond/3.
 
 t123 :-
     self(Me),
@@ -869,7 +869,7 @@ nested_input_sink(Parent) :-
 nested_input_owner(Parent) :-
     toplevel_spawn(Child, [session(true),link(false)]),
     toplevel_call(Child, input('Input', X)),
-    receive({prompt(Child, prompt_ref(Ref, Prompt)) ->
+    receive({prompt(Child, Ref, Prompt) ->
                  Parent ! nested_input_prompt(Child, Prompt),
                  respond(Child, Ref, hello)
             }, [timeout(1),on_timeout(throw(nested_input_prompt_timeout))]),
@@ -1440,7 +1440,7 @@ t109 :-
 
 answer_expert_prompts(_, 0) :- !.
 answer_expert_prompts(Session, N) :-
-    receive({ prompt(Session, prompt_ref(Ref, '|:')) -> respond(Session, Ref, yes)
+    receive({ prompt(Session, Ref, '|:') -> respond(Session, Ref, yes)
             ; error(Session, Error) -> throw(Error)
             ; failure(Session) -> throw(t109_unexpected_failure)
             }, [timeout(1), on_timeout(throw(t109_prompt_timeout(N)))]),
@@ -2981,3 +2981,24 @@ collect_refs(N, [Ref|Refs]) :-
     receive({ made_ref(Ref) -> true }, [timeout(2), on_timeout(fail)]),
     Next is N - 1,
     collect_refs(Next, Refs).
+
+
+flat_correlated_prompt_roundtrip :-
+    setup_call_cleanup(
+        toplevel_spawn(Pid, [session(true)]),
+        ( toplevel_call(Pid, input(prompt_ref(ref(999), question), First),
+                        [template(First)]),
+          receive({prompt(Pid, Ref1, prompt_ref(ref(999), question)) ->
+                       respond(Pid, Ref1, first)},
+                  [timeout(2), on_timeout(throw(missing_flat_prompt))]),
+          receive({success(Pid, [first], false) -> true},
+                  [timeout(2), on_timeout(throw(missing_first_reply))]),
+          toplevel_call(Pid, input(next_question, Next), [template(Next)]),
+          receive({prompt(Pid, Ref2, next_question) -> true},
+                  [timeout(2), on_timeout(throw(missing_next_prompt))]),
+          Ref1 \== Ref2,
+          respond(Pid, Ref1, stale), respond(Pid, Ref2, fresh),
+          receive({success(Pid, [fresh], false) -> true},
+                  [timeout(2), on_timeout(throw(stale_reply_accepted))]) ),
+        exit(Pid, cleanup)),
+    format("Flat correlated prompt preserves literal data and rejects stale replies~n", []).

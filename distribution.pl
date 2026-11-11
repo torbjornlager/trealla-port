@@ -968,7 +968,7 @@ remote_event(statechart_trace,JSON,Pid,terminal_output(Pid,statechart_trace(Data
     json_event_term(JSON,data,Data).
 remote_event(output, JSON, Pid, output(Pid, Data)) :- !,
     json_event_term(JSON, data, Data).
-remote_event(prompt, JSON, Pid, prompt(Pid, prompt_ref(Ref, Prompt))) :- !,
+remote_event(prompt, JSON, Pid, prompt(Pid, Ref, Prompt)) :- !,
     web_prolog:json_term_field(JSON, prompt_ref, Ref),
     ground(Ref),
     ( json_event_term(JSON, data, Parsed), ground(Parsed) -> Prompt = Parsed
@@ -1087,7 +1087,7 @@ deliver_terminal_target(Target, Message) :-
     actors:actor_thread(Target, Thread),
     catch(thread_property(Thread, status(running)), _, fail),
     ( Message = '$input_prompt'(Pid, Ref, Prompt) ->
-        Target ! prompt(Pid, prompt_ref(Ref, Prompt))
+        Target ! prompt(Pid, Ref, Prompt)
     ; Target ! Message
     ).
 
@@ -1131,7 +1131,7 @@ remote_io_request(HomeNode, Token, Message0) :-
           catch(message_queue_destroy(ReplyQueue), _, true)
         )).
 
-io_wire_message('$input_prompt'(Pid, Ref, Prompt), prompt(Pid, prompt_ref(Ref, Prompt)),
+io_wire_message('$input_prompt'(Pid, Ref, Prompt), prompt(Pid, Ref, Prompt),
                 [prompt_mode-string_atom(correlated)]) :- !.
 io_wire_message(Message, Message, []).
 

@@ -781,7 +781,7 @@ session_event_json(error(existence_error(http_session, Pid)), JSON) :- !,
 session_event_json(success(Pid, Rows, More), pairs([Key-Value|Fields])) :- !,
     answer_json(success(Rows, More), pairs(Fields)),
     atom_chars(pid, Chars), Key = string(Chars), Value = number(Pid).
-session_event_json(prompt(Pid, Prompt, Ref), JSON) :- !,
+session_event_json(prompt(Pid, Ref, Prompt), JSON) :- !,
     session_text(Prompt, Text),
     node_json_object([type-string_atom(prompt), pid-number(Pid), data-string_atom(Text),
                       prompt_ref-string_atom(Ref)], JSON).

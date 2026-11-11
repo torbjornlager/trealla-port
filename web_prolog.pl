@@ -752,12 +752,14 @@ relay_message(WS, prompt(RuntimePid, Data)) :- !,
     self(Relay),
     browser_source_pid(Relay, RuntimePid, WirePid),
     send_event(WS, prompt(WirePid, Data)).
+relay_message(WS, prompt(RuntimePid, Ref, Data)) :- !,
+    relay_message(WS, '$input_prompt'(RuntimePid, Ref, Data)).
 relay_message(WS, '$input_prompt'(RuntimePid, Ref, Data)) :- !,
     self(Relay),
     browser_source_pid(Relay, RuntimePid, WirePid),
     term_wire_atom(Ref, Token),
     remember_browser_prompt(Relay, WirePid, RuntimePid, correlated(Ref, Token)),
-    send_event(WS, prompt(WirePid, Data, Token)).
+    send_event(WS, prompt(WirePid, Token, Data)).
 relay_message(WS, Event) :-
     self(Relay),
     wire_event(Relay, Event, WireEvent),
@@ -766,7 +768,7 @@ relay_message(WS, Event) :-
 io_wire_event(JSON, Message, Event) :-
     ( json_field(JSON, prompt_mode, _) ->
         json_text_field(JSON, prompt_mode, correlated),
-        Message = prompt(Pid, prompt_ref(Ref, Prompt)),
+        Message = prompt(Pid, Ref, Prompt),
         ground(Ref),
         Event = '$input_prompt'(Pid, Ref, Prompt)
     ; Event = Message
@@ -1081,7 +1083,7 @@ event_json(invalid_prompt_ref(Pid), JSON) :- !,
     object([type-string_atom(error), pid-json_pid(Pid),
             code-string_atom(invalid_prompt_ref),
             data-string_atom('Invalid or missing prompt reference')], JSON).
-event_json(prompt(Pid, Data0, Token), JSON) :- !,
+event_json(prompt(Pid, Token, Data0), JSON) :- !,
     display_atom(Data0, Data),
     object([type-string_atom(prompt), pid-json_pid(Pid), data-string_atom(Data),
             prompt_ref-string_atom(Token)], JSON).

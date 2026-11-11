@@ -868,7 +868,7 @@ node-to-node `io_request` command.  It emits Trinity's
 including connection-scoped browser/local PID capabilities and
 `actor_message` return traffic, plus acknowledged `io_reply` terminal traffic.
 Every prompt carries a fresh `prompt_ref`, and `toplevel_respond` must echo
-it. Actor handlers receive `prompt(Pid, prompt_ref(Ref, Question))` and use
+it. Actor handlers receive `prompt(Pid, Ref, Question)` and use
 `respond(Pid, Ref, Answer)`.
 
 
