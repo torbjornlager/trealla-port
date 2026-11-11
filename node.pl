@@ -789,11 +789,8 @@ session_event_json(prompt(Pid, Prompt), JSON) :- !,
     session_text(Prompt, Text),
     node_json_object([type-string_atom(prompt), pid-number(Pid), data-string_atom(Text)], JSON).
 session_event_json(terminal_io_output(Pid, Value), JSON) :- !,
-    actors:terminal_stream_payload(Value, Term, Ending),
-    session_text(Term, Text),
-    atom_concat(Text, Ending, Stdout),
-    node_json_object([type-string_atom(output), pid-number(Pid),
-                      data-string_atom(Text), stdout-string_atom(Stdout)], JSON).
+    session_text(Value, Text),
+    node_json_object([type-string_atom(output), pid-number(Pid), data-string_atom(Text)], JSON).
 session_event_json(output(Pid, Value), JSON) :- !,
     session_text(Value, Text),
     node_json_object([type-string_atom(output), pid-number(Pid), data-string_atom(Text)], JSON).
