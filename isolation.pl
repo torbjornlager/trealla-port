@@ -285,6 +285,7 @@ sourceless_worker_goal(first_solution(S,Goals),
 sourceless_worker_goal(first_solution(S,Goals,Options),
                        toplevel_actors:first_solution(S,Goals,Options)) :- !.
 sourceless_worker_goal(runtime_property(P), rpc:runtime_property(P)) :- !.
+sourceless_worker_goal(node_setting(K,V), node_settings:node_setting(K,V)) :- !.
 sourceless_worker_goal(rpc(U,G), rpc:rpc(U,G)) :- !.
 sourceless_worker_goal(rpc(U,G,O), rpc:rpc(U,G,O)) :- !.
 sourceless_worker_goal(promise(U,G,R), rpc:promise(U,G,R)) :- !.
@@ -393,6 +394,7 @@ actor_query_goal(Module,toplevel_call_synch(P,G,A,O),toplevel_actors:toplevel_ca
 actor_query_goal(Module,toplevel_next_synch(P,A),toplevel_actors:toplevel_next_synch(P,A,Module:[])) :- !.
 actor_query_goal(Module,toplevel_next_synch(P,A,O),toplevel_actors:toplevel_next_synch(P,A,Module:O)) :- !.
 actor_query_goal(_, runtime_property(Property), rpc:runtime_property(Property)) :- !.
+actor_query_goal(_, node_setting(Key,Value), node_settings:node_setting(Key,Value)) :- !.
 actor_query_goal(_, rpc(URI, Goal), rpc:rpc(URI, Goal)) :- !.
 actor_query_goal(_, rpc(URI, Goal, Options),
                  rpc:rpc(URI, Goal, Options)) :- !.
@@ -773,6 +775,8 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( ':- use_module(~q).~n', [ActorsFile]),
     bootstrap_line( ':- use_module(~q, [toplevel_spawn/1,toplevel_spawn/2,toplevel_call/2,toplevel_call/3,toplevel_call_synch/3,toplevel_call_synch/4,toplevel_next_synch/2,toplevel_next_synch/3,toplevel_next/1,toplevel_next/2,toplevel_halt/1,toplevel_halt/2,toplevel_stop/1,toplevel_abort/1]).~n', [ToplevelFile]),
     bootstrap_line( ':- use_module(~q, [rpc/2,rpc/3,promise/3,promise/4,promise_cleanup/1,yield/2,yield/3,runtime_property/1]).~n', [RpcFile]),
+    { absolute_file_name('node_settings.pl',NodeSettingsFile,[]) },
+    bootstrap_line( ':- use_module(~q, [node_setting/2]).~n', [NodeSettingsFile]),
     bootstrap_line( ':- use_module(~q, [server_spawn/3,server_spawn/4,server_request/3,server_request/4,server_promise/3,server_promise/4,server_yield/2,server_yield/3,server_yield/4,server_upgrade/2,server_upgrade/3,server_halt/2,server_stop/2]).~n', [ServerActorFile]),
     bootstrap_line( ':- use_module(~q, [supervisor_spawn/2,supervisor_spawn/3,supervisor_spawn_child/3,supervisor_terminate_child/3,supervisor_delete_child/3,supervisor_respawn_child/3,supervisor_which_children/2,supervisor_count_children/2,supervisor_halt/1,supervisor_stop/1]).~n', [SupervisorActorFile]),
     bootstrap_line( ':- use_module(~q, []).~n', [ParallelFile]),
@@ -895,6 +899,7 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_call\'(toplevel_next_synch(P,A)) :- !, toplevel_actors:toplevel_next_synch(P,A,~q:[]).~n', [Module]),
     bootstrap_line( '\'$actor_call\'(toplevel_next_synch(P,A,O)) :- !, toplevel_actors:toplevel_next_synch(P,A,~q:O).~n', [Module]),
     bootstrap_line( '\'$actor_call\'(runtime_property(Property)) :- !, rpc:runtime_property(Property).~n', []),
+    bootstrap_line( '\'$actor_call\'(node_setting(Key,Value)) :- !, node_settings:node_setting(Key,Value).~n', []),
     bootstrap_line( '\'$actor_call\'(rpc(URI,Goal)) :- !, rpc:rpc(URI,Goal).~n', []),
     bootstrap_line( '\'$actor_call\'(rpc(URI,Goal,Options)) :- !, rpc:rpc(URI,Goal,Options).~n', []),
     bootstrap_line( '\'$actor_call\'(promise(URI,Goal,Reference)) :- !, rpc:promise(URI,Goal,Reference).~n', []),

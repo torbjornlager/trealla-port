@@ -120,6 +120,8 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/succ_validation_tests.pl'),(catch(succ_validation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Monitor preflight bindings and observation preservation" \
         "$TPL" -g "consult('$ROOT/monitor_preflight_tests.pl'),(catch(monitor_preflight_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "node_settings_tests" \
+        "$TPL" -g "consult('$ROOT/node_settings_tests.pl'),(catch(node_settings_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Idempotent connection shutdown" \
         "$TPL" -g "(catch((consult('$ROOT/node_shutdown_tests.pl'),node_shutdown_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Committed exit mailbox boundaries" \

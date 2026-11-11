@@ -13,7 +13,7 @@
          toplevel_stop/1, toplevel_abort/1,
          rpc/2, rpc/3,
          promise/3, promise/4, promise_cleanup/1,
-         yield/2, yield/3, runtime_property/1,
+         yield/2, yield/3, runtime_property/1, node_setting/2,
          parallel/1, first_solution/2, first_solution/3,
          server_spawn/3, server_spawn/4,
          server_request/3, server_request/4,
@@ -47,6 +47,7 @@
                 toplevel_stop/1, toplevel_abort/1
               ]).
 :- use_module(rpc).
+:- use_module(node_settings, [node_setting/2]).
 :- use_module(integer_relations,[succ/2]).
 :- use_module(parallel, [parallel/1,first_solution/2,first_solution/3]).
 :- use_module(server_actor).
