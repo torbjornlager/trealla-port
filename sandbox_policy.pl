@@ -717,7 +717,7 @@ rewrite_goal_(M,P,C,_A,statechart_spawn(Pid,Options),
 rewrite_goal_(_M,_P,_C,_A,write(Term),
               actors:terminal_output(Term,[source(io)])).
 rewrite_goal_(_M,_P,_C,_A,writeln(Term),
-              actors:terminal_output(Term,[source(io)])).
+              actors:terminal_output(Term,[source(io_line)])).
 rewrite_goal_(_M,_P,_C,_A,nl,
               sandbox_policy:sandbox_format('~n',[])).
 % The SWI actor I/O prelude redefines the non-stream format predicates.  A

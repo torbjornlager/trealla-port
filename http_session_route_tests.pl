@@ -66,10 +66,11 @@ local_relay(Ready,Done) :-
 send_local(Relay,Done) :-
     actors:send(Relay,ping),thread_send_message(Done,sent).
 
-% Ordinary runtime terminal output must use the same HTTP envelope as output/1.
+% Runtime terminal output must retain its text without adding a newline.
 % This also catches accidentally retained helpers from an unmerged stream API.
 http_output_json :-
-    node:session_event_json(output(1234567890, hello(world)), Expected),
+    node:node_json_object([type-string_atom(output),pid-number(1234567890),
+                          data-string_atom('hello(world)'),stdout-string_atom('hello(world)')],Expected),
     node:session_event_json(terminal_io_output(1234567890, hello(world)), Actual),
     Actual == Expected,
     write('HTTP terminal output matches the runtime output envelope: ok'), nl.
