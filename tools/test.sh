@@ -23,9 +23,10 @@ TEST_TIMEOUT=${TEST_TIMEOUT:-30}
 # Keep listeners below Linux's default ephemeral range so earlier clients
 # cannot take a port that a later fixture still needs to bind.
 TEST_PORT_BASE=${TEST_PORT_BASE:-22060}
-TRINITY_NODE_FILE=${TRINITY_NODE_FILE:-$ROOT/../trinity-demonstrator/prolog/web_prolog/node.pl}
+TRINITY_NODE_FILE=${TRINITY_NODE_FILE:-$ROOT/../swi-prolog-node/prolog/web_prolog.pl}
 MODE=${1:-unit}
 BACKGROUND_PIDS=""
+FIXTURE_READY_DIRECTORY=""
 
 # A repository-local Trealla build is not installed under its compiled
 # system prefix. Pair it with the library directory beside the executable;
@@ -46,6 +47,10 @@ cleanup() {
         kill "$cleanup_pid" 2>/dev/null || true
         wait "$cleanup_pid" 2>/dev/null || true
     done
+    if [ -n "$FIXTURE_READY_DIRECTORY" ]; then
+        rm -f "$FIXTURE_READY_DIRECTORY/echo.ready"
+        rmdir "$FIXTURE_READY_DIRECTORY" 2>/dev/null || true
+    fi
 }
 
 trap cleanup EXIT HUP INT TERM
@@ -292,6 +297,25 @@ wait_for_port() {
     return 1
 }
 
+wait_for_http_node() {
+    python3 - "$1" <<'PYREADY'
+import sys, time
+from urllib.request import urlopen
+from urllib.error import HTTPError
+for _ in range(100):
+    try:
+        with urlopen('http://127.0.0.1:' + sys.argv[1] + '/node_info', timeout=.2):
+            pass
+        break
+    except HTTPError:
+        break
+    except OSError:
+        time.sleep(.05)
+else:
+    raise SystemExit(1)
+PYREADY
+}
+
 start_background() {
     "$@" &
     started_pid=$!
@@ -335,14 +359,20 @@ run_interop() {
         "$TPL" -g "consult('$ROOT/websocket_tests.pl'),trealla_client_test($echo_port),halt"
     stop_background "$swi_echo_pid"
 
+    FIXTURE_READY_DIRECTORY=$(mktemp -d "${TMPDIR:-/tmp}/trealla-interop-ready.XXXXXX") || fail "cannot create fixture readiness directory"
+    echo_ready=$FIXTURE_READY_DIRECTORY/echo.ready
     start_background "$TPL" -g \
-        "consult('$ROOT/websocket_tests.pl'),trealla_server_once($reverse_port),halt"
+        "consult('$ROOT/websocket_tests.pl'),trealla_server_once($reverse_port,'$echo_ready'),halt"
     trealla_echo_pid=$STARTED_PID
-    # This fixture accepts exactly one TCP connection.  A readiness probe
-    # would consume it, so give the listener a moment and verify its process
-    # is still alive instead.
-    sleep 0.2
-    kill -0 "$trealla_echo_pid" 2>/dev/null || fail "Trealla echo server did not start on port $reverse_port"
+    # A TCP readiness probe would consume the fixture's only connection.
+    # The fixture publishes a marker only after its listening socket is open.
+    ready_tries=100
+    while [ ! -f "$echo_ready" ]; do
+        kill -0 "$trealla_echo_pid" 2>/dev/null || fail "Trealla echo fixture exited before listening"
+        [ "$ready_tries" -gt 0 ] || fail "Trealla echo fixture readiness timed out"
+        ready_tries=$((ready_tries - 1))
+        sleep 0.05
+    done
     run_with_timeout "SWI client -> Trealla WebSocket" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "client_test($reverse_port),halt"
@@ -368,12 +398,9 @@ run_interop() {
     wait_for_port "$source_port" || fail "SWI source fixture did not start on port $source_port"
 
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_protocol_port,[load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8']),max_source_text_bytes(128)])"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_protocol_port,[load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8']),max_source_text_bytes(128)]),thread_get_message(stop)"
     trealla_protocol_pid=$STARTED_PID
-    # The native node treats a bare TCP readiness probe as a malformed HTTP
-    # request and logs unexpected_eof. Avoid adding noise to successful runs.
-    sleep 0.2
-    kill -0 "$trealla_protocol_pid" 2>/dev/null || fail "Trealla protocol node did not start on port $trealla_protocol_port"
+    wait_for_http_node "$trealla_protocol_port" || fail "Trealla protocol node did not start on port $trealla_protocol_port"
     run_with_timeout "SWI client -> Trealla protocol node" \
         "$SWIPL" -q -s "$ROOT/swi_websocket_interop.pl" \
         -g "protocol_client_test($trealla_protocol_port),halt"
@@ -463,10 +490,9 @@ run_interop() {
     fi
 
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port,[bearer_token(peer,'lineage-test-peer',[execute,internal_transport]),load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8'])])"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_remote_port,[bearer_token(peer,'lineage-test-peer',[execute,internal_transport]),load_uri_allowed_origins(['http://127.0.0.1:$source_port']),load_uri_allowed_ip_ranges(['127.0.0.0/8'])]),thread_get_message(stop)"
     trealla_remote_pid=$STARTED_PID
-    sleep 0.2
-    kill -0 "$trealla_remote_pid" 2>/dev/null || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
+    wait_for_http_node "$trealla_remote_port" || fail "remote Trealla protocol node did not start on port $trealla_remote_port"
     run_with_timeout "Public remote demonitor -> Trealla" \
         "$TPL" -g "consult('$ROOT/remote_demonitor_tests.pl'),(catch(remote_demonitor_tests:live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Termination notifications -> Trealla" \
@@ -542,7 +568,7 @@ run_interop() {
     stop_background "$source_server_pid"
 
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_private_port,[auth(private),bearer_token(interop,'interop-secret',[execute]),bearer_token(observer,'admin-secret',[admin]),max_call_requests_per_window(1),max_ws_actors_per_principal(1)])"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($trealla_private_port,[auth(private),bearer_token(interop,'interop-secret',[execute]),bearer_token(observer,'admin-secret',[admin]),max_call_requests_per_window(1),max_ws_actors_per_principal(1)]),thread_get_message(stop)"
     trealla_private_pid=$STARTED_PID
     wait_for_port "$trealla_private_port" || fail "private Trealla protocol node did not start on port $trealla_private_port"
     run_with_timeout "SWI auth and ownership -> private Trealla node" \
@@ -551,7 +577,7 @@ run_interop() {
     stop_background "$trealla_private_pid"
 
     start_background "$TPL" -g \
-        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($ip_policy_port,[trusted_proxy_ranges(['127.0.0.0/8']),ip_blocklist(['198.51.100.0/24']),max_call_requests_per_window(1),auto_ban_threshold(2),auto_ban_window_seconds(60),auto_ban_seconds(60)])"
+        "consult('$ROOT/distribution.pl'),web_prolog:web_prolog_node($ip_policy_port,[trusted_proxy_ranges(['127.0.0.0/8']),ip_blocklist(['198.51.100.0/24']),max_call_requests_per_window(1),auto_ban_threshold(2),auto_ban_window_seconds(60),auto_ban_seconds(60)]),thread_get_message(stop)"
     trealla_ip_policy_pid=$STARTED_PID
     wait_for_port "$ip_policy_port" || fail "IP-policy Trealla node did not start on port $ip_policy_port"
     run_with_timeout "SWI client -> Trealla IP gate and auto-ban" \
