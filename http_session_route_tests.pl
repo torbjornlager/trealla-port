@@ -6,7 +6,7 @@
 
 % HTTP dispatch must not take the browser-capability mutex while holding
 % the route mutex. WebSocket teardown may already own that capability lock.
-run :- route_dispatch, local_actor_routing.
+run :- route_dispatch, local_actor_routing, http_output_json.
 
 route_dispatch :-
     message_queue_create(Ready),
@@ -65,3 +65,11 @@ local_relay(Ready,Done) :-
     thread_send_message(Done,received),thread_get_message(stop).
 send_local(Relay,Done) :-
     actors:send(Relay,ping),thread_send_message(Done,sent).
+
+% Ordinary runtime terminal output must use the same HTTP envelope as output/1.
+% This also catches accidentally retained helpers from an unmerged stream API.
+http_output_json :-
+    node:session_event_json(output(1234567890, hello(world)), Expected),
+    node:session_event_json(terminal_io_output(1234567890, hello(world)), Actual),
+    Actual == Expected,
+    write('HTTP terminal output matches the runtime output envelope: ok'), nl.
