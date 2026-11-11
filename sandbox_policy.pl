@@ -231,6 +231,20 @@ sandbox_check_goal_(Mode, Profile, Module, AppPIs, spawn(Goal,_Pid)) :- !,
     sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal).
 sandbox_check_goal_(Mode, Profile, Module, AppPIs, spawn(Goal,_Pid,Options)) :- !,
     check_nested_spawn(Mode, Profile, Module, AppPIs, Goal, Options).
+% call/N appends arguments before selecting the admitted predicate. Inspect a
+% copy so checking a closure never instantiates application arguments.
+sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal) :-
+    nonvar(Goal), functor(Goal,call,Arity), Arity >= 2, Arity =< 8, !,
+    Goal =.. [call,Closure|Extra],
+    check_meta_instantiation(Mode,Goal,[Closure]),
+    check_leaf(Mode,Module,AppPIs,Goal),
+    ( callable(Closure)
+    -> copy_term(Closure-Extra,Checked-Arguments),
+       completed_call_goal(Checked,Arguments,Complete),
+       profile_check_goal(Profile,Complete),
+       sandbox_check_goal_(Mode,Profile,Module,AppPIs,Complete)
+    ; sandbox_check_goal_(Mode,Profile,Module,AppPIs,Closure)
+    ).
 sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal) :-
     meta_goal_parts(Goal, Nested),
     !,
@@ -239,6 +253,14 @@ sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal) :-
     check_nested(Mode, Profile, Module, AppPIs, Nested).
 sandbox_check_goal_(Mode, _Profile, Module, AppPIs, Goal) :-
     check_leaf(Mode, Module, AppPIs, Goal).
+
+% Qualification remains around the completed predicate so private-module
+% denial cannot be bypassed by turning ':' into a larger ordinary functor.
+completed_call_goal(Module:Closure, Extra, Module:Complete) :- !,
+    (callable(Closure) -> completed_call_goal(Closure,Extra,Complete)
+    ; Complete=Closure).
+completed_call_goal(Closure, Extra, Complete) :-
+    Closure =.. Parts, append(Parts,Extra,Full), Complete =.. Full.
 
 check_nested(_, _, _, _, []).
 check_nested(Mode, Profile, Module, AppPIs, [Goal|Goals]) :-
