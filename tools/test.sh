@@ -130,6 +130,8 @@ run_unit() {
         "$TPL" -g "(catch((consult('$ROOT/actor_exit_wait_tests.pl'),actor_exit_wait_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "submitted actor exit authority" \
         "$TPL" -g "(catch((consult('$ROOT/actor_authority_tests.pl'),actor_authority_tests:actor_authority_tests),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "node_discovery_tests" \
+        "$TPL" -g "consult('$ROOT/node_discovery_tests.pl'),(catch(node_discovery_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Private shared-predicate shadowing" \
         "$TPL" -g "consult('$ROOT/shared_shadow_tests.pl'),(catch(shared_shadow_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Actor write/1 terminal routing" \
