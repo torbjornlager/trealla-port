@@ -5,6 +5,9 @@
 :- use_module(toplevel_actors,[]).
 
 run :-
+    atom_codes(RawNewline, [10]),
+    terminal_case(nl, [], [RawNewline]),
+    terminal_case(nl, [src_text('loaded.')], [RawNewline]),
     forall(member(Mode,[blacklist,whitelist]),
            (checks(Mode),newline_checks(Mode),linda_output_checks(Mode))),
     receive({_ -> fail},[timeout(0)]),
@@ -31,6 +34,8 @@ newline_checks(Mode) :-
     forall(member(Goal,[nl,call(nl)]),
       (sandbox_prepare_goal(Mode,actor,user,Goal,Prepared),
        terminal_case(Prepared,[],[Newline]))),
+    sandbox_prepare_goal(Mode,actor,user,nl,DirectEntry),
+    direct_terminal_case(DirectEntry,[Newline]),
     (Mode==blacklist ->
        sandbox_prepare_goal(Mode,actor,user,(G=nl,call(G)),Computed),
        terminal_case(Computed,[],[Newline])
@@ -64,3 +69,11 @@ terminal_texts([Text|Texts]) :-
     receive({terminal_io_output(_,Actual)->atom_codes(Actual,Codes),Codes==ExpectedCodes},
             [timeout(2),on_timeout(throw(missing_terminal_text(Text)))]),
     terminal_texts(Texts).
+
+% A prepared child entry is not wrapped in call/1 by the node boundary.
+direct_terminal_case(Goal, Texts) :-
+    self(Self),
+    setup_call_cleanup(spawn(Goal,Pid,[monitor(true),io_target(Self),link(false)]),
+      (terminal_texts(Texts),
+       receive({down(Pid,Pid,true)->true},[timeout(2),on_timeout(fail)])),
+      (catch(exit(Pid,kill),_,true),catch(demonitor(Pid,[flush]),_,true))).

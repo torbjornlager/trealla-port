@@ -182,13 +182,19 @@ prepare_actor_bootstrap(Module, _, _) :-
     bootstrap_text(Module, Bootstrap),
     load_text(Bootstrap, [module(Module)]).
 
+% Preserve the trusted formatter's module when a prepared child entry crosses
+% into its private namespace. Stripping it would leave an undefined helper.
+run_actor_goal(_, sandbox_policy:sandbox_format(Format, Args), _) :- !,
+    sandbox_policy:sandbox_format(Format, Args).
+
 run_actor_goal(Module, Goal0, Options) :-
     ( memberchk('$entry_context'(caller), Options)
     -> call(Goal0)
     ; strip_module(Goal0, _, Goal),
       ( actor_source_namespace(_, Module)
       -> run_actor_query(Module, Goal)
-      ;  call_in_module(Module, '$actor_call'(Goal))
+      ;  sourceless_worker_goal(Goal, Prepared),
+         call_in_module(Module, '$actor_call'(Prepared))
       )
     ).
 
@@ -252,6 +258,10 @@ execution_goal(Goal, Qualified) :-
 % meta-call context. Rebuild native controls rather than interpreting them,
 % preserving variable sharing and their existing cut/exception scopes.
 sourceless_worker_goal(Goal, Goal) :- var(Goal), !.
+% Trealla's host nl/0 cannot be redefined in an actor module. Route it at
+% the runtime entry boundary, as native SWI does through its I/O template.
+sourceless_worker_goal(nl, actors:terminal_output(Newline,[source(io)])) :- !,
+    atom_codes(Newline, [10]).
 sourceless_worker_goal(parallel(Goals), toplevel_actors:parallel(Goals)) :- !.
 sourceless_worker_goal(first_solution(S,Goals),
                        toplevel_actors:first_solution(S,Goals)) :- !.
@@ -309,6 +319,10 @@ actor_query_goal(Module, forall(Generate0, Test0),
 actor_query_goal(Module, (\+ Goal0), (\+ Goal)) :- !,
     actor_query_goal(Module, Goal0, Goal).
 actor_query_goal(_, !, !) :- !.
+actor_query_goal(_, nl, actors:terminal_output(Newline,[source(io)])) :- !,
+    atom_codes(Newline, [10]).
+actor_query_goal(_, call(nl), Prepared) :- !,
+    sourceless_worker_goal(nl, Prepared).
 actor_query_goal(Module, receive(Clauses0),
                  actors:receive_qualified(Qualified, [])) :- !,
     call_in_module(Module, '$actor_qualify_receive'(Clauses0, Clauses)),
