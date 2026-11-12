@@ -2745,3 +2745,34 @@ invalid culprit. `supervisor_count_children/2` counts supervisor and worker
 subtypes from active records; stopped children can retain their specifications
 without contributing to active counts. Shared cases are in
 `trinity-conformance/cases/native-supervisor-id-counts-0.1.json`.
+
+
+### Same-node RPC and private peer dial routes
+
+`rpc(localhost, Goal, Options)` and `promise(localhost, Goal, Ref, Options)`
+resolve through the serving node's configured public URL. An explicit
+`localhost:Port` retains its ordinary host/port meaning.
+
+For owner-managed deployments behind a header-stripping public proxy, set
+`WP_PEER_WS_ENDPOINTS_FILE` to a read-only file containing a single list of
+logical HTTP node URLs paired with WebSocket dial endpoints. The existing
+N5 Docker network example is
+`Deployment/n5-peer-websocket-endpoints.example.pl`:
+
+```prolog
+['https://n3.elfenbenstornet.se'-'ws://wp_n3:3053/ws'].
+```
+
+This selects the existing private node interface; actor identities and return
+addresses retain the public node URL. The receiving node still enforces its
+transport trust policy. Public proxy routes continue stripping identity and
+capability headers. Invalid or duplicate mappings fail before startup.
+The file is owner configuration and is never supplied through public actor
+options. No mapping is enabled unless the environment variable selects it.
+
+The N5 remote-code regressions also require the native peer's distributed
+terminal text/newline fix. Qualify both runtime revisions together before
+rolling them out. `tools/test_remote_portability.py --help` describes the
+isolated Docker fixture; it checks the served ping-pong tutorial, RPC and
+promises, exact output, prompts, and forged-header/sandbox denial. Its
+`--without-private-route` mode verifies expected transport denial.

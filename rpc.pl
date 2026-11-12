@@ -75,6 +75,7 @@ runtime_property(hard_termination(true)).
 :- use_module(library(uri), [www_form_encode/2]).
 :- use_module(actors, [self/1,make_ref/1]).
 :- use_module(isolation, [actor_source_module/2,actor_module/2,load_options_text/3]).
+:- use_module(node_settings, []).
 
 % State is local to this process; client ownership is recorded explicitly.
 :- multifile hook_promise_owner/1.
@@ -264,7 +265,13 @@ resolve_rpc_uri(Input, URI) :-
     nonvar(Input), Input=Host0:Port, !,
     source_policy:uri_atom(Host0, Host), must_be(integer, Port),
     format(atom(URI),'http://~w:~w',[Host,Port]).
+resolve_rpc_uri(Input, URI) :-
+    nonvar(Input), source_policy:uri_atom(Input, Alias), Alias == localhost,
+    local_rpc_url(URI), !.
 resolve_rpc_uri(Input, URI) :- source_policy:uri_atom(Input, URI).
+
+local_rpc_url(URI) :- node_settings:node_setting(url, URI), !.
+local_rpc_url(URI) :- web_prolog:current_node_url(URI).
 
 rpc_source_module(Module) :-
     self(Pid),

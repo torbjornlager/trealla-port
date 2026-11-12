@@ -18,6 +18,7 @@ builds call check_config/0 without opening a listener.
 % Public actor goals may pass qualified local pids between workers. Install
 % the distribution routing hooks before admitting any client computation.
 :- use_module(distribution, []).
+:- use_module(peer_topology, []).
 :- use_module(profile_policy).
 :- use_module(sandbox_policy).
 :- use_module(auth_policy).
@@ -31,14 +32,21 @@ builds call check_config/0 without opening a listener.
 start_node :-
     deployment_options(Port, Options),
     validate_options(Options),
+    configure_peer_topology,
     print_configuration(Port, Options),
     web_prolog_node(Port, Options).
 
 check_config :-
     deployment_options(Port, Options),
     validate_options(Options),
+    configure_peer_topology,
     print_configuration(Port, Options),
     writeln('Configuration OK (listener not started).').
+
+% Owner-only dial topology; logical node identities and admission stay intact.
+configure_peer_topology :-
+    env_atom('WP_PEER_WS_ENDPOINTS_FILE', '', File),
+    ( File == '' -> true ; peer_topology:configure(File) ).
 
 deployment_options(Port, Options) :-
     reject_retired_page_cap,

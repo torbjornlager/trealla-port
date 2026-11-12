@@ -116,11 +116,17 @@ sandbox_prepare_spawn(Mode0, Profile, Module, Goal0, Options0,
     resolve_source_options(Options0, ResolvedOptions),
     check_source_options_size(ResolvedOptions),
     ( Mode == off -> Goal = Goal0, Options = ResolvedOptions
-    ; prepare_source_options(Mode, Profile, ResolvedOptions, Options, AppPIs),
+    ; prepare_source_options(Mode, Profile, ResolvedOptions, LocalOptions, AppPIs),
       check_spawn_options(Options0),
       profile_check_goal(Profile, Goal0),
       sandbox_check_goal_(Mode, Profile, Module, AppPIs, Goal0),
-      rewrite_goal(Mode, Profile, Module, AppPIs, Goal0, Goal)
+      rewrite_goal(Mode, Profile, Module, AppPIs, Goal0, LocalGoal),
+      % Validate here, but let the receiving node lower public code for its
+      % own engine. Trealla's private helpers are not portable wire goals.
+      ( memberchk(node(Node0), ResolvedOptions),
+        source_policy:uri_atom(Node0, Node), Node \== localhost
+      -> Goal = Goal0, Options = ResolvedOptions
+      ; Goal = LocalGoal, Options = LocalOptions )
     ).
 
 sandbox_prepare_options(Mode0, Profile, _Module, Options0, Options) :-

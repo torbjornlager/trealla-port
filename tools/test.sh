@@ -114,6 +114,11 @@ run_tpl_goal() {
 }
 
 run_unit() {
+    run_with_timeout "Same-node RPC and portable remote sandbox source" \
+        "$TPL" -g "consult('$ROOT/remote_portability_tests.pl'),(catch(remote_portability_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Owner-supplied private peer dial topology" \
+        "$TPL" -g "consult('$ROOT/peer_topology_tests.pl'),(catch(peer_topology_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+
     run_with_timeout "HTTP session and native actor routing lock order" \
         "$TPL" -g "consult('$ROOT/http_session_route_tests.pl'),(http_session_route_tests:run->halt;halt(1))"
 

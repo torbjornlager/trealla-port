@@ -1095,6 +1095,10 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_copy_predicates\'([PI|_], _) :- throw(error(existence_error(procedure,PI), src_predicates/1)).~n', []),
     bootstrap_line( '\'$actor_dynamic_terms\'(PI, Terms) :- ( \'$actor_dynamic_pi\'(PI) -> Dynamic=[(:- dynamic(PI))] ; Dynamic=[] ), ( \'$actor_discontiguous_pi\'(PI) -> append(Dynamic,[(:- discontiguous(PI))],Terms) ; Terms=Dynamic ).~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(Term, Term) :- var(Term), !.~n', []),
+    % Source capture must restore public I/O before another engine validates it.
+    bootstrap_line( '\'$actor_strip_source_module\'(actors:terminal_output(Term,[source(io)]), write(Term)) :- !.~n', []),
+    bootstrap_line( '\'$actor_strip_source_module\'(actors:terminal_output(Term,[source(io_line)]), writeln(Term)) :- !.~n', []),
+    bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_format(F,A), format(F,A)) :- !.~n', []),
     bootstrap_line( '\'$actor_strip_source_module\'(sandbox_policy:sandbox_clause(_M,_P,_C,_A,Head0,Body0), clause(Head,Body)) :- !, \'$actor_strip_source_module\'(Head0,Head), \'$actor_strip_source_module\'(Body0,Body).~n', []),
     % Export source goals, not the private primitive bridge installed for guard execution.
     bootstrap_line( '\'$actor_strip_source_module\'(Term0, Goal) :- Term0 = Qualified:Inner, Qualified == isolation, nonvar(Inner), functor(Inner,Bridge,2), memberchk(Bridge,[call_actor_leaf,call_actor_callback]), !, arg(2,Inner,Goal0), \'$actor_strip_source_module\'(Goal0,Goal).~n', []),
