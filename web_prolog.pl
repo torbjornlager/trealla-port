@@ -1274,6 +1274,11 @@ export_browser_pids(Term0, _Relay, Term0@Node) :-
     !.
 export_browser_pids(Term, _, Term) :- var(Term), !.
 export_browser_pids(Term, _, Term) :- atomic(Term), !.
+% Walk list spines directly. Rebuilding each cons through =../2 retains
+% successive tails in Trealla and exhausts memory on editor-sized sources.
+export_browser_pids([Head0|Tail0], Relay, [Head|Tail]) :- !,
+    export_browser_pids(Head0, Relay, Head),
+    export_browser_pids(Tail0, Relay, Tail).
 export_browser_pids(Term0, Relay, Term) :-
     functor(Term0, Name, Arity),
     export_browser_pid_args(1, Arity, Relay, Term0, Args),
@@ -1293,6 +1298,10 @@ import_browser_pids(Term0, Relay, Term) :-
         Term = '$web_prolog_endpoint'(Relay, Id)
     ; var(Term0) -> Term = Term0
     ; atomic(Term0) -> Term = Term0
+    ; Term0 = [Head0|Tail0] ->
+        Term = [Head|Tail],
+        import_browser_pids(Head0, Relay, Head),
+        import_browser_pids(Tail0, Relay, Tail)
     ; functor(Term0, Name, Arity),
       import_browser_pid_args(1, Arity, Relay, Term0, Args),
       % Trealla v3.13.10 cannot reliably execute/evaluate functor/3-built

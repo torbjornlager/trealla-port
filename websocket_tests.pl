@@ -27,6 +27,7 @@ websocket_tests :-
     named_variable_json_vectors,
     web_prolog_pid_binding_vector,
     pid_conversion_execution_vectors,
+    long_pid_conversion_vectors,
     canonical_answer_vectors,
     profile_advertisement_vector,
     web_prolog_variable_sharing_vector,
@@ -144,6 +145,16 @@ pid_conversion_execution_vector(Direction) :-
     \+ call(Conditional),
     convert_pid_term(Direction, (V=a ; V=b), Alternatives),
     findall(V, call(Alternatives), [a,b]).
+
+% Editor source is commonly a long character list. Both directions must
+% preserve variables and open tails without rebuilding every tail via =../2.
+long_pid_conversion_vectors :-
+    length(Text,18000), maplist(=(x),Text),
+    append(Text,[pair(X,X)|Tail],List),
+    forall(member(Direction,[import,export]),
+           (convert_pid_term(Direction,source(List),Converted),
+            Converted == source(List))),
+    var(X), var(Tail).
 
 canonical_answer_vectors :-
     Event = success(7,[pair(X,X),pair(Y,Z),X,'$VAR'(1),'a b',[a,b]],false),
