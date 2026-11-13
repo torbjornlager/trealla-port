@@ -57,6 +57,11 @@ no Logtalk or foreign code.
     actors:hook_stop/1,
     actors:hook_local_registration_pid/2.
 
+:- multifile actors:hook_terminal_stream/1.
+
+% A remote terminal endpoint needs the write/writeln distinction too.
+actors:hook_terminal_stream('@'('$io_endpoint'(_),_)) :- !.
+
 :- multifile web_prolog:hook_io_request/2.
 :- multifile web_prolog:hook_close_browser_io/1.
 :- multifile hook_websocket_endpoint/2. % +LogicalNodeURL, -ConnectionURL (owner topology)
@@ -1133,6 +1138,13 @@ remote_io_request(HomeNode, Token, Message0) :-
 
 io_wire_message('$input_prompt'(Pid, Ref, Prompt), prompt(Pid, Ref, Prompt),
                 [prompt_mode-string_atom(correlated)]) :- !.
+% Send ordinary text to the home node, including the line ending before
+% discarding the private stream marker. This also works with older peers.
+io_wire_message(terminal_io_output(Pid, Value), terminal_io_output(Pid, Text), []) :-
+    nonvar(Value), Value = '$terminal_stream'(Source, Term),
+    memberchk(Source, [io, io_line]), !,
+    write_term_to_atom(Raw, Term, [quoted(false)]),
+    ( Source == io_line -> atom_concat(Raw, '\n', Text) ; Text = Raw ).
 io_wire_message(Message, Message, []).
 
 io_request_result(ok) :- !.
