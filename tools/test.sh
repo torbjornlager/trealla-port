@@ -119,6 +119,10 @@ run_unit() {
     run_with_timeout "Owner-supplied private peer dial topology" \
         "$TPL" -g "consult('$ROOT/peer_topology_tests.pl'),(catch(peer_topology_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
 
+    rpc_topology_port=$((TEST_PORT_BASE + 86))
+    run_with_timeout "Owner RPC execution endpoints" \
+        "$TPL" -g "consult('$ROOT/rpc_topology_tests.pl'),(catch(rpc_topology_tests:run($rpc_topology_port),E,(writeq(E),nl,fail))->halt;halt(1))"
+
     run_with_timeout "HTTP session and native actor routing lock order" \
         "$TPL" -g "consult('$ROOT/http_session_route_tests.pl'),(http_session_route_tests:run->halt;halt(1))"
 
@@ -134,6 +138,8 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/monitor_preflight_tests.pl'),(catch(monitor_preflight_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "node_settings_tests" \
         "$TPL" -g "consult('$ROOT/node_settings_tests.pl'),(catch(node_settings_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Minimal private relay database and reclaimable bootstrap text" \
+        "$TPL" -g "consult('$ROOT/relay_shared_db_tests.pl'),(catch(relay_shared_db_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Idempotent connection shutdown" \
         "$TPL" -g "(catch((consult('$ROOT/node_shutdown_tests.pl'),node_shutdown_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Committed exit mailbox boundaries" \

@@ -37,6 +37,7 @@ policy before actor creation.
 */
 
 :- use_module(library(error)).
+:- use_module(library(lists), [append/2]).
 :- use_module(source_policy).
 
 :- dynamic actor_namespace/2.
@@ -184,7 +185,6 @@ read_stream_bytes(Stream, Bytes) :-
     ).
 
 :- multifile prepare_activation_goal/5.
-
 run_actor(Pid, GoalModule, Goal, Options, Parent) :-
     fresh_namespace(Module),
     actors:make_ref(PrepareToken),
@@ -230,7 +230,7 @@ prepare_actor(Pid, GoalModule, Options, Module) :-
 
 prepare_actor_module(Pid, _GoalModule, Options, Module) :-
     source_options(Options, Sources),
-    ( shared_db_text(SharedText)
+    ( \+ memberchk('$shared_db'(false), Options), shared_db_text(SharedText)
     -> Shared = shared(SharedText)
     ; Shared = none
     ),
@@ -893,8 +893,15 @@ bootstrap_text(Module, Text) :-
     supervisor_actor_library_file(SupervisorActorFile),
     phrase(bootstrap_lines(Module, ActorsFile, ToplevelFile,
                            SandboxFile, RpcFile, ParallelFile,
-                           ServerActorFile, SupervisorActorFile), Lines),
-    atomic_list_concat(Lines, Text).
+                           ServerActorFile, SupervisorActorFile), Pieces),
+    bootstrap_parts(Pieces,Formats,ArgumentLists),
+    atomic_list_concat(Formats,Template),
+    append(ArgumentLists,Arguments),
+    format(chars(Text),Template,Arguments).
+
+bootstrap_parts([],[],[]).
+bootstrap_parts([Format-Args|Pieces],[Format|Formats],[Args|Arguments]) :-
+    bootstrap_parts(Pieces,Formats,Arguments).
 
 minimal_bootstrap_text(_Module, Text) :-
     actors_library_file(ActorsFile),
@@ -903,11 +910,12 @@ minimal_bootstrap_text(_Module, Text) :-
            ':- use_module(~q).~n:- use_module(~q).~n\'$actor_call\'(Goal0) :- isolation:sourceless_worker_goal(Goal0,Goal), call(Goal).~n',
            [ActorsFile, ActorApiFile]).
 
-% Each fragment is formatted into a query-local atom. Trealla's
-% with_output_to/2 captures the shared current-output stream across threads.
+% The combined template is constant across actors; only its small argument
+% list contains the private module name. Format once into reclaimable chars,
+% avoiding both module-specific large atoms and repeated character-list copies.
+% This also avoids with_output_to/2's shared output capture across threads.
 bootstrap_line(Format, Args) -->
-    { format(atom(Line), Format, Args) },
-    [Line].
+    [Format-Args].
 
 bootstrap_lines(Module, ActorsFile, ToplevelFile,
                 SandboxFile, RpcFile, ParallelFile, ServerActorFile,

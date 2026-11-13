@@ -19,6 +19,7 @@ builds call check_config/0 without opening a listener.
 % the distribution routing hooks before admitting any client computation.
 :- use_module(distribution, []).
 :- use_module(peer_topology, []).
+:- use_module(rpc_topology, []).
 :- use_module(profile_policy).
 :- use_module(sandbox_policy).
 :- use_module(auth_policy).
@@ -45,6 +46,8 @@ check_config :-
 
 % Owner-only dial topology; logical node identities and admission stay intact.
 configure_peer_topology :-
+    env_atom('WP_PEER_RPC_ENDPOINTS_FILE', '', RPCFile),
+    (RPCFile == '' -> true ; rpc_topology:configure(RPCFile)),
     env_atom('WP_PEER_WS_ENDPOINTS_FILE', '', File),
     ( File == '' -> true ; peer_topology:configure(File) ),
     env_atom('WP_PEER_TRANSPORT_TOKENS_FILE', '', Credentials),

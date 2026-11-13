@@ -12,6 +12,8 @@
          runtime_property/1      % ?Property
        ]).
 
+:- multifile hook_rpc_endpoint/2.
+
 /** <module> RPC -- simple HTTP-based remote Prolog calls
 
 Client-side wrapper around the node `/call` endpoint.  A goal is
@@ -249,7 +251,8 @@ rpc(URI, Goal) :-
 
 rpc(URI0, Goal0, Options) :-
     validate_client_options(rpc,Options),
-    resolve_rpc_uri(URI0, URI),
+    resolve_rpc_uri(URI0, LogicalURI),
+    rpc_endpoint(LogicalURI,URI),
     strip_module(Goal0, _, Goal),
     term_variables(Goal, Vars),
     Template =.. [v|Vars],
@@ -269,6 +272,11 @@ resolve_rpc_uri(Input, URI) :-
     nonvar(Input), source_policy:uri_atom(Input, Alias), Alias == localhost,
     local_rpc_url(URI), !.
 resolve_rpc_uri(Input, URI) :- source_policy:uri_atom(Input, URI).
+
+% Only the owner topology module supplies this hook. Resolve in the caller
+% before starting promise workers; paging retains that selected endpoint.
+rpc_endpoint(Logical,Endpoint) :-
+    (hook_rpc_endpoint(Logical,Private)->Endpoint=Private;Endpoint=Logical).
 
 local_rpc_url(URI) :- node_settings:node_setting(url, URI), !.
 local_rpc_url(URI) :- web_prolog:current_node_url(URI).
@@ -408,7 +416,8 @@ promise(URI, Goal, Reference) :-
 
 promise(URI0, Goal0, Reference, Options) :-
     validate_client_options(promise,Options),
-    resolve_rpc_uri(URI0, URI),
+    resolve_rpc_uri(URI0, LogicalURI),
+    rpc_endpoint(LogicalURI,URI),
     strip_module(Goal0, _, Goal),
     option(template(Template), Options, Goal),
     option(offset(Offset), Options, 0),

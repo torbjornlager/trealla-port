@@ -318,6 +318,9 @@ validate_spawn_option_list([Option|Options],Scope) :-
     ; Option='$worker_scope'(Key) ->
         (Scope==runtime -> must_be(atom,Key)
         ; throw(error(permission_error(option,internal_spawn_option,Option),spawn/3)))
+    ; Option='$shared_db'(Value) ->
+        (Scope==runtime -> must_be(boolean,Value)
+        ; throw(error(permission_error(option,internal_spawn_option,Option),spawn/3)))
     ; Option='$name_reservation'(Token) ->
         (Scope==runtime -> must_be(integer,Token)
         ; throw(error(permission_error(option,internal_spawn_option,Option),spawn/3)))

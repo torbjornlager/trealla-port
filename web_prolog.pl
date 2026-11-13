@@ -121,7 +121,6 @@ Inference/stack ceilings and OS-level containment remain necessary.
 
 protocol_version(1).
 
-
                  /*******************************
                  *          SERVER API           *
                  *******************************/
@@ -187,7 +186,7 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
         actor_authority:open_namespace(Namespace, Principal),
         ( actors:spawn_scoped(
               relay_start(WS, Principal, Identity, AnswerTerms), Relay,
-              [link(false)], Namespace, internal),
+              [link(false),'$shared_db'(false)], Namespace, internal),
           setup_call_cleanup(
               observe_activity_start(ws_connection, Reader, Principal, websocket),
               once(read_loop(WS, Relay, Reader, Profile, Sandbox,
