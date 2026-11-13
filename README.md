@@ -2776,3 +2776,28 @@ rolling them out. `tools/test_remote_portability.py --help` describes the
 isolated Docker fixture; it checks the served ping-pong tutorial, RPC and
 promises, exact output, prompts, and forged-header/sandbox denial. Its
 `--without-private-route` mode verifies expected transport denial.
+
+
+### Browser relay activation and welcome failures
+
+The connection relay enters `web_prolog` explicitly through the internal caller
+context, retaining its minimal private actor module. A qualified call to
+`actors:spawn_scoped/5` must also explicitly qualify its framework goal;
+otherwise the entry can become `actors:relay_start(...)`. Private-source lookup
+must not select framework startup code.
+
+The reader waits for relay initialization, not only private-module preparation.
+Both that wait and the transport-welcome wait observe the relay's monitor and
+select only their own ready/down messages. Ordinary failures and exceptions
+therefore end the wait. Monitors are removed and flushed on every exit. A relay
+that stops during welcome produces a standard `existence_error(websocket_relay,
+Pid)` protocol error and closes the connection; it cannot report its own failure
+through a dead mailbox. No retry or larger timeout is used.
+
+`websocket_activation_tests.pl` covers explicit entry context, initialized relay
+state, minimal database, startup failure/exception, death during hello, unrelated
+mailbox preservation, monitor cleanup and the resulting error frame. It runs in
+`tools/test.sh unit`. The demonstrator's `tools/test_public_ws_n1.py --relay-fault`
+adds a controlled before/after check through isolated TLS, Caddy and Nginx using
+the supplied exact images. The injected failure exists only in disposable test
+containers, and expected failures remain explicitly recorded as failures.

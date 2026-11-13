@@ -140,6 +140,8 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/node_settings_tests.pl'),(catch(node_settings_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Minimal private relay database and reclaimable bootstrap text" \
         "$TPL" -g "consult('$ROOT/relay_shared_db_tests.pl'),(catch(relay_shared_db_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "WebSocket relay activation and failure before welcome" \
+        "$TPL" -g "consult('$ROOT/websocket_activation_tests.pl'),(catch(websocket_activation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Idempotent connection shutdown" \
         "$TPL" -g "(catch((consult('$ROOT/node_shutdown_tests.pl'),node_shutdown_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Committed exit mailbox boundaries" \

@@ -184,9 +184,7 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
     Namespace = ws_client(NamespaceId),
     setup_call_cleanup(
         actor_authority:open_namespace(Namespace, Principal),
-        ( actors:spawn_scoped(
-              relay_start(WS, Principal, Identity, AnswerTerms), Relay,
-              [link(false),'$shared_db'(false)], Namespace, internal),
+        ( spawn_browser_relay(WS, Principal, Identity, AnswerTerms, Namespace, Relay),
           setup_call_cleanup(
               observe_activity_start(ws_connection, Reader, Principal, websocket),
               once(read_loop(WS, Relay, Reader, Profile, Sandbox,
@@ -197,6 +195,30 @@ web_prolog_handler(Profile, Sandbox, WS, '/ws') :-
         call_cleanup(retire_websocket_namespace(Namespace),
                      actor_authority:close_namespace(Namespace))
     ).
+
+% Explicitly retain the framework module across actors:spawn_scoped/5. Its
+% meta-call otherwise qualifies an unqualified entry as actors:relay_start/5;
+% stripping that context and looking it up in the private source module is
+% not a reliable framework dispatch path. Preparation alone is not readiness:
+% the child must have installed its relay state before we read browser commands.
+spawn_browser_relay(WS, Principal, Identity, AnswerTerms, Namespace, Relay) :-
+    self(Parent),
+    setup_call_cleanup(
+        actors:spawn_scoped(
+            web_prolog:relay_start(WS, Principal, Identity, AnswerTerms, Parent), Relay,
+            [link(false),monitor(true),'$shared_db'(false),'$entry_context'(caller)],
+            Namespace, internal),
+        await_browser_relay(Relay),
+        actors:demonitor(Relay, [flush])).
+
+await_browser_relay(Relay) :-
+    actors:receive_qualified(web_prolog:{
+        '$browser_relay_started'(Relay) -> true ;
+        down(Relay, Relay, _) -> web_prolog:relay_unavailable(Relay)
+    }, []).
+
+relay_unavailable(Relay) :-
+    throw(error(existence_error(websocket_relay, Relay), web_prolog_handler/2)).
 
 % Each subsystem releases its mutex before the next begins. Connection actor
 % shutdown remains in the surrounding cleanup even if promise disposal errors.
@@ -212,7 +234,7 @@ read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
         catch(( check_ws_frame_size(Text),
                 dispatch_text(Text, Relay, Reader, Profile, Sandbox,
                               Principal, Identity) ), Error,
-              ( note_ws_ip_offense(Error), Relay ! protocol_error(Error) )),
+              web_prolog:read_dispatch_error(WS, Relay, Error)),
         read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity)
     ; Frame = close(Code, Reason) ->
         Relay ! '$peer_close'(Code, Reason)
@@ -220,6 +242,17 @@ read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity) :-
         true
     ; read_loop(WS, Relay, Reader, Profile, Sandbox, Principal, Identity)
     ).
+
+% A stopped relay cannot deliver its own error. Send the ordinary protocol
+% error directly and unwind the connection instead of discarding the error in
+% the dead actor's mailbox and leaving the browser waiting indefinitely.
+read_dispatch_error(WS, Relay, error(existence_error(websocket_relay, Relay), Context)) :- !,
+    Error = error(existence_error(websocket_relay, Relay), Context),
+    event_json(error(Error), JSON),
+    web_prolog_send(WS, JSON),
+    throw(Error).
+read_dispatch_error(_, Relay, Error) :-
+    note_ws_ip_offense(Error), Relay ! protocol_error(Error).
 
 close_connection(Relay) :-
     close_browser_io(Relay),
@@ -354,11 +387,15 @@ dispatch(transport_hello, JSON, Relay, Reader, Profile, Sandbox) :- !,
     json_boolean_default(JSON, io_ack, false, IoAck),
     json_boolean_default(JSON, answer_terms, false, AnswerTerms),
     ( Version =:= 1 ->
-        relay_request(Relay, '$transport_hello'(Version, IoAck, AnswerTerms, Profile, Sandbox, Reader)),
-        thread_get_message(Reader, '$transport_ready'(Relay))
+        setup_call_cleanup(
+            actors:monitor(Relay, Ref),
+            (relay_request(Relay, '$transport_hello'(Version, IoAck, AnswerTerms, Profile, Sandbox, Reader)),
+             await_transport_ready(Relay, Ref)),
+            actors:demonitor(Ref, [flush]))
     ; throw(error(domain_error(web_prolog_protocol_version, Version),
                   web_prolog_handler/2))
     ).
+
 dispatch(toplevel_spawn, JSON, Relay, _, Profile, Sandbox) :- !,
     json_options(JSON, Options0),
     toplevel_actors:validate_toplevel_spawn_options(Options0,public),
@@ -434,6 +471,12 @@ dispatch(io_request, JSON, Relay, _, _, _) :- !,
 dispatch(Command, _, _, _, _, _) :-
     throw(error(domain_error(web_prolog_command, Command),
                 web_prolog_handler/2)).
+
+await_transport_ready(Relay, Ref) :-
+    actors:receive_qualified(web_prolog:{
+        '$transport_ready'(Relay) -> true ;
+        down(Relay, Ref, _) -> web_prolog:relay_unavailable(Relay)
+    }, []).
 
 % Queue the validated context with the command; the relay multiplexes lineages.
 relay_request(Relay, Message) :-
@@ -563,7 +606,7 @@ send_to_target(actor(Pid), Message) :-
                  *           RELAY               *
                  *******************************/
 
-relay_start(WS, Principal, Identity, AnswerTerms) :-
+relay_start(WS, Principal, Identity, AnswerTerms, Parent) :-
     relay_set_actors([]),
     relay_set_monitors([]),
     relay_set_halts([]),
@@ -571,7 +614,8 @@ relay_start(WS, Principal, Identity, AnswerTerms) :-
     relay_set_answer_terms(AnswerTerms),
     self(Relay),
     setup_call_cleanup(assertz(browser_relay(Relay)),
-                       relay_loop(WS),
+                       (Parent ! '$browser_relay_started'(Relay),
+                        relay_loop(WS)),
                        retractall(browser_relay(Relay))).
 
 actors:hook_terminal_stream('$browser_io'(_)) :- !.
