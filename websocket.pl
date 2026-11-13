@@ -60,7 +60,7 @@ http_open_websocket(URL, WebSocket, Options) :-
     ws_url(URL, Scheme, Host, Port, Path),
     websocket_client_socket_options(Scheme, Options, SocketOptions),
     socket_client_open(Host:Port, Stream, SocketOptions),
-    catch(client_handshake(Stream, Host, Port, Path, Options), Error,
+    catch(client_handshake(Stream, Scheme, Host, Port, Path, Options), Error,
           ( close(Stream), throw(Error) )),
     ws_open(Stream, WebSocket, [role(client)|Options]).
 
@@ -206,10 +206,11 @@ websocket_serve_connection(Stream, Handler, Options) :-
                  *       OPENING HANDSHAKE      *
                  *******************************/
 
-client_handshake(Stream, Host, Port, Path, Options) :-
+client_handshake(Stream, Scheme, Host, Port, Path, Options) :-
     random_bytes(16, Nonce), base64_encode(Nonce, Key),
     write_http(Stream, 'GET ~w HTTP/1.1\r\n', [Path]),
-    write_http(Stream, 'Host: ~w:~w\r\n', [Host, Port]),
+    request_host(Scheme, Host, Port, Authority),
+    write_http(Stream, 'Host: ~w\r\n', [Authority]),
     write_http(Stream, 'Upgrade: websocket\r\nConnection: Upgrade\r\n', []),
     write_http(Stream, 'Sec-WebSocket-Key: ~w\r\nSec-WebSocket-Version: 13\r\n', [Key]),
     write_client_subprotocol(Stream, Options),
@@ -229,6 +230,12 @@ client_handshake(Stream, Host, Port, Path, Options) :-
                   http_open_websocket/3))
     ),
     validate_client_subprotocol(Headers, Options).
+
+% Use the canonical authority for default ports. Strict reverse proxies and
+% node admission compare this authority with the advertised node identity.
+request_host(Scheme, Host, Port, Authority) :-
+    ( websocket_default_port(Scheme, Port) -> Authority=Host
+    ; format(atom(Authority), '~w:~w', [Host,Port]) ).
 
 server_handshake(Stream, Path) :-
     read_http_line(Stream, Request),

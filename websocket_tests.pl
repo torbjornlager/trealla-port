@@ -17,6 +17,7 @@ the cross-runtime test commands documented in README.md.
 :- op(200, xfx, @).
 
 websocket_tests :-
+    canonical_host_vector,
     handshake_vector,
     optional_subprotocol_vectors,
     utf8_vector,
@@ -370,3 +371,10 @@ capture_optional_protocol(Headers, Options, Text) :-
 read_protocol_bytes(In,Codes) :-
     get_byte(In,Byte),
     ( Byte == -1 -> Codes=[] ; Codes=[Byte|Rest],read_protocol_bytes(In,Rest) ).
+
+canonical_host_vector :-
+    websocket:request_host(wss,'n7.elfenbenstornet.se',443,'n7.elfenbenstornet.se'),
+    websocket:request_host(ws,localhost,80,localhost),
+    websocket:request_host(wss,localhost,18444,'localhost:18444'),
+    websocket:request_host(ws,localhost,443,'localhost:443'),
+    writeln('canonical default-port and explicit nondefault WebSocket authorities: ok').
