@@ -7,6 +7,9 @@
 run :-
     make_ref(Ref),format(atom(File),'/tmp/peer-topology-~w.pl',[Ref]),
     setup_call_cleanup(true,checks(File),catch(delete_file(File),_,true)),
+    peer_topology:configure('Deployment/n5-peer-websocket-endpoints.example.pl'),
+    distribution:node_websocket_url('https://n3.elfenbenstornet.se','ws://wp_n3:3053/ws'),
+    distribution:node_websocket_url('https://n4.elfenbenstornet.se','ws://wp_n4:3055/ws'),
     writeln('Owner topology: exact dial mapping, invalid/duplicate files and fail-closed reload passed').
 
 checks(File) :-
