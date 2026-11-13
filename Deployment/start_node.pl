@@ -46,7 +46,9 @@ check_config :-
 % Owner-only dial topology; logical node identities and admission stay intact.
 configure_peer_topology :-
     env_atom('WP_PEER_WS_ENDPOINTS_FILE', '', File),
-    ( File == '' -> true ; peer_topology:configure(File) ).
+    ( File == '' -> true ; peer_topology:configure(File) ),
+    env_atom('WP_PEER_TRANSPORT_TOKENS_FILE', '', Credentials),
+    ( Credentials == '' -> true ; peer_topology:configure_credentials(Credentials) ).
 
 deployment_options(Port, Options) :-
     reject_retired_page_cap,
@@ -115,7 +117,10 @@ deployment_options(Port, Options) :-
     optional_list(ip_allowlist, IPAllowlist, O2, O3),
     optional_list(ip_blocklist, IPBlocklist, O3, O4),
     optional_list(load_uri_allowed_origins, SourceOrigins, O4, O5),
-    optional_list(load_uri_origin_aliases, SourceAliases, O5, Options).
+    optional_list(load_uri_origin_aliases, SourceAliases, O5, O6),
+    env_atom('WP_PEER_INBOUND_TOKENS_FILE', '', PeerFile),
+    ( PeerFile == '' -> Options=O6
+    ; peer_topology:inbound_options(PeerFile, PeerInbound), append(O6,PeerInbound,Options) ).
 
 validate_options(Options) :-
     memberchk(profile(Profile), Options), normalize_profile(Profile, _),

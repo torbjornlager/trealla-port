@@ -6,7 +6,7 @@
 
 run :-
     make_ref(Ref),format(atom(File),'/tmp/peer-topology-~w.pl',[Ref]),
-    setup_call_cleanup(true,checks(File),catch(delete_file(File),_,true)),
+    setup_call_cleanup(true,(checks(File),credential_checks(File)),catch(delete_file(File),_,true)),
     peer_topology:configure('Deployment/n5-peer-websocket-endpoints.example.pl'),
     distribution:node_websocket_url('https://n3.elfenbenstornet.se','ws://wp_n3:3053/ws'),
     distribution:node_websocket_url('https://n4.elfenbenstornet.se','ws://wp_n4:3055/ws'),
@@ -27,3 +27,18 @@ checks(File) :-
 write_config(File,Term) :-
     setup_call_cleanup(open(File,write,S),
       (write_term(S,Term,[quoted(true)]),write(S,'.'),nl(S)),close(S)).
+
+credential_checks(File) :-
+    Token='synthetic-owner-credential-000000000',
+    write_config(File,['https://node.test'-Token]),peer_topology:configure_credentials(File),
+    peer_topology:inbound_options(File,[bearer_token('https://node.test',Token,[execute,internal_transport])]),
+    distribution:hook_websocket_options('https://node.test',[header('Authorization',Bearer)]),
+    atom_concat('Bearer ',Token,Bearer),
+    \+ distribution:hook_websocket_options('https://node.test.invalid',_),
+    \+ distribution:hook_websocket_options('https://other.test',_),
+    forall(member(Bad,[['https://node.test'-short],
+                       ['https://node.test'-'synthetic-token-with-newline\n000000'],
+                       ['https://node.test'-Token,'https://node.test'-Token],
+                       [(:- halt)]]),
+      (write_config(File,Bad),catch(peer_topology:configure_credentials(File),E,true),nonvar(E),
+       distribution:hook_websocket_options('https://node.test',[header('Authorization',Bearer)]))).

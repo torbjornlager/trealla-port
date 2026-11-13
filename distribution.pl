@@ -65,6 +65,7 @@ actors:hook_terminal_stream('@'('$io_endpoint'(_),_)) :- !.
 :- multifile web_prolog:hook_io_request/2.
 :- multifile web_prolog:hook_close_browser_io/1.
 :- multifile hook_websocket_endpoint/2. % +LogicalNodeURL, -ConnectionURL (owner topology)
+:- multifile hook_websocket_options/2. % owner-installed credentials, keyed by logical origin
 :- multifile hook_transport_error/2. % +NodeURL, +Error (not a spawn reply)
 
 :- dynamic io_endpoint_target/2.
@@ -88,7 +89,10 @@ remote_node_open(URL0, remote_node(URL, Reader, Writer), Options) :-
     node_url_atom(URL0, URL),
     node_websocket_url(URL, WebSocketURL),
     self(Owner),
-    node_connection_options(Options, WebSocketOptions),
+    node_connection_options(Options, DefaultOptions),
+    ( once(hook_websocket_options(URL, PeerOptions))
+    -> append(PeerOptions, DefaultOptions, WebSocketOptions)
+    ; WebSocketOptions = DefaultOptions ),
     web_prolog_connect(WebSocketURL, WS,
         [optional_subprotocols(['web-prolog-sync-spawn-v1','web-prolog-sync-v1']),selected_subprotocol(Selected)|WebSocketOptions]),
     ( memberchk(Selected,['web-prolog-sync-spawn-v1','web-prolog-sync-v1']) -> Sync = true ; Sync = false ),
