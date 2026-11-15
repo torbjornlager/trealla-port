@@ -162,6 +162,7 @@ Reply = hello.
 :- meta_predicate(receive(:, +)).
 :- meta_predicate(discard_deferred(1)).
 
+:- use_module(native_thread_control, []).
 :- use_module(isolation).
 :- use_module(integer_relations,[succ/2]).
 :- use_module(resource_policy).
@@ -1006,7 +1007,7 @@ exit_actor(Pid, Reason) :-
         catch(thread_signal(Thread, actors:exit_signal(Pid, Reason)), _, true)
     ; logical_pid(Pid) ->
         true
-    ; catch(thread_signal(Pid, actors:exit(Reason)), _, true)
+    ; catch(native_thread_control:signal(Pid, actors:exit(Reason)), _, true)
     ).
 
 

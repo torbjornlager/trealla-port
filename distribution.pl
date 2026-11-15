@@ -42,6 +42,7 @@ no Logtalk or foreign code.
 
 :- op(200, xfx, @).
 
+:- use_module(native_thread_control, []).
 :- use_module(actors).
 :- use_module(isolation).
 :- use_module(websocket).
@@ -142,7 +143,7 @@ remote_node_close(Node) :-
     % reader can still be inside get_byte/2. Its registry entry is removed
     % by at_exit, after the reader goal has unwound.
     ( actors:actor_thread(Reader, ReaderThread) ->
-        catch(thread_cancel(ReaderThread),
+        catch(native_thread_control:cancel(ReaderThread),
               error(existence_error(thread_object, _), _), true)
     ; true
     ),

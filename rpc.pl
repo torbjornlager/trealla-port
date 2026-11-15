@@ -73,6 +73,7 @@ runtime_property(dom(false)).
 runtime_property(actor_isolation(independent)).
 runtime_property(hard_termination(true)).
 
+:- use_module(native_thread_control, []).
 :- use_module(library(http)).
 :- use_module(library(uri), [www_form_encode/2]).
 :- use_module(actors, [self/1,make_ref/1]).
@@ -636,7 +637,7 @@ stop_promise_threads([Thread|Threads]) :-
     (Thread == none -> true
     ; thread_self(Self),
       (Thread == Self -> true
-      ; catch(thread_signal(Thread,throw('$rpc_promise_disposed')),
+      ; catch(native_thread_control:signal(Thread,throw('$rpc_promise_disposed')),
               error(existence_error(thread_object,_),_),true))),
     stop_promise_threads(Threads).
 

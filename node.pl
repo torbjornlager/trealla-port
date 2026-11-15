@@ -117,6 +117,7 @@ waits for their normal cleanup under a bounded timeout.
 :- dynamic http_promise_namespace/2.
 % Load the client before extending its owner hook: Trealla otherwise sees
 % a hook-only rpc module and may leave the client predicates unavailable.
+:- use_module(native_thread_control, []).
 :- use_module(answer_terms,[check_answer_term/1,finite_query_error/2]).
 :- use_module(actor_authority, []).
 :- use_module(rpc).
@@ -659,7 +660,7 @@ stop_node_connection(Stream, Thread, Key) :-
     % queued thread_exit signal. They can terminate the goal and then its
     % at_exit cleanup separately. An owner-side signal closes and unregisters
     % first; it also interrupts socket reads without that second native exit.
-    ( catch(thread_signal(Thread,node:node_connection_shutdown(Key,Stream)),_,fail)
+    ( catch(native_thread_control:signal(Thread,node:node_connection_shutdown(Key,Stream)),_,fail)
     -> true
     ; node_connection_exit(Key,Stream)
     ).

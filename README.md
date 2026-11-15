@@ -2801,3 +2801,12 @@ mailbox preservation, monitor cleanup and the resulting error frame. It runs in
 adds a controlled before/after check through isolated TLS, Caddy and Nginx using
 the supplied exact images. The injected failure exists only in disposable test
 containers, and expected failures remain explicitly recorded as failures.
+
+### Native cancellation and pre-upgrade HTTP 502
+
+Native control goals now check their intended thread identifier in the receiver.
+This prevents late promise cleanup, abort or shutdown from terminating a new
+HTTP/actor worker that reused a finished thread's native storage. The deployed
+engine race, controlled HTTP 502 reproduction and regression coverage are
+recorded in [the N5 diagnosis](docs/N5_NATIVE_SIGNAL_REUSE.md). Public APIs,
+resource limits and timeouts are unchanged.

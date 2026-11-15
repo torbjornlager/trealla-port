@@ -103,6 +103,7 @@ goal choicepoint after optionally changing the page limit.
 */
 
 
+:- use_module(native_thread_control, []).
 :- use_module(answer_terms,[check_answer_term/1,finite_query_error/2]).
 :- use_module(actors).
 :- use_module(isolation).
@@ -719,7 +720,7 @@ toplevel_stop(Pid) :-
 
 toplevel_abort(Pid) :-
     ( actors:actor_thread(Pid, Thread) ->
-        catch(thread_signal(Thread, throw('$abort_goal')),
+        catch(native_thread_control:signal(Thread, throw('$abort_goal')),
               error(existence_error(_,_), _),
               true)
     ; true

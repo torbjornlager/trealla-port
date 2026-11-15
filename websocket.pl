@@ -35,6 +35,7 @@ for correlated toplevel and spawn replies, and also offer `web-prolog-sync-v1`
 for toplevel correlation alone. Unnegotiated legacy connections remain supported.
 */
 
+:- use_module(native_thread_control, []).
 :- use_module(library(sockets)).
 
 :- meta_predicate(websocket_server(+, 2)).
@@ -170,7 +171,7 @@ websocket_server_start(Port, Handler, websocket_running(Socket, Thread), Options
 
 websocket_server_stop(websocket_running(Socket, Thread)) :-
     catch(socket_server_close(Socket), _, true),
-    catch(thread_cancel(Thread), _, true),
+    catch(native_thread_control:cancel(Thread), _, true),
     catch(thread_join(Thread, _), _, true).
 
 websocket_accept_loop(Socket, Handler, Options) :-
