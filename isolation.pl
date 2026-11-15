@@ -205,11 +205,15 @@ run_actor(Pid, GoalModule, Goal, Options, Parent) :-
 
 prepare_actor_and_signal(Pid, GoalModule, Goal, Options, Module, Prepared, Parent,
                          PrepareToken) :-
-    catch((prepare_actor_module(Pid, GoalModule, Options, Module),
-           (prepare_activation_goal(Pid,GoalModule,Module,Goal,Continuation)
-           -> Prepared=framework(Continuation);Prepared=application(Goal)),
-           actors:publish_spawn_name(Pid,Options),
-           actors:signal_actor_started(Pid,Parent)),
+    % Preparation that fails (for example a failing source directive) must
+    % answer the waiting parent exactly like preparation that throws.
+    catch(( ( prepare_actor_module(Pid, GoalModule, Options, Module),
+              (prepare_activation_goal(Pid,GoalModule,Module,Goal,Continuation)
+              -> Prepared=framework(Continuation);Prepared=application(Goal)),
+              actors:publish_spawn_name(Pid,Options),
+              actors:signal_actor_started(Pid,Parent) )
+          -> true
+          ; throw(error(system_error(actor_preparation_failed), spawn/3)) ),
           Error,
           throw('$actor_prepare_error'(PrepareToken, Error))).
 
@@ -1021,7 +1025,9 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     % Merely remembering the PI leaves a call to an empty predicate undefined.
     bootstrap_line( '\'$actor_expanded\'((:- dynamic(PI))) :- !, \'$actor_remember_pi\'(PI), \'$actor_remember_dynamic_pi\'(PI).~n', []),
     bootstrap_line( '\'$actor_expanded\'((:- discontiguous(PI))) :- !, isolation:discontiguous_pis(PI,PIs), maplist(\'$actor_remember_pi\',PIs), maplist(\'$actor_remember_discontiguous_pi\',PIs).~n', []),
-    bootstrap_line( '\'$actor_expanded\'((:- Directive)) :- !, call(Directive).~n', []),
+    % A directive that fails is an error for the creating client, on every
+    % engine: silently continuing would hide a partly loaded program.
+    bootstrap_line( '\'$actor_expanded\'((:- Directive)) :- !, ( call(Directive) -> true ; throw(error(directive_failed(Directive), \'$actor_load\'/1)) ).~n', []),
     bootstrap_line( '\'$actor_expanded\'((Head :- Body)) :- !, \'$actor_remember\'(Head), assertz((Head :- Body)).~n', []),
     bootstrap_line( '\'$actor_expanded\'(Head) :- \'$actor_remember\'(Head), assertz(Head).~n', []),
     bootstrap_line( '\'$actor_remember\'(Head) :- callable(Head), functor(Head, Name, Arity), PI = Name/Arity, \'$actor_prepare_pi\'(PI,Head).~n', []),

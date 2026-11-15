@@ -142,6 +142,8 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/relay_shared_db_tests.pl'),(catch(relay_shared_db_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Native control signal receiver identity" \
         "$TPL" -g "consult('$ROOT/native_thread_control_tests.pl'),(catch(native_thread_control_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Failing source preparation answers the spawning parent" \
+        "$TPL" -g "consult('$ROOT/spawn_prepare_failure_tests.pl'),(catch(spawn_prepare_failure_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "WebSocket relay activation and failure before welcome" \
         "$TPL" -g "consult('$ROOT/websocket_activation_tests.pl'),(catch(websocket_activation_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Idempotent connection shutdown" \
