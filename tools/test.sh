@@ -222,6 +222,8 @@ run_unit() {
         "$TPL" -g "(catch((consult('$ROOT/remote_chart_tests.pl'),remote_chart_tests:unit),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "remote statechart receiver boundary" \
         "$TPL" -g "(catch((consult('$ROOT/remote_statechart_invocation_tests.pl'),remote_statechart_invocation_tests:unit),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "creation source policy" \
+        "$TPL" -g "(catch((consult('$ROOT/creation_source_policy_tests.pl'),creation_source_policy_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "discontiguous source declarations" \
         "$TPL" -g "(catch((consult('$ROOT/source_declaration_tests.pl'),source_declaration_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "empty dynamic declarations and boxshop" \

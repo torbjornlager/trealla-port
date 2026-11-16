@@ -358,7 +358,8 @@ private_toplevel_query :-
 profile_and_sandbox_surface :-
     sandbox_prepare_goal(whitelist, actor, user,
                          server_spawn(callback, state, _Pid), Prepared),
-    Prepared = server_spawn(callback, state, _),
+    % Source supplied through server_spawn/3-4 must pass the source policy.
+    Prepared = sandbox_policy:sandbox_server_spawn(_, actor, user, _, callback, state, _, []),
     catch(sandbox_prepare_goal(whitelist, isotope, user,
                                server_spawn(callback, state, _), _),
           Error, true),

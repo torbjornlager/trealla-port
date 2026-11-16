@@ -16,6 +16,9 @@
          sandbox_call/11,
          sandbox_call/12,
          sandbox_spawn/7,
+         sandbox_toplevel_spawn/6,
+         sandbox_server_spawn/8,
+         sandbox_server_upgrade/7,
          sandbox_library/5,
          sandbox_supervisor_call/5,
          sandbox_toplevel_call/7,
@@ -773,6 +776,13 @@ rewrite_goal_(M,P,C,A,receive(Q0,O0),receive(Q,O)) :- rewrite_receive(M,P,C,A,Q0
 rewrite_goal_(M,P,C,A,spawn(X),sandbox_policy:sandbox_spawn(M,P,C,A,X,_,[])).
 rewrite_goal_(M,P,C,A,spawn(X,Pid),sandbox_policy:sandbox_spawn(M,P,C,A,X,Pid,[])).
 rewrite_goal_(M,P,C,A,spawn(X,Pid,O),sandbox_policy:sandbox_spawn(M,P,C,A,X,Pid,O)).
+% Every creation predicate that accepts src_* options must pass its source
+% through the source policy, exactly as spawn/1-3 does.
+rewrite_goal_(M,P,C,A,toplevel_spawn(Pid),sandbox_policy:sandbox_toplevel_spawn(M,P,C,A,Pid,[])).
+rewrite_goal_(M,P,C,A,toplevel_spawn(Pid,O),sandbox_policy:sandbox_toplevel_spawn(M,P,C,A,Pid,O)).
+rewrite_goal_(M,P,C,A,server_spawn(CB,S,Pid),sandbox_policy:sandbox_server_spawn(M,P,C,A,CB,S,Pid,[])).
+rewrite_goal_(M,P,C,A,server_spawn(CB,S,Pid,O),sandbox_policy:sandbox_server_spawn(M,P,C,A,CB,S,Pid,O)).
+rewrite_goal_(M,P,C,A,server_upgrade(To,CB,O),sandbox_policy:sandbox_server_upgrade(M,P,C,A,To,CB,O)).
 % Recheck runtime-bound child data before dispatch. Static inspection may
 % deliberately leave opaque specifications untouched in blacklist mode.
 rewrite_goal_(M,P,C,A,supervisor_spawn(Specs,Pid),
@@ -954,6 +964,49 @@ sandbox_spawn(Mode, Profile, Module, _AppPIs, Goal0, Pid, Options0) :-
                           Goal, Options),
     actors:spawn(Goal, Pid, Options),
     !.
+
+% toplevel_spawn/1-2, server_spawn/3-4 and server_upgrade/3 previously reached
+% their runtime implementations unrewritten, so source supplied through them
+% skipped safe_source_directive/1 and clause-body rewriting altogether.
+sandbox_toplevel_spawn(Mode, Profile, Module, _AppPIs, Pid, Options0) :-
+    toplevel_actors:validate_toplevel_spawn_options(Options0, public),
+    sandbox_creation_source(Mode, Profile, Module, Options0, Options),
+    context_module(Module, RuntimeModule),
+    toplevel_actors:toplevel_spawn(Pid, RuntimeModule:Options),
+    !.
+
+sandbox_server_spawn(Mode, Profile, Module, _AppPIs, Callback, State, Pid, Options0) :-
+    must_be(list, Options0),
+    sandbox_creation_source(Mode, Profile, Module, Options0, Options),
+    context_module(Module, RuntimeModule),
+    server_actor:server_spawn(RuntimeModule:Callback, State, Pid, Options),
+    !.
+
+sandbox_server_upgrade(Mode, Profile, Module, _AppPIs, To, Callback, Options0) :-
+    must_be(list, Options0),
+    sandbox_creation_source(Mode, Profile, Module, Options0, Options),
+    context_module(Module, RuntimeModule),
+    server_actor:server_upgrade(To, RuntimeModule:Callback, Options),
+    !.
+
+% Validate and lower creation source like sandbox_prepare_spawn/7. A remote
+% creation is validated here but sent unlowered: the receiving node applies
+% its own policy, and Trealla's private helpers are not portable wire goals.
+sandbox_creation_source(Mode0, Profile, Module, Options0, Options) :-
+    normalize_sandbox_mode(Mode0, Mode),
+    (   Mode == off
+    ->  Options = Options0
+    ;   context_module(Module, RuntimeModule),
+        isolation:rewrite_source_options(Options0, RuntimeModule, Options1),
+        resolve_source_options(Options1, Resolved),
+        check_source_options_size(Resolved),
+        prepare_source_options(Mode, Profile, Resolved, Local, _),
+        (   memberchk(node(Node0), Resolved),
+            source_policy:uri_atom(Node0, Node), Node \== localhost
+        ->  Options = Resolved
+        ;   Options = Local
+        )
+    ).
 
 % Runtime checks cover computed callbacks/options as well as the query goal.
 sandbox_yield(Mode,Profile,Module,AppPIs,Reference,Answer,Options0) :-
