@@ -690,7 +690,7 @@ allowed_spawn_node_url(Node) :- loopback_node_url(Node), !.
 allowed_spawn_node_url(Node) :- source_origin_allowed(Node).
 
 loopback_node_url(Node0) :-
-    source_text_atom(Node0, Node),
+    source_policy:uri_atom(Node0, Node),
     member(Prefix, ['http://127.0.0.1:', 'https://127.0.0.1:',
                     'ws://127.0.0.1:', 'wss://127.0.0.1:',
                     'http://localhost:', 'https://localhost:',

@@ -22,6 +22,7 @@ spawn_invalid_options :-
     expect_spawn_error(spawn(true,_,[link(true),link(maybe)]),domain_error(boolean,maybe),actors:spawn/3),
     expect_spawn_error(spawn(true,_,[monitor(1)]),type_error(atom,1),actors:spawn/3),
     expect_spawn_error(spawn(true,_,[node(42)]),type_error(atom_or_string,42),actors:spawn/3),
+    expect_spawn_error(spawn(true,_,[node([h,1.5])]),type_error(atom_or_string,[h,1.5]),actors:spawn/3),
     expect_spawn_error(spawn(true,_,[target(_)]),instantiation_error,actors:spawn/3),
     expect_spawn_error(spawn(true,_,[io_target(_)]),instantiation_error,actors:spawn/3),
     expect_spawn_error(spawn(true,_,[link(true)|bad]),type_error(list,_),actors:spawn/3),
@@ -88,6 +89,9 @@ matching_remote_self(Seen,Pid) :-
     Pid=Wire@_,(Seen==Pid -> true ; Seen==Wire).
 
 spawn_supported_vectors :-
+    % A node URI is an atom or a string (a list of characters or codes).
+    atom_codes('http://localhost:3061',NodeCodes),
+    actors:validate_spawn_options([node(NodeCodes)],public),
     actors:validate_spawn_options([node("http://localhost:3061"),link(true),monitor(false),
         target(parent),io_target('$browser_io'(parent)),src_text([112,46]),
         src_list([p(X)]),src_predicates([p/0]),src_uri('http://localhost/source')],public),

@@ -134,7 +134,7 @@ request_option_type(http_timeout,number).
 request_option_type(src_text,source_text).
 request_option_type(src_list,list).
 request_option_type(src_predicates,predicate_indicators).
-request_option_type(src_uri,source_text).
+request_option_type(src_uri,uri).
 request_option_type(request_header,request_header).
 request_option_type(authorization,authorization).
 request_option_type(user_agent,http_field).
@@ -155,6 +155,7 @@ validate_client_value(timeout,T) :- !,
     (T==infinite -> true
     ; must_be(number,T),
       (T>=0 -> true ; throw(error(domain_error(not_less_than_zero,T),client_option/1)))).
+validate_client_value(uri,URI) :- !, source_policy:uri_atom(URI,_).
 validate_client_value(source_text,Text) :- !,
     must_be(nonvar,Text),isolation:source_text_atom(Text,_).
 validate_client_value(http_text,Text) :- !,
@@ -265,10 +266,8 @@ rpc(URI0, Goal0, Options) :-
     rpc_page(Template, 0, Limit, GoalAtom, TemplateAtom, URI, Options,
              LoadText).
 
-resolve_rpc_uri(Input, URI) :-
-    nonvar(Input), Input=Host0:Port, !,
-    source_policy:uri_atom(Host0, Host), must_be(integer, Port),
-    format(atom(URI),'http://~w:~w',[Host,Port]).
+% A URI is an atom or a string; the Host:Port shorthand is not a URI and
+% raises type_error(atom_or_string, Host:Port), as on the other engines.
 resolve_rpc_uri(Input, URI) :-
     nonvar(Input), source_policy:uri_atom(Input, Alias), Alias == localhost,
     local_rpc_url(URI), !.

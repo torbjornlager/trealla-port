@@ -16,7 +16,7 @@ run :-
        node_settings:with_node_settings(62001,
          (rpc:resolve_rpc_uri(localhost,'https://serving.test'),
           rpc:resolve_rpc_uri("localhost",'https://serving.test'),
-          rpc:resolve_rpc_uri(localhost:3060,'http://localhost:3060'),
+          catch(rpc:resolve_rpc_uri(localhost:3060,_),error(type_error(atom_or_string,localhost:3060),_),true),
           rpc:resolve_rpc_uri('http://elsewhere.test','http://elsewhere.test')))),
       (retractall(web_prolog:node_public_url(_)),node_settings:forget_node_settings(62001))),
     forall(member(Mode,[blacklist,whitelist]),portability(Mode)),

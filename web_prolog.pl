@@ -1352,12 +1352,14 @@ import_browser_pids(Term0, Relay, Term) :-
       Term =.. [Name|Args]
     ).
 
-browser_wire_pid(Id@localhost, Id) :-
+browser_wire_pid(Id@Node, Id) :-
+    nonvar(Node), Node == localhost,
     integer(Id), Id >= 1000000000, Id =< 9999999999.
 
 local_server_wire_pid(Id@Node, _Relay, RuntimePid) :-
     integer(Id), Id >= 1000000000, Id =< 9999999999,
-    current_node_url(Node),
+    % Never bind a pending node to this node's URL.
+    nonvar(Node), current_node_url(Node),
     ( relay_actor(Id, RuntimePid, _) -> true ; RuntimePid = Id ).
 
 import_browser_pid_args(Index, Arity, _, _, []) :- Index > Arity, !.

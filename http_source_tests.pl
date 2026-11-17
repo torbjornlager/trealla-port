@@ -14,7 +14,7 @@ actors:hook_spawn_reserved(Pid,_) :-
     nb_current('$http_starting_page',_),assertz(http_source_tests:produced(Pid)).
 
 run(Port) :-
-    private_cache,admission,cleanup,
+    private_cache,admission,cleanup,stateless_directives,
     thread_create(node:node(Port,none,[bind_address('127.0.0.1'),
        profile(actor),sandbox(blacklist),auth(open),time_limit(1)]),Listener,[]),
     setup_call_cleanup(wait_listening(Port,100),live(Port),
@@ -33,6 +33,22 @@ all_stopped :- forall(produced(Pid),
 wait_listening(Port,N) :-
     (node_running(Port) -> true
     ; N>0,sleep(0.01),Next is N-1,wait_listening(Port,Next)).
+
+% Stateless source may declare predicates but not run goals while loading,
+% in every sandbox mode; the refusal names the directive, as on every engine.
+stateless_directives :-
+    forall(member(Mode,[blacklist,whitelist]),
+      ( forall(member(Text-Directive,
+                 [':- assertz(seen(startup)). p(X) :- seen(X).'-assertz(seen(startup)),
+                  ':- initialization(true). p(a).'-initialization(true),
+                  'p(a). :- p(_).'-p(_)]),
+          ( catch((prepared(Mode,actor,p(_),Text,_,_),Result=admitted),
+                  error(permission_error(load,directive,Refused),_),Result=refused(Refused)),
+            ( Result=refused(Seen),subsumes_term(Directive,Seen) -> true
+            ; throw(stateless_directive_admitted(Mode,Text,Result)) ) )),
+        page_goal(Mode,actor,p(X),':- dynamic(seen/1). :- discontiguous(p/1). p(a).',X,false,Answer),
+        ( Answer=success([a],_) -> true ; throw(stateless_declaration_refused(Mode,Answer)) ) )),
+    note('HTTP stateless source: goal directives refused, declarations accepted').
 
 private_cache :-
     Text='q(a). q(b). q(c).',

@@ -650,7 +650,10 @@ ascii_lower_atom(Atom, Lower) :-
 uri_atom(Input, URI) :-
     must_be(nonvar, Input),
     (acyclic_term(Input) -> true ; throw(error(representation_error(cyclic_term),uri_atom/2))),
-    source_text_atom(Input, URI).
+    % A URI is an atom or a string (a list of characters or codes); anything
+    % else is the same type error on every engine.
+    catch(source_text_atom(Input, URI), error(type_error(_, _), _),
+          throw(error(type_error(atom_or_string, Input), uri_atom/2))).
 
 source_text_atom(Text, Text) :- atom(Text), !.
 source_text_atom(Text, Atom) :- string(Text), !, atom_chars(Atom, Text).

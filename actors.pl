@@ -373,8 +373,9 @@ validate_spawn_value(boolean,Value) :- !,
     ; throw(error(domain_error(boolean,Value),spawn/3))).
 validate_spawn_value(node,Node) :- !,
     must_be(nonvar,Node),
+    % A node URI is an atom or a string (a list of characters or codes).
     (atom(Node) -> true
-    ; is_list(Node) -> atom_chars(_,Node)
+    ; node_text_atom(Node,_) -> true
     ; throw(error(type_error(atom_or_string,Node),spawn/3))).
 validate_spawn_value(text,Text) :- !,
     must_be(nonvar,Text),isolation:source_text_atom(Text,_).
@@ -710,9 +711,10 @@ actor_thread(Pid, Thread) :-
 
 :- dynamic(monitor/3).
 
-monitor(Target, Ref) :-
-    must_be(nonvar, Target),
-    validate_monitor_node(Target),
+monitor(Target0, Ref) :-
+    must_be(nonvar, Target0),
+    validate_monitor_node(Target0),
+    monitor_address(Target0, Target),
     (atom(Target), registered(Target, NamedPid) -> Pid=NamedPid ; Pid=Target),
     self(Self),
     make_ref(Ref),
@@ -726,12 +728,25 @@ monitor(Target, Ref) :-
 
 % Validate before allocating the reference or consulting routing state. Keep
 % the complete culprit in the language error, including long character lists.
+% A node URI is an atom or a string (a list of characters or codes).
 validate_monitor_node(Target) :-
     (Target = _@Node ->
         (var(Node) -> throw(error(instantiation_error,monitor/2))
         ; atom(Node) -> true
-        ; throw(error(type_error(atom,Node),monitor/2)))
+        ; node_text_atom(Node,_) -> true
+        ; throw(error(type_error(atom_or_string,Node),monitor/2)))
     ; true).
+
+node_text_atom(Node,Atom) :-
+    is_list(Node), Node=[First|_],
+    ( integer(First) -> catch(atom_codes(Atom,Node),_,fail)
+    ; catch(atom_chars(Atom,Node),_,fail) ).
+
+monitor_address(Target0,Target) :-
+    ( nonvar(Target0), Target0 = Id@Node0, \+ atom(Node0), node_text_atom(Node0,Node)
+    -> Target1 = Id@Node ; Target1 = Target0 ),
+    % Id@localhost and Id@<this node's URL> name a local actor, as for send/2.
+    ( hook_local_registration_pid(Target1,Local) -> Target = Local ; Target = Target1 ).
 
 install_local_monitor(Self, Pid, Ref) :-
     actor_alive(Pid),
@@ -1026,7 +1041,14 @@ Pid ! Message :-
 %!  send(+PidOrName, +Message) is det.
 
 send(Pid, Message) :-
+    send_address_check(Pid),
     actor_send(Pid, Message).
+
+% An address must name its node; an unbound node is never bound by routing.
+send_address_check(Pid) :-
+    ( nonvar(Pid), Pid = _@Node, var(Node)
+    -> throw(error(instantiation_error, send/2))
+    ; true ).
 
 %!  send(+PidOrName, +Message, +Options) is det.
 %

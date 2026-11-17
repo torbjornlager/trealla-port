@@ -109,23 +109,35 @@ first_solution_in(Module, Solution, Goals0, Options) :-
     validate_first_solution_options(Options),
     option(on_fail(OnFail), Options, continue),
     option(on_error(OnError), Options, stop),
-    valid_stop_policy(OnFail),
-    valid_stop_policy(OnError),
     must_be(list, Goals0),
     qualify_goals(Goals0, Module, Goals),
     with_worker_scope(Scope,
         (spawn_first_workers(Scope, Goals, Solution, Pids),
          wait_first(Scope, Pids, Solution, OnFail, OnError))).
 
+% Every occurrence is validated before any value is used, so a later
+% duplicate is checked too and pending values are never bound.
 validate_first_solution_options([]).
-validate_first_solution_options([on_fail(_)|Options]) :- !,
+validate_first_solution_options([Option|Options]) :-
+    validate_first_solution_option(Option),
     validate_first_solution_options(Options).
-validate_first_solution_options([on_error(_)|Options]) :- !,
-    validate_first_solution_options(Options).
-validate_first_solution_options([Option|_]) :-
+
+validate_first_solution_option(Option) :-
+    var(Option), !,
+    throw(error(instantiation_error, first_solution/3)).
+validate_first_solution_option(Option) :-
+    ( Option = on_fail(Policy) ; Option = on_error(Policy) ), !,
+    valid_stop_policy(Policy).
+validate_first_solution_option(Option) :-
     throw(error(domain_error(first_solution_option, Option),
                 first_solution/3)).
 
+valid_stop_policy(Value) :-
+    var(Value), !,
+    throw(error(instantiation_error, first_solution/3)).
+valid_stop_policy(Value) :-
+    \+ atom(Value), !,
+    throw(error(type_error(atom, Value), first_solution/3)).
 valid_stop_policy(stop) :- !.
 valid_stop_policy(continue) :- !.
 valid_stop_policy(Value) :-

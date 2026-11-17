@@ -1352,8 +1352,29 @@ prepare_http_goal(Sandbox, Profile, Goal, '', ExecutionGoal, none) :- !,
     sandbox_prepare_goal(Sandbox, Profile, http_context, Goal, ExecutionGoal).
 prepare_http_goal(Sandbox, Profile, Goal, Text, Prepared,
                   source(Sandbox,Profile,Text,Options)) :-
+    stateless_source_declarations_only(Text),
     sandbox_prepare_spawn(Sandbox,Profile,actor_context,Goal,[src_text(Text)],
                           Prepared,Options).
+
+% Source sent with a stateless call may declare predicates but may not run
+% goals while it loads: a stateless call has one goal, the query. Every
+% engine refuses any other directive with the same error, whatever the
+% sandbox mode. Syntax errors are left to the loader to report.
+stateless_source_declarations_only(Text) :-
+    ( catch(sandbox_policy:source_text_terms(Text, Terms), error(syntax_error(_), _), fail)
+    -> stateless_source_terms(Terms)
+    ; true ).
+
+stateless_source_terms([]).
+stateless_source_terms([Term|Terms]) :-
+    ( nonvar(Term), Term = (:- Directive)
+    -> ( nonvar(Directive),
+         ( Directive = dynamic(_) ; Directive = multifile(_) ; Directive = discontiguous(_) )
+       -> true
+       ; throw(error(permission_error(load, directive, Directive),
+                     node:stateless_source_declarations_only/1)) )
+    ; true ),
+    stateless_source_terms(Terms).
 
 % Called only by the sandbox adapter after its ordinary admission/rewrite.
 run_http_query(Goal) :- call(Goal).

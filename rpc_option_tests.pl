@@ -60,7 +60,7 @@ option_value_errors :-
     expect_client_error(rpc('http://invalid',true,[src_predicates([a/b])]),
         type_error(predicate_indicator,a/b),rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[src_uri(42)]),
-        type_error(text,42),rpc:rpc/3),
+        type_error(atom_or_string,42),rpc:rpc/3),
     writeln('values and every duplicate occurrence are validated: ok').
 
 option_no_resource_side_effects :-

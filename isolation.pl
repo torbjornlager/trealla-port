@@ -469,6 +469,27 @@ actor_query_goal(Module, Goal, isolation:actor_library(Module, Goal)) :-
     library_callback(Goal, _, _), !.
 actor_query_goal(Module, (\+ Goal0), (\+ Goal)) :- !,
     actor_query_goal(Module, Goal0, Goal).
+% Opaque meta-calls keep their native collection, pruning and exception
+% behaviour, but their goal argument is prepared through this dispatcher when
+% it runs. Leaving it to the actor module's call/1 would execute a nested
+% receive with unqualified callbacks, losing the public API and the private
+% source in its guards, bodies and timeout goals.
+actor_query_goal(Module, findall(Template,Goal,List),
+                 findall(Template,isolation:call_actor_callback(Module,Goal),List)) :- !.
+actor_query_goal(Module, bagof(Template,Goal0,List), bagof(Template,Goal,List)) :- !,
+    actor_collection_goal(Module, Goal0, Goal).
+actor_query_goal(Module, setof(Template,Goal0,List), setof(Template,Goal,List)) :- !,
+    actor_collection_goal(Module, Goal0, Goal).
+actor_query_goal(Module, once(Goal), once(isolation:call_actor_callback(Module,Goal))) :- !.
+actor_query_goal(Module, ignore(Goal), ignore(isolation:call_actor_callback(Module,Goal))) :- !.
+actor_query_goal(Module, call(Goal), isolation:call_actor_callback(Module,Goal)) :- !.
+actor_query_goal(Module, catch(Goal,Catcher,Recover),
+                 catch(isolation:call_actor_callback(Module,Goal),Catcher,
+                       isolation:call_actor_callback(Module,Recover))) :- !.
+actor_query_goal(Module, sandbox_policy:sandbox_control_catch(Context,Goal,Catcher,Recover),
+                 sandbox_policy:sandbox_control_catch(Context,
+                     isolation:call_actor_callback(Module,Goal),Catcher,
+                     isolation:call_actor_callback(Module,Recover))) :- !.
 actor_query_goal(_, !, !) :- !.
 actor_query_goal(_, nl, actors:terminal_output(Newline,[source(io)])) :- !,
     atom_codes(Newline, [10]).
@@ -582,8 +603,18 @@ actor_builtin_goal(Goal) :-
 
 % Keep the public callback term in compiled/copyable source. Resolve the API
 % only at execution, through the same dispatcher as the enclosing query.
+call_actor_callback(_, Goal) :-
+    var(Goal), !, throw(error(instantiation_error, call/1)).
 call_actor_callback(Module, Goal) :-
     actor_query_goal(Module, Goal, Prepared), call(Prepared).
+
+% Existential qualifiers stay outside the prepared goal so bagof/3 and
+% setof/3 still see them.
+actor_collection_goal(Module, Goal0, Goal) :-
+    nonvar(Goal0), Goal0 = Variable^Inner0, !,
+    Goal = Variable^Inner,
+    actor_collection_goal(Module, Inner0, Inner).
+actor_collection_goal(Module, Goal, isolation:call_actor_callback(Module,Goal)).
 
 call_actor_leaf(Module, Goal) :-
     call_in_module(Module, '$actor_call'(Goal)).
