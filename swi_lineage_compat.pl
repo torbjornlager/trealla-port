@@ -32,6 +32,7 @@ checks(URL,WSURL,Observer) :-
     setup_call_cleanup(websocket:http_open_websocket(WSURL,WS,Opts),
         swi_lineage_compat:wire_checks(WS,Observer,O.pid),
         catch(websocket:ws_close(WS,1000,"done"),_,true)),
+    reconnected_scope(WSURL),
     eventually_query(Observer,O.pid,"whereis(lineage_child_b,undefined),whereis(lineage_root_b,undefined)",50),
     native_checks(URL,Observer,O.pid),
     writeln('Native SWI -> Trealla delegated lineage compatibility: all checks passed').
@@ -41,7 +42,11 @@ wire_checks(WS,Observer,O) :-
     spawn_family(WS,A,"a",RootA),spawn_family(WS,B,"b",RootB),
     send(WS,_{command:spawn,goal:"self(Me),register(lineage_legacy,Me),receive({finish -> true})",request_id:"legacy"}),
     event(WS,spawned,Legacy),
-    eventually_query(Observer,O,"whereis(lineage_child_a,A),A\\==undefined,whereis(lineage_child_b,B),B\\==undefined,whereis(lineage_legacy,L),L\\==undefined",50),
+    scoped_top(WS,A,TopA),scoped_top(WS,B,TopB),scoped_top(WS,none,TopLegacy),
+    scoped_query(WS,TopA,A,"whereis(lineage_child_a,P),P\\==undefined,whereis(lineage_child_b,undefined),whereis(lineage_legacy,undefined)",50),
+    scoped_query(WS,TopB,B,"whereis(lineage_child_b,P),P\\==undefined,whereis(lineage_child_a,undefined)",50),
+    scoped_query(WS,TopLegacy,none,"whereis(lineage_legacy,P),P\\==undefined,whereis(lineage_child_a,undefined)",50),
+    eventually_query(Observer,O,"whereis(lineage_child_a,undefined),whereis(lineage_child_b,undefined),whereis(lineage_legacy,undefined)",50),
     send(WS,_{command:exit,pid:RootB,lineage:A,reason:"kill"}),
     event(WS,error,Cross),sub_string(Cross.data,_,_,_,"permission"),
     send(WS,_{command:exit,pid:RootA,reason:"kill"}),
@@ -51,20 +56,46 @@ wire_checks(WS,Observer,O) :-
     send(WS,_{command:demonitor,lineage:A,ref:"kept(b)"}),
     send(WS,_{command:lineage_close,lineage:A}),
     down(WS,RootA,_),
-    eventually_query(Observer,O,"whereis(lineage_root_a,undefined),whereis(lineage_child_a,undefined),whereis(lineage_root_b,B),B\\==undefined,whereis(lineage_legacy,L),L\\==undefined",50),
+    scoped_query(WS,TopB,B,"whereis(lineage_child_b,P),P\\==undefined,whereis(lineage_root_a,undefined),whereis(lineage_child_a,undefined)",50),
+    scoped_query(WS,TopLegacy,none,"whereis(lineage_legacy,P),P\\==undefined",50),
     send(WS,_{command:lineage_close,lineage:A}),
     send(WS,_{command:spawn,lineage:A,goal:"true",request_id:"late"}),
     event(WS,error,Late),Late.request_id=="late",sub_string(Late.data,_,_,_,"closed_namespace"),
     send(WS,_{command:exit,lineage:B,pid:RootB,reason:"kill"}),
     down_ref(WS,RootB,"kept(b)"),
     send(WS,_{command:lineage_close,lineage:B}),
-    eventually_query(Observer,O,"whereis(lineage_child_b,undefined),whereis(lineage_legacy,L),L\\==undefined",50),
+    scoped_query(WS,TopLegacy,none,"whereis(lineage_child_b,undefined),whereis(lineage_legacy,L),L\\==undefined",50),
     % Closing either lineage did not end the legacy actor.
     send(WS,_{command:send,pid:Legacy.pid,message:"finish"}),down(WS,Legacy.pid,_),
     % Reopen a different lineage to test connection-wide cleanup too.
-    spawn_family(WS,"cccccccccccccccccccccccccccccccc","b",_),
-    eventually_query(Observer,O,"whereis(lineage_child_b,B),B\\==undefined",50),
+    C="cccccccccccccccccccccccccccccccc",
+    spawn_family(WS,C,"b",_),scoped_top(WS,C,TopC),
+    scoped_query(WS,TopC,C,"whereis(lineage_child_b,P),P\\==undefined",50),
+
     writeln('Wire authority, multiplexing, late admission, legacy and monitor isolation: ok').
+
+% Scope probes travel on the same connection and lineage as the actors.
+% The independent observer must see no ordinary names. A reconnect gets a
+% fresh context even with the same token; actor disposal is covered separately
+% by receiver_lineage_tests:connection_cleanup and native close notifications.
+scoped_send(WS,none,Dict) :- !,send(WS,Dict).
+scoped_send(WS,Lineage,Dict) :- put_dict(lineage,Dict,Lineage,Command),send(WS,Command).
+scoped_top(WS,Lineage,Pid) :-
+    scoped_send(WS,Lineage,_{command:toplevel_spawn,options:"[session(true)]"}),
+    event(WS,spawned,Reply),Pid=Reply.pid.
+scoped_query(WS,Pid,Lineage,Goal,N) :-
+    scoped_send(WS,Lineage,_{command:toplevel_call,pid:Pid,goal:Goal,options:"[template(ok),limit(1)]"}),
+    query_result(WS,Reply),
+    (Reply.type=="success" -> true
+    ; N>0,sleep(0.02),Next is N-1,scoped_query(WS,Pid,Lineage,Goal,Next)).
+
+reconnected_scope(WSURL) :-
+    peer_options(Opts),C="cccccccccccccccccccccccccccccccc",
+    setup_call_cleanup(websocket:http_open_websocket(WSURL,Fresh,Opts),
+        (scoped_top(Fresh,C,Top),
+         scoped_query(Fresh,Top,C,"whereis(lineage_root_b,undefined),whereis(lineage_child_b,undefined)",50),
+         scoped_query(Fresh,Top,C,"self(Me),register(lineage_root_b,Me),whereis(lineage_root_b,Found),Found==Me",50)),
+        catch(websocket:ws_close(Fresh,1000,"done"),_,true)).
 
 spawn_family(WS,Lineage,Suffix,Pid) :-
     format(string(Goal),'self(Me),register(lineage_root_~s,Me),spawn((self(C),register(lineage_child_~s,C),receive({finish -> true})),_,[link(false)]),receive({finish -> true})',[Suffix,Suffix]),
@@ -79,17 +110,35 @@ native_checks(URL,Observer,O) :-
 native_owned_spawn(URL,Observer,O) :-
     a(A),atom_string(Token,A),
     Context=ctx(global,delegated(peer,Token),Token,false,none),
+    writeln('Native lineage: spawning actor'),
     node_lifetime:with_context(Context,
         actors:spawn((self(Me),register(native_lineage_root,Me),receive({finish -> true})),
                      Pid,[node(URL),link(false),monitor(true)])),
+    writeln('Native lineage: spawning toplevel'),
     node_lifetime:with_context(Context,
         toplevel_actors:toplevel_spawn(Top,[node(URL),session(true),monitor(true),link(false)])),
+    writeln('Native lineage: paged query'),
     node_lifetime:with_context(Context,
         toplevel_actors:toplevel_call_synch(Top,member(X,[a,b]),Answer,
                                            [template(X),limit(1),timeout(3)])),
     (Answer=success(Top,[a],true),var(X) -> true
     ; throw(unexpected_native_toplevel_answer(Answer,X,Top))),
-    eventually_query(Observer,O,"whereis(native_lineage_root,P),P\\==undefined",50),
+    writeln('Native lineage: scoped lookup'),
+    node_lifetime:with_context(Context,
+        toplevel_actors:toplevel_next_synch(Top,Last,[timeout(3)])),
+    Last=success(Top,[b],false),
+    node_lifetime:with_context(Context,
+        toplevel_actors:toplevel_call_synch(Top,
+            (whereis(native_lineage_root,Found),Found\==undefined),Lookup,
+            [template(ok),limit(1),timeout(3)])),
+    Lookup=success(Top,[ok],false),
+    % Keep the original close-while-paged condition after the extra scope probe.
+    node_lifetime:with_context(Context,
+        toplevel_actors:toplevel_call_synch(Top,member(Y,[a,b]),Paged,
+            [template(Y),limit(1),timeout(3)])),
+    Paged=success(Top,[a],true),var(Y),
+    writeln('Native lineage: closing paged lineage'),
+    eventually_query(Observer,O,"whereis(native_lineage_root,undefined)",50),
     node_lifetime:with_context(Context,
         distribution:remote_send_command(URL,_{command:lineage_close})),
     actors:receive({down(Pid,Pid,_) -> true},[timeout(5),on_timeout(fail)]),

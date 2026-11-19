@@ -24,6 +24,9 @@ closed_error(NS,error(error(permission_error(register,closed_namespace,NS),conte
 
 namespace_tests :-
     namespace_names_and_survivors,
+    namespace_reservations_are_context_local,
+    namespace_pid_retirement,
+    namespace_remote_alias_withdrawal,
     namespace_reservation_and_publication,
     namespace_inflight_publication,
     forall(between(1,20,_),namespace_registration_race),
@@ -38,25 +41,63 @@ namespace_names_and_survivors :-
     run_scope(PA,register(Remote,701@'http://namespace-remote.test'),ok),
     run_scope(PB,register(Other,702@'http://namespace-remote.test'),ok),
     register(Trusted,Self),register_service(Service,Target),
-    % Uniqueness and visibility stay node-wide, regardless of owning scope.
-    run_scope(PB,whereis(Owned,Target),ok),
-    run_scope(PB,register(Owned,703@'http://namespace-remote.test'),Taken),
-    nonvar(Taken),Taken=error(error(permission_error(register,actor_name,Owned),_)),
+    % Lookup, uniqueness and withdrawal belong to the caller's context.
+    run_scope(PB,whereis(Owned,undefined),ok),
+    run_scope(PB,register(Owned,703@'http://namespace-remote.test'),ok),
+    run_scope(PA,whereis(Owned,Target),ok),
+    run_scope(PB,unregister(Owned),ok),run_scope(PA,whereis(Owned,Target),ok),
+    run_scope(PB,register(Owned,705@'http://namespace-remote.test'),ok),
     retire_registry_namespace(A),retire_registry_namespace(A),
-    whereis(Owned,undefined),whereis(Remote,undefined),
-    whereis(Other,702@'http://namespace-remote.test'),whereis(Trusted,Self),
-    whereis_service(Service,Target),actors:actor_thread(Target,_),actors:actor_thread(PA,_),
+    run_scope(PA,(whereis(Owned,undefined),whereis(Remote,undefined)),ok),
+    run_scope(PB,(whereis(Owned,705@'http://namespace-remote.test'),whereis(Other,702@'http://namespace-remote.test')),ok),
+    whereis(Trusted,Self),whereis(Owned,undefined),
+    whereis_service(Service,Target),
+    run_scope(PB,whereis_service(Service,Target),ok),actors:actor_thread(Target,_),actors:actor_thread(PA,_),
     run_scope(PA,register(Late,704@'http://namespace-remote.test'),Rejected),closed_error(A,Rejected),
     run_scope(PA,namespace_tests:try_named_supervisor(Late),RejectedSpawn),closed_error(A,RejectedSpawn),
-    run_scope(PB,register(Owned,705@'http://namespace-remote.test'),ok),
-    % A repeated close cannot erase a replacement owned by another client.
-    retire_registry_namespace(A),whereis(Owned,705@'http://namespace-remote.test'),
-    retire_registry_namespace(B),whereis(Owned,undefined),whereis(Other,undefined),
+    % A repeated close cannot erase the identical name owned by another client.
+    retire_registry_namespace(A),run_scope(PB,whereis(Owned,705@'http://namespace-remote.test'),ok),
+    retire_registry_namespace(B),run_scope(PB,(whereis(Owned,undefined),whereis(Other,undefined)),ok),
     unregister(Trusted),unregister_service(Service),
     Target ! finish,receive({down(Target,Target,true) -> true},[timeout(2),on_timeout(fail)]),
     stop_scope(PA),stop_scope(PB),
-    writeln('creator ownership, node-wide uniqueness, late admission and surviving actors: ok').
+    writeln('context-local names, independent teardown, late admission and surviving actors: ok').
 try_named_supervisor(Name) :- supervisor_actor:supervisor_spawn([],_,[name(Name),link(false)]).
+
+% Pending names are private too; retiring A must leave B's reservation intact.
+namespace_reservations_are_context_local :-
+    new_scope(A,PA),new_scope(B,PB),new_name(Name),self(Parent),
+    run_scope(PA,(actors:reserve_spawn_name(Name,T),Parent ! held(a,T)),ok),
+    receive({held(a,TA) -> true},[timeout(2),on_timeout(fail)]),
+    run_scope(PB,(actors:reserve_spawn_name(Name,T),Parent ! held(b,T)),ok),
+    receive({held(b,TB) -> true},[timeout(2),on_timeout(fail)]),
+    TA\==TB,run_scope(PA,whereis(Name,undefined),ok),run_scope(PB,whereis(Name,undefined),ok),
+    retire_registry_namespace(A),
+    \+actors:reserved_spawn_name(Name,TA),actors:reserved_spawn_name(Name,TB),
+    run_scope(PB,(catch(register(Name,777@'http://namespace-remote.test'),E,true),
+         nonvar(E),E=error(permission_error(register,actor_name,Name),_)),ok),
+    actors:release_spawn_name(TB),
+    run_scope(PB,register(Name,777@'http://namespace-remote.test'),ok),
+    retire_registry_namespace(A),run_scope(PB,whereis(Name,777@'http://namespace-remote.test'),ok),
+    retire_registry_namespace(B),stop_scope(PA),stop_scope(PB).
+
+% One PID may have an alias in each context; actual death sweeps all its aliases.
+namespace_pid_retirement :-
+    new_scope(A,PA),new_scope(B,PB),new_name(Name),
+    spawn(receive({finish -> true}),Target,[link(false),monitor(true)]),
+    run_scope(PA,register(Name,Target),ok),run_scope(PB,register(Name,Target),ok),
+    Target ! finish,receive({down(Target,Target,true) -> true},[timeout(2),on_timeout(fail)]),
+    run_scope(PA,whereis(Name,undefined),ok),run_scope(PB,whereis(Name,undefined),ok),
+    retire_registry_namespace(A),retire_registry_namespace(B),stop_scope(PA),stop_scope(PB).
+
+namespace_remote_alias_withdrawal :-
+    new_scope(A,PA),new_scope(B,PB),new_name(Name),
+    One=701@'http://namespace-remote.test',Two=702@'http://namespace-remote.test',
+    run_scope(PA,register(Name,One),ok),run_scope(PB,register(Name,Two),ok),
+    actors:remove_remote_aliases([One]),
+    run_scope(PA,whereis(Name,undefined),ok),run_scope(PB,whereis(Name,Two),ok),
+    retire_registry_namespace(A),run_scope(PB,whereis(Name,Two),ok),
+    retire_registry_namespace(B),stop_scope(PA),stop_scope(PB).
 
 reserve_and_wait(Parent,Name) :-
     actors:reserve_spawn_name(Name,Token),
@@ -118,7 +159,7 @@ live_namespace_sessions(A,B) :-
     remote_toplevel_spawn(A,TA,[session(true)]),remote_toplevel_spawn(B,TB,[session(true)]),
     new_name(Name),new_name(Other),
     remote_toplevel_call_synch(A,TA,register(Name,901@'http://namespace-remote.test'),_,[timeout(3)]),
-    remote_toplevel_call_synch(B,TB,(whereis(Name,901@'http://namespace-remote.test'),register(Other,902@'http://namespace-remote.test')),Before,[timeout(3)]),
+    remote_toplevel_call_synch(B,TB,(whereis(Name,undefined),register(Other,902@'http://namespace-remote.test')),Before,[timeout(3)]),
     Before=success(_,_,_),remote_node_close(A),
     wait_alias_gone(B,TB,Name,50),
     remote_toplevel_call_synch(B,TB,whereis(Other,902@'http://namespace-remote.test'),After,[timeout(3)]),

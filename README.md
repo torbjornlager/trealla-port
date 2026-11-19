@@ -972,8 +972,11 @@ claiming SWI's aggregate delegated-account implementation.
 
 The receiver carries the lineage with queued commands and installs it during
 actor creation. Local descendants inherit that namespace, including children
-created with `link(false)`. Ordinary name lookup and uniqueness remain node-wide;
-registration ownership and promise access distinguish the delegated namespaces.
+created with `link(false)`. Ordinary name lookup, uniqueness, unregister, named
+sends/monitors and startup reservations are scoped to that client namespace.
+Equal names in other contexts remain independent. Explicit services retain
+their separate node-wide registry. Promise access distinguishes the delegated
+namespaces as before.
 Actor control and monitor removal through the relay respect those boundaries.
 
 `lineage_close` closes admission, removes that namespace's registrations and name
@@ -1516,8 +1519,8 @@ releases an unpublished reservation; normal termination removes a published
 registration, including when the child exits immediately after startup.
 Successful creation does not promise that the child remains alive afterward.
 
-First-occurrence `name/1` precedence and Trealla's existing node-wide ordinary
-name namespace remain unchanged. The separate service-name registry is
+First-occurrence `name/1` precedence is unchanged. Ordinary names and pending
+reservations are client-context scoped, including one-name-per-PID checks. The separate service-name registry is
 unchanged. Ordinary `register/2` check-and-insert and `unregister/1` now use the
 same mutex. Public
 `spawn/3` still rejects `name/1` and private reservation metadata. Remote named
@@ -1540,8 +1543,8 @@ alias terms remain unchanged, and ordinary actor termination cleanup removes
 these qualified local aliases as well as bare local PID registrations.
 Addresses of other nodes retain remote-alias semantics: registration performs
 no network liveness probe, and an unrelated local actor with the same numeric
-PID cannot remove their aliases. The ordinary node-wide namespace and separate
-service-name registry are unchanged. A successful registration does not promise
+PID cannot remove their aliases. Ordinary aliases belong to the caller's client context; the separate
+service-name registry remains node-wide. A successful registration does not promise
 continued liveness. For spawned actors using ordinary termination cleanup, the
 registry mutex ensures that termination either removes a registration or
 precedes its rejection. This does not add native-thread exit cleanup or general
@@ -1573,10 +1576,13 @@ Trealla in `./tools/test.sh interop`.
 WebSocket namespace teardown removes ordinary registrations and unpublished
 local-name reservations created by that client. Ownership follows the caller
 that registers/reserves the name, not the target actor: remote aliases and
-names assigned to other local actors are included. This ownership metadata
-does not partition naming; lookup, name uniqueness and PID-name uniqueness
-remain node-wide. Names owned by other clients or trusted standalone code and
-the separate service registry are preserved.
+names assigned to other local actors are included. Lookup, name uniqueness and
+PID-name uniqueness use this same client context. Equal names in independent
+connections do not collide, including when those clients share credentials.
+Names owned by other clients or trusted standalone code and the independent
+node-wide service registry are preserved. Trusted standalone code retains its
+shared ordinary namespace; WebSocket clients cannot discover those aliases
+through ordinary lookup. Publish a service for deliberate cross-context discovery.
 
 On WebSocket disconnect, the namespace is marked closed and its names and
 reservations are retired under the registry mutex before existing connection
@@ -1595,10 +1601,10 @@ policies remain separate. WebSocket-owned promise disposal is described below.
 `namespace_tests.pl` covers
 creator ownership, surviving actors, admission/teardown races and in-flight
 startup publication; its live interoperability driver verifies disconnect
-cleanup and node-wide visibility/isolation using two WebSocket clients.
+cleanup and context-local visibility/isolation using two WebSocket clients.
 
 Remote named creation through the server/supervisor constructors reserves the
-caller's ordinary node-wide name before callback/source preparation, connection
+caller's ordinary client-context name before callback/source preparation, connection
 setup, or the spawn request. The reservation token is private local metadata
 and is stripped from wire options. Once the remote PID is known, the caller
 publishes its alias during the existing transparent-spawn handshake, before

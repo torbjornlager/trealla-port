@@ -246,7 +246,7 @@ reserve_spawn_name(Name, Token) :-
     must_be(atom,Name), make_ref(Token), registration_namespace(Namespace),
     with_mutex('$actor_registry',
         ( ensure_registry_namespace_open(Namespace),
-          ( (registered(Name,_) ; reserved_spawn_name(Name,_))
+          ( (registered(Name,_) ; (reserved_spawn_name(Name,Pending),spawn_name_owner(Pending,Namespace)))
         -> throw(error(permission_error(register,actor_name,Name),context(actors:register/2,'ordinary registration conflict')))
         ; assertz(reserved_spawn_name(Name,Token)),
           assertz(spawn_name_owner(Token,Namespace)) ))).
@@ -266,7 +266,7 @@ publish_spawn_name(Pid, Options) :-
              ( retract(reserved_spawn_name(Name,Token))
              -> (retract(spawn_name_owner(Token,Namespace)) -> true ; Namespace=none),
                 ensure_registry_namespace_open(Namespace),
-                asserta(registered(Name,Pid)),assertz(registration_owner(Name,Pid,Namespace))
+                asserta(registered(Namespace,Name,Pid)),assertz(registration_owner(Name,Pid,Namespace))
              ; throw(error(existence_error(name_reservation,Token),spawn/3)) )))
     ; true ).
 
@@ -280,7 +280,7 @@ publish_remote_spawn_name(Pid,Options) :-
              ; throw(error(existence_error(name_reservation,Token),spawn/3))),
              ensure_registry_namespace_open(Owner),
              retractall(reserved_spawn_name(_,Token)),retractall(spawn_name_owner(Token,_)),
-             asserta(registered(Name,Pid)),assertz(registration_owner(Name,Pid,Owner)),
+             asserta(registered(Owner,Name,Pid)),assertz(registration_owner(Name,Pid,Owner)),
              assertz(remote_spawn_publication(Token,Name,Pid,Owner))))
     ; true).
 
@@ -288,7 +288,7 @@ rollback_remote_spawn_name(Pid,Options) :-
     (option('$name_reservation'(Token),Options) ->
         with_mutex('$actor_registry',
             (retract(remote_spawn_publication(Token,Name,Pid,Owner)) ->
-                (registration_owner(Name,Pid,Owner) -> remove_registrations([Name-Pid]) ; true)
+                (registration_owner(Name,Pid,Owner) -> remove_registrations([registration(Owner,Name,Pid)]) ; true)
             ; true))
     ; true).
 
@@ -797,7 +797,7 @@ flush_monitor_messages(Ref) :-
 %   taken by another Pid. Missing or terminating local PIDs raise
 %   error(existence_error(process, Pid), context(actors:register/2, _)).
 
-:- dynamic(registered/2).
+:- dynamic registered/3. % ClientNamespace, Name, Pid
 :- dynamic(registered_service/2).
 :- dynamic reserved_spawn_name/2.
 :- dynamic spawn_name_owner/2.
@@ -811,18 +811,23 @@ register(Name, Pid) :-
         ( ensure_registry_namespace_open(Namespace),
           ( registered(_, Pid)
         -> throw(error(permission_error(register,process,Pid),context(actors:register/2,'ordinary registration conflict')))
-        ; (registered(Name, _) ; reserved_spawn_name(Name,_))
+        ; (registered(Name, _) ; (reserved_spawn_name(Name,Pending),spawn_name_owner(Pending,Namespace)))
         -> throw(error(permission_error(register,actor_name,Name),context(actors:register/2,'ordinary registration conflict')))
         ; ensure_registerable_local_pid(Pid),
-          asserta(registered(Name, Pid)),
+          asserta(registered(Namespace, Name, Pid)),
           assertz(registration_owner(Name,Pid,Namespace)) ))).
 
-% Ownership is separate from node-wide lookup/uniqueness. Only WebSocket
-% scopes participate in this batch; HTTP and trusted standalone use stay open.
+% Ordinary names, uniqueness and reservations belong to the client context.
+% Trusted standalone callers share none; explicitly published services stay node-wide.
 registration_namespace(Namespace) :-
     current_actor_namespace(Scope),
     ( nonvar(Scope), (Scope=ws_client(_);Scope=ws_lineage(_,_)), ground(Scope) -> Namespace=Scope
     ; Namespace=none ).
+
+% Context-aware lookup is also used by named sends and monitors. Cleanup that
+% observes a PID's retirement enumerates registered/3 across every namespace.
+registered(Name, Pid) :-
+    registration_namespace(Namespace),registered(Namespace,Name,Pid).
 
 ensure_registry_namespace_open(Namespace) :-
     ( closed_registry_namespace(Namespace)
@@ -837,7 +842,7 @@ retire_registry_namespace(Namespace) :-
     with_mutex('$actor_registry',
         ( (closed_registry_namespace(Namespace) -> true
           ; assertz(closed_registry_namespace(Namespace))),
-          findall(Name-Pid,registration_owner(Name,Pid,Namespace),Owned),
+          findall(registration(Namespace,Name,Pid),registration_owner(Name,Pid,Namespace),Owned),
           remove_registrations(Owned),
           findall(Token,spawn_name_owner(Token,Namespace),Tokens),
           retire_spawn_names(Tokens),
@@ -865,21 +870,21 @@ ensure_registerable_local_pid(Target) :-
     ; true ).
 
 remove_local_registrations(Pid) :-
-    findall(Name-Target,
-        (registered(Name,Target),local_registration_pid(Target,Local),Local==Pid),
+    findall(registration(Namespace,Name,Target),
+        (registered(Namespace,Name,Target),local_registration_pid(Target,Local),Local==Pid),
         Registrations),
     remove_registrations(Registrations).
 remove_registrations([]).
-remove_registrations([Name-Target|Rest]) :-
-    retractall(registered(Name,Target)),
-    retractall(registration_owner(Name,Target,_)),remove_registrations(Rest).
+remove_registrations([registration(Namespace,Name,Target)|Rest]) :-
+    retractall(registered(Namespace,Name,Target)),
+    retractall(registration_owner(Name,Target,Namespace)),remove_registrations(Rest).
 
 % Remove only exact, known remote PID identities. Do not touch local/service
 % names or infer that every alias for the same node belongs to one connection.
 remove_remote_aliases(Pids) :-
     with_mutex('$actor_registry',
-        ( findall(Name-Target,
-              (registered(Name,Target),member(Pid,Pids),Target==Pid),Aliases),
+        ( findall(registration(Namespace,Name,Target),
+              (registered(Namespace,Name,Target),member(Pid,Pids),Target==Pid),Aliases),
           remove_registrations(Aliases) )).
 
 %!  unregister(+Name) is det.
@@ -888,8 +893,9 @@ remove_remote_aliases(Pids) :-
 %   registered.
 
 unregister(Name) :-
+    must_be(atom,Name),registration_namespace(Namespace),
     with_mutex('$actor_registry',
-        (retractall(registered(Name,_)),retractall(registration_owner(Name,_,_)))).
+        (retractall(registered(Namespace,Name,_)),retractall(registration_owner(Name,_,Namespace)))).
 
 %!  whereis(+Name, -Pid) is det.
 %

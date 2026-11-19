@@ -88,7 +88,7 @@ namespace_isolation :-
     in_lineage(Relay,a,receiver_lineage:check_actor(Child)),
     receiver_lineage:close_namespace(NS),receiver_lineage:close_namespace(NS),
     receive({down(Root,Root,kill) -> true},[timeout(2),on_timeout(fail)]),assert_gone(Child),
-    whereis(Name,undefined),whereis(OtherName,OtherChild),
+    in_lineage(Relay,b,(whereis(Name,undefined),whereis(OtherName,OtherChild))),
     rpc_namespace_tests:assert_disposed(Ref,Resources),rpc:promise_active(Kept),
     actors:actor_thread(Other,_),actors:actor_thread(OtherChild,_),actors:actor_thread(Separate,_),
     expect_error(in_lineage(Relay,a,true),error(permission_error(register,closed_namespace,NS),_)),
