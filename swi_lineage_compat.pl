@@ -15,7 +15,7 @@ run(HomePort,PeerPort,NodeFile) :-
     atom_concat(URL,'/ws',WSURL),
     setup_call_cleanup(
         websocket:http_open_websocket(WSURL,Observer,[]),
-        swi_lineage_compat:checks(URL,WSURL,Observer),
+        once(swi_lineage_compat:checks(URL,WSURL,Observer)),
         catch(websocket:ws_close(Observer,1000,"done"),_,true)).
 
 peer_options([request_header('Authorization'='Bearer lineage-test-peer')]).
@@ -30,10 +30,13 @@ checks(URL,WSURL,Observer) :-
     sub_string(Denied.data,_,_,_,"permission"),
     peer_options(Opts),
     setup_call_cleanup(websocket:http_open_websocket(WSURL,WS,Opts),
-        swi_lineage_compat:wire_checks(WS,Observer,O.pid),
-        catch(websocket:ws_close(WS,1000,"done"),_,true)),
+        once(swi_lineage_compat:wire_checks(WS,Observer,O.pid)),
+        (websocket:ws_close(WS,1000,"done"),Closed=true)),
+    cleanup_completed(Closed),
     reconnected_scope(WSURL),
     eventually_query(Observer,O.pid,"whereis(lineage_child_b,undefined),whereis(lineage_root_b,undefined)",50),
+    connection_cleanup_checks(WSURL,Observer,O.pid,graceful),
+    connection_cleanup_checks(WSURL,Observer,O.pid,eof),
     native_checks(URL,Observer,O.pid),
     writeln('Native SWI -> Trealla delegated lineage compatibility: all checks passed').
 
@@ -163,3 +166,89 @@ query_result(WS,Reply) :-
     websocket:ws_receive(WS,Frame,[format(json)]),
     (memberchk(Frame.data.type,["success","failure","error"]) -> Reply=Frame.data
     ; query_result(WS,Reply)).
+
+% Commit each setup body before awaiting effects of its cleanup. A successful
+% nondeterministic body otherwise leaves setup_call_cleanup/3's close pending.
+% Names disappearing on a new connection is not evidence of actor termination:
+% use independent language-level monitors with exact references instead.
+connection_cleanup_checks(URL,Observer,O,Mode) :-
+    peer_options(Opts),
+    setup_call_cleanup(websocket:http_open_websocket(URL,Kept,Opts),
+        once(cleanup_kept(URL,Kept,Observer,O,Mode)),
+        (websocket:ws_close(Kept,1000,"done"),Closed=true)),
+    cleanup_completed(Closed),
+    cleanup_result(Observer),
+    format('Connection cleanup (~w): roots, unlinked children, toplevels and independent connection: ok~n',[Mode]).
+
+cleanup_kept(URL,Kept,Observer,O,Mode) :-
+    C="dddddddddddddddddddddddddddddddd",
+    cleanup_family(Kept,C,O,kept,KeptRoot),scoped_top(Kept,C,KeptTop),
+    peer_options(Opts),
+    setup_call_cleanup(websocket:http_open_websocket(URL,Closing,Opts),
+        once((cleanup_family(Closing,C,O,closing,Root),scoped_top(Closing,C,Top),
+              arm_cleanup(Observer,O,Root,Top,KeptRoot,KeptTop))),
+        (close_probe_socket(Mode,Closing),Closed=true)),
+    cleanup_completed(Closed),
+    % The observer acknowledges down for the closed family, then proves both
+    % unlinked survivors answer a message before we close the other connection.
+    cleanup_marker(Observer,cleanup_first_closed),
+    scoped_query(Kept,KeptTop,C,"true",0).
+
+cleanup_completed(Closed) :-
+    ( Closed==true -> true ; throw(connection_cleanup_still_pending) ).
+
+close_probe_socket(graceful,WS) :- websocket:ws_close(WS,1000,"done").
+close_probe_socket(eof,WS) :- close(WS).
+
+cleanup_family(WS,C,O,Tag,Root) :-
+    % Child reports readiness to its root before the observer can monitor it.
+    % Both actors are unlinked; neither should survive their owning connection.
+    atomic_list_concat([
+        'self(R),spawn((send(R,child_ready),',
+        'receive({ping(F)->send(F,pong(~w,child)),receive({finish->true})})),Child,[link(false)]),',
+        'receive({child_ready->send(~d,family(~w,R,Child))}),',
+        'receive({ping(F)->send(F,pong(~w,root)),receive({finish->true})})'
+    ],Format),
+    format(string(Goal),Format,[Tag,O,Tag,Tag]),
+    send(WS,_{command:spawn,lineage:C,goal:Goal,options:"[link(false)]",request_id:Tag}),
+    event(WS,spawned,Reply),Root=Reply.pid.
+
+arm_cleanup(WS,O,Root,Top,KeptRoot,KeptTop) :-
+    atomic_list_concat([
+        'receive({family(closing,_,Child)->true},[timeout(5),on_timeout(throw(missing_closing_family))]),',
+        'receive({family(kept,_,KeptChild)->true},[timeout(5),on_timeout(throw(missing_kept_family))]),',
+        'monitor(~d,R1),monitor(Child,R2),monitor(~d,R3),',
+        'monitor(~d,K1),monitor(KeptChild,K2),monitor(~d,K3),writeln(cleanup_armed),',
+        'receive({down(_,R1,kill)->true},[timeout(5),on_timeout(throw(missing_root_down))]),',
+        'receive({down(_,R2,kill)->true},[timeout(5),on_timeout(throw(missing_child_down))]),',
+        'receive({down(_,R3,kill)->true},[timeout(5),on_timeout(throw(missing_top_down))]),',
+        'self(Me),send(~d,ping(Me)),send(KeptChild,ping(Me)),',
+        'receive({pong(kept,root)->true},[timeout(5),on_timeout(throw(missing_kept_pong))]),',
+        'receive({pong(kept,child)->true},[timeout(5),on_timeout(throw(missing_kept_child_pong))]),',
+        'writeln(cleanup_first_closed),',
+        'receive({down(_,K1,kill)->true},[timeout(5),on_timeout(throw(missing_kept_root_down))]),',
+        'receive({down(_,K2,kill)->true},[timeout(5),on_timeout(throw(missing_kept_child_down))]),',
+        'receive({down(_,K3,kill)->true},[timeout(5),on_timeout(throw(missing_kept_top_down))])'
+    ],Format),
+    format(string(Goal),Format,[Root,Top,KeptRoot,KeptTop,KeptRoot]),
+    send(WS,_{command:toplevel_call,pid:O,goal:Goal,options:"[template(ok),limit(1)]"}),
+    cleanup_marker(WS,cleanup_armed).
+
+cleanup_marker(WS,Marker) :-
+    websocket:ws_receive(WS,Frame,[format(json)]),
+    ( Frame.opcode==close -> throw(unexpected_close(Frame))
+    ; Frame.data.type=="io_request" ->
+        send(WS,_{command:browser_io_reply,request_id:Frame.data.request_id,status:"ok"}),
+        cleanup_marker_event(WS,Marker,Frame.data.event)
+    ; cleanup_marker_event(WS,Marker,Frame.data)
+    ).
+cleanup_marker_event(WS,Marker,Event) :-
+    atom_string(Marker,Text),
+    ( Event.type=="output",sub_string(Event.data,_,_,_,Text) -> true
+    ; memberchk(Event.type,["success","failure","error"]) -> throw(cleanup_observer_failed(Event))
+    ; cleanup_marker(WS,Marker)
+    ).
+cleanup_result(WS) :-
+    query_result(WS,Reply),
+    ( Reply.type=="success",Reply.more==false -> true
+    ; throw(cleanup_observer_failed(Reply)) ).
