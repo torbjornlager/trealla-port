@@ -123,6 +123,8 @@ run_unit() {
     run_with_timeout "Owner RPC execution endpoints" \
         "$TPL" -g "consult('$ROOT/rpc_topology_tests.pl'),(catch(rpc_topology_tests:run($rpc_topology_port),E,(writeq(E),nl,fail))->halt;halt(1))"
 
+    run_with_timeout "HTTP session client-context isolation and teardown" \
+        "$TPL" -g "consult('$ROOT/http_session_context_tests.pl'),(catch(http_session_context_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "HTTP session and native actor routing lock order" \
         "$TPL" -g "consult('$ROOT/http_session_route_tests.pl'),(http_session_route_tests:run->halt;halt(1))"
 

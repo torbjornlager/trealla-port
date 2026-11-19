@@ -821,7 +821,7 @@ register(Name, Pid) :-
 % Trusted standalone callers share none; explicitly published services stay node-wide.
 registration_namespace(Namespace) :-
     current_actor_namespace(Scope),
-    ( nonvar(Scope), (Scope=ws_client(_);Scope=ws_lineage(_,_)), ground(Scope) -> Namespace=Scope
+    ( nonvar(Scope), (Scope=ws_client(_);Scope=ws_lineage(_,_);Scope=isotope_session(_)), ground(Scope) -> Namespace=Scope
     ; Namespace=none ).
 
 % Context-aware lookup is also used by named sends and monitors. Cleanup that
@@ -837,7 +837,7 @@ ensure_registry_namespace_open(Namespace) :-
 
 retire_registry_namespace(Namespace) :-
     must_be(ground,Namespace),
-    ( (Namespace=ws_client(_);Namespace=ws_lineage(_,_)) -> true
+    ( (Namespace=ws_client(_);Namespace=ws_lineage(_,_);Namespace=isotope_session(_)) -> true
     ; throw(error(domain_error(websocket_namespace,Namespace),retire_registry_namespace/1)) ),
     with_mutex('$actor_registry',
         ( (closed_registry_namespace(Namespace) -> true

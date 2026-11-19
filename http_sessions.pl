@@ -7,6 +7,8 @@
                                 toplevel_halt/2]).
 :- use_module(sandbox_policy, [sandbox_prepare_session_call/7]).
 :- use_module(isolation, [actor_module/2]).
+:- use_module(actor_authority, []).
+:- use_module(rpc, []).
 :- use_module(resource_policy, [check_term_text_size/2]).
 :- use_module(governance_policy, [reserve_http_session_capacity/3,
                                    release_capacity_reservation/1]).
@@ -75,8 +77,22 @@ admit_session(Port, session_access(Owner, Principal, Identity), Reply) :-
     catch(reserve_http_session_capacity(Principal, Identity, Reservation),
           Error, (thread_send_message(Reply, Error), fail)),
     setup_call_cleanup(true,
-        session_worker(Port, Owner, Reply),
+        http_sessions:session_context(Port, Owner, Principal, Reply),
         release_capacity_reservation(Reservation)).
+
+% The bearer principal owns the HTTP route; the session owns language state.
+% Different sessions must not inherit the trusted-local name/promise store.
+session_context(Port, Owner, Principal, Reply) :-
+    self(Relay),Namespace=isotope_session(Relay),
+    setup_call_cleanup(actor_authority:open_namespace(Namespace,Principal),
+        actors:with_actor_namespace(Namespace,
+            once(http_sessions:session_worker(Port, Owner, Reply))),
+        call_cleanup(http_sessions:retire_session_namespace(Namespace),
+                     actor_authority:close_namespace(Namespace))).
+
+retire_session_namespace(Namespace) :-
+    setup_call_cleanup(true,once(actors:retire_registry_namespace(Namespace)),
+        rpc:dispose_namespace_promises(Namespace)).
 
 session_worker(Port, Owner, Reply) :-
     self(Relay),

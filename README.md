@@ -454,7 +454,13 @@ Halt also interrupts an in-flight Call, Next or Poll. The waiting request
 returns HTTP 404 with code `session_lost`.
 Open HTTP sessions belong to the visitor cookie issued by `/node_info` or
 `/toplevel_spawn`. Clients must keep that cookie for subsequent requests.
-Authenticated sessions belong to the authenticated principal. The existing
+Authenticated sessions belong to the authenticated principal for HTTP route
+access. Each session has its own client namespace: equal credentials do not
+share ordinary names or promises between sessions. Local descendants inherit
+that namespace. Later requests to the same session retain its state; halt or
+session retirement removes its names and disposes of its promises. Surviving
+unlinked actors cannot register names or create promises in the retired scope.
+The existing
 per-principal actor limit also bounds simultaneous HTTP sessions, with
 anonymous admission grouped by client IP. Deployments can enable these
 routes with `WP_HTTP_SESSIONS=true`.
