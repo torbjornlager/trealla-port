@@ -903,6 +903,17 @@ reply_draining(C, Ver) :-
                'application/json; charset=UTF-8', Body,
                ['Retry-After'-'1']).
 
+node_info_admission(Port, Admission) :-
+    node_settings:with_node_settings(Port,
+      findall(Key-JSONValue,
+        ( member(Key,[rate_window_seconds,max_call_requests_per_window,
+                      max_session_spawns_per_window,max_ws_commands_per_window,
+                      max_inflight_calls,max_sessions_per_principal,
+                      max_ws_actors_per_principal]),
+          node_settings:node_setting(Key,Value),
+          (integer(Value)->JSONValue=number(Value);JSONValue=string_atom(Value)) ), Limits)),
+    node_json_object([window_policy-string_atom(fixed),rate_identity-string_atom(principal)|Limits], Admission).
+
 handle_node_info(Port, C, Ver, Peer, Headers) :-
     node_configuration(Port, Profile, Sandbox, AuthMode, PublicURL,
                        TutorialSections, WSAllowedOrigins),
@@ -929,8 +940,9 @@ handle_node_info(Port, C, Ver, Peer, Headers) :-
     findall(Text, (member(PI, Predicates), format(atom(Text), '~w', [PI])), Provides0),
     sort(Provides0, Provides),
     json_string_list(Provides, ProvidesJSON),
+    node_info_admission(Port, Admission),
     node_json_object(
-        [self_url-string_atom(SelfURL),profile-string_atom(Profile),
+        [admission-Admission,self_url-string_atom(SelfURL),profile-string_atom(Profile),
          auth-string_atom(AuthMode),sandbox-string_atom(Sandbox),
          protocol_version-number(1),auth_boundary-string_atom(trusted_headers),
          trusted_identity_headers-list(IdentityHeaders),

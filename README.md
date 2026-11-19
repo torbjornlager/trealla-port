@@ -2822,3 +2822,14 @@ HTTP/actor worker that reused a finished thread's native storage. The deployed
 engine race, controlled HTTP 502 reproduction and regression coverage are
 recorded in [the N5 diagnosis](docs/N5_NATIVE_SIGNAL_REUSE.md). Public APIs,
 resource limits and timeouts are unchanged.
+
+### Public admission metadata
+
+`/node_info.admission` reports applicable public rate/concurrency settings,
+with fixed-window principal accounting. The deployment launcher accepts
+`WP_RATE_WINDOW_SECONDS` (60), `WP_MAX_CALLS_PER_WINDOW` (120) and
+`WP_MAX_SPAWNS_PER_WINDOW` (120). These are deployment defaults; node/2 factory
+policy defaults and existing concurrency/resource settings remain independent.
+The [common admission contract](https://github.com/torbjornlager/trinity-conformance/blob/main/profiles/admission-0.1.md)
+also describes the different engine-start accounting used by ECLiPSe and
+request-rate accounting at the GNU ingress.

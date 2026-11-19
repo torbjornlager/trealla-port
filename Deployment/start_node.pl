@@ -82,7 +82,7 @@ deployment_options(Port, Options) :-
     env_integer('WP_MAX_WS_FRAME_BYTES', 262144, MaxFrameBytes), positive(max_ws_frame_bytes, MaxFrameBytes),
     env_integer('WP_RATE_WINDOW_SECONDS', 60, RateWindow), positive(rate_window_seconds, RateWindow),
     env_integer('WP_MAX_CALLS_PER_WINDOW', 120, MaxCalls), positive(max_call_requests_per_window, MaxCalls),
-    env_integer('WP_MAX_SPAWNS_PER_WINDOW', 60, MaxSpawns), positive(max_session_spawns_per_window, MaxSpawns),
+    env_integer('WP_MAX_SPAWNS_PER_WINDOW', 120, MaxSpawns), positive(max_session_spawns_per_window, MaxSpawns),
     env_integer('WP_MAX_WS_COMMANDS_PER_WINDOW', 1000, MaxCommands), positive(max_ws_commands_per_window, MaxCommands),
     env_integer('WP_MAX_INFLIGHT_CALLS', 4, MaxInflight), positive(max_inflight_calls, MaxInflight),
     env_integer('WP_MAX_WS_ACTORS_PER_PRINCIPAL', 16, MaxWSActors), positive(max_ws_actors_per_principal, MaxWSActors),
