@@ -1893,9 +1893,12 @@ counts are nonnegative integers; `redirect/1` is boolean. Explicit
 SWI's option validation. It overrides legacy `timeout/1` regardless of list
 order; the first occurrence of each name wins, and every occurrence is checked
 before source fetching or resource creation. Only one normalised `timeout/1`
-is forwarded when the explicit option is present. Without it, legacy transport
-`timeout/1` handling (nonnegative numbers or `infinite`) is unchanged. Yield
-timeouts govern the local wait. No remote execution timeout option is added.
+is forwarded when the explicit option is present. An explicitly supplied `timeout/1` now also requires a number, as specified by
+the shared client-option contract; omit the option to retain the default.
+`infinite`, `none` and uninstantiated values are rejected before source loading
+or dispatch. The existing transport projection is retained in this preflight
+repair; separate destination execution deadlines remain conformance work. Yield
+timeouts govern the local wait.
 CA certificate configuration requires a TLS-enabled Trealla build.
 
 **Dependency limitation:** Trealla v3.13.10's `http_open/3` sets the stream's

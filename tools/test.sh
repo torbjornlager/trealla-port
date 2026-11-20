@@ -216,8 +216,10 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/connection_stack_tests.pl'),(catch(connection_stack_tests:websocket_live($connection_stack_port),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "HTTP whole-page deadline" \
         "$TPL" -g "consult('$ROOT/http_page_deadline_tests.pl'),(catch(http_page_deadline_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
-    run_with_timeout "HTTP continuation cache eviction cleanup" \
-        "$TPL" -g "consult('$ROOT/http_cache_eviction_tests.pl'),(catch(http_cache_eviction_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    for cache_case in fifo_overflow multiple_evictions checkout_before_eviction concurrent_checkout interrupted_eviction; do
+        run_with_timeout "HTTP continuation cache eviction $cache_case" \
+            "$TPL" -g "consult('$ROOT/http_cache_eviction_tests.pl'),(catch(http_cache_eviction_tests:run($cache_case),E,(writeq(E),nl,fail))->halt;halt(1))"
+    done
     run_with_timeout "HTTP paging request cleanup" \
         "$TPL" -g "(catch((consult('$ROOT/http_paging_cleanup_tests.pl'),http_paging_cleanup_tests:run),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "remote statechart construction and trace acknowledgements" \

@@ -1786,14 +1786,20 @@ t144 :-
     format("144. sandbox exposes send/3 and cancel/1 ok~n").
 
 t145 :-
-    Source = 'root :- spawn(child, _, [src_predicates([child/0, grandchild/0])]), receive({}). child :- spawn(grandchild, _, [src_predicates([grandchild/0])]), receive({}). grandchild :- receive({}).',
+    Source = 'root(Owner) :- spawn(child(Owner), _, [src_predicates([child/1, grandchild/1])]), receive({}). child(Owner) :- spawn(grandchild(Owner), _, [src_predicates([grandchild/1])]), receive({}). grandchild(Owner) :- self(Pid), send(Owner, t145_tree_ready(Pid)), receive({}).',
     sandbox_prepare_options(blacklist, actor, actor_context,
                             [src_text(Source)], SourceOptions),
     self(Me),
-    toplevel_spawn(Session,
-                   [target(Me),session(true),link(false)|SourceOptions]),
-    Spawn0 = spawn(root, Root,
-                   [src_predicates([root/0,child/0,grandchild/0])]),
+    setup_call_cleanup(
+      toplevel_spawn(Session,
+                     [target(Me),session(true),link(false)|SourceOptions]),
+      t145_tree(Session, Me),
+      toplevel_halt(Session, true)),
+    format("145. nested link tutorial source copying and cascade ok~n").
+
+t145_tree(Session, Me) :-
+    Spawn0 = spawn(root(Me), Root,
+                   [src_predicates([root/1,child/1,grandchild/1])]),
     sandbox_prepare_spawn(blacklist, actor, actor_context,
                           Spawn0, [], SpawnGoal, SpawnOptions),
     toplevel_call(Session, SpawnGoal,
@@ -1801,7 +1807,10 @@ t145 :-
     receive({success(Session, [Root], false) -> true;
              error(Session, Error) -> throw(Error)},
             [timeout(2),on_timeout(throw(t145_spawn_timeout))]),
-    sleep(0.1),
+    % Root startup does not imply that its descendants have started. The
+    % grandchild signals only after both source-copying generations complete.
+    receive({t145_tree_ready(Grandchild) -> true},
+            [timeout(2),on_timeout(throw(t145_tree_ready_timeout))]),
     toplevel_call(Session, actors(Alive),
                   [template(Alive),target(Me),limit(1)]),
     receive({success(Session, [FourAlive], false) -> true;
@@ -1827,9 +1836,7 @@ t145 :-
                   [template(Remaining),target(Me),limit(1)]),
     receive({success(Session, [[Session]], false) -> true;
              error(Session, CascadeError) -> throw(CascadeError)},
-            [timeout(2),on_timeout(throw(t145_cascade_timeout))]),
-    toplevel_halt(Session, true),
-    format("145. nested link tutorial source copying and cascade ok~n").
+            [timeout(2),on_timeout(throw(t145_cascade_timeout))]).
 
 % Nested scopes also retire earlier fixture refs if a later setup/body fails.
 % No unrelated application monitor is withdrawn or flushed.

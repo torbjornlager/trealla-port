@@ -1,5 +1,5 @@
 % SPDX-License-Identifier: MIT
-:- module(http_cache_eviction_tests,[run/0]).
+:- module(http_cache_eviction_tests,[run/0,run/1]).
 :- use_module(actors).
 :- use_module(node).
 :- dynamic paused_exit/2, created/1.
@@ -12,13 +12,24 @@ actors:hook_exit(Pid,kill) :-
     actors:receive({resume_eviction -> true}),fail.
 
 run :-
-    setup_call_cleanup(true,
-      (fifo_overflow, multiple_evictions, checkout_before_eviction,
-       concurrent_checkout, interrupted_eviction),
-      clear_cache),
+    forall(cache_case(Case),run(Case)),
+    writeln('HTTP cache eviction: all regressions passed').
+
+% Each property creates at least one full production-sized cache. The unit
+% runner gives each its own process/watchdog, just like the other fixtures.
+% Keep run/0 for an aggregate run, and check reclamation after every property.
+cache_case(fifo_overflow).
+cache_case(multiple_evictions).
+cache_case(checkout_before_eviction).
+cache_case(concurrent_checkout).
+cache_case(interrupted_eviction).
+
+run(Case) :-
+    cache_case(Case),
+    setup_call_cleanup(true,call(Case),clear_cache),
     forall(created(Pid),\+actors:actor_thread(Pid,_)),
     \+node:http_page_claim(_,_),
-    writeln('HTTP cache eviction: all regressions passed').
+    format('HTTP cache eviction ~w: reclamation verified~n',[Case]).
 
 page(Tag,Offset,Answer) :-
     node:compute_answer(member(X,[Tag,tail(Tag)]),X,Offset,1,Answer).

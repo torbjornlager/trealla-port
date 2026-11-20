@@ -129,7 +129,7 @@ client_option_type(Kind,Name,Type) :-
     (Kind==rpc;Kind==promise),request_option_type(Name,Type).
 request_option_type(limit,positive_integer).
 request_option_type(once,language_boolean).
-request_option_type(timeout,timeout).
+request_option_type(timeout,number).
 request_option_type(http_timeout,number).
 request_option_type(src_text,source_text).
 request_option_type(src_list,list).
@@ -229,7 +229,7 @@ base_path_prefix(BasePath, Prefix) :-
 %     - once(+Boolean)
 %       Yield the whole first slice without fetching later pages when true.
 %       Default false. Forwarded to the peer as a query parameter.
-%     - http_timeout(+Number), timeout(+SecondsOrInfinite),
+%     - http_timeout(+Number), timeout(+Number),
 %       request_header(+Name=Value),
 %       authorization(basic(User,Password)), user_agent(+Text),
 %       redirect(+Boolean), max_redirect(+Nonnegative), cacert_file(+File).

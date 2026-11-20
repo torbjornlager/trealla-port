@@ -10,6 +10,7 @@ expect_client_error(Goal,Formal,PI) :-
 rpc_option_tests :-
     option_shape_errors,
     option_value_errors,
+    explicit_timeout_errors,
     option_no_resource_side_effects,
     option_yield_retry,
     option_supported_vectors,
@@ -63,6 +64,12 @@ option_value_errors :-
         type_error(atom_or_string,42),rpc:rpc/3),
     writeln('values and every duplicate occurrence are validated: ok').
 
+explicit_timeout_errors :-
+    forall(member(Value-Formal,[_-instantiation_error,none-type_error(number,none),infinite-type_error(number,infinite)]),
+      (expect_client_error(rpc('http://invalid',true,[src_uri('http://invalid/source'),timeout(Value)]),Formal,rpc:rpc/3),
+       expect_client_error(promise('http://invalid',true,Ref,[src_uri('http://invalid/source'),timeout(Value)]),Formal,rpc:promise/4),var(Ref))),
+    writeln('explicit timeout validation precedes source preparation and allocation: ok').
+
 option_no_resource_side_effects :-
     findall(R,rpc:promise_state(R,_,_,_,_,_,_),Before),
     findall(Q,message_queue_property(Q,size(_)),QueuesBefore),
@@ -89,7 +96,7 @@ check_invalid_yield(Ref) :-
     yield(Ref,Answer),Answer==success([ok],false).
 
 option_supported_vectors :-
-    Options=[limit(2),limit(3),timeout(infinite),redirect(true),max_redirect(3),
+    Options=[limit(2),limit(3),timeout(30),redirect(true),max_redirect(3),
              request_header('X-Test'=value),request_header('X-Count'='42'),
              authorization(basic(user,password)),user_agent('Trealla test'),cacert_file('ca.pem'),
              src_text('p(a).'),src_text([112,46]),src_list([p(X)]),src_predicates([p/1]),src_uri('http://localhost/source')],
@@ -103,15 +110,15 @@ option_supported_vectors :-
     rpc:rpc_http_options(POptions,HTTP),
     HTTP==[request_header('x-test'=value),request_header('x-count'='42'),
            request_header(authorization='Basic dXNlcjpwYXNzd29yZA=='),user_agent('Trealla test'),
-           timeout(infinite),redirect(true),max_redirect(3),cacert_file('ca.pem')],
+           timeout(30),redirect(true),max_redirect(3),cacert_file('ca.pem')],
     writeln('documented subset, precedence, source formats and sharing: ok').
 
 rpc_options_live_test(Port) :-
     format(atom(URI),'http://localhost:~w',[Port]),
-    findall(X,rpc(URI,member(X,[a,b,c]),[limit(1),limit(2),timeout(infinite),
+    findall(X,rpc(URI,member(X,[a,b,c]),[limit(1),limit(2),timeout(30),
         redirect(false),max_redirect(0),request_header('X-Test'=value),
         authorization(basic(test,password)),user_agent('Trealla validation')]),Rows),Rows==[a,b,c],
-    promise(URI,X=ok,Ref,[template(X-X),offset(0),limit(1),timeout(infinite)]),
+    promise(URI,X=ok,Ref,[template(X-X),offset(0),limit(1),timeout(30)]),
     expect_client_error(yield(Ref,_,[timeout(bad)]),type_error(number,bad),rpc:yield/3),
     yield(Ref,Answer),Answer==success([ok-ok],false),var(X),
     format('Live validated RPC paging and promise collection on ~w: ok~n',[Port]).
