@@ -158,6 +158,8 @@ run_unit() {
         "$TPL" -g "consult('$ROOT/node_discovery_tests.pl'),(catch(node_discovery_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Private shared-predicate shadowing" \
         "$TPL" -g "consult('$ROOT/shared_shadow_tests.pl'),(catch(shared_shadow_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Public clause I/O reflection and repeated source copies" \
+        "$TPL" -g "consult('$ROOT/clause_io_reflection_tests.pl'),(catch(clause_io_reflection_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Actor write/1 terminal routing" \
         "$TPL" -g "consult('$ROOT/write_output_tests.pl'),(catch(write_output_tests:run,E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Computed cyclic answer rejection" \

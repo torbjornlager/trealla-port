@@ -1351,6 +1351,12 @@ allow_application_clause_goal(Head, Body) :-
 % inside an ordinary body such as human(X) unifies with one of the internal
 % wrapper patterns below, commits at its cut, and expands recursively forever.
 restore_clause_body(_Module, Term, Term) :- var(Term), !.
+% Reflect the source-level terminal operation, as predicate export already
+% does. Preserve the argument itself so head/body variable sharing survives.
+restore_clause_body(_Module, actors:terminal_output(Term,Options),
+                    write(Term)) :- Options == [source(io)], !.
+restore_clause_body(_Module, actors:terminal_output(Term,Options),
+                    writeln(Term)) :- Options == [source(io_line)], !.
 restore_clause_body(Module,sandbox_policy:sandbox_library(_M,_P,_C,_A,Goal0),Goal) :- !,
     restore_clause_body(Module,Goal0,Goal).
 restore_clause_body(Module,isolation:actor_library(_M,Goal0),Goal) :- !,
