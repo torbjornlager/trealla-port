@@ -6,6 +6,7 @@
 % callers retain the standalone library API. A connection/account identifier
 % is not an exit capability for actors in another client namespace.
 :- use_module(actors, []).
+:- use_module(source_policy, [canonical_node_uri/2]).
 :- use_module(auth_policy, [principal_has_capability/2]).
 :- multifile actors:hook_check_exit/1.
 actors:hook_check_exit(Pid) :- actor_authority:check_exit(Pid).
@@ -36,14 +37,16 @@ prune_closed_owners :-
 actors:hook_stop(_) :-
     with_mutex('$actor_registry', actor_authority:prune_closed_owners).
 
-check_exit(Pid) :-
+check_exit(Pid0) :-
+    control_address(Pid0, Pid),
     actors:current_actor_namespace(Namespace),
     (Namespace == none -> true
     ; namespace_owner(Namespace) -> true
     ; owned_target(Namespace, Pid) -> true
+    ; actors:hook_local_registration_pid(Pid, Local), owned_target(Namespace, Local) -> true
     ; actors:logical_pid(Pid), \+ actors:actor_thread(Pid,_),
       \+ actors:actor_namespace(Pid,_) -> true
-    ; throw(error(permission_error(exit,actor,Pid),
+    ; throw(error(permission_error(exit,actor,Pid0),
                   context(actors:exit/2,'target is outside the caller ownership tree')))).
 
 namespace_owner(Namespace) :- owner_namespace(Namespace), !.
@@ -58,3 +61,10 @@ owned_target(Namespace, Pid) :-
 owned_target(Namespace, Pid) :-
     nonvar(Pid), Pid = _@_,
     actors:link(Parent,Pid), actors:actor_namespace(Parent,Namespace), !.
+
+% Representation normalization grants no authority: the canonical address still
+% has to belong to this namespace or its linked remote tree.
+control_address(Pid0, Pid) :-
+    (nonvar(Pid0), Pid0=Id@Node0
+    -> canonical_node_uri(Node0, Node), Pid=Id@Node
+    ; Pid=Pid0).

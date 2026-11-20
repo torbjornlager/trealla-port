@@ -27,7 +27,8 @@
 
 /** <module> Native Trealla Web Prolog distribution client
 
-This module keeps one version-1 Web Prolog WebSocket open per remote node.
+This module caches version-1 Web Prolog WebSockets per canonical node and
+hosted client context. Standalone unscoped callers retain the global pool.
 A named node-manager caches connections, reconnects them lazily, and maps
 canonical PID and published `Name@Node` routes.  A writer
 actor serializes frames and spawn rendezvous; an independent reader actor
@@ -43,6 +44,7 @@ no Logtalk or foreign code.
 :- op(200, xfx, @).
 
 :- use_module(native_thread_control, []).
+:- use_module(crypto_portable, [secure_random_bytes/2, bytes_hex/2]).
 :- use_module(actors).
 :- use_module(isolation).
 :- use_module(websocket).
@@ -66,7 +68,7 @@ actors:hook_terminal_stream('@'('$io_endpoint'(_),_)) :- !.
 :- multifile web_prolog:hook_io_request/2.
 :- multifile web_prolog:hook_close_browser_io/1.
 :- multifile hook_websocket_endpoint/2. % +LogicalNodeURL, -ConnectionURL (owner topology)
-:- multifile hook_websocket_options/2. % owner-installed credentials, keyed by logical origin
+:- multifile hook_websocket_options/2. % owner-installed credentials, keyed by canonical node URL
 :- multifile hook_transport_error/2. % +NodeURL, +Error (not a spawn reply)
 
 :- dynamic io_endpoint_target/2.
@@ -74,6 +76,10 @@ actors:hook_terminal_stream('@'('$io_endpoint'(_),_)) :- !.
 :- catch(mutex_create(_, [alias('$distribution_io_endpoints')]),
          error(permission_error(create, mutex,
                                 '$distribution_io_endpoints'), _),
+         true).
+:- catch(mutex_create(_, [alias('$distribution_manager_key')]),
+         error(permission_error(create, mutex,
+                                '$distribution_manager_key'), _),
          true).
 
                  /*******************************
@@ -101,16 +107,31 @@ remote_node_open(URL0, remote_node(URL, Reader, Writer), Options) :-
     spawn(remote_writer_start(WS, URL, Owner, capabilities(Sync,Correlated)), Writer, [link(false)]),
     spawn(remote_reader_loop(WS, URL, Writer), Reader, [link(false)]).
 
-node_url_atom(Input, URL) :- source_policy:uri_atom(Input, URL).
+node_url_atom(Input, URL) :- source_policy:canonical_node_uri(Input, URL).
 
 % An owner mapping changes only the dial endpoint, never the logical node URL.
-node_websocket_url(URL, Endpoint) :-
-    once(hook_websocket_endpoint(URL, Endpoint)), !.
-node_websocket_url(URL, URL) :-
+node_websocket_url(Input, Endpoint) :-
+    node_url_atom(Input, URL),
+    node_websocket_url_canonical(URL, Endpoint).
+
+node_websocket_url_canonical(URL, Endpoint) :-
+    findall(Dial,(node_endpoint_spelling(URL,Spelling),
+                  hook_websocket_endpoint(Spelling,Dial)),Dials0),
+    sort(Dials0,Dials),
+    (Dials=[] -> default_node_websocket_url(URL,Endpoint)
+    ; Dials=[Endpoint] -> true
+    ; throw(error(permission_error(redefine,node_endpoint,URL),
+                  context(distribution,'conflicting canonical node endpoints')))).
+
+node_endpoint_spelling(Node,Node).
+node_endpoint_spelling(Node,Slash) :-
+    atom_concat(Node,'/',Slash),node_url_atom(Slash,Node),Node \== Slash.
+
+default_node_websocket_url(URL, URL) :-
     ( sub_atom(URL, 0, 5, _, 'ws://')
     ; sub_atom(URL, 0, 6, _, 'wss://')
     ), !.
-node_websocket_url(URL, WebSocketURL) :-
+default_node_websocket_url(URL, WebSocketURL) :-
     ( sub_atom(URL, 0, 7, _, 'http://') ->
         sub_atom(URL, 7, _, 0, Rest), Scheme = 'ws://'
     ; sub_atom(URL, 0, 8, _, 'https://') ->
@@ -160,9 +181,9 @@ remote_node_close(Node) :-
 remote_drop_connection(URL0) :-
     node_url_atom(URL0, URL),
     distribution_manager(Manager),
-    self(Caller),
-    Manager ! '$node_lookup'(URL, Caller),
-    receive({ '$node_lookup_reply'(Manager, URL, Node) -> true }, []),
+    self(Caller), scoped_node_key(URL,Key),
+    manager_send(Manager,'$node_lookup'(Key, Caller)),
+    receive({ '$node_lookup_reply'(Manager, Key, Node) -> true }, []),
     ( Node == none -> true ; remote_node_close(Node) ).
 
 wait_thread_end(Thread, Attempts) :-
@@ -549,8 +570,11 @@ writer_message('$spawn_request'(JSON, Mode, Options, Target, Caller), WS, URL,
 writer_message('$wire_spawn_error'(Error),_,URL,true) :- !,
     transport_error(URL,Error).
 writer_message('$wire_io_ack'(Ack),WS,_,true) :- !,web_prolog_send(WS,Ack).
-writer_message('$remote_lost'(URL, _Reason), _, _, false) :- !,
-    writer_notify_connection_closed(URL).
+writer_message('$remote_lost'(URL, _Reason), WS, _, false) :- !,
+    % Reader cancellation can win the race with explicit close. It has left
+    % get_byte/2 before this notification; the writer still owns socket close.
+    writer_notify_connection_closed(URL),
+    catch(ws_close(WS,1000,normal),_,true).
 writer_message('$wire_event'(WirePid, Type, Event), _, URL, true) :- !,
     ( Type == down -> actors:remove_remote_aliases([WirePid@URL]) ; true ),
     ( Event=down(_,Ref,Reason),nonvar(Ref),Ref='$sync_monitor'(_)
@@ -570,7 +594,7 @@ writer_message('$local_actor_message'(_, '$toplevel_reply'(Ref,_)),_,_,true) :-
 writer_message('$local_actor_message'(TargetId, Message), _, _, true) :- !,
     self(Writer),
     distribution_manager(Manager),
-    Manager ! '$endpoint_deliver'(Writer, TargetId, Message).
+    manager_send(Manager,'$endpoint_deliver'(Writer, TargetId, Message)).
 writer_message('$io_request'(JSON, RequestId, ReplyQueue), WS, _, true) :- !,
     writer_add_io_request(RequestId, ReplyQueue),
     web_prolog_send(WS, JSON).
@@ -1167,8 +1191,8 @@ io_request_error(Reason) :-
 % checking a remote alias must not connect, fetch, or change PID mappings.
 actors:hook_local_registration_pid(Pid@Node0,Pid) :-
     integer(Pid), nonvar(Node0),
-    ( Node0 == localhost -> true
-    ; catch((node_url_atom(Node0,URL),web_prolog:current_node_url(URL)),_,fail) ).
+    catch((node_url_atom(Node0,URL),
+           (URL==localhost ; web_prolog:current_node_url(URL))),_,fail).
 
 actors:hook_spawn(Goal, RemotePid, Options0) :-
     take_node_option(Options0, URL0, Options),
@@ -1229,6 +1253,12 @@ actors:hook_exit(RemotePid, Reason) :-
                        reason-string_atom(ReasonText)], JSON),
     Writer ! '$remote_json'(JSON).
 
+% A locally qualified address has the same exit authority as its bare pid.
+% Keep known remote routes first, including a connection back to this server.
+actors:hook_exit(Pid, Reason) :-
+    actors:hook_local_registration_pid(Pid, Local),
+    actors:exit(Local, Reason).
+
 actors:hook_monitor(Watcher, RemotePid, Ref) :-
     remote_pid_writer(RemotePid, Writer, WirePid),
     self(Caller),
@@ -1253,27 +1283,47 @@ actors:hook_demonitor(Ref) :-
 actors:hook_stop(Target) :-
     forget_io_endpoints_for_target(Target),
     distribution_manager(Manager),
-    Manager ! '$target_stopped'(Target).
+    manager_send(Manager,'$target_stopped'(Target)).
 
 take_node_option([node(URL)|Options], URL, Options) :- !.
 take_node_option([Option|Options0], URL, [Option|Options]) :-
     take_node_option(Options0, URL, Options).
 
-transparent_node(URL, Node) :-
+transparent_node(Input, Node) :-
+    node_url_atom(Input,URL),
     distribution_manager(Manager),
-    self(Caller),
-    Manager ! '$node_request'(URL, Caller),
+    self(Caller), scoped_node_key(URL,Key),
+    ensure_node_scope_open(Key),
+    manager_send(Manager,'$node_request'(Key, Caller)),
     receive({
-        '$node_reply'(Manager, URL, Node) -> true ;
-        '$node_error'(Manager, URL, Error) -> throw(Error)
+        '$node_reply'(Manager, Key, Node) -> ensure_node_scope_open(Key) ;
+        '$node_error'(Manager, Key, Error) -> throw(Error)
     }, []).
 
-remote_pid_writer(RemotePid, Writer, WirePid) :-
-    RemotePid = WirePid@_,
+% Older peer transports have one namespace per connection. Give each hosted
+% client context its own connection; retain the standalone global pool.
+scoped_node_key(URL, Key) :-
+    actors:current_actor_namespace(Namespace),
+    (Namespace==none -> Key=URL ; Key=client(Namespace,URL)).
+node_key_url(client(_,URL),URL) :- !.
+node_key_url(URL,URL).
+ensure_node_scope_open(client(NS,_)) :- !,
+    actors:ensure_registry_namespace_open(NS).
+ensure_node_scope_open(_).
+
+:- multifile actors:hook_retire_namespace/1.
+actors:hook_retire_namespace(Namespace) :-
+    (catch(thread_property('$distribution_manager',status(running)),_,fail)
+    -> catch(manager_send('$distribution_manager','$namespace_closed'(Namespace)),_,true)
+    ; true).
+
+remote_pid_writer(RemotePid0, Writer, WirePid) :-
+    RemotePid0 = WirePid@Node0,
     integer(WirePid),
+    node_url_atom(Node0, Node), RemotePid = WirePid@Node,
     distribution_manager(Manager),
     self(Caller),
-    Manager ! '$route_request'(RemotePid, Caller),
+    manager_send(Manager,'$route_request'(RemotePid, Caller)),
     receive({
         '$route_reply'(Manager, RemotePid, Writer) -> true ;
         '$route_missing'(Manager, RemotePid) -> fail
@@ -1295,24 +1345,24 @@ caller_prepare_target(transparent, WirePid, URL, Writer, Target, Options) :-
 manager_register_route(RemotePid, Writer) :-
     distribution_manager(Manager),
     self(Caller),
-    Manager ! '$route_register'(RemotePid, Writer, Caller),
+    manager_send(Manager,'$route_register'(RemotePid, Writer, Caller)),
     receive({ '$route_registered'(Manager, RemotePid) -> true }, []).
 
 manager_forget_node_if_running(URL, Writer) :-
     ( catch(thread_property('$distribution_manager', status(running)), _, fail) ->
-        '$distribution_manager' ! '$node_forget'(URL, Writer)
+        manager_send('$distribution_manager','$node_forget'(URL, Writer))
     ; true
     ).
 
 manager_forget_endpoints_if_running(Writer) :-
     ( catch(thread_property('$distribution_manager', status(running)), _, fail) ->
-        '$distribution_manager' ! '$endpoint_writer_forget'(Writer)
+        manager_send('$distribution_manager','$endpoint_writer_forget'(Writer))
     ; true
     ).
 
 manager_forget_route_if_running(Pid) :-
     ( catch(thread_property('$distribution_manager', status(running)), _, fail) ->
-        '$distribution_manager' ! '$route_forget'(Pid)
+        manager_send('$distribution_manager','$route_forget'(Pid))
     ; true
     ).
 
@@ -1339,26 +1389,44 @@ distribution_manager_start :-
     distribution_manager_loop([], []).
 
 distribution_manager_loop(Nodes, Routes) :-
-    thread_get_message(Message),
-    catch(manager_message(Message, Nodes, Routes, NextNodes, NextRoutes), _,
-          ( NextNodes = Nodes, NextRoutes = Routes )),
+    thread_get_message(Envelope),
+    manager_key(Key),
+    (nonvar(Envelope),Envelope='$distribution_control'(Supplied,Message),Supplied==Key
+    -> catch(manager_message(Message,Nodes,Routes,NextNodes,NextRoutes),_,
+             (NextNodes=Nodes,NextRoutes=Routes))
+    ; NextNodes=Nodes,NextRoutes=Routes),
     distribution_manager_loop(NextNodes, NextRoutes).
 
-manager_message('$node_request'(URL, Caller), Nodes, Routes,
+% A public language send to the host alias is not an internal control call.
+% Authenticate local manager messages with a process-private 128-bit key.
+:- dynamic manager_control_key/1.
+manager_key(Key) :-
+    with_mutex('$distribution_manager_key',
+      (manager_control_key(Known) -> Key=Known
+      ; secure_random_bytes(16,Bytes),bytes_hex(Bytes,Key),assertz(manager_control_key(Key)))).
+manager_send(Manager,Message) :-
+    manager_key(Key),thread_send_message(Manager,'$distribution_control'(Key,Message)).
+
+manager_message('$node_request'(Key, Caller), Nodes, Routes,
                 NextNodes, Routes) :- !,
-    ( select(node(URL, Node), Nodes, Rest), node_writer_running(Node) ->
-        NextNodes = [node(URL, Node)|Rest], Error = none
-    ; catch(remote_node_open(URL, Node), OpenError, true),
-      ( var(OpenError) ->
-          exclude(manager_node_url(URL), Nodes, OtherNodes),
-          NextNodes = [node(URL, Node)|OtherNodes], Error = none
-      ; NextNodes = Nodes, Error = OpenError
-      )
+    catch(ensure_node_scope_open(Key),ScopeError,true),
+    (nonvar(ScopeError) -> NextNodes=Nodes,Error=ScopeError
+    ; select(node(Key,Node),Nodes,Rest),node_writer_running(Node)
+    -> NextNodes=[node(Key,Node)|Rest],Error=none
+    ; node_key_url(Key,URL),catch(remote_node_open(URL,Node),OpenError,true),
+      (nonvar(OpenError) -> NextNodes=Nodes,Error=OpenError
+      ; catch(ensure_node_scope_open(Key),Closed,true),
+        (nonvar(Closed) -> NextNodes=Nodes,Error=Closed,close_scoped_nodes([node(Key,Node)])
+        ; exclude(manager_node_url(Key),Nodes,OtherNodes),
+          NextNodes=[node(Key,Node)|OtherNodes],Error=none))
     ),
     manager_identity(Manager),
-    ( Error == none -> Caller ! '$node_reply'(Manager, URL, Node)
-    ; Caller ! '$node_error'(Manager, URL, Error)
-    ).
+    (Error==none -> Caller ! '$node_reply'(Manager,Key,Node)
+    ; Caller ! '$node_error'(Manager,Key,Error)).
+manager_message('$namespace_closed'(Namespace),Nodes,Routes,RestNodes,RestRoutes) :- !,
+    split_namespace_nodes(Namespace,Nodes,Closing,RestNodes),
+    forget_scoped_routes(Closing,Routes,RestRoutes),
+    close_scoped_nodes(Closing).
 manager_message('$node_lookup'(URL, Caller), Nodes, Routes,
                 Nodes, Routes) :- !,
     manager_identity(Manager),
@@ -1508,7 +1576,7 @@ local_runtime_pid(Pid) :-
 endpoint_for_target(Writer, Target, Id) :-
     distribution_manager(Manager),
     self(Caller),
-    Manager ! '$endpoint_request'(Writer, Target, Caller),
+    manager_send(Manager,'$endpoint_request'(Writer, Target, Caller)),
     receive({ '$endpoint_reply'(Manager, Writer, Target, Id) -> true }, []).
 
 
@@ -1531,3 +1599,25 @@ goal_options_wire_atoms(Goal, Options, GoalAtom, OptionsAtom) :-
     WriteOptions = [quoted(true),ignore_ops(false),numbervars(false),variable_names(Names)],
     write_term_to_atom(GoalAtom, Goal, WriteOptions),
     write_term_to_atom(OptionsAtom, Options, WriteOptions).
+
+namespace_node(Namespace,node(client(Owner,_),_)) :- Owner==Namespace.
+forget_scoped_routes([],Routes,Routes).
+forget_scoped_routes([node(_,remote_node(_,_,Writer))|Nodes],Routes,Rest) :-
+    remove_writer_routes(Routes,Writer,Next),forget_scoped_routes(Nodes,Next,Rest).
+
+% Do socket/reader shutdown outside the global manager and registry mutex.
+% Empty or repeated retirement creates no cleanup thread.
+close_scoped_nodes([]) :- !.
+close_scoped_nodes(Nodes) :-
+    catch(thread_create(distribution:close_scoped_nodes_now(Nodes),_,[detached(true)]),
+          _,close_scoped_nodes_now(Nodes)).
+close_scoped_nodes_now([]).
+close_scoped_nodes_now([node(_,Node)|Nodes]) :-
+    catch(remote_node_close(Node),_,true),close_scoped_nodes_now(Nodes).
+
+split_namespace_nodes(_,[],[],[]).
+split_namespace_nodes(Namespace,[Node|Nodes],Closing,Rest) :-
+    (namespace_node(Namespace,Node)
+    -> Closing=[Node|NextClosing],Rest=NextRest
+    ; Closing=NextClosing,Rest=[Node|NextRest]),
+    split_namespace_nodes(Namespace,Nodes,NextClosing,NextRest).

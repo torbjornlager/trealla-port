@@ -692,11 +692,13 @@ synchronous_callback(Caller,Callback) :- call(Caller:Callback).
 toplevel_halt(Pid) :-
     exit(Pid, true).
 
+% The private reference identifies this observation even when monitor/2
+% canonicalizes a qualified address to another public pid representation.
 toplevel_halt(Pid, true) :-
     setup_call_cleanup(
         monitor(Pid, Ref),
         ( toplevel_halt(Pid),
-          receive({down(Pid, Ref, _) -> true})
+          receive({down(_, Ref, _) -> true})
         ),
         demonitor(Ref, [flush])
     ).

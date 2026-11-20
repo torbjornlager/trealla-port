@@ -13,12 +13,14 @@ must still enforce the receiving node's configured transport admission.
 :- multifile distribution:hook_websocket_options/2.
 
 distribution:hook_websocket_options(Node, [header('Authorization', Value)]) :-
-    peer_topology:credential(Node, Token),
+    source_policy:canonical_node_uri(Node, Canonical),
+    peer_topology:credential(Canonical, Token),
     atom_concat('Bearer ', Token, Value).
 :- multifile distribution:hook_websocket_endpoint/2.
 
 distribution:hook_websocket_endpoint(Node, Endpoint) :-
-    peer_topology:endpoint(Node, Endpoint).
+    source_policy:canonical_node_uri(Node, Canonical),
+    peer_topology:endpoint(Canonical, Endpoint).
 
 configure(File) :-
     setup_call_cleanup(open(File, read, Stream),
@@ -27,8 +29,10 @@ configure(File) :-
     ; throw(error(domain_error(peer_topology_file, File), configure/1)) ),
     must_be(list, Pairs),
     validate_pairs(Pairs, []),
+    maplist(canonical_pair, Pairs, Canonical),
+    validate_pairs(Canonical, []),
     % Publish only after validating the entire file.
-    retractall(endpoint(_,_)), install_pairs(Pairs).
+    retractall(endpoint(_,_)), install_pairs(Canonical).
 
 validate_pairs([], _).
 validate_pairs([Pair|Pairs], Seen) :-
@@ -61,8 +65,9 @@ install_pairs([Node-Endpoint|Pairs]) :-
 configure_credentials(File) :-
     ( catch((setup_call_cleanup(open(File, read, Stream),
                 (read(Stream, Pairs), read(Stream, End)), close(Stream)),
-             End == end_of_file, is_list(Pairs), valid_credentials(Pairs, [])), _, fail)
-    -> retractall(credential(_,_)), install_credentials(Pairs)
+             End == end_of_file, is_list(Pairs), valid_credentials(Pairs, []),
+             maplist(canonical_pair,Pairs,Canonical),valid_credentials(Canonical,[])), _, fail)
+    -> retractall(credential(_,_)), install_credentials(Canonical)
     ; throw(error(domain_error(peer_credentials_file, File), configure_credentials/1)) ).
 
 valid_credentials([], _).
@@ -81,9 +86,13 @@ install_credentials([Node-Token|Pairs]) :-
 inbound_options(File, Options) :-
     ( catch((setup_call_cleanup(open(File,read,S),
                 (read(S,Pairs),read(S,End)),close(S)),
-             End==end_of_file,is_list(Pairs),valid_credentials(Pairs,[])),_,fail)
-    -> inbound_pairs(Pairs,Options)
+             End==end_of_file,is_list(Pairs),valid_credentials(Pairs,[]),
+             maplist(canonical_pair,Pairs,Canonical),valid_credentials(Canonical,[])),_,fail)
+    -> inbound_pairs(Canonical,Options)
     ; throw(error(domain_error(peer_credentials_file,File),inbound_options/2)) ).
 inbound_pairs([],[]).
 inbound_pairs([Node-Token|Pairs],[bearer_token(Node,Token,[execute,internal_transport])|Options]) :-
     inbound_pairs(Pairs,Options).
+
+canonical_pair(Node0-Value, Node-Value) :-
+    source_policy:canonical_node_uri(Node0, Node).

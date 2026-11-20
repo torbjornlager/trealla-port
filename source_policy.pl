@@ -8,6 +8,7 @@
       resolve_source_options/2,
       fetch_source_uri/2,
       uri_atom/2,
+      canonical_node_uri/2,
       normalize_source_origin/2,
       source_origin_allowed/1,
       resolve_redirect_uri/3,
@@ -691,3 +692,19 @@ continuation(_, _, _) :- invalid_utf8.
 invalid_utf8 :-
     throw(error(source_uri_protocol_error(invalid_utf8),
                 source_policy:fetch_source_uri/2)).
+
+% Node identity only; source/RPC URI text remains unchanged.
+canonical_node_uri(Input, Node) :-
+    uri_atom(Input, URI),
+    (node_root_alias(URI, Canonical) -> Node = Canonical ; Node = URI).
+
+% Only an empty root path is a spelling variant. Non-root paths, queries,
+% fragments, schemes and authorities retain their exact distinctions.
+node_root_alias(URL, Canonical) :-
+    member(Scheme, ['http://','https://','ws://','wss://']),
+    atom_concat(Scheme, Rest, URL),
+    atom_concat(Authority, '/', Rest), Authority \== '',
+    \+ sub_atom(Authority, _, _, _, '/'),
+    \+ sub_atom(Authority, _, _, _, '?'),
+    \+ sub_atom(Authority, _, _, _, '#'),
+    atom_concat(Scheme, Authority, Canonical).

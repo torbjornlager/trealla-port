@@ -499,6 +499,8 @@ run_interop() {
             "$TPL" -g "consult('$ROOT/termination_notification_tests.pl'),(catch(termination_notification_tests:explicit_live('http://localhost:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "General remote toplevel creation -> SWI" \
             "$TPL" -g "consult('$ROOT/remote_toplevel_creation_tests.pl'),(catch(remote_toplevel_creation_tests:live('http://localhost:$swi_actor_port','http://127.0.0.1:$source_port/source.pl'),E,(writeq(E),nl,fail))->halt;halt(1))"
+        run_with_timeout "Scoped peer cache lifecycle -> SWI" \
+            "$TPL" -g "consult('$ROOT/scoped_peer_connections_tests.pl'),(catch(scoped_peer_connections_tests:live('http://127.0.0.1:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Public synchronous wrappers -> SWI" \
             "$TPL" -g "consult('$ROOT/synchronous_toplevel_tests.pl'),(catch(synchronous_toplevel_tests:live('http://127.0.0.1:$swi_actor_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
         run_with_timeout "Public runtime properties (swi_native)" \
@@ -545,6 +547,8 @@ run_interop() {
         "$TPL" -g "consult('$ROOT/termination_notification_tests.pl'),(catch(termination_notification_tests:live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Explicit termination notifications -> Trealla" \
         "$TPL" -g "consult('$ROOT/termination_notification_tests.pl'),(catch(termination_notification_tests:explicit_live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
+    run_with_timeout "Scoped peer cache lifecycle -> Trealla" \
+        "$TPL" -g "consult('$ROOT/scoped_peer_connections_tests.pl'),(catch(scoped_peer_connections_tests:live('http://localhost:$trealla_remote_port'),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "General remote toplevel creation -> Trealla" \
         "$TPL" -g "consult('$ROOT/remote_toplevel_creation_tests.pl'),(catch(remote_toplevel_creation_tests:live('http://localhost:$trealla_remote_port','http://127.0.0.1:$source_port/source.pl'),E,(writeq(E),nl,fail))->halt;halt(1))"
     if [ -f "$TRINITY_NODE_FILE" ]; then

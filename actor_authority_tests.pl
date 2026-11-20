@@ -52,9 +52,13 @@ remote_route_is_not_authority :-
     setup_call_cleanup(
         (assertz(actors:actor_namespace(Self,ws_client(remote_owner))),
          assertz(actors:link(Self,Remote))),
-        (actors:with_actor_namespace(ws_client(remote_owner),actor_authority:check_exit(Remote)),
-         catch((actors:with_actor_namespace(ws_client(remote_stranger),
-                    actor_authority:check_exit(Remote)),Outcome=returned),E,Outcome=thrown),
-         Outcome==thrown,nonvar(E),E=error(permission_error(exit,actor,Remote),_)),
+        (atom_chars('http://authority.invalid',Chars),
+         atom_codes('http://authority.invalid/',Codes),
+         forall(member(Node,['http://authority.invalid','http://authority.invalid/',Chars,Codes]),
+           (Address=1234567890@Node,
+            actors:with_actor_namespace(ws_client(remote_owner),actor_authority:check_exit(Address)),
+            catch((actors:with_actor_namespace(ws_client(remote_stranger),
+                      actor_authority:check_exit(Address)),Outcome=returned),E,Outcome=thrown),
+            Outcome==thrown,nonvar(E),E=error(permission_error(exit,actor,Address),_)))),
         (retractall(actors:link(Self,Remote)),
          retractall(actors:actor_namespace(Self,ws_client(remote_owner))))).

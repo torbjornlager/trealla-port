@@ -145,22 +145,15 @@ web_prolog_node(Port, Options) :-
          [websocket_options([optional_subprotocols(['web-prolog-sync-spawn-v1','web-prolog-sync-v1'])|WSOptions])|NodeOptions]).
 
 configure_node_url(Port, Options, URL) :-
-    ( memberchk(node_url(URL0), Options) -> node_url_atom(URL0, URL1)
-    ; format(atom(URL1), 'http://127.0.0.1:~w', [Port])
+    ( memberchk(node_url(URL0), Options) -> source_policy:canonical_node_uri(URL0, URL)
+    ; format(atom(URL), 'http://127.0.0.1:~w', [Port])
     ),
-    strip_url_slash(URL1, URL),
     retractall(node_public_url(_)),
     asserta(node_public_url(URL)).
 
-public_url_options(Options, _, Options) :-
-    memberchk(node_url(_), Options), !.
+public_url_options(Options0, URL, [node_url(URL)|Options]) :-
+    select(node_url(_), Options0, Options), !.
 public_url_options(Options, URL, [node_url(URL)|Options]).
-
-node_url_atom(URL, URL) :- atom(URL), !.
-node_url_atom(Chars, URL) :- atom_chars(URL, Chars).
-
-strip_url_slash(URL0, URL) :- atom_concat(URL, '/', URL0), !.
-strip_url_slash(URL, URL).
 
 current_node_url(URL) :- node_public_url(URL).
 

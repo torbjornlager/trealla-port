@@ -2836,3 +2836,25 @@ policy defaults and existing concurrency/resource settings remain independent.
 The [common admission contract](https://github.com/torbjornlager/trinity-conformance/blob/main/profiles/admission-0.1.md)
 also describes the different engine-start accounting used by ECLiPSe and
 request-rate accounting at the GNU ingress.
+
+### Canonical node addresses and transport contexts
+
+An empty root path is one node-URL spelling: `https://node/` canonicalizes to
+`https://node`. Returned addresses, peer credentials and owner topology use
+that identity. Duplicate canonical credential keys and conflicting dial
+mappings fail closed. Schemes, hosts, ports, non-root paths, queries and
+fragments retain their distinctions. Source and ordinary RPC URI text is
+unchanged.
+
+An explicit node URL retains a separate receiving transport context, even
+when it points back to this server. An implicit local spawn retains the
+caller’s client context. Ordinary names remain scoped to that context;
+published services provide node-wide discovery. Conformance pack
+`node-uri-io-0.2` checks address and context behavior separately.
+
+Hosted Trealla clients use a separate outgoing connection cache for each
+client context; a retained client reuses its canonical peer connection.
+Closing the context closes those connections and reclaims their peer work.
+The standalone unscoped API retains its global connection pool. This preserves
+client isolation with peers that use one namespace per connection, without
+adding downstream lineage claims or changing account/concurrency bounds.

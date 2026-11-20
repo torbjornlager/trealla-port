@@ -177,7 +177,8 @@ Reply = hello.
     hook_admit_spawn/2,
     hook_spawn_reserved/2,
     hook_stop/1,
-    hook_local_registration_pid/2.
+    hook_local_registration_pid/2,
+    hook_retire_namespace/1.
 
 :- dynamic actor_alive/1.
 :- dynamic pid_thread/2.
@@ -846,7 +847,8 @@ retire_registry_namespace(Namespace) :-
           remove_registrations(Owned),
           findall(Token,spawn_name_owner(Token,Namespace),Tokens),
           retire_spawn_names(Tokens),
-          retractall(remote_spawn_publication(_,_,_,Namespace)) )).
+          retractall(remote_spawn_publication(_,_,_,Namespace)) )),
+    forall(hook_retire_namespace(Namespace),true).
 retire_spawn_names([]).
 retire_spawn_names([Token|Tokens]) :-
     retractall(reserved_spawn_name(_,Token)),retractall(spawn_name_owner(Token,_)),

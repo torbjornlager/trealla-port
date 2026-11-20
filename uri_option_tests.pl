@@ -11,6 +11,14 @@ text_form(chars,A,C) :- atom_chars(A,C).
 text_form(codes,A,C) :- atom_codes(A,C).
 
 run :-
+    forall(member(URI-Canonical,[
+      'https://node.test/'-'https://node.test',
+      'http://node.test:8080/'-'http://node.test:8080',
+      'https://node.test/path/'-'https://node.test/path/',
+      'https://node.test/?x=1'-'https://node.test/?x=1',
+      'https://node.test/#part'-'https://node.test/#part']),
+      forall(member(Form,[atom,chars,codes]),
+        (text_form(Form,URI,Input),distribution:node_url_atom(Input,Canonical)))),
     forall(member(Form,[atom,chars,codes]),
       (text_form(Form,'https://example.org/é?x=%2F',Input),
        source_policy:uri_atom(Input,URI),URI=='https://example.org/é?x=%2F',atom(URI),

@@ -67,7 +67,10 @@ alias_connection_close(Mode) :-
     unregister(F),unregister(G),unregister(H),seed_writer,
     format('~w close removes known aliases only, preserving services/names/monitors: ok~n',[Mode]).
 close_vector(lost,URL) :-
-    distribution:writer_message('$remote_lost'(URL,test_loss),unused,URL,false).
+    % Connection loss now closes the owned socket as well as removing aliases.
+    open('/dev/null',write,Stream,[type(binary)]),
+    distribution:writer_message('$remote_lost'(URL,test_loss),
+                                ws(Stream,server,1024),URL,false).
 close_vector(explicit,URL) :-
     open('/dev/null',write,Stream,[type(binary)]),
     distribution:writer_message('$remote_close',ws(Stream,server,1024),URL,false).
