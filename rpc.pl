@@ -138,9 +138,6 @@ request_option_type(src_uri,uri).
 request_option_type(request_header,request_header).
 request_option_type(authorization,authorization).
 request_option_type(user_agent,http_field).
-request_option_type(redirect,boolean).
-request_option_type(max_redirect,nonnegative_integer).
-request_option_type(cacert_file,source_text).
 
 validate_client_value(template,_) :- !.
 validate_client_value(language_boolean,Value) :- !, actors:validate_spawn_value(boolean,Value).
@@ -229,13 +226,16 @@ base_path_prefix(BasePath, Prefix) :-
 %     - once(+Boolean)
 %       Yield the whole first slice without fetching later pages when true.
 %       Default false. Forwarded to the peer as a query parameter.
-%     - http_timeout(+Number), timeout(+Number),
-%       request_header(+Name=Value),
-%       authorization(basic(User,Password)), user_agent(+Text),
-%       redirect(+Boolean), max_redirect(+Nonnegative), cacert_file(+File).
-%       Explicit http_timeout/1 overrides legacy timeout/1; negatives become zero.
-%       Read-timeout enforcement depends on the underlying runtime.
-%       Only this documented Trealla HTTP subset is forwarded.
+%     - timeout(+Number)
+%       Execution time limit for the remote query, forwarded to the peer as
+%       the `timeout` query parameter (first occurrence; negatives become 0).
+%     - http_timeout(+Number)
+%       Deadline for each whole HTTP request (connect, headers and body).
+%       Zero or less is reached before any request is made. Exceeding it
+%       raises error(rpc_error(http_timeout),_); a promise answers with it.
+%     - request_header(+Name=Value), authorization(basic(User,Password)),
+%       user_agent(+Text). Only this documented HTTP subset is forwarded;
+%       other HTTP client options are rejected as unknown options.
 %       The HTTP library parses `https://` when Trealla is built with TLS and
 %       v3.13.2 verifies the certificate chain and host name by default.
 %     - src_text(+Text), src_list(+Terms), src_predicates(+PIs), src_uri(+URI)
@@ -305,12 +305,10 @@ rpc_page(Template, Offset, Limit, GoalAtom, TemplateAtom, BaseURI, Options,
     format(atom(URL0),
            '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog&once=~w',
            [RootURI, GoalEnc, TemplEnc, Offset, Limit, Once]),
-    rpc_source_url(URL0, LoadText, URL),
     rpc_http_options(Options, HTTPOptions),
-    http_open(URL, S, HTTPOptions),
-    setup_call_cleanup(true, getline(S, BodyChars), close(S)),
-    atom_chars(BodyAtom, BodyChars),
-    read_term_from_atom(BodyAtom, Answer, []),
+    rpc_timeout_url(URL0, HTTPOptions, URL1),
+    rpc_source_url(URL1, LoadText, URL),
+    rpc_http_answer(URL, HTTPOptions, Answer),
     rpc_answer(Answer, Template, Offset, Limit,
                GoalAtom, TemplateAtom, BaseURI, Options, LoadText).
 
@@ -326,16 +324,68 @@ strip_trailing_slash(URI, URI).
 
 % Explicit transport spelling overrides the legacy timeout/1 independently
 % of list order. Public validation has already checked every occurrence.
+%   The result also carries the internal markers '$rpc_timeout'(T) (the
+%   execution limit, forwarded as a query parameter) and '$rpc_deadline'(T)
+%   (the whole-request HTTP deadline). Neither reaches http_open/3.
 rpc_http_options(Options, HTTPOptions) :-
     rpc_transport_options(Options, Transport0),
-    exclude(rpc_http_field_option,Transport0,Other),
+    exclude(rpc_http_field_option,Transport0,Other0),
+    without_legacy_timeouts(Other0, Other),
     rpc_http_fields(Options,Fields),rpc_http_native_options(Fields,FieldOptions),
-    append(FieldOptions,Other,Transport),
+    append(FieldOptions,Other,Transport1),
+    (memberchk(timeout(Remote0),Options) ->
+        Remote is max(0,Remote0), Transport2=['$rpc_timeout'(Remote)|Transport1]
+    ; Transport2=Transport1),
     (memberchk(http_timeout(T),Options) ->
         Timeout is max(0,T),
-        without_legacy_timeouts(Transport, Rest),
-        HTTPOptions=[timeout(Timeout)|Rest]
-    ; HTTPOptions=Transport).
+        HTTPOptions=['$rpc_deadline'(Timeout),timeout(Timeout)|Transport2]
+    ; HTTPOptions=Transport2).
+
+rpc_timeout_url(URL0, Options, URL) :-
+    (   memberchk('$rpc_timeout'(T), Options)
+    ->  format(atom(URL), '~w&timeout=~w', [URL0, T])
+    ;   URL = URL0
+    ).
+
+%   One HTTP request and its answer term. With a deadline, the whole request
+%   is bounded; a deadline of zero or less is reached before any I/O. The
+%   stream is opened in the setup goal so cleanup closes it on interruption.
+rpc_http_answer(URL, Options0, Answer) :-
+    exclude(rpc_internal_option, Options0, Options),
+    (   memberchk('$rpc_deadline'(Deadline), Options0)
+    ->  (   Deadline =< 0
+        ->  rpc_deadline_exceeded
+        ;   catch(call_with_time_limit(Deadline, rpc_http_read(URL, Options, Answer)),
+                  Error, rpc_deadline_error(Error))
+        )
+    ;   rpc_http_read(URL, Options, Answer)
+    ).
+
+rpc_http_read(URL, Options, Answer) :-
+    setup_call_cleanup(
+        http_open(URL, Stream, Options),
+        getline(Stream, BodyChars),
+        close(Stream)),
+    atom_chars(BodyAtom, BodyChars),
+    read_term_from_atom(BodyAtom, Answer, []).
+
+rpc_internal_option('$rpc_timeout'(_)).
+rpc_internal_option('$rpc_deadline'(_)).
+
+rpc_deadline_error(Error) :-
+    rpc_deadline_error_term(Error), !,
+    rpc_deadline_exceeded.
+rpc_deadline_error(Error) :-
+    throw(Error).
+
+rpc_deadline_error_term(time_limit_exceeded).
+rpc_deadline_error_term(error(time_limit_exceeded,_)).
+rpc_deadline_error_term(error(time_limit_exceeded(_,_),_)).
+rpc_deadline_error_term(error(timeout_error(_,_),_)).
+
+rpc_deadline_exceeded :-
+    throw(error(rpc_error(http_timeout),
+                context(rpc:rpc/3,'HTTP request deadline exceeded'))).
 
 rpc_http_field_option(request_header(_)).
 rpc_http_field_option(authorization(_)).
@@ -533,13 +583,9 @@ rpc_fetch_answer(BaseURI, GoalAtom, TemplateAtom, Offset, Limit, LoadText,
     format(atom(URL0),
            '~w/call?goal=~w&template=~w&offset=~w&limit=~w&format=prolog&once=~w',
            [RootURI, GoalEnc, TemplateEnc, Offset, Limit, Once]),
-    rpc_source_url(URL0, LoadText, URL),
-    setup_call_cleanup(
-        http_open(URL, Stream, HTTPOptions),
-        (getline(Stream, BodyChars),
-         atom_chars(BodyAtom, BodyChars),
-         read_term_from_atom(BodyAtom, Answer, [])),
-        close(Stream)).
+    rpc_timeout_url(URL0, HTTPOptions, URL1),
+    rpc_source_url(URL1, LoadText, URL),
+    rpc_http_answer(URL, HTTPOptions, Answer).
 
 promise_auto_cleanup(Reference, Seconds) :-
     sleep(Seconds), dispose_promise(Reference).

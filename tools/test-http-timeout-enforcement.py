@@ -90,7 +90,7 @@ def main():
     report.update(executable=str(executable), library=env['TPL_LIBRARY_PATH'], case=args.case,
                   elapsed_seconds=round(time.monotonic()-started, 3),
                   scope='Plain HTTP; delayed headers, body and partial line; no TLS')
-    marker = ('HTTP read-timeout enforcement, retry/callbacks and resource cleanup: passed'
+    marker = ('HTTP request-deadline enforcement, retry/callbacks and resource cleanup: passed'
               if args.case == 'all' else f'HTTP timeout case {args.case}: passed')
     report['passed'] = report['exit_code'] == 0 and marker in report['stdout']
     if args.output:

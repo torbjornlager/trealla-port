@@ -50,10 +50,13 @@ option_value_errors :-
         domain_error(not_less_than_zero,-1),rpc:promise/4),
     expect_client_error(rpc('http://invalid',true,[timeout(bad)]),
         type_error(number,bad),rpc:rpc/3),
-    expect_client_error(rpc('http://invalid',true,[redirect(true),redirect(maybe)]),
-        type_error(boolean,maybe),rpc:rpc/3),
-    expect_client_error(promise('http://invalid',true,_,[max_redirect(-1)]),
-        domain_error(not_less_than_zero,-1),rpc:promise/4),
+    % HTTP client options outside the documented subset are unknown options.
+    expect_client_error(rpc('http://invalid',true,[redirect(true)]),
+        domain_error(rpc_option,redirect(true)),rpc:rpc/3),
+    expect_client_error(promise('http://invalid',true,_,[max_redirect(3)]),
+        domain_error(promise_option,max_redirect(3)),rpc:promise/4),
+    expect_client_error(rpc('http://invalid',true,[cacert_file('ca.pem')]),
+        domain_error(rpc_option,cacert_file('ca.pem')),rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[request_header(bad)]),
         type_error(http_request_header,bad),rpc:rpc/3),
     expect_client_error(rpc('http://invalid',true,[authorization(digest(user,password))]),
@@ -96,9 +99,9 @@ check_invalid_yield(Ref) :-
     yield(Ref,Answer),Answer==success([ok],false).
 
 option_supported_vectors :-
-    Options=[limit(2),limit(3),timeout(30),redirect(true),max_redirect(3),
+    Options=[limit(2),limit(3),timeout(30),timeout(40),http_timeout(5),http_timeout(6),
              request_header('X-Test'=value),request_header('X-Count'='42'),
-             authorization(basic(user,password)),user_agent('Trealla test'),cacert_file('ca.pem'),
+             authorization(basic(user,password)),user_agent('Trealla test'),
              src_text('p(a).'),src_text([112,46]),src_list([p(X)]),src_predicates([p/1]),src_uri('http://localhost/source')],
     rpc:validate_client_options(rpc,[once(true),once(false)|Options]),var(X),
     rpc:rpc_http_options([once(true)|Options],OnceHTTP),
@@ -108,15 +111,17 @@ option_supported_vectors :-
     rpc:validate_client_options(yield,[timeout(infinite),on_timeout(X=waiting)]),var(X),
     option(limit(First),Options,_),First==2,
     rpc:rpc_http_options(POptions,HTTP),
-    HTTP==[request_header('x-test'=value),request_header('x-count'='42'),
-           request_header(authorization='Basic dXNlcjpwYXNzd29yZA=='),user_agent('Trealla test'),
-           timeout(30),redirect(true),max_redirect(3),cacert_file('ca.pem')],
+    % timeout/1 is the remote execution limit (a query parameter) and
+    % http_timeout/1 the whole-request deadline; first occurrences win.
+    HTTP==['$rpc_deadline'(5),timeout(5),'$rpc_timeout'(30),
+           request_header('x-test'=value),request_header('x-count'='42'),
+           request_header(authorization='Basic dXNlcjpwYXNzd29yZA=='),user_agent('Trealla test')],
     writeln('documented subset, precedence, source formats and sharing: ok').
 
 rpc_options_live_test(Port) :-
     format(atom(URI),'http://localhost:~w',[Port]),
     findall(X,rpc(URI,member(X,[a,b,c]),[limit(1),limit(2),timeout(30),
-        redirect(false),max_redirect(0),request_header('X-Test'=value),
+        http_timeout(30),request_header('X-Test'=value),
         authorization(basic(test,password)),user_agent('Trealla validation')]),Rows),Rows==[a,b,c],
     promise(URI,X=ok,Ref,[template(X-X),offset(0),limit(1),timeout(30)]),
     expect_client_error(yield(Ref,_,[timeout(bad)]),type_error(number,bad),rpc:yield/3),

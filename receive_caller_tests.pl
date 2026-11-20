@@ -20,7 +20,12 @@ run :-
     sourced((self(S5),send(S5,p),catch(receive({p->rc_private(_),throw(seen)},[timeout(0),on_timeout(throw(body_lost))]),seen,rc_private(R5))),R5,1),
     sourced((self(S6),send(S6,p),bagof(X6,receive({p->rc_private(X6)},[timeout(0),on_timeout(throw(body_lost))]),R6)),R6,[1,2]),
     sourced((findall(X7,receive({},[timeout(0),on_timeout(rc_private(X7))]),R7)),R7,[1,2]),
-    writeln('PASS receive under findall/3, bagof/3, once/1 and catch/3 in a sourced actor keeps the API, private source and bindings').
+    writeln('PASS receive under findall/3, bagof/3, once/1 and catch/3 in a sourced actor keeps the API, private source and bindings'),
+    % A body cut prunes the body's own alternatives, not the caller's
+    % (conformance SR-015), directly and under findall/3.
+    sourced((self(S8),send(S8,p),receive({p->rc_private(X8),!},[timeout(0),on_timeout(throw(body_lost))]),R8=X8),R8,1),
+    sourced(findall(O9-I9,(member(O9,[one,two]),self(S9),send(S9,p),receive({p->member(I9,[a,b]),!},[timeout(0),on_timeout(fail)])),R9),R9,[one-a,two-a]),
+    writeln('PASS a receive body cut is local to the body in a sourced actor').
 
 % A toplevel with private source runs queries in its own actor module. A
 % receive nested in an opaque meta-call must keep the same callback context

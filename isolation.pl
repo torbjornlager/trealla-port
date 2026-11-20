@@ -1041,6 +1041,9 @@ bootstrap_lines(Module, ActorsFile, ToplevelFile,
     bootstrap_line( '\'$actor_qualify_receive_body\'((A0;B0), (A;B)) :- !, \'$actor_qualify_receive_body\'(A0,A), \'$actor_qualify_receive_body\'(B0,B).~n', []),
     bootstrap_line( '\'$actor_qualify_receive_body\'((A0->B0), (A->B)) :- !, \'$actor_qualify_receive_body\'(A0,A), \'$actor_qualify_receive_body\'(B0,B).~n', []),
     bootstrap_line( '\'$actor_qualify_receive_body\'((\\+ A0), (\\+ A)) :- !, \'$actor_qualify_receive_body\'(A0,A).~n', []),
+    % A body cut belongs to the body's own call scope. Qualifying it as
+    % Module:! would turn it into a call of !/0, which prunes nothing.
+    bootstrap_line( '\'$actor_qualify_receive_body\'(!, !) :- !.~n', []),
     bootstrap_line( '\'$actor_qualify_receive_body\'(Qualified:Goal, Qualified:Goal) :- atom(Qualified), !.~n', []),
     bootstrap_line( '\'$actor_qualify_receive_body\'(receive(Clauses0), actors:receive(~q:Clauses)) :- !, \'$actor_qualify_receive\'(Clauses0,Clauses).~n', [Module]),
     bootstrap_line( '\'$actor_qualify_receive_body\'(receive(Clauses0,Options0), actors:receive(~q:Clauses,Options)) :- !, \'$actor_qualify_receive\'(Clauses0,Clauses), \'$actor_qualify_receive_options\'(Options0,Options).~n', [Module]),
