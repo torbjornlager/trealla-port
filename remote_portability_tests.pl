@@ -14,8 +14,9 @@ run :-
        node_settings:register_node_settings(62001,'https://serving.test',actor,blacklist,open)),
       (rpc:resolve_rpc_uri(localhost,'https://fallback.test'),
        node_settings:with_node_settings(62001,
-         (rpc:resolve_rpc_uri(localhost,'https://serving.test'),
-          rpc:resolve_rpc_uri("localhost",'https://serving.test'),
+         % A serving node calls its own listener, not its advertised URL.
+         (rpc:resolve_rpc_uri(localhost,'http://127.0.0.1:62001'),
+          rpc:resolve_rpc_uri("localhost",'http://127.0.0.1:62001'),
           catch(rpc:resolve_rpc_uri(localhost:3060,_),error(type_error(atom_or_string,localhost:3060),_),true),
           rpc:resolve_rpc_uri('http://elsewhere.test','http://elsewhere.test')))),
       (retractall(web_prolog:node_public_url(_)),node_settings:forget_node_settings(62001))),

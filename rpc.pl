@@ -278,6 +278,11 @@ resolve_rpc_uri(Input, URI) :- source_policy:uri_atom(Input, URI).
 rpc_endpoint(Logical,Endpoint) :-
     (hook_rpc_endpoint(Logical,Private)->Endpoint=Private;Endpoint=Logical).
 
+% localhost is this node's own listener when one is running, as on SWI;
+% otherwise the configured or advertised node URL.
+local_rpc_url(URI) :-
+    catch(node_settings:current_node(Port), _, fail), integer(Port), Port > 0, !,
+    format(atom(URI), 'http://127.0.0.1:~w', [Port]).
 local_rpc_url(URI) :- node_settings:node_setting(url, URI), !.
 local_rpc_url(URI) :- web_prolog:current_node_url(URI).
 
