@@ -1335,6 +1335,8 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     param(limit,    Params, LimitAtom,    ''),
     param(format,   Params, Format,       prolog),
     param(src_text, Params, SourceText, ''),
+    param(timeout,  Params, TimeoutAtom,  ''),
+    http_requested_timeout(TimeoutAtom, RequestedTimeout),
     forall(member(once=Value,Params),http_once_value(Value,_)),
     param(once, Params, OnceValue, false),
     http_once_value(OnceValue,Once),
@@ -1352,8 +1354,18 @@ handle_call(C, Path, Ver, Profile, Sandbox, RelationPatterns) :-
     response_template(Format, Template0, Bindings0, Template),
     profile_check_goal(Profile, Goal, RelationPatterns),
     prepare_http_goal(Sandbox, Profile, Goal, SourceText, ExecutionGoal, Source),
-    compute_answer(ExecutionGoal, Template, Offset, Limit, Once, Source, Answer),
+    compute_answer(ExecutionGoal, Template, Offset, Limit, Once, Source,
+                   RequestedTimeout, Answer),
     reply_answer(C, Ver, Format, Answer).
+
+% The `timeout` parameter may only lower the owner's execution limit, as on
+% SWI and GNU. The first occurrence counts; a negative value means 0.
+http_requested_timeout('', none) :- !.
+http_requested_timeout(Atom, Timeout) :-
+    (   catch(atom_number(Atom, Number), _, fail), number(Number)
+    ->  Timeout is max(0, Number)
+    ;   throw(error(type_error(number, Atom), node:handle_call/6))
+    ).
 
 % Source-free runtime guards use an HTTP execution context while retaining
 % user database scope. Source-bearing queries use the same
@@ -1574,7 +1586,7 @@ term_json_string(Term, Text) :-
 :- catch(mutex_create(_, [alias('$http_page_cache')]),
          error(permission_error(create, mutex, '$http_page_cache'), _), true).
 :- meta_predicate with_http_page_scope(-,0).
-:- meta_predicate with_http_page_deadline(0).
+:- meta_predicate with_http_page_deadline(0), with_http_page_deadline(+,0).
 
 actors:hook_spawn_reserved(Pid, _) :-
     nb_current('$http_starting_page', Scope),
@@ -1678,8 +1690,11 @@ compute_answer(Goal, Template, Offset, Limit, Once, Answer) :-
     compute_answer(Goal,Template,Offset,Limit,Once,none,Answer).
 
 compute_answer(Goal,Template,Offset,Limit,Once,Source,Answer) :-
+    compute_answer(Goal,Template,Offset,Limit,Once,Source,none,Answer).
+
+compute_answer(Goal,Template,Offset,Limit,Once,Source,RequestedTimeout,Answer) :-
     with_http_page_scope(Scope,
-      with_http_page_deadline(
+      with_http_page_deadline(RequestedTimeout,
         compute_request_answer(Scope,Goal,Template,Offset,Limit,Once,Source,Answer))).
 
 % A one-slice request never checks out or publishes an ordinary continuation.
@@ -1705,11 +1720,19 @@ compute_request_answer(Scope,Goal,Template,Offset,Limit,false,Source,Answer) :-
 % the surrounding request scope reclaims an abandoned producer. Response
 % serialization/writing happens after compute_answer/5 has returned.
 with_http_page_deadline(Goal) :-
-    current_resource_policy(Policy),policy_time_limit(Policy,TimeLimit),
+    with_http_page_deadline(none, Goal).
+
+with_http_page_deadline(RequestedTimeout, Goal) :-
+    current_resource_policy(Policy),policy_time_limit(Policy,OwnerLimit),
+    requested_time_limit(OwnerLimit, RequestedTimeout, TimeLimit),
     setup_call_cleanup(create_resource_timer(TimeLimit,Timer),
       catch(once(Goal),Error,
         (http_page_deadline_error(Error,Public),throw(Public))),
       disarm_resource_timer(Timer)).
+
+requested_time_limit(Limit, none, Limit) :- !.
+requested_time_limit(infinite, Requested, Requested) :- !.
+requested_time_limit(Owner, Requested, Limit) :- Limit is min(Owner, Requested).
 
 http_page_deadline_error(Error,Public) :-
     (Error==time_limit_exceeded

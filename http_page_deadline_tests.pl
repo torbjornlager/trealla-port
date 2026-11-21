@@ -19,7 +19,7 @@ run :-
     setup_call_cleanup(configure_resource_policy([time_limit(0.2)],_),
       (startup_timeout, collection_timeout, skipping_timeout, lookahead_timeout,
        cached_requests, published_handoff, timer_cancellation, cleanup_after_cancellation,
-       reply_selection, reply_cleanup, infinite_deadline),
+       reply_selection, reply_cleanup, infinite_deadline, requested_timeout),
       reset_resource_policy),
     forall(produced(Pid),\+actors:actor_thread(Pid,_)),
     \+node:http_page_claim(_,_),\+node:cache(_,_,_,_),
@@ -107,6 +107,24 @@ infinite_deadline :-
                          success([1,2,3,4,5,6,7,8,9,10],false)),
       configure_resource_policy([time_limit(0.2)],_)),
     all_stopped,writeln('infinite owner time limit remains unbounded: ok').
+
+% The HTTP `timeout` parameter may lower the owner limit but never raise it.
+requested_timeout :-
+    node:http_requested_timeout('', none),
+    node:http_requested_timeout('-3', 0),
+    node:http_requested_timeout('0.05', 0.05),
+    catch(node:http_requested_timeout(abc,_),E0,true),
+    E0=error(type_error(number,abc),_),
+    setup_call_cleanup(configure_resource_policy([time_limit(infinite)],_),
+      ( catch(node:compute_answer(http_page_deadline_tests:slow(X),X,0,12,false,none,0.1,_),E1,true),
+        nonvar(E1),time_error(E1) ),
+      configure_resource_policy([time_limit(0.2)],_)),
+    all_stopped,
+    get_time(T0),
+    catch(node:compute_answer(http_page_deadline_tests:slow(Y),Y,0,12,false,none,5,_),E2,true),
+    get_time(T1),nonvar(E2),time_error(E2),T1-T0 < 1.0,
+    all_stopped,
+    writeln('a requested timeout lowers but never raises the owner limit: ok').
 
 reply_selection :-
     self(Self),
