@@ -176,6 +176,7 @@ with_http_promise_namespace(Goal) :-
 :- dynamic node_configuration/7.
 :- dynamic node_in_maintenance/1.
 :- dynamic node_http_sessions/1.
+:- dynamic node_description/2.      % Port, one-line self-description atom
 
 :- catch(mutex_create(_, [alias('$node_lifecycle')]),
          error(permission_error(create, mutex, '$node_lifecycle'), _),
@@ -277,6 +278,7 @@ node(Port, WebSocketHandler) :-
 %   Options include `profile(Profile)`, `sandbox(Mode)`, `auth(Mode)`,
 %   `principal(Id, Capabilities)`, `bearer_token(Id, Token, Capabilities)`,
 %   `node_url(PublicURL)`, `tutorial_sections(Sections)`,
+%   `description(Text)` (one line in /node_info, at most 160 characters),
 %   `ws_allowed_origins(Origins)`, `relations(Patterns)`,
 %   `rate_window_seconds(Seconds)`, `max_call_requests_per_window(Count)`,
 %   `max_session_spawns_per_window(Count)`,
@@ -331,11 +333,15 @@ node_server(Port, WebSocketHandler, Options) :-
     option(tutorial_sections(TutorialSections0), Options, []),
     normalize_metadata_atoms(tutorial_sections, TutorialSections0,
                              TutorialSections),
+    option(description(Description0), Options, ''),
+    normalize_node_description(Description0, Description),
     socket_server_open(BindAddress:Port, S, SocketOptions),
     setup_call_cleanup(
         ( register_node_listener(Port, S, BindAddress, SocketOptions,
                                Profile, Sandbox, AuthMode, PublicURL,
                                TutorialSections, WSAllowedOrigins),
+          retractall(node_description(Port, _)),
+          assertz(node_description(Port, Description)),
           ( HttpSessions == true -> assertz(node_http_sessions(Port)) ; true ) ),
         ( format("Node listening on port ~w (profile ~w, sandbox ~w, auth ~w)~n",
                  [Port, Profile, Sandbox, AuthMode]),
@@ -360,6 +366,42 @@ node_public_url(URL0, URL) :-
     ( atom_concat('http://', _, URL) ; atom_concat('https://', _, URL) ), !.
 node_public_url(URL, _) :-
     throw(error(domain_error(node_url, URL), node:node/3)).
+
+%   The optional self-description: whitespace collapsed, at most 160
+%   characters, '' when absent.
+normalize_node_description(Description0, Description) :-
+    ( atom(Description0) -> atom_chars(Description0, Chars0)
+    ; is_list(Description0) -> Chars0 = Description0
+    ; throw(error(type_error(text, Description0), node:node/3))
+    ),
+    description_words(Chars0, Words),
+    atomic_list_concat(Words, ' ', Description),
+    atom_length(Description, Length),
+    ( Length =< 160 -> true
+    ; throw(error(domain_error(node_description, Description0), node:node/3))
+    ).
+
+description_words(Chars, Words) :-
+    description_skip_space(Chars, Rest),
+    ( Rest == [] -> Words = []
+    ; description_word(Rest, WordChars, Tail),
+      atom_chars(Word, WordChars),
+      Words = [Word|More],
+      description_words(Tail, More)
+    ).
+
+description_skip_space([C|Cs], Rest) :-
+    description_space(C), !, description_skip_space(Cs, Rest).
+description_skip_space(Cs, Cs).
+
+description_word([C|Cs], [C|Word], Rest) :-
+    \+ description_space(C), !, description_word(Cs, Word, Rest).
+description_word(Cs, [], Cs).
+
+description_space(' ').
+description_space('\t').
+description_space('\n').
+description_space('\r').
 
 normalize_metadata_atoms(_, [], []) :- !.
 normalize_metadata_atoms(Name, Values, Atoms) :-
@@ -516,6 +558,7 @@ cleanup_node_listener(Port, S) :-
           retractall(node_stopping(Port)),
           retractall(node_in_maintenance(Port)),
           retractall(node_configuration(Port, _, _, _, _, _, _)),
+          retractall(node_description(Port, _)),
           forget_node_settings(Port) )).
 
 register_node_connection(Port, Key, Stream) :-
@@ -941,8 +984,18 @@ handle_node_info(Port, C, Ver, Peer, Headers) :-
     sort(Provides0, Provides),
     json_string_list(Provides, ProvidesJSON),
     node_info_admission(Port, Admission),
-    node_json_object(
-        [admission-Admission,self_url-string_atom(SelfURL),profile-string_atom(Profile),
+    ( current_prolog_flag(version_data, trealla(Major, Minor, Patch, _))
+    -> format(atom(EngineVersion), '~w.~w.~w', [Major, Minor, Patch])
+    ; EngineVersion = unknown
+    ),
+    ( node_description(Port, Description), Description \== ''
+    -> DescriptionFields = [description-string_atom(Description)]
+    ; DescriptionFields = []
+    ),
+    InfoFields0 =
+        [admission-Admission,self_url-string_atom(SelfURL),
+         implementation-string_atom('Trealla Prolog'),
+         version-string_atom(EngineVersion),profile-string_atom(Profile),
          auth-string_atom(AuthMode),sandbox-string_atom(Sandbox),
          protocol_version-number(1),auth_boundary-string_atom(trusted_headers),
          trusted_identity_headers-list(IdentityHeaders),
@@ -953,7 +1006,8 @@ handle_node_info(Port, C, Ver, Peer, Headers) :-
          services-list(ServicesJSON),provides-list(ProvidesJSON),self_contained-boolean(true),
          ws_allowed_origins-list(WSAllowedOriginsJSON),
          tutorial_sections-list(TutorialSectionsJSON)],
-        JSON),
+    append(InfoFields0, DescriptionFields, InfoFields),
+    node_json_object(InfoFields, JSON),
     ( node_http_sessions(Port), Execution == true ->
         session_owner(SelfURL, Principal, Headers, _, ResponseHeaders)
     ; ResponseHeaders = []
