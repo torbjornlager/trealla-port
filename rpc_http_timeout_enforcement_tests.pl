@@ -16,6 +16,7 @@ rpc_http_timeout_enforcement_tests(Base) :-
     forall(member(Path,[headers,body,partial]),promise_timeout(Base,Path)),
     retry_success(Brief),
     parse_error(Base),
+    guard_controls(Base),
     writeln('HTTP request-deadline enforcement, retry/callbacks and resource cleanup: passed').
 
 rpc_http_timeout_enforcement_case(Name,Base) :-
@@ -27,6 +28,35 @@ enforcement_case(promise_body,Base) :- promise_timeout(Base,body).
 enforcement_case(promise_partial,Base) :- promise_timeout(Base,partial).
 enforcement_case(retry_success,Base) :- url(Base,brief,URL),retry_success(URL).
 enforcement_case(parse_error,Base) :- parse_error(Base).
+enforcement_case(guard_controls,Base) :- guard_controls(Base).
+
+%   Controls that arrive while an rpc with http_timeout/1 is reading must
+%   propagate promptly and unchanged (conformance RG-001..008): the owner's
+%   execution limit is not this rpc's deadline, and abort and termination
+%   are not request errors.
+guard_controls(Base) :-
+    url(Base,headers,URL),
+    owner_limit(URL),
+    forall(member(Ball,['$abort_goal',actor_exit]),signal_during_read(URL,Ball)),
+    url(Base,fast,Fast),rpc(Fast,X=ok),X==ok,
+    writeln('owner limit, abort and termination propagate through an rpc read').
+
+owner_limit(URL) :-
+    streams(Before),get_time(Start),
+    catch(call_with_time_limit(0.4,rpc(URL,_=ok,[http_timeout(5)])),Error,true),
+    enforcement_check(owner_limit_error(Error),
+        ( nonvar(Error), Error \= error(rpc_error(_),_),
+          ( Error == time_limit_exceeded ; Error = error(time_limit_exceeded(_,_),_) ) )),
+    enforcement_check(owner_limit_timely,timely(Start)),
+    streams(After),enforcement_check(owner_limit_streams(Before,After),Before==After).
+
+signal_during_read(URL,Ball) :-
+    thread_self(Me),streams(Before),get_time(Start),
+    thread_create((sleep(0.3),catch(thread_signal(Me,throw(Ball)),_,true)),_,[detached(true)]),
+    catch(rpc(URL,_=ok,[http_timeout(5)]),Caught,true),
+    enforcement_check(signal(Ball,Caught),Caught==Ball),
+    enforcement_check(signal_timely(Ball),timely(Start)),
+    streams(After),enforcement_check(signal_streams(Ball,Before,After),Before==After).
 
 parse_error(Base) :-
     url(Base,invalid,URL),streams(Before),

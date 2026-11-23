@@ -353,34 +353,45 @@ rpc_timeout_url(URL0, Options, URL) :-
     ).
 
 %   One HTTP request and its answer term. With a deadline, the whole request
-%   is bounded; a deadline of zero or less is reached before any I/O. The
-%   stream is opened in the setup goal so cleanup closes it on interruption.
+%   is bounded; a deadline of zero or less is reached before any I/O.
+%
+%   http_open/3 is not run as a setup goal: Trealla defers interrupts
+%   while a setup goal runs, so a request waiting there for the peer could
+%   not be interrupted by the owner's execution limit, an abort or actor
+%   termination until the peer answered (conformance RG-001..008). The body
+%   is read in the protected goal, so cleanup closes the stream if the read
+%   is interrupted. This is the structure d451596 used.
 rpc_http_answer(URL, Options0, Answer) :-
     exclude(rpc_internal_option, Options0, Options),
     (   memberchk('$rpc_deadline'(Deadline), Options0)
     ->  (   Deadline =< 0
         ->  rpc_deadline_exceeded
-        ;   catch(call_with_time_limit(Deadline, rpc_http_read(URL, Options, Answer)),
-                  Error, rpc_deadline_error(Error))
+        ;   get_time(Start),
+            catch(call_with_time_limit(Deadline, rpc_http_read(URL, Options, Answer)),
+                  Error, rpc_deadline_error(Error, Start, Deadline))
         )
     ;   rpc_http_read(URL, Options, Answer)
     ).
 
 rpc_http_read(URL, Options, Answer) :-
-    setup_call_cleanup(
-        http_open(URL, Stream, Options),
-        getline(Stream, BodyChars),
-        close(Stream)),
+    http_open(URL, Stream, Options),
+    setup_call_cleanup(true, getline(Stream, BodyChars), close(Stream)),
     atom_chars(BodyAtom, BodyChars),
     read_term_from_atom(BodyAtom, Answer, []).
 
 rpc_internal_option('$rpc_timeout'(_)).
 rpc_internal_option('$rpc_deadline'(_)).
 
-rpc_deadline_error(Error) :-
-    rpc_deadline_error_term(Error), !,
+%   Only this rpc's own deadline becomes rpc_error(http_timeout). A time
+%   limit that fires before the deadline has elapsed is the owner's
+%   execution limit and propagates unchanged, as do abort and termination.
+rpc_deadline_error(Error, Start, Deadline) :-
+    rpc_deadline_error_term(Error),
+    get_time(Now),
+    Now - Start >= Deadline - 0.005,
+    !,
     rpc_deadline_exceeded.
-rpc_deadline_error(Error) :-
+rpc_deadline_error(Error, _, _) :-
     throw(Error).
 
 rpc_deadline_error_term(time_limit_exceeded).

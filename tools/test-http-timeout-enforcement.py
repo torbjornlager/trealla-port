@@ -60,7 +60,7 @@ def main():
     parser.add_argument('--tpl', type=Path, required=True)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--case', default='all',
-                        choices=['all', 'promise_headers', 'promise_body', 'promise_partial', 'retry_success', 'parse_error'])
+                        choices=['all', 'promise_headers', 'promise_body', 'promise_partial', 'retry_success', 'parse_error', 'guard_controls'])
     args = parser.parse_args()
     executable = args.tpl.resolve()
     env = dict(os.environ, TPL_LIBRARY_PATH=str(executable.parent/'library'))

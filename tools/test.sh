@@ -187,6 +187,8 @@ run_unit() {
     http_timeout_port=$((TEST_PORT_BASE + 88))
     run_with_timeout "Promise stream cleanup on malformed replies" \
         python3 "$ROOT/tools/test-http-timeout-enforcement.py" --tpl "$TPL" --case parse_error
+    run_with_timeout "Controls propagate through an rpc read (RG-001..008)" \
+        python3 "$ROOT/tools/test-http-timeout-enforcement.py" --tpl "$TPL" --case guard_controls
     run_with_timeout "HTTP transport timeout option mapping" \
         "$TPL" -g "consult('$ROOT/rpc_http_timeout_tests.pl'),(catch(rpc_http_timeout_tests:run($http_timeout_port),E,(writeq(E),nl,fail))->halt;halt(1))"
     run_with_timeout "Host runtime properties" \
