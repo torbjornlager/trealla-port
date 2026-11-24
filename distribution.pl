@@ -369,8 +369,13 @@ synchronous_remote(Kind,Node,Pid,Goal,FallbackModule,Answer,Options0,Routing) :-
     make_ref(FreshRef),
     (Routing==caller -> RequestRef='$toplevel_sync'(FreshRef) ; RequestRef=FreshRef),
     MonitorRef='$sync_monitor'(RequestRef),
-    (Routing==caller -> WireQuery=[target(Self)|Query] ; WireQuery=Query),
-    portable_term_for_writer(Writer,Goal-WireQuery,PortableGoal-PortableOptions),
+    portable_term_for_writer(Writer,Goal-Query,PortableGoal-PortableQuery),
+    % The reply route of a synchronous call is a return handle on this
+    % connection, where the waiter is registered, not a qualified pid: a
+    % qualified target makes the peer reply over another connection.
+    ( Routing==caller -> endpoint_for_target(Writer,Self,SelfId),
+                         PortableOptions=[target(SelfId@localhost)|PortableQuery]
+    ; PortableOptions=PortableQuery ),
     ( Kind == call -> Message='$call'(PortableGoal,['$request_ref'(RequestRef)|PortableOptions])
     ; Message='$next'(['$request_ref'(RequestRef)|PortableOptions]) ),
     web_prolog:canonical_answer_text(Message,Text),

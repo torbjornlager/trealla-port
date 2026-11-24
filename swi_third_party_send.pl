@@ -23,6 +23,8 @@ run(HomePort,TreallaPort,NodeFile) :-
     wire_rule_test(WSURL),
     browser_reply_export_test(WSURL,URL),
     early_close_flush_test(WSURL),
+    format(atom(HomeURL),'http://127.0.0.1:~w',[HomePort]),
+    sync_reply_route_test(WSURL,HomeURL),
     format('Third-party sends to Trealla: ok~n').
 
 % A Trealla actor's own pid reaches another node as Id@URL, the same pid
@@ -114,6 +116,20 @@ early_close_flush_test(WSURL) :-
              event(WS,down,_),
              catch(websocket:ws_close(WS,1000,"done"),_,true),
              actors:receive({xn_flushed(I)->true},[timeout(5),on_timeout(throw(send_lost_on_close(I)))]) )).
+
+% A synchronous call from a Trealla actor to a toplevel on another node gets
+% its reply on the calling connection: the reply route stays a return handle
+% while the actor's other pids leave qualified (interop-actor IX-001, IX-003).
+sync_reply_route_test(WSURL,HomeURL) :-
+    format(string(Goal),
+           "toplevel_spawn(P,[node(~q),session(true)]),toplevel_call_synch(P,true,A,[timeout(3)]),(A==success(P,[true],false)->writeln(xn_sync_ok);writeln(xn_sync_bad)),toplevel_halt(P)",
+           [HomeURL]),
+    setup_call_cleanup(
+        websocket:http_open_websocket(WSURL,WS,[]),
+        ( ws_json(WS,_{command:spawn,goal:Goal,request_id:"xn-sync"}),
+          event(WS,spawned,_),
+          expect_output(WS,"xn_sync_ok") ),
+        catch(websocket:ws_close(WS,1000,"done"),_,true)).
 
 refused(WS,Command) :-
     ws_json(WS,Command),
