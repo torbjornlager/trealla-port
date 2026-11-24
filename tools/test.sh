@@ -600,6 +600,9 @@ run_interop() {
         run_with_timeout "Native SWI delegated lineage -> Trealla" \
             "$SWIPL" -q -s "$ROOT/swi_lineage_compat.pl" \
             -g "(catch(swi_lineage_compat:run($swi_actor_home_port,$trealla_remote_port,'$TRINITY_NODE_FILE'),E,(print_message(error,E),fail))->halt;halt(1))"
+        run_with_timeout "Third-party sends -> Trealla" \
+            "$SWIPL" -q -s "$ROOT/swi_third_party_send.pl" \
+            -g "(catch(swi_third_party_send:run($swi_actor_home_port,$trealla_remote_port,'$TRINITY_NODE_FILE'),E,(print_message(error,E),fail))->halt;halt(1))"
         run_with_timeout "Native SWI supervisor constructor -> Trealla" \
             "$SWIPL" -q -s "$ROOT/swi_supervisor_compat.pl" \
             -g "swi_supervisor_compat:run($swi_actor_home_port,$trealla_remote_port,'$TRINITY_NODE_FILE'),halt"

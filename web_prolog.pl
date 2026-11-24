@@ -586,8 +586,31 @@ send_target(JSON, _Relay, service(Name)) :-
     atom(Name),
     actors:published_service_target(Name, _),
     !.
+send_target(JSON, _Relay, actor(Pid)) :-
+    peer_send_target(JSON, Pid),
+    !.
 send_target(JSON, Relay, actor(Pid)) :-
     owned_pid(JSON, Relay, any, Pid).
+
+% An authenticated peer node may send to any live local actor, whichever
+% connection spawned it, as on the SWI nodes: a pid is an address, as in
+% Erlang. Browsers and anonymous clients keep connection ownership, and
+% exit, monitor and the toplevel commands stay owner-only (owned_pid/5).
+peer_send_target(JSON, RuntimePid) :-
+    relay_governance(Principal, _),
+    auth_policy:principal_has_capability(Principal, internal_transport),
+    json_pid_field(JSON, pid, WirePid),
+    integer(WirePid),
+    local_actor_for_wire_pid(WirePid, RuntimePid).
+
+local_actor_for_wire_pid(WirePid, RuntimePid) :-
+    with_mutex('$browser_actor_capabilities',
+               browser_actor_capability(_, WirePid, RuntimePid0)),
+    !,
+    RuntimePid = RuntimePid0,
+    actors:actor_thread(RuntimePid, _).
+local_actor_for_wire_pid(Pid, Pid) :-
+    actors:actor_thread(Pid, _).
 
 send_to_target(service(Name), Message) :- !,
     actors:send_service(Name, Message).
@@ -1310,6 +1333,9 @@ export_browser_pids(Term0, _Relay, Term0@Node) :-
     !.
 export_browser_pids(Term, _, Term) :- var(Term), !.
 export_browser_pids(Term, _, Term) :- atomic(Term), !.
+% Keep an already qualified pid intact: qualifying its integer again would
+% produce (Id@Node)@Node, which no peer can route.
+export_browser_pids(Id@Node, _, Id@Node) :- integer(Id), atom(Node), !.
 % Walk list spines directly. Rebuilding each cons through =../2 retains
 % successive tails in Trealla and exhausts memory on editor-sized sources.
 export_browser_pids([Head0|Tail0], Relay, [Head|Tail]) :- !,

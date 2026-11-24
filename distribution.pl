@@ -1551,8 +1551,8 @@ notify_node_target_stopped([node(_, remote_node(_, _, Writer))|Nodes], Target) :
 
 portable_term_for_writer(Writer, Term0, Term) :-
     ( local_runtime_pid(Term0) ->
-        endpoint_for_target(Writer, Term0, Id),
-        Term = Id@localhost
+        exported_local_pid(Writer, Term0, Term)
+    ; qualified_pid(Term0) -> Term = Term0
     ; var(Term0) -> Term = Term0
     ; atomic(Term0) -> Term = Term0
     ; functor(Term0, Name, Arity),
@@ -1567,6 +1567,26 @@ portable_term_args(Index, Arity, Writer, Term0, Term) :-
     arg(Index, Term, Arg),
     Next is Index + 1,
     portable_term_args(Next, Arity, Writer, Term0, Term).
+
+% A node with a public URL exports its actors as globally qualified pids, so a
+% receiver can pass them on and any peer node can send to them (see
+% web_prolog:peer_send_target/2). Without a public URL, a local pid becomes a
+% return handle valid only on this connection.
+exported_local_pid(_Writer, Pid, WirePid@URL) :-
+    web_prolog:current_node_url(URL),
+    !,
+    (   with_mutex('$browser_actor_capabilities',
+                   web_prolog:browser_actor_capability(_, WirePid0, Pid))
+    ->  WirePid = WirePid0
+    ;   WirePid = Pid
+    ).
+exported_local_pid(Writer, Pid, Id@localhost) :-
+    endpoint_for_target(Writer, Pid, Id).
+
+% An already qualified pid (Id@Node) is an address, not a structure to walk:
+% qualifying its integer again would produce (Id@Node)@Node, which no peer
+% can route.
+qualified_pid(Id@Node) :- integer(Id), atom(Node).
 
 local_runtime_pid(Pid) :-
     nonvar(Pid),

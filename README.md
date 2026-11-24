@@ -1313,7 +1313,12 @@ Ordinary actor syntax can therefore target a remote node:
 ```
 
 The same `Pid@Node` value works with `!/2`, `exit/2`, `monitor/2`, and
-`demonitor/1-2`. Cross-node links default to `true`, so termination of a
+`demonitor/1-2`. A WebSocket `send` from an authenticated peer node (a
+principal with `internal_transport`) may target any live local actor,
+whichever connection spawned it, as on the SWI nodes. Browsers and anonymous
+clients may send only to actors their own connection owns, and `exit`,
+`monitor` and the toplevel commands stay owner-only for every caller.
+Cross-node links default to `true`, so termination of a
 local parent propagates an exit to its remote children. Multiple local
 actors may independently monitor one remote PID; the connection-owned
 wire notification is fanned out as one `down/3` per local monitor.
@@ -1339,9 +1344,12 @@ echo_service :-
 inspects the local service registry.  Service publication is independent of
 ordinary `register/2` names and of individual WebSocket connections.
 
-Local actor PIDs embedded in remote goals or messages are exported as
-connection-scoped `Id@localhost` capabilities.  A remote Trealla or SWI actor
-can therefore reply with ordinary actor syntax over the same WebSocket:
+A running node exports local actor PIDs embedded in remote goals or messages
+as globally qualified `Id@NodeURL` values, the same PIDs that `spawn/3`
+returned to the creator. A receiver can pass one on to a third node, and any
+peer node can send to it. A process without a node listener, such as a plain
+client, exports connection-scoped `Id@localhost` return handles instead.
+Either way a remote Trealla or SWI actor can reply with ordinary actor syntax:
 
 ```prolog
 ?- self(Self),
