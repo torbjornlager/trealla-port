@@ -748,7 +748,9 @@ relay_message(WS, '$browser_message'(Target, Message)) :- !,
     ; browser_session_answer(Message)
     -> self(Relay), wire_event(Relay,Message,Answer),
        browser_correlated_answer(Answer,WireMessage)
-    ; WireMessage = Message ),
+    ; % Local pids in a reply leave qualified, as on a peer connection, so
+      % the receiver can reply to them or pass them on to a third node.
+      self(Relay), export_browser_pids(Message, Relay, WireMessage) ),
     send_event(WS, actor_message(Target, WireMessage)).
 
 browser_session_answer(Message) :-

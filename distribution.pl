@@ -513,7 +513,7 @@ remote_writer_start(WS, URL, Owner, capabilities(Sync,Correlated)) :-
     % whose welcome omits answer_terms. Do not send the first query early.
     receive({
         '$wire_capabilities'(Exact) -> nb_setval('$distribution_answer_terms', Exact), Ready = true ;
-        '$remote_close' -> distribution:writer_message('$remote_close',WS,URL,Ready) ;
+        '$remote_close' -> distribution:flush_remote_json(WS), distribution:writer_message('$remote_close',WS,URL,Ready) ;
         '$remote_lost'(URL, Reason) -> distribution:writer_message('$remote_lost'(URL,Reason),WS,URL,Ready)
     }, []),
     ( Ready == true -> remote_writer_loop(WS, URL) ; true ).
@@ -523,6 +523,14 @@ send_transport_hello(WS) :-
                        version-number(1),browser_pids-boolean(true),
                        io_ack-boolean(true),answer_terms-boolean(true)], JSON),
     web_prolog_send(WS, JSON).
+
+% A send queued before the welcome was still sent by its actor: deliver it
+% before closing, as the writer loop would have. The selective wait above
+% leaves it in the mailbox.
+flush_remote_json(WS) :-
+    receive({ '$remote_json'(JSON) -> catch(web_prolog_send(WS, JSON), _, true), Flushed = true },
+            [timeout(0), on_timeout(Flushed = false)]),
+    ( Flushed == true -> flush_remote_json(WS) ; true ).
 
 remote_writer_loop(WS, URL) :-
     receive({ Message -> true }, []),

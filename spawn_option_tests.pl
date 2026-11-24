@@ -84,9 +84,11 @@ spawn_options_live_session(Node,URL) :-
     expect_spawn_error(remote_spawn(Node,true,Unbound,[link(true),link(bad)]),
         domain_error(boolean,bad),distribution:remote_spawn/4),var(Unbound).
 
-% Existing peers report self either as the wire id or its canonical address.
+% Existing peers report self as the wire id or as a qualified address. The
+% node qualifies with its own URL, which may spell the host differently
+% from the caller (127.0.0.1 here, localhost in Pid).
 matching_remote_self(Seen,Pid) :-
-    Pid=Wire@_,(Seen==Pid -> true ; Seen==Wire).
+    Pid=Wire@_,(Seen==Pid -> true ; Seen==Wire -> true ; nonvar(Seen), Seen=Wire@Node, atom(Node)).
 
 spawn_supported_vectors :-
     % A node URI is an atom or a string (a list of characters or codes).

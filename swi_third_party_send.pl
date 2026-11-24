@@ -21,6 +21,8 @@ run(HomePort,TreallaPort,NodeFile) :-
     requalified_pid_test(URL),
     third_party_reply_test(WSURL),
     wire_rule_test(WSURL),
+    browser_reply_export_test(WSURL,URL),
+    early_close_flush_test(WSURL),
     format('Third-party sends to Trealla: ok~n').
 
 % A Trealla actor's own pid reaches another node as Id@URL, the same pid
@@ -82,6 +84,36 @@ wire_rule_test(WSURL) :-
         ( catch(websocket:ws_close(Owner,1000,"done"),_,true),
           catch(websocket:ws_close(Peer,1000,"done"),_,true),
           catch(websocket:ws_close(Browser,1000,"done"),_,true) )).
+
+% A Trealla actor that replies to a browser connection's virtual address sends
+% its own pid qualified, as on a peer connection (N7's browser shells reach
+% Trealla this way), not as a bare integer.
+browser_reply_export_test(WSURL,URL) :-
+    setup_call_cleanup(
+        websocket:http_open_websocket(WSURL,WS,[]),
+        ( ws_json(WS,_{command:transport_hello,version:1,browser_pids:true}),
+          event(WS,transport_welcome,_),
+          ws_json(WS,_{command:spawn,goal:"self(Me),send(1234567890@localhost,xn_me(Me))",
+                       request_id:"xn-browser-reply"}),
+          event(WS,spawned,Spawned),
+          event(WS,actor_message,Reply),
+          format(string(Expected),"xn_me(~w@'~w')",[Spawned.pid,URL]),
+          ( Reply.message == Expected -> true ; throw(unqualified_browser_reply(Reply.message,Expected)) ) ),
+        catch(websocket:ws_close(WS,1000,"done"),_,true)).
+
+% An actor's send to another node is delivered even when the connection that
+% owns the actor closes as soon as the actor ends, before the new outbound
+% connection has seen the receiving node's welcome (N7 closes this way).
+early_close_flush_test(WSURL) :-
+    actors:self(Client),
+    forall(between(1,5,I),
+           ( format(string(Goal),"send(~q,xn_flushed(~w))",[Client,I]),
+             websocket:http_open_websocket(WSURL,WS,[]),
+             ws_json(WS,_{command:spawn,goal:Goal,request_id:"xn-flush"}),
+             event(WS,spawned,_),
+             event(WS,down,_),
+             catch(websocket:ws_close(WS,1000,"done"),_,true),
+             actors:receive({xn_flushed(I)->true},[timeout(5),on_timeout(throw(send_lost_on_close(I)))]) )).
 
 refused(WS,Command) :-
     ws_json(WS,Command),
